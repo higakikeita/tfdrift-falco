@@ -32,4 +32,17 @@ type DriftAlert struct {
 	UserIdentity UserIdentity
 	MatchedRules []string
 	Timestamp    string
+	AlertType    string // "drift" or "unmanaged"
+}
+
+// UnmanagedResourceAlert represents a resource not managed by Terraform
+type UnmanagedResourceAlert struct {
+	Severity     string
+	ResourceType string
+	ResourceID   string
+	EventName    string
+	UserIdentity UserIdentity
+	Changes      map[string]interface{}
+	Timestamp    string
+	Reason       string // Why it's considered unmanaged
 }

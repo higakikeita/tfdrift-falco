@@ -126,7 +126,8 @@ func (d *Detector) handleEvent(event types.Event) {
 	resource, exists := d.stateManager.GetResource(event.ResourceID)
 	if !exists {
 		log.Warnf("Resource %s not found in Terraform state (unmanaged resource)", event.ResourceID)
-		// TODO: Send alert for unmanaged resource
+		// Send alert for unmanaged resource
+		d.sendUnmanagedResourceAlert(&event)
 		return
 	}
 
@@ -144,6 +145,14 @@ func (d *Detector) handleEvent(event types.Event) {
 			continue
 		}
 
+		// Extract timestamp safely
+		timestamp := ""
+		if rawEvent, ok := event.RawEvent.(map[string]interface{}); ok {
+			if eventTime, ok := rawEvent["eventTime"].(string); ok {
+				timestamp = eventTime
+			}
+		}
+
 		alert := &types.DriftAlert{
 			Severity:     d.getSeverity(matchedRules),
 			ResourceType: resource.Type,
@@ -154,7 +163,8 @@ func (d *Detector) handleEvent(event types.Event) {
 			NewValue:     drift.NewValue,
 			UserIdentity: event.UserIdentity,
 			MatchedRules: matchedRules,
-			Timestamp:    event.RawEvent.(map[string]interface{})["eventTime"].(string),
+			Timestamp:    timestamp,
+			AlertType:    "drift", // Mark as drift alert
 		}
 
 		d.sendAlert(alert)
@@ -267,6 +277,46 @@ func (d *Detector) sendAlert(alert *types.DriftAlert) {
 	if err := d.notifier.Send(alert); err != nil {
 		log.Errorf("Failed to send alert: %v", err)
 	}
+}
+
+// sendUnmanagedResourceAlert sends an alert for unmanaged resources
+func (d *Detector) sendUnmanagedResourceAlert(event *types.Event) {
+	// Extract timestamp from raw event
+	timestamp := ""
+	if rawEvent, ok := event.RawEvent.(map[string]interface{}); ok {
+		if eventTime, ok := rawEvent["eventTime"].(string); ok {
+			timestamp = eventTime
+		}
+	}
+
+	alert := &types.UnmanagedResourceAlert{
+		Severity:     "warning", // Default severity for unmanaged resources
+		ResourceType: event.ResourceType,
+		ResourceID:   event.ResourceID,
+		EventName:    event.EventName,
+		UserIdentity: event.UserIdentity,
+		Changes:      event.Changes,
+		Timestamp:    timestamp,
+		Reason:       fmt.Sprintf("Resource %s (%s) is not found in Terraform state", event.ResourceID, event.ResourceType),
+	}
+
+	// Format and display
+	consoleOutput := d.formatter.FormatUnmanagedResource(alert)
+	fmt.Println(consoleOutput)
+
+	// Also log
+	log.Warnf("UNMANAGED RESOURCE: %s (%s) - Event: %s by %s",
+		alert.ResourceID, alert.ResourceType, alert.EventName, alert.UserIdentity.UserName)
+
+	if d.cfg.DryRun {
+		log.Info("[DRY-RUN] Unmanaged resource alert notification skipped")
+		fmt.Println("\n=== Markdown Format (for Slack) ===")
+		fmt.Println(d.formatter.FormatUnmanagedResourceMarkdown(alert))
+		return
+	}
+
+	// TODO: Send to notification channels
+	// For now, console output is enough
 }
 
 // AttributeDrift represents a single attribute change

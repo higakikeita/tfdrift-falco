@@ -63,18 +63,21 @@ func (f *DiffFormatter) FormatConsole(alert *types.DriftAlert) string {
 	b.WriteString(f.color(ColorBold, "\n📝 Value Change:\n"))
 	b.WriteString(f.formatValueChange(alert.OldValue, alert.NewValue))
 
-	// User Context
-	b.WriteString(f.color(ColorBold, "\n👤 Changed By:\n"))
-	b.WriteString(fmt.Sprintf("  User:       %s\n", f.color(ColorPurple, alert.UserIdentity.UserName)))
+	// User Context - WHO made the change
+	b.WriteString(f.color(ColorBold+ColorYellow, "\n👤 WHO Changed It:\n"))
+	b.WriteString(fmt.Sprintf("  User:       %s\n", f.color(ColorPurple+ColorBold, alert.UserIdentity.UserName)))
 	b.WriteString(fmt.Sprintf("  Type:       %s\n", alert.UserIdentity.Type))
 	if alert.UserIdentity.ARN != "" {
 		b.WriteString(fmt.Sprintf("  ARN:        %s\n", f.color(ColorGray, alert.UserIdentity.ARN)))
 	}
+	if alert.UserIdentity.PrincipalID != "" {
+		b.WriteString(fmt.Sprintf("  Principal:  %s\n", f.color(ColorGray, alert.UserIdentity.PrincipalID)))
+	}
 	b.WriteString(fmt.Sprintf("  Account:    %s\n", alert.UserIdentity.AccountID))
 
-	// Timestamp
-	b.WriteString(f.color(ColorBold, "\n⏰ Timestamp:\n"))
-	b.WriteString(fmt.Sprintf("  %s\n", alert.Timestamp))
+	// Timestamp - WHEN the change happened
+	b.WriteString(f.color(ColorBold+ColorYellow, "\n⏰ WHEN It Changed:\n"))
+	b.WriteString(fmt.Sprintf("  %s\n", f.color(ColorCyan, alert.Timestamp)))
 
 	// Matched Rules
 	if len(alert.MatchedRules) > 0 {
@@ -417,6 +420,94 @@ func (f *DiffFormatter) FormatSideBySide(alert *types.DriftAlert) string {
 			))
 		}
 	}
+
+	return b.String()
+}
+
+// FormatUnmanagedResource formats an unmanaged resource alert for console output
+func (f *DiffFormatter) FormatUnmanagedResource(alert *types.UnmanagedResourceAlert) string {
+	var b strings.Builder
+
+	// Header
+	severityColor := f.getSeverityColor(alert.Severity)
+	b.WriteString(f.color(severityColor, "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"))
+	b.WriteString(f.color(ColorBold, "⚠️  UNMANAGED RESOURCE DETECTED\n"))
+	b.WriteString(f.color(severityColor, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"))
+
+	// Severity
+	b.WriteString(f.color(ColorBold, "\n📊 Severity: "))
+	b.WriteString(f.color(severityColor, strings.ToUpper(alert.Severity)))
+	b.WriteString("\n")
+
+	// Resource info
+	b.WriteString(f.color(ColorBold, "\n📦 Resource:\n"))
+	b.WriteString(fmt.Sprintf("   Type: %s\n", f.color(ColorCyan, alert.ResourceType)))
+	b.WriteString(fmt.Sprintf("   ID:   %s\n", f.color(ColorYellow, alert.ResourceID)))
+
+	// Event
+	b.WriteString(f.color(ColorBold, "\n🔔 Event: "))
+	b.WriteString(alert.EventName)
+	b.WriteString("\n")
+
+	// Timestamp
+	b.WriteString(f.color(ColorBold, "\n🕐 When: "))
+	b.WriteString(f.color(ColorGray, alert.Timestamp))
+	b.WriteString("\n")
+
+	// User identity - WHO made the change
+	b.WriteString(f.color(ColorBold, "\n👤 Who Changed It:\n"))
+	b.WriteString(fmt.Sprintf("   User:     %s\n", f.color(ColorPurple, alert.UserIdentity.UserName)))
+	if alert.UserIdentity.ARN != "" {
+		b.WriteString(fmt.Sprintf("   ARN:      %s\n", alert.UserIdentity.ARN))
+	}
+	if alert.UserIdentity.PrincipalID != "" {
+		b.WriteString(fmt.Sprintf("   Principal: %s\n", alert.UserIdentity.PrincipalID))
+	}
+
+	// Reason
+	b.WriteString(f.color(ColorBold, "\n⚠️  Reason:\n"))
+	b.WriteString(f.color(ColorYellow, fmt.Sprintf("   %s\n", alert.Reason)))
+
+	// Changes
+	if len(alert.Changes) > 0 {
+		b.WriteString(f.color(ColorBold, "\n🔄 Changes Made:\n"))
+		for key, value := range alert.Changes {
+			b.WriteString(fmt.Sprintf("   %s: %v\n", key, value))
+		}
+	}
+
+	// Recommendation
+	b.WriteString(f.color(ColorBold, "\n💡 Recommendation:\n"))
+	b.WriteString(f.color(ColorYellow, "   This resource is not managed by Terraform.\n"))
+	b.WriteString(f.color(ColorYellow, "   Consider importing it:\n"))
+	b.WriteString(f.color(ColorGray, fmt.Sprintf("   terraform import %s.resource_name %s\n",
+		alert.ResourceType, alert.ResourceID)))
+
+	b.WriteString(f.color(severityColor, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"))
+
+	return b.String()
+}
+
+// FormatUnmanagedResourceMarkdown formats an unmanaged resource alert for Slack/Discord
+func (f *DiffFormatter) FormatUnmanagedResourceMarkdown(alert *types.UnmanagedResourceAlert) string {
+	var b strings.Builder
+
+	emoji := "⚠️"
+	if alert.Severity == "critical" {
+		emoji = "🚨"
+	}
+
+	b.WriteString(fmt.Sprintf("%s **UNMANAGED RESOURCE DETECTED**\n\n", emoji))
+	b.WriteString(fmt.Sprintf("**Severity:** %s\n", strings.ToUpper(alert.Severity)))
+	b.WriteString(fmt.Sprintf("**Resource Type:** `%s`\n", alert.ResourceType))
+	b.WriteString(fmt.Sprintf("**Resource ID:** `%s`\n", alert.ResourceID))
+	b.WriteString(fmt.Sprintf("**Event:** %s\n", alert.EventName))
+	b.WriteString(fmt.Sprintf("**When:** %s\n", alert.Timestamp))
+	b.WriteString(fmt.Sprintf("**Who:** %s (`%s`)\n", alert.UserIdentity.UserName, alert.UserIdentity.ARN))
+	b.WriteString(fmt.Sprintf("\n**Reason:** %s\n\n", alert.Reason))
+	b.WriteString("This resource is not managed by Terraform. Consider importing it:\n")
+	b.WriteString(fmt.Sprintf("```\nterraform import %s.resource_name %s\n```\n",
+		alert.ResourceType, alert.ResourceID))
 
 	return b.String()
 }
