@@ -104,6 +104,160 @@
   source: aws_cloudtrail
   tags: [terraform, drift, iam, security]
 
+- rule: IAM User Policy Attached
+  desc: Detect when a policy is attached to an IAM user
+  condition: >
+    ct.name="AttachUserPolicy"
+  output: >
+    IAM policy attached to user
+    (user=%ct.user targetUser=%ct.request.userName policy=%ct.request.policyArn account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM User Inline Policy Added
+  desc: Detect when an inline policy is added to an IAM user
+  condition: >
+    ct.name="PutUserPolicy"
+  output: >
+    IAM inline policy added to user
+    (user=%ct.user targetUser=%ct.request.userName policyName=%ct.request.policyName account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM Group Policy Attached
+  desc: Detect when a policy is attached to an IAM group
+  condition: >
+    ct.name="AttachGroupPolicy"
+  output: >
+    IAM policy attached to group
+    (user=%ct.user group=%ct.request.groupName policy=%ct.request.policyArn account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM Group Inline Policy Added
+  desc: Detect when an inline policy is added to an IAM group
+  condition: >
+    ct.name="PutGroupPolicy"
+  output: >
+    IAM inline policy added to group
+    (user=%ct.user group=%ct.request.groupName policyName=%ct.request.policyName account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM Policy Created
+  desc: Detect when a new managed IAM policy is created
+  condition: >
+    ct.name="CreatePolicy"
+  output: >
+    IAM managed policy created
+    (user=%ct.user policyName=%ct.request.policyName policyArn=%ct.response.policy.arn account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM Policy Version Created
+  desc: Detect when a new version of a managed IAM policy is created
+  condition: >
+    ct.name="CreatePolicyVersion"
+  output: >
+    IAM policy version created
+    (user=%ct.user policyArn=%ct.request.policyArn setAsDefault=%ct.request.setAsDefault account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM Role Created
+  desc: Detect when a new IAM role is created
+  condition: >
+    ct.name="CreateRole"
+  output: >
+    IAM role created
+    (user=%ct.user roleName=%ct.request.roleName account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM Role Deleted
+  desc: Detect when an IAM role is deleted
+  condition: >
+    ct.name="DeleteRole"
+  output: >
+    IAM role deleted
+    (user=%ct.user roleName=%ct.request.roleName account=%ct.account)
+  priority: CRITICAL
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM User Created
+  desc: Detect when a new IAM user is created
+  condition: >
+    ct.name="CreateUser"
+  output: >
+    IAM user created
+    (user=%ct.user newUser=%ct.request.userName account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM User Deleted
+  desc: Detect when an IAM user is deleted
+  condition: >
+    ct.name="DeleteUser"
+  output: >
+    IAM user deleted
+    (user=%ct.user deletedUser=%ct.request.userName account=%ct.account)
+  priority: CRITICAL
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM Access Key Created
+  desc: Detect when an IAM access key is created
+  condition: >
+    ct.name="CreateAccessKey"
+  output: >
+    IAM access key created
+    (user=%ct.user targetUser=%ct.request.userName accessKeyId=%ct.response.accessKey.accessKeyId account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM User Added to Group
+  desc: Detect when an IAM user is added to a group
+  condition: >
+    ct.name="AddUserToGroup"
+  output: >
+    IAM user added to group
+    (user=%ct.user targetUser=%ct.request.userName group=%ct.request.groupName account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM User Removed from Group
+  desc: Detect when an IAM user is removed from a group
+  condition: >
+    ct.name="RemoveUserFromGroup"
+  output: >
+    IAM user removed from group
+    (user=%ct.user targetUser=%ct.request.userName group=%ct.request.groupName account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM Password Policy Changed
+  desc: Detect changes to account password policy
+  condition: >
+    ct.name="UpdateAccountPasswordPolicy"
+  output: >
+    IAM account password policy changed
+    (user=%ct.user account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
 - rule: RDS Instance Modified
   desc: Detect modifications to RDS database instances
   condition: >
