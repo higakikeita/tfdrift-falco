@@ -54,9 +54,12 @@ type GCPConfig struct {
 
 // FalcoConfig contains Falco integration settings
 type FalcoConfig struct {
-	Enabled      bool   `yaml:"enabled"`
-	Socket       string `yaml:"socket"`
-	GRPCEndpoint string `yaml:"grpc_endpoint"`
+	Enabled    bool   `yaml:"enabled" mapstructure:"enabled"`
+	Hostname   string `yaml:"hostname" mapstructure:"hostname"`
+	Port       uint16 `yaml:"port" mapstructure:"port"`
+	CertFile   string `yaml:"cert_file" mapstructure:"cert_file"`
+	KeyFile    string `yaml:"key_file" mapstructure:"key_file"`
+	CARootFile string `yaml:"ca_root_file" mapstructure:"ca_root_file"`
 }
 
 // DriftRule defines a drift detection rule

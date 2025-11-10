@@ -9,7 +9,7 @@ providers:
       s3_bucket: ""
     state:
       backend: "local"
-      local_path: "./examples/terraform.tfstate"
+      local_path: "./examples/terraform/terraform.tfstate"
 
   gcp:
     enabled: false

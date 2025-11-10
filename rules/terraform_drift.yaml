@@ -1,0 +1,180 @@
+# Falco Rules for Terraform Drift Detection
+#
+# These rules detect manual changes to Terraform-managed AWS resources
+# by monitoring CloudTrail events via the Falco CloudTrail plugin.
+
+- rule: EC2 Termination Protection Disabled
+  desc: Detect when EC2 instance termination protection is disabled
+  condition: >
+    ct.name="ModifyInstanceAttribute" and
+    ct.request.disableApiTermination=false
+  output: >
+    EC2 termination protection disabled
+    (user=%ct.user instance=%ct.request.instanceId region=%ct.region account=%ct.account)
+  priority: CRITICAL
+  source: aws_cloudtrail
+  tags: [terraform, drift, ec2, security]
+
+- rule: EC2 Instance Type Changed
+  desc: Detect when EC2 instance type is modified
+  condition: >
+    ct.name="ModifyInstanceAttribute" and
+    ct.request.instanceType exists
+  output: >
+    EC2 instance type changed
+    (user=%ct.user instance=%ct.request.instanceId type=%ct.request.instanceType.value region=%ct.region)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, ec2, cost]
+
+- rule: S3 Bucket Encryption Disabled
+  desc: Detect when S3 bucket encryption is removed
+  condition: >
+    ct.name="DeleteBucketEncryption"
+  output: >
+    S3 bucket encryption removed
+    (user=%ct.user bucket=%ct.request.bucket region=%ct.region account=%ct.account)
+  priority: CRITICAL
+  source: aws_cloudtrail
+  tags: [terraform, drift, s3, security]
+
+- rule: S3 Bucket Encryption Modified
+  desc: Detect when S3 bucket encryption configuration is changed
+  condition: >
+    ct.name="PutBucketEncryption"
+  output: >
+    S3 bucket encryption modified
+    (user=%ct.user bucket=%ct.request.bucket region=%ct.region)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, s3, security]
+
+- rule: S3 Bucket Policy Changed
+  desc: Detect modifications to S3 bucket policies
+  condition: >
+    ct.name="PutBucketPolicy"
+  output: >
+    S3 bucket policy changed
+    (user=%ct.user bucket=%ct.request.bucket region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, s3, security]
+
+- rule: S3 Bucket Versioning Changed
+  desc: Detect changes to S3 bucket versioning
+  condition: >
+    ct.name="PutBucketVersioning"
+  output: >
+    S3 bucket versioning changed
+    (user=%ct.user bucket=%ct.request.bucket status=%ct.request.versioningConfiguration.Status region=%ct.region)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, s3]
+
+- rule: IAM Role Trust Policy Modified
+  desc: Detect modifications to IAM role trust policies
+  condition: >
+    ct.name="UpdateAssumeRolePolicy"
+  output: >
+    IAM role trust policy modified
+    (user=%ct.user role=%ct.request.roleName region=%ct.region account=%ct.account)
+  priority: CRITICAL
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM Role Policy Attached
+  desc: Detect when a policy is attached to an IAM role
+  condition: >
+    ct.name="AttachRolePolicy"
+  output: >
+    IAM policy attached to role
+    (user=%ct.user role=%ct.request.roleName policy=%ct.request.policyArn region=%ct.region)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: IAM Inline Policy Added
+  desc: Detect when an inline policy is added to an IAM role
+  condition: >
+    ct.name="PutRolePolicy"
+  output: >
+    IAM inline policy added to role
+    (user=%ct.user role=%ct.request.roleName policyName=%ct.request.policyName region=%ct.region)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: RDS Instance Modified
+  desc: Detect modifications to RDS database instances
+  condition: >
+    ct.name="ModifyDBInstance"
+  output: >
+    RDS instance modified
+    (user=%ct.user instance=%ct.request.dBInstanceIdentifier region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, rds]
+
+- rule: RDS Cluster Modified
+  desc: Detect modifications to RDS database clusters
+  condition: >
+    ct.name="ModifyDBCluster"
+  output: >
+    RDS cluster modified
+    (user=%ct.user cluster=%ct.request.dBClusterIdentifier region=%ct.region)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, rds]
+
+- rule: Lambda Function Configuration Changed
+  desc: Detect changes to Lambda function configuration
+  condition: >
+    ct.name="UpdateFunctionConfiguration"
+  output: >
+    Lambda function configuration changed
+    (user=%ct.user function=%ct.request.functionName region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, lambda]
+
+- rule: Lambda Function Code Updated
+  desc: Detect updates to Lambda function code
+  condition: >
+    ct.name="UpdateFunctionCode"
+  output: >
+    Lambda function code updated
+    (user=%ct.user function=%ct.request.functionName region=%ct.region)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, lambda]
+
+- rule: EBS Volume Modified
+  desc: Detect modifications to EBS volumes
+  condition: >
+    ct.name="ModifyVolume"
+  output: >
+    EBS volume modified
+    (user=%ct.user volume=%ct.request.volumeId region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, ebs]
+
+# Macro for common Terraform-managed resource filter
+- macro: is_terraform_managed
+  condition: >
+    (ct.resource.tags contains "ManagedBy=Terraform" or
+     ct.resource.tags contains "terraform=true")
+
+# Example of filtering only Terraform-managed resources (commented out by default)
+# - rule: EC2 Termination Protection Disabled (Terraform Only)
+#   desc: Detect when termination protection is disabled on Terraform-managed EC2 instances
+#   condition: >
+#     ct.name="ModifyInstanceAttribute" and
+#     ct.request.disableApiTermination=false and
+#     is_terraform_managed
+#   output: >
+#     Terraform-managed EC2 termination protection disabled
+#     (user=%ct.user instance=%ct.request.instanceId)
+#   priority: CRITICAL
+#   source: aws_cloudtrail
+#   tags: [terraform, drift, ec2, security]
