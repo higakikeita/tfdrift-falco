@@ -1,0 +1,125 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please fill out the form below to help us understand your idea.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: I'm frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like
+      placeholder: I would like to see...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions or features?
+      placeholder: I've also thought about...
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: What area does this feature relate to?
+      options:
+        - Cloud Provider Integration (AWS/GCP/Azure)
+        - Drift Detection Rules
+        - Notification Channels
+        - Terraform State Management
+        - Falco Integration
+        - Performance
+        - Security
+        - User Interface / CLI
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Critical - Blocking my use case
+        - High - Would significantly improve my workflow
+        - Medium - Nice to have
+        - Low - Minor enhancement
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe your specific use case for this feature
+      placeholder: |
+        I need this feature because...
+        Example scenario: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples
+      description: Provide examples of how this feature would work
+      placeholder: |
+        ```yaml
+        # Example configuration
+        drift_rules:
+          - name: "My New Rule"
+            ...
+        ```
+
+  - type: textarea
+    id: similar
+    attributes:
+      label: Similar Features in Other Tools
+      description: Do you know of similar features in other tools?
+      placeholder: Tool X has a similar feature that works like...
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to contribute this feature myself (with guidance)
+        - label: I can help with testing once implemented
+        - label: I can help with documentation
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context or screenshots about the feature request
+      placeholder: Mockups, diagrams, related issues, etc.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues to avoid duplicates
+          required: true
+        - label: I have checked the roadmap to see if this is already planned
+          required: true
+        - label: I have provided sufficient detail above
+          required: true

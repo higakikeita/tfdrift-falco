@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/higakikeita/tfdrift-falco/discussions
+    about: Ask questions, share ideas, and engage with the community
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/higakikeita/tfdrift-falco/security/advisories/new
+    about: Report security vulnerabilities privately
+  - name: 📚 Documentation
+    url: https://github.com/higakikeita/tfdrift-falco#readme
+    about: Read the documentation
+  - name: 🐦 X (Twitter)
+    url: https://x.com/keitah0322
+    about: Follow updates and announcements
