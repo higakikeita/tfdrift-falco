@@ -465,8 +465,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Author: Keita Higaki
 - GitHub: [@keitahigaki](https://github.com/keitahigaki)
-- Twitter: [@keitahigaki](https://twitter.com/keitahigaki)
-- Blog: [blog.keitahigaki.com](https://blog.keitahigaki.com)
+- X (Twitter): [@keitah0322](https://x.com/keitah0322)
 
 ---
 
@@ -668,7 +667,7 @@ IaCワークフローをバイパスした不正なインフラ変更を検知�
 
 - 作者: Keita Higaki
 - GitHub: [@keitahigaki](https://github.com/keitahigaki)
-- Twitter: [@keitahigaki](https://twitter.com/keitahigaki)
+- X (Twitter): [@keitah0322](https://x.com/keitah0322)
 
 ---
 
