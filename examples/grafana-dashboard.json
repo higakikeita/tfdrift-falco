@@ -1,0 +1,249 @@
+{
+  "dashboard": {
+    "title": "TFDrift-Falco Monitoring",
+    "tags": ["tfdrift", "terraform", "falco", "drift-detection"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Drift Alerts by Severity",
+        "type": "piechart",
+        "gridPos": {
+          "h": 8,
+          "w": 8,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "sum by(severity) (tfdrift_drift_alerts_total)",
+            "legendFormat": "{{severity}}"
+          }
+        ],
+        "fieldConfig": {
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "critical" },
+              "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }]
+            },
+            {
+              "matcher": { "id": "byName", "options": "high" },
+              "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }]
+            },
+            {
+              "matcher": { "id": "byName", "options": "medium" },
+              "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }]
+            },
+            {
+              "matcher": { "id": "byName", "options": "low" },
+              "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }]
+            }
+          ]
+        }
+      },
+      {
+        "id": 2,
+        "title": "Current Unresolved Alerts",
+        "type": "stat",
+        "gridPos": {
+          "h": 4,
+          "w": 4,
+          "x": 8,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "sum(tfdrift_unresolved_alerts)",
+            "legendFormat": "Total"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 10, "color": "yellow" },
+                { "value": 50, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Critical Alerts",
+        "type": "stat",
+        "gridPos": {
+          "h": 4,
+          "w": 4,
+          "x": 12,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "sum(tfdrift_unresolved_alerts{severity=\"critical\"})"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": { "mode": "fixed", "fixedColor": "red" },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 1, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Component Health Status",
+        "type": "stat",
+        "gridPos": {
+          "h": 4,
+          "w": 4,
+          "x": 16,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "tfdrift_component_status",
+            "legendFormat": "{{component}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              { "value": 1, "text": "✅ Healthy", "color": "green" },
+              { "value": 0, "text": "❌ Unhealthy", "color": "red" }
+            ]
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Drift Alerts Over Time",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 8,
+          "y": 4
+        },
+        "targets": [
+          {
+            "expr": "rate(tfdrift_drift_alerts_total[5m])",
+            "legendFormat": "{{severity}}"
+          }
+        ],
+        "legend": {
+          "show": true
+        },
+        "xaxis": {
+          "mode": "time"
+        },
+        "yaxis": {
+          "format": "ops",
+          "label": "Alerts per second"
+        }
+      },
+      {
+        "id": 6,
+        "title": "Top 10 Drifted Resource Types",
+        "type": "bargauge",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "topk(10, sum by(resource_type) (tfdrift_drift_alerts_total))",
+            "legendFormat": "{{resource_type}}"
+          }
+        ],
+        "options": {
+          "orientation": "horizontal",
+          "displayMode": "gradient"
+        }
+      },
+      {
+        "id": 7,
+        "title": "Events Processed by Type",
+        "type": "timeseries",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "rate(tfdrift_events_processed_total[5m])",
+            "legendFormat": "{{event_type}} ({{status}})"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Detection Latency (p50, p95, p99)",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(tfdrift_detection_latency_seconds_bucket[5m]))",
+            "legendFormat": "p50"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(tfdrift_detection_latency_seconds_bucket[5m]))",
+            "legendFormat": "p95"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(tfdrift_detection_latency_seconds_bucket[5m]))",
+            "legendFormat": "p99"
+          }
+        ],
+        "yaxis": {
+          "format": "s",
+          "label": "Latency"
+        }
+      },
+      {
+        "id": 9,
+        "title": "Alert Heatmap by Hour",
+        "type": "heatmap",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        },
+        "targets": [
+          {
+            "expr": "sum by(le) (rate(tfdrift_drift_alerts_total[1h]))"
+          }
+        ],
+        "options": {
+          "calculate": true,
+          "yAxis": {
+            "format": "short"
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}

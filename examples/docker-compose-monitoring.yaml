@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # TFDrift-Falco main service
+  tfdrift-falco:
+    build: ..
+    container_name: tfdrift-falco
+    ports:
+      - "9090:9090"  # Prometheus metrics endpoint
+    volumes:
+      - ../config.yaml:/app/config.yaml
+      - ../rules:/app/rules
+      - ~/.aws:/root/.aws:ro
+    environment:
+      - TFDRIFT_METRICS_ENABLED=true
+      - TFDRIFT_METRICS_PORT=9090
+    networks:
+      - monitoring
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+    networks:
+      - monitoring
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-dashboard.json:/etc/grafana/provisioning/dashboards/tfdrift.json
+      - ./grafana-datasource.yaml:/etc/grafana/provisioning/datasources/prometheus.yaml
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+  # Falco (optional - if not running separately)
+  falco:
+    image: falcosecurity/falco:latest
+    container_name: falco
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - ../rules/terraform_drift.yaml:/etc/falco/rules.d/terraform_drift.yaml
+    environment:
+      - FALCO_GRPC_ENABLED=true
+      - FALCO_GRPC_BIND_ADDRESS=0.0.0.0:5060
+    ports:
+      - "5060:5060"
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:
