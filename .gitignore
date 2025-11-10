@@ -1,0 +1,56 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+tfdrift
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.html
+coverage.out
+
+# Go workspace file
+go.work
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Configuration files (don't commit sensitive data)
+config.yaml
+*.tfstate
+*.tfstate.backup
+*.tfvars
+
+# Terraform files
+.terraform/
+.terraform.lock.hcl
+
+# Log files
+*.log
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Build artifacts
+dist/
+release/
+
+# Docker
+.dockerignore
+
+# Environment files
+.env
+.env.local
