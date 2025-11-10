@@ -26,16 +26,9 @@ type ProvidersConfig struct {
 
 // AWSConfig contains AWS-specific settings
 type AWSConfig struct {
-	Enabled    bool              `yaml:"enabled"`
-	Regions    []string          `yaml:"regions"`
-	CloudTrail CloudTrailConfig  `yaml:"cloudtrail"`
-	State      TerraformStateConfig `yaml:"state"`
-}
-
-// CloudTrailConfig contains CloudTrail settings
-type CloudTrailConfig struct {
-	S3Bucket string `yaml:"s3_bucket"`
-	SQSQueue string `yaml:"sqs_queue"`
+	Enabled bool                 `yaml:"enabled"`
+	Regions []string             `yaml:"regions"`
+	State   TerraformStateConfig `yaml:"state"`
 }
 
 // TerraformStateConfig contains Terraform state settings
@@ -152,6 +145,17 @@ func (c *Config) Validate() error {
 		if len(c.Providers.AWS.Regions) == 0 {
 			return fmt.Errorf("AWS regions must be specified")
 		}
+	}
+
+	// Validate Falco configuration
+	if !c.Falco.Enabled {
+		return fmt.Errorf("Falco must be enabled - TFDrift-Falco requires Falco gRPC connection")
+	}
+	if c.Falco.Hostname == "" {
+		return fmt.Errorf("Falco hostname must be specified")
+	}
+	if c.Falco.Port == 0 {
+		return fmt.Errorf("Falco port must be specified")
 	}
 
 	return nil

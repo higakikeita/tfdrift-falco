@@ -16,66 +16,70 @@
 
 **TFDrift-Falco** detects manual (non-IaC) changes in your cloud environment in **real-time** by combining:
 
-- **Falco** runtime security monitoring
-- **CloudTrail / Cloud Audit Logs** event streams
+- **Falco** runtime security monitoring with CloudTrail plugin
+- **Falco gRPC API** for real-time event streaming
 - **Terraform State** comparison
 
-Unlike traditional drift detection tools (like `driftctl` or `tfsec`) that perform periodic static scans, TFDrift-Falco provides **continuous, event-driven drift detection** with security context.
+Unlike traditional drift detection tools (like `driftctl` or `tfsec`) that perform periodic static scans, TFDrift-Falco provides **continuous, event-driven drift detection** powered by Falco's CloudTrail plugin.
 
 ### 🚨 Example Use Case
 
 ```
 Someone disables termination protection on an EC2 instance via AWS Console
     ↓
-CloudTrail event captured by Falco
+CloudTrail event captured by Falco CloudTrail plugin
     ↓
-TFDrift-Falco compares with Terraform state
+Falco rule triggers and sends event via gRPC
+    ↓
+TFDrift-Falco receives event and compares with Terraform state
     ↓
 Instant Slack alert with user identity and change details
 ```
 
 ## 🎯 Key Features
 
-- ⚡ **Real-time Detection** - Monitor AWS CloudTrail, GCP Audit Logs, and Falco events
+- ⚡ **Real-time Detection** - Subscribes to Falco gRPC outputs for instant event processing
+- 🦅 **Falco-Powered** - Uses Falco's CloudTrail plugin for AWS event monitoring
 - 🧩 **Terraform State Comparison** - Detect deviations from IaC definitions
 - 🔒 **Security Context** - Correlate user identity (IAM user, API key, service account)
-- 🔔 **Multiple Notification Channels** - Slack, Discord, Falco output, Syslog, Webhook
+- 🔔 **Multiple Notification Channels** - Slack, Discord, Falco output, Webhook
 - 🌐 **Multi-Cloud Support** - AWS (initial), GCP and Azure (planned)
-- 🎨 **Extensible Rules** - Define custom drift detection rules in YAML
+- 🎨 **Extensible Rules** - Define custom Falco rules in YAML
 - 🐳 **Container-Ready** - Run as a sidecar or standalone container
 
 ## 🏗️ Architecture
 
 ```mermaid
 graph TB
-    A[Cloud Provider APIs<br/>AWS/GCP/Azure] --> B[CloudTrail/<br/>Audit Logs]
-    C[Falco Agent] --> D[TFDrift-Falco<br/>Detector]
-    B --> D
-    E[Terraform State<br/>Local/Remote] --> D
+    A[AWS CloudTrail] --> B[Falco<br/>CloudTrail Plugin]
+    B --> C[Falco Rules<br/>Engine]
+    C --> D[Falco gRPC<br/>Output Stream]
+    D --> E[TFDrift-Falco<br/>Subscriber]
 
-    D --> F[Drift Engine]
-    F --> G{Drift Detected?}
+    F[Terraform State<br/>Local/Remote] --> E
 
-    G -->|Yes| H[Enrichment<br/>+ Context]
-    G -->|No| I[Log Only]
+    E --> G[Drift Engine]
+    G --> H{Drift Detected?}
 
-    H --> J[Notification<br/>Manager]
-    J --> K[Slack]
-    J --> L[Discord]
-    J --> M[Falco Output]
-    J --> N[Webhook]
+    H -->|Yes| I[Enrichment<br/>+ Context]
+    H -->|No| J[Log Only]
 
-    style D fill:#4A90E2
-    style F fill:#FFA500
-    style H fill:#50C878
+    I --> K[Notification<br/>Manager]
+    K --> L[Slack]
+    K --> M[Discord]
+    K --> N[Webhook]
+
+    style E fill:#4A90E2
+    style G fill:#FFA500
+    style I fill:#50C878
+    style B fill:#00B4AB
 ```
 
 ### Components
 
 | Component | Description |
 |-----------|-------------|
-| **CloudTrail Connector** | Ingests AWS CloudTrail events from S3/EventBridge |
-| **Falco Listener** | Receives Falco events via gRPC or Unix socket |
+| **Falco Subscriber** | Connects to Falco gRPC API and subscribes to CloudTrail events |
 | **Terraform State Loader** | Periodically syncs Terraform state (local/remote) |
 | **Drift Engine** | Compares IaC definitions with runtime changes |
 | **Context Enricher** | Adds user identity, resource tags, change history |
@@ -86,7 +90,7 @@ graph TB
 ### Prerequisites
 
 - Go 1.21 or later
-- Falco 0.35+ (optional, for enhanced detection)
+- **Falco 0.35+** with CloudTrail plugin (required)
 - Terraform 1.0+
 - AWS CLI configured (for AWS support)
 
@@ -132,19 +136,19 @@ providers:
     regions:
       - us-east-1
       - us-west-2
-    cloudtrail:
-      s3_bucket: "my-cloudtrail-bucket"
-      sqs_queue: "cloudtrail-events"
     state:
       backend: "s3"  # local, s3, remote
       s3_bucket: "my-terraform-state"
       s3_key: "prod/terraform.tfstate"
 
-# Falco Integration
+# Falco Integration (Required)
 falco:
   enabled: true
-  socket: "/var/run/falco.sock"
-  grpc_endpoint: "unix:///var/run/falco.sock"
+  hostname: "localhost"  # Falco gRPC server hostname
+  port: 5060              # Falco gRPC server port
+  cert_file: ""           # Optional: client certificate for mTLS
+  key_file: ""            # Optional: client key for mTLS
+  ca_root_file: ""        # Optional: CA root certificate
 
 # Drift Detection Rules
 drift_rules:

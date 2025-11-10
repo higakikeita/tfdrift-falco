@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/cloudtrail"
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/diff"
 	"github.com/keitahigaki/tfdrift-falco/pkg/falco"
@@ -17,14 +16,13 @@ import (
 
 // Detector is the main drift detection engine
 type Detector struct {
-	cfg              *config.Config
-	stateManager     *terraform.StateManager
-	cloudtrail       *cloudtrail.Collector
-	falcoSubscriber  *falco.Subscriber
-	notifier         *notifier.Manager
-	formatter        *diff.DiffFormatter
-	eventCh          chan types.Event
-	wg               sync.WaitGroup
+	cfg             *config.Config
+	stateManager    *terraform.StateManager
+	falcoSubscriber *falco.Subscriber
+	notifier        *notifier.Manager
+	formatter       *diff.DiffFormatter
+	eventCh         chan types.Event
+	wg              sync.WaitGroup
 }
 
 // New creates a new Detector instance
@@ -35,22 +33,10 @@ func New(cfg *config.Config) (*Detector, error) {
 		return nil, fmt.Errorf("failed to create state manager: %w", err)
 	}
 
-	// Initialize CloudTrail collector (if AWS is enabled)
-	var ctCollector *cloudtrail.Collector
-	if cfg.Providers.AWS.Enabled {
-		ctCollector, err = cloudtrail.NewCollector(cfg.Providers.AWS.CloudTrail)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create cloudtrail collector: %w", err)
-		}
-	}
-
-	// Initialize Falco subscriber (if Falco is enabled)
-	var falcoSub *falco.Subscriber
-	if cfg.Falco.Enabled {
-		falcoSub, err = falco.NewSubscriber(cfg.Falco)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create falco subscriber: %w", err)
-		}
+	// Initialize Falco subscriber
+	falcoSub, err := falco.NewSubscriber(cfg.Falco)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create falco subscriber: %w", err)
 	}
 
 	// Initialize notifier
@@ -65,7 +51,6 @@ func New(cfg *config.Config) (*Detector, error) {
 	return &Detector{
 		cfg:             cfg,
 		stateManager:    stateManager,
-		cloudtrail:      ctCollector,
 		falcoSubscriber: falcoSub,
 		notifier:        notifierManager,
 		formatter:       formatter,
@@ -108,24 +93,12 @@ func (d *Detector) Start(ctx context.Context) error {
 	return nil
 }
 
-// startCollectors starts all configured event collectors
+// startCollectors starts the Falco event subscriber
 func (d *Detector) startCollectors(ctx context.Context) error {
-	// Start CloudTrail collector (if enabled)
-	if d.cfg.Providers.AWS.Enabled && d.cloudtrail != nil {
-		log.Info("Starting CloudTrail event collection...")
-		if err := d.cloudtrail.Start(ctx, d.eventCh); err != nil {
-			return fmt.Errorf("cloudtrail collector error: %w", err)
-		}
+	log.Info("Starting Falco subscriber...")
+	if err := d.falcoSubscriber.Start(ctx, d.eventCh); err != nil {
+		return fmt.Errorf("falco subscriber error: %w", err)
 	}
-
-	// Start Falco subscriber (if enabled)
-	if d.cfg.Falco.Enabled && d.falcoSubscriber != nil {
-		log.Info("Starting Falco subscriber...")
-		if err := d.falcoSubscriber.Start(ctx, d.eventCh); err != nil {
-			return fmt.Errorf("falco subscriber error: %w", err)
-		}
-	}
-
 	return nil
 }
 
