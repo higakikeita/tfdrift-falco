@@ -1,0 +1,75 @@
+# TFDrift-Falco Configuration with Auto-Import
+
+providers:
+  aws:
+    enabled: true
+    regions:
+      - us-east-1
+      - us-west-2
+    state:
+      backend: "s3"
+      s3_bucket: "my-terraform-state"
+      s3_key: "prod/terraform.tfstate"
+
+  gcp:
+    enabled: false
+
+falco:
+  enabled: true
+  hostname: "localhost"
+  port: 5060
+  cert_file: ""
+  key_file: ""
+  ca_root_file: ""
+
+# Automatic Import Configuration
+auto_import:
+  # Enable automatic terraform import for unmanaged resources
+  enabled: false  # Set to true to enable auto-import
+
+  # Terraform working directory
+  terraform_dir: "./infrastructure"
+
+  # Directory to save auto-generated .tf files
+  output_dir: "./infrastructure/imported"
+
+  # Only auto-import these resource types (empty = all)
+  allowed_resources:
+    - "aws_iam_role"
+    - "aws_iam_policy"
+    - "aws_s3_bucket"
+    # - "aws_instance"  # Commented out - too risky to auto-import
+
+  # Require manual approval before importing
+  require_approval: true  # Recommended: true for safety
+
+drift_rules:
+  - name: "IAM Role Trust Policy Change"
+    resource_types:
+      - "aws_iam_role"
+    watched_attributes:
+      - "assume_role_policy"
+    severity: "critical"
+
+  - name: "S3 Bucket Encryption Change"
+    resource_types:
+      - "aws_s3_bucket"
+    watched_attributes:
+      - "server_side_encryption_configuration"
+    severity: "critical"
+
+notifications:
+  slack:
+    enabled: true
+    webhook_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+    channel: "#infrastructure-alerts"
+
+  discord:
+    enabled: false
+
+  webhook:
+    enabled: false
+
+logging:
+  level: "info"
+  format: "json"

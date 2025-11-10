@@ -15,6 +15,7 @@ type Config struct {
 	DriftRules    []DriftRule         `yaml:"drift_rules"`
 	Notifications NotificationsConfig `yaml:"notifications"`
 	Logging       LoggingConfig       `yaml:"logging"`
+	AutoImport    AutoImportConfig    `yaml:"auto_import"`
 	DryRun        bool                `yaml:"-"`
 }
 
@@ -101,6 +102,15 @@ type WebhookConfig struct {
 type LoggingConfig struct {
 	Level  string `yaml:"level"`
 	Format string `yaml:"format"`
+}
+
+// AutoImportConfig contains automatic import settings
+type AutoImportConfig struct {
+	Enabled          bool     `yaml:"enabled"`
+	TerraformDir     string   `yaml:"terraform_dir"`
+	OutputDir        string   `yaml:"output_dir"` // Where to save generated .tf files
+	AllowedResources []string `yaml:"allowed_resources"`
+	RequireApproval  bool     `yaml:"require_approval"`
 }
 
 // Load loads configuration from file
