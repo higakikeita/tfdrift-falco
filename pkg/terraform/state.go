@@ -81,8 +81,10 @@ func (sm *StateManager) Load(ctx context.Context) error {
 func (sm *StateManager) loadLocal() (State, error) {
 	path := sm.cfg.LocalPath
 	if path == "" {
-		path = "terraform.tfstate"
+		path = "./terraform.tfstate"
 	}
+
+	log.Infof("Loading Terraform state from: %s (config path: %s)", path, sm.cfg.LocalPath)
 
 	data, err := os.ReadFile(path)
 	if err != nil {

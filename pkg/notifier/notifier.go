@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
 	"github.com/keitahigaki/tfdrift-falco/pkg/diff"
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -29,7 +29,7 @@ func NewManager(cfg config.NotificationsConfig) (*Manager, error) {
 }
 
 // Send sends a drift alert to configured channels
-func (m *Manager) Send(alert *detector.DriftAlert) error {
+func (m *Manager) Send(alert *types.DriftAlert) error {
 	var errors []error
 
 	if m.cfg.Slack.Enabled {
@@ -58,7 +58,7 @@ func (m *Manager) Send(alert *detector.DriftAlert) error {
 }
 
 // sendSlack sends alert to Slack
-func (m *Manager) sendSlack(alert *detector.DriftAlert) error {
+func (m *Manager) sendSlack(alert *types.DriftAlert) error {
 	// Use Markdown formatter for Slack
 	markdownText := m.formatter.FormatMarkdown(alert)
 
@@ -75,7 +75,7 @@ func (m *Manager) sendSlack(alert *detector.DriftAlert) error {
 }
 
 // formatSlackMessage formats the alert for Slack
-func (m *Manager) formatSlackMessage(alert *detector.DriftAlert) []map[string]interface{} {
+func (m *Manager) formatSlackMessage(alert *types.DriftAlert) []map[string]interface{} {
 	severityEmoji := map[string]string{
 		"critical": ":rotating_light:",
 		"high":     ":warning:",
@@ -127,7 +127,7 @@ func (m *Manager) formatSlackMessage(alert *detector.DriftAlert) []map[string]in
 }
 
 // sendDiscord sends alert to Discord
-func (m *Manager) sendDiscord(alert *detector.DriftAlert) error {
+func (m *Manager) sendDiscord(alert *types.DriftAlert) error {
 	severityColor := map[string]int{
 		"critical": 0xFF0000, // Red
 		"high":     0xFF8C00, // Orange
@@ -170,7 +170,7 @@ func (m *Manager) sendDiscord(alert *detector.DriftAlert) error {
 }
 
 // sendFalcoOutput sends alert as Falco-compatible output
-func (m *Manager) sendFalcoOutput(alert *detector.DriftAlert) error {
+func (m *Manager) sendFalcoOutput(alert *types.DriftAlert) error {
 	// Format as Falco JSON output
 	falcoEvent := map[string]interface{}{
 		"output": fmt.Sprintf("Terraform drift detected: %s.%s attribute %s changed from %v to %v (user=%s resource=%s)",

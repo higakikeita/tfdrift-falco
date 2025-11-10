@@ -10,6 +10,7 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/diff"
 	"github.com/keitahigaki/tfdrift-falco/pkg/notifier"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,42 +21,8 @@ type Detector struct {
 	cloudtrail    *cloudtrail.Collector
 	notifier      *notifier.Manager
 	formatter     *diff.DiffFormatter
-	eventCh       chan Event
+	eventCh       chan types.Event
 	wg            sync.WaitGroup
-}
-
-// Event represents a cloud event that might indicate drift
-type Event struct {
-	Provider     string
-	EventName    string
-	ResourceType string
-	ResourceID   string
-	UserIdentity UserIdentity
-	Changes      map[string]interface{}
-	RawEvent     interface{}
-}
-
-// UserIdentity represents the identity of the user who made the change
-type UserIdentity struct {
-	Type        string
-	PrincipalID string
-	ARN         string
-	AccountID   string
-	UserName    string
-}
-
-// DriftAlert represents a detected drift
-type DriftAlert struct {
-	Severity     string
-	ResourceType string
-	ResourceName string
-	ResourceID   string
-	Attribute    string
-	OldValue     interface{}
-	NewValue     interface{}
-	UserIdentity UserIdentity
-	MatchedRules []string
-	Timestamp    string
 }
 
 // New creates a new Detector instance
@@ -90,7 +57,7 @@ func New(cfg *config.Config) (*Detector, error) {
 		cloudtrail:   ctCollector,
 		notifier:     notifierManager,
 		formatter:    formatter,
-		eventCh:      make(chan Event, 100),
+		eventCh:      make(chan types.Event, 100),
 	}, nil
 }
 
@@ -158,7 +125,7 @@ func (d *Detector) processEvents(ctx context.Context) {
 }
 
 // handleEvent processes a single event
-func (d *Detector) handleEvent(event Event) {
+func (d *Detector) handleEvent(event types.Event) {
 	log.Debugf("Processing event: %s - %s", event.EventName, event.ResourceID)
 
 	// Look up resource in Terraform state
@@ -183,7 +150,7 @@ func (d *Detector) handleEvent(event Event) {
 			continue
 		}
 
-		alert := &DriftAlert{
+		alert := &types.DriftAlert{
 			Severity:     d.getSeverity(matchedRules),
 			ResourceType: resource.Type,
 			ResourceName: resource.Name,
@@ -277,7 +244,7 @@ func (d *Detector) getSeverity(matchedRules []string) string {
 }
 
 // sendAlert sends a drift alert
-func (d *Detector) sendAlert(alert *DriftAlert) {
+func (d *Detector) sendAlert(alert *types.DriftAlert) {
 	// Format and display the drift in console
 	consoleDiff := d.formatter.FormatConsole(alert)
 	fmt.Println(consoleDiff)

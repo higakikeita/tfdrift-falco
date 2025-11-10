@@ -3,11 +3,10 @@ package cloudtrail
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -47,7 +46,7 @@ func NewCollector(cfg config.CloudTrailConfig) (*Collector, error) {
 }
 
 // Start starts collecting CloudTrail events
-func (c *Collector) Start(ctx context.Context, eventCh chan<- detector.Event) error {
+func (c *Collector) Start(ctx context.Context, eventCh chan<- types.Event) error {
 	log.Info("CloudTrail collector started")
 
 	// TODO: Implement actual SQS polling or S3 event processing
@@ -89,7 +88,7 @@ func (c *Collector) pollEvents(ctx context.Context) ([]CloudTrailEvent, error) {
 }
 
 // convertToDetectorEvent converts a CloudTrail event to a detector event
-func (c *Collector) convertToDetectorEvent(ctEvent CloudTrailEvent) *detector.Event {
+func (c *Collector) convertToDetectorEvent(ctEvent CloudTrailEvent) *types.Event {
 	// Filter events we care about
 	if !c.isRelevantEvent(ctEvent) {
 		return nil
@@ -100,12 +99,12 @@ func (c *Collector) convertToDetectorEvent(ctEvent CloudTrailEvent) *detector.Ev
 		return nil
 	}
 
-	return &detector.Event{
+	return &types.Event{
 		Provider:     "aws",
 		EventName:    ctEvent.EventName,
 		ResourceType: c.mapEventToResourceType(ctEvent.EventName),
 		ResourceID:   resourceID,
-		UserIdentity: detector.UserIdentity{
+		UserIdentity: types.UserIdentity{
 			Type:        ctEvent.UserIdentity.Type,
 			PrincipalID: ctEvent.UserIdentity.PrincipalID,
 			ARN:         ctEvent.UserIdentity.ARN,

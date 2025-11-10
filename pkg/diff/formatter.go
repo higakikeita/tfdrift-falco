@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
 // DiffFormatter formats drift differences in various output formats
@@ -35,7 +35,7 @@ const (
 )
 
 // FormatConsole formats the drift for console output with colors
-func (f *DiffFormatter) FormatConsole(alert *detector.DriftAlert) string {
+func (f *DiffFormatter) FormatConsole(alert *types.DriftAlert) string {
 	var b strings.Builder
 
 	// Header
@@ -156,7 +156,7 @@ func (f *DiffFormatter) isComplexType(value interface{}) bool {
 }
 
 // formatTerraformCode formats the Terraform code reference
-func (f *DiffFormatter) formatTerraformCode(alert *detector.DriftAlert) string {
+func (f *DiffFormatter) formatTerraformCode(alert *types.DriftAlert) string {
 	var b strings.Builder
 
 	// Example Terraform code showing the current state
@@ -171,7 +171,7 @@ func (f *DiffFormatter) formatTerraformCode(alert *detector.DriftAlert) string {
 }
 
 // formatTerraformResource formats a Terraform resource block
-func (f *DiffFormatter) formatTerraformResource(alert *detector.DriftAlert, value interface{}) string {
+func (f *DiffFormatter) formatTerraformResource(alert *types.DriftAlert, value interface{}) string {
 	var b strings.Builder
 
 	b.WriteString(fmt.Sprintf("  resource \"%s\" \"%s\" {\n",
@@ -215,7 +215,7 @@ func (f *DiffFormatter) formatTerraformValue(value interface{}) string {
 }
 
 // formatRecommendations formats recommended actions
-func (f *DiffFormatter) formatRecommendations(alert *detector.DriftAlert) string {
+func (f *DiffFormatter) formatRecommendations(alert *types.DriftAlert) string {
 	var b strings.Builder
 
 	b.WriteString("  1. Review the change with the user who made it\n")
@@ -230,7 +230,7 @@ func (f *DiffFormatter) formatRecommendations(alert *detector.DriftAlert) string
 }
 
 // FormatUnifiedDiff formats the drift as a unified diff (Git-style)
-func (f *DiffFormatter) FormatUnifiedDiff(alert *detector.DriftAlert) string {
+func (f *DiffFormatter) FormatUnifiedDiff(alert *types.DriftAlert) string {
 	var b strings.Builder
 
 	b.WriteString(fmt.Sprintf("--- terraform/%s.%s\t(Terraform State)\n",
@@ -254,7 +254,7 @@ func (f *DiffFormatter) FormatUnifiedDiff(alert *detector.DriftAlert) string {
 }
 
 // FormatMarkdown formats the drift for Markdown (GitHub, Slack, etc.)
-func (f *DiffFormatter) FormatMarkdown(alert *detector.DriftAlert) string {
+func (f *DiffFormatter) FormatMarkdown(alert *types.DriftAlert) string {
 	var b strings.Builder
 
 	// Title
@@ -307,7 +307,7 @@ func (f *DiffFormatter) FormatMarkdown(alert *detector.DriftAlert) string {
 }
 
 // FormatJSON formats the drift as JSON
-func (f *DiffFormatter) FormatJSON(alert *detector.DriftAlert) (string, error) {
+func (f *DiffFormatter) FormatJSON(alert *types.DriftAlert) (string, error) {
 	// Create a structured diff object
 	diff := map[string]interface{}{
 		"severity":      alert.Severity,
@@ -378,7 +378,7 @@ func (f *DiffFormatter) indentLines(text string, spaces int, color string) strin
 }
 
 // FormatSideBySide formats the drift as side-by-side comparison
-func (f *DiffFormatter) FormatSideBySide(alert *detector.DriftAlert) string {
+func (f *DiffFormatter) FormatSideBySide(alert *types.DriftAlert) string {
 	var b strings.Builder
 
 	oldStr := f.formatValue(alert.OldValue)

@@ -1,0 +1,67 @@
+# Test Configuration for TFDrift-Falco
+providers:
+  aws:
+    enabled: true
+    regions:
+      - us-east-1
+    cloudtrail:
+      sqs_queue: ""
+      s3_bucket: ""
+    state:
+      backend: "local"
+      local_path: "./examples/terraform.tfstate"
+
+  gcp:
+    enabled: false
+
+falco:
+  enabled: false
+
+drift_rules:
+  - name: "EC2 Instance Termination Protection"
+    resource_types:
+      - "aws_instance"
+    watched_attributes:
+      - "disable_api_termination"
+    severity: "critical"
+
+  - name: "EC2 Instance Type Change"
+    resource_types:
+      - "aws_instance"
+    watched_attributes:
+      - "instance_type"
+    severity: "high"
+
+  - name: "S3 Bucket Encryption Change"
+    resource_types:
+      - "aws_s3_bucket"
+    watched_attributes:
+      - "server_side_encryption_configuration"
+    severity: "critical"
+
+  - name: "IAM Role Trust Policy Change"
+    resource_types:
+      - "aws_iam_role"
+    watched_attributes:
+      - "assume_role_policy"
+    severity: "critical"
+
+notifications:
+  slack:
+    enabled: false
+    webhook_url: ""
+    channel: "#test-alerts"
+
+  discord:
+    enabled: false
+
+  falco_output:
+    enabled: true
+    priority: "warning"
+
+  webhook:
+    enabled: false
+
+logging:
+  level: "info"
+  format: "json"
