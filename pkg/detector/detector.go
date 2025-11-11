@@ -21,6 +21,8 @@ type Detector struct {
 	falcoSubscriber *falco.Subscriber
 	notifier        *notifier.Manager
 	formatter       *diff.DiffFormatter
+	importer        *terraform.Importer
+	approvalManager *terraform.ApprovalManager
 	eventCh         chan types.Event
 	wg              sync.WaitGroup
 }
@@ -48,12 +50,38 @@ func New(cfg *config.Config) (*Detector, error) {
 	// Initialize diff formatter
 	formatter := diff.NewFormatter(true) // Enable colors for console output
 
+	// Initialize importer and approval manager (only if auto_import is enabled)
+	var importer *terraform.Importer
+	var approvalManager *terraform.ApprovalManager
+
+	if cfg.AutoImport.Enabled {
+		importer = terraform.NewImporter(
+			cfg.AutoImport.TerraformDir,
+			cfg.DryRun,
+		)
+
+		// Check if interactive mode should be enabled
+		interactiveMode := cfg.AutoImport.RequireApproval
+		approvalManager = terraform.NewApprovalManager(importer, interactiveMode)
+
+		log.Info("Auto-import feature enabled")
+		if cfg.AutoImport.RequireApproval {
+			log.Info("Approval workflow: MANUAL (interactive prompts)")
+		} else if len(cfg.AutoImport.AllowedResources) > 0 {
+			log.Infof("Approval workflow: AUTO (whitelist: %v)", cfg.AutoImport.AllowedResources)
+		} else {
+			log.Warn("Approval workflow: AUTO (all resources) - USE WITH CAUTION")
+		}
+	}
+
 	return &Detector{
 		cfg:             cfg,
 		stateManager:    stateManager,
 		falcoSubscriber: falcoSub,
 		notifier:        notifierManager,
 		formatter:       formatter,
+		importer:        importer,
+		approvalManager: approvalManager,
 		eventCh:         make(chan types.Event, 100),
 	}, nil
 }
@@ -128,6 +156,11 @@ func (d *Detector) handleEvent(event types.Event) {
 		log.Warnf("Resource %s not found in Terraform state (unmanaged resource)", event.ResourceID)
 		// Send alert for unmanaged resource
 		d.sendUnmanagedResourceAlert(&event)
+
+		// Handle auto-import if enabled
+		if d.cfg.AutoImport.Enabled && d.importer != nil && d.approvalManager != nil {
+			d.handleAutoImport(context.Background(), &event)
+		}
 		return
 	}
 
@@ -324,4 +357,70 @@ type AttributeDrift struct {
 	Attribute string
 	OldValue  interface{}
 	NewValue  interface{}
+}
+
+// handleAutoImport handles automatic terraform import for unmanaged resources
+func (d *Detector) handleAutoImport(ctx context.Context, event *types.Event) {
+	log.Infof("Auto-import triggered for %s (%s)", event.ResourceID, event.ResourceType)
+
+	// Create approval request
+	userIdentity := fmt.Sprintf("%s (%s)", event.UserIdentity.UserName, event.UserIdentity.ARN)
+	request := d.approvalManager.RequestApproval(
+		event.ResourceType,
+		event.ResourceID,
+		event.Changes,
+		userIdentity,
+	)
+
+	var result *terraform.ImportResult
+	var err error
+
+	// Handle based on approval mode
+	if d.cfg.AutoImport.RequireApproval {
+		// Manual approval mode - prompt user
+		approved, promptErr := d.approvalManager.PromptForApproval(ctx, request)
+		if promptErr != nil {
+			log.Errorf("Failed to prompt for approval: %v", promptErr)
+			return
+		}
+
+		if approved {
+			fmt.Printf("🚀 Executing: %s\n", request.ImportCommand.String())
+			result, err = d.approvalManager.ApproveAndExecute(ctx, request.ID, "console-user")
+		} else {
+			log.Info("Import rejected by user")
+			return
+		}
+	} else {
+		// Auto-approval mode - check whitelist
+		result, err = d.approvalManager.AutoApproveIfAllowed(ctx, request, d.cfg.AutoImport.AllowedResources)
+		if err != nil {
+			log.Warnf("Auto-approval denied: %v", err)
+			return
+		}
+	}
+
+	// Handle result
+	if err != nil {
+		log.Errorf("Import failed: %v", err)
+		fmt.Printf("❌ Import failed: %v\n", err)
+		return
+	}
+
+	if result.Success {
+		fmt.Println("✅ Import successful!")
+		if result.GeneratedCode != "" {
+			// Save the generated code to output directory
+			outputFile := fmt.Sprintf("%s/%s_%s.tf",
+				d.cfg.AutoImport.OutputDir,
+				event.ResourceType,
+				result.Command.ResourceName)
+			fmt.Printf("📄 Generated Terraform code:\n%s\n", result.GeneratedCode)
+			fmt.Printf("💡 Save this to: %s\n", outputFile)
+		}
+		log.Infof("Successfully imported %s", event.ResourceID)
+	} else {
+		fmt.Printf("❌ Import failed: %s\n", result.Error)
+		log.Errorf("Import failed for %s: %s", event.ResourceID, result.Error)
+	}
 }
