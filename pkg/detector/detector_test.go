@@ -4,7 +4,9 @@ import (
 	"testing"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
+	"github.com/keitahigaki/tfdrift-falco/pkg/diff"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -506,4 +508,370 @@ func TestEvaluateRules_CaseSensitivity(t *testing.T) {
 	// Exact match should work
 	matched = d.evaluateRules("aws_instance", "tags")
 	assert.Len(t, matched, 1)
+}
+
+func TestNew_Success(t *testing.T) {
+	cfg := &config.Config{
+		Providers: config.ProvidersConfig{
+			AWS: config.AWSConfig{
+				Enabled: true,
+				Regions: []string{"us-east-1"},
+				State: config.TerraformStateConfig{
+					Backend:   "local",
+					LocalPath: "testdata/terraform.tfstate",
+				},
+			},
+		},
+		Falco: config.FalcoConfig{
+			Enabled:  false,
+			Hostname: "localhost",
+			Port:     5060,
+		},
+		Notifications: config.NotificationsConfig{},
+		DriftRules:    []config.DriftRule{},
+		DryRun:        true,
+		AutoImport: config.AutoImportConfig{
+			Enabled: false,
+		},
+	}
+
+	detector, err := New(cfg)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, detector)
+	assert.NotNil(t, detector.stateManager)
+	assert.NotNil(t, detector.falcoSubscriber)
+	assert.NotNil(t, detector.notifier)
+	assert.NotNil(t, detector.formatter)
+	assert.NotNil(t, detector.eventCh)
+	assert.Nil(t, detector.importer)
+	assert.Nil(t, detector.approvalManager)
+}
+
+func TestNew_WithAutoImport(t *testing.T) {
+	cfg := &config.Config{
+		Providers: config.ProvidersConfig{
+			AWS: config.AWSConfig{
+				Enabled: true,
+				Regions: []string{"us-east-1"},
+				State: config.TerraformStateConfig{
+					Backend:   "local",
+					LocalPath: "testdata/terraform.tfstate",
+				},
+			},
+		},
+		Falco: config.FalcoConfig{
+			Enabled:  false,
+			Hostname: "localhost",
+			Port:     5060,
+		},
+		Notifications: config.NotificationsConfig{},
+		DriftRules:    []config.DriftRule{},
+		DryRun:        true,
+		AutoImport: config.AutoImportConfig{
+			Enabled:         true,
+			TerraformDir:    ".",
+			RequireApproval: true,
+		},
+	}
+
+	detector, err := New(cfg)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, detector)
+	assert.NotNil(t, detector.importer)
+	assert.NotNil(t, detector.approvalManager)
+}
+
+func TestNew_WithAutoImportAutoApproval(t *testing.T) {
+	cfg := &config.Config{
+		Providers: config.ProvidersConfig{
+			AWS: config.AWSConfig{
+				Enabled: true,
+				Regions: []string{"us-east-1"},
+				State: config.TerraformStateConfig{
+					Backend:   "local",
+					LocalPath: "testdata/terraform.tfstate",
+				},
+			},
+		},
+		Falco: config.FalcoConfig{
+			Enabled:  false,
+			Hostname: "localhost",
+			Port:     5060,
+		},
+		Notifications: config.NotificationsConfig{},
+		DriftRules:    []config.DriftRule{},
+		DryRun:        true,
+		AutoImport: config.AutoImportConfig{
+			Enabled:          true,
+			TerraformDir:     ".",
+			RequireApproval:  false,
+			AllowedResources: []string{"aws_instance", "aws_s3_bucket"},
+		},
+	}
+
+	detector, err := New(cfg)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, detector)
+	assert.NotNil(t, detector.importer)
+	assert.NotNil(t, detector.approvalManager)
+}
+
+func TestHandleEvent_ResourceNotFound(t *testing.T) {
+	cfg := &config.Config{
+		DriftRules: []config.DriftRule{},
+		DryRun:     true,
+		AutoImport: config.AutoImportConfig{
+			Enabled: false,
+		},
+	}
+
+	// Create minimal detector with mock state manager
+	stateManager := &terraform.StateManager{}
+	formatter := diff.NewFormatter(false)
+
+	detector := &Detector{
+		cfg:          cfg,
+		stateManager: stateManager,
+		formatter:    formatter,
+	}
+
+	event := types.Event{
+		Provider:     "aws",
+		ResourceType: "aws_instance",
+		ResourceID:   "i-nonexistent",
+		EventName:    "RunInstances",
+		Changes: map[string]interface{}{
+			"instance_type": "t3.micro",
+		},
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "admin",
+		},
+	}
+
+	// Should not panic when resource not found
+	assert.NotPanics(t, func() {
+		detector.handleEvent(event)
+	})
+}
+
+func TestHandleEvent_DriftDetected(t *testing.T) {
+	driftRules := []config.DriftRule{
+		{
+			Name:              "instance-type-change",
+			ResourceTypes:     []string{"aws_instance"},
+			WatchedAttributes: []string{"instance_type"},
+			Severity:          "high",
+		},
+	}
+
+	cfg := &config.Config{
+		DriftRules: driftRules,
+		DryRun:     true,
+		AutoImport: config.AutoImportConfig{
+			Enabled: false,
+		},
+	}
+
+	// Create state manager with test resource
+	stateConfig := config.TerraformStateConfig{
+		Backend:   "local",
+		LocalPath: "testdata/terraform.tfstate",
+	}
+	stateManager, err := terraform.NewStateManager(stateConfig)
+	require.NoError(t, err)
+
+	formatter := diff.NewFormatter(false)
+
+	detector := &Detector{
+		cfg:          cfg,
+		stateManager: stateManager,
+		formatter:    formatter,
+	}
+
+	event := types.Event{
+		Provider:     "aws",
+		ResourceType: "aws_instance",
+		ResourceID:   "i-1234567890abcdef0",
+		EventName:    "ModifyInstanceAttribute",
+		Changes: map[string]interface{}{
+			"instance_type": "t3.large", // Changed from t3.micro in state
+		},
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "admin",
+		},
+	}
+
+	// Should not panic when processing drift
+	assert.NotPanics(t, func() {
+		detector.handleEvent(event)
+	})
+}
+
+func TestHandleEvent_NoDrift(t *testing.T) {
+	cfg := &config.Config{
+		DriftRules: []config.DriftRule{},
+		DryRun:     true,
+		AutoImport: config.AutoImportConfig{
+			Enabled: false,
+		},
+	}
+
+	stateConfig := config.TerraformStateConfig{
+		Backend:   "local",
+		LocalPath: "testdata/terraform.tfstate",
+	}
+	stateManager, err := terraform.NewStateManager(stateConfig)
+	require.NoError(t, err)
+
+	formatter := diff.NewFormatter(false)
+
+	detector := &Detector{
+		cfg:          cfg,
+		stateManager: stateManager,
+		formatter:    formatter,
+	}
+
+	event := types.Event{
+		Provider:     "aws",
+		ResourceType: "aws_instance",
+		ResourceID:   "i-1234567890abcdef0",
+		EventName:    "DescribeInstances",
+		Changes:      map[string]interface{}{
+			// No actual changes
+		},
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "admin",
+		},
+	}
+
+	// Should not panic or produce alerts
+	assert.NotPanics(t, func() {
+		detector.handleEvent(event)
+	})
+}
+
+func TestSendAlert_DryRun(t *testing.T) {
+	cfg := &config.Config{
+		DryRun: true,
+	}
+
+	formatter := diff.NewFormatter(false)
+
+	detector := &Detector{
+		cfg:       cfg,
+		formatter: formatter,
+	}
+
+	alert := &types.DriftAlert{
+		Severity:     "high",
+		ResourceType: "aws_instance",
+		ResourceName: "web",
+		ResourceID:   "i-1234567890abcdef0",
+		Attribute:    "instance_type",
+		OldValue:     "t3.micro",
+		NewValue:     "t3.large",
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "admin",
+		},
+	}
+
+	// Should not panic in dry-run mode
+	assert.NotPanics(t, func() {
+		detector.sendAlert(alert)
+	})
+}
+
+func TestSendUnmanagedResourceAlert_DryRun(t *testing.T) {
+	cfg := &config.Config{
+		DryRun: true,
+	}
+
+	formatter := diff.NewFormatter(false)
+
+	detector := &Detector{
+		cfg:       cfg,
+		formatter: formatter,
+	}
+
+	event := &types.Event{
+		Provider:     "aws",
+		ResourceType: "aws_instance",
+		ResourceID:   "i-unmanaged",
+		EventName:    "RunInstances",
+		Changes: map[string]interface{}{
+			"instance_type": "t3.micro",
+		},
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "admin",
+		},
+	}
+
+	// Should not panic in dry-run mode
+	assert.NotPanics(t, func() {
+		detector.sendUnmanagedResourceAlert(event)
+	})
+}
+
+func TestHandleEvent_WithTimestamp(t *testing.T) {
+	driftRules := []config.DriftRule{
+		{
+			Name:              "instance-type-change",
+			ResourceTypes:     []string{"aws_instance"},
+			WatchedAttributes: []string{"instance_type"},
+			Severity:          "high",
+		},
+	}
+
+	cfg := &config.Config{
+		DriftRules: driftRules,
+		DryRun:     true,
+		AutoImport: config.AutoImportConfig{
+			Enabled: false,
+		},
+	}
+
+	stateConfig := config.TerraformStateConfig{
+		Backend:   "local",
+		LocalPath: "testdata/terraform.tfstate",
+	}
+	stateManager, err := terraform.NewStateManager(stateConfig)
+	require.NoError(t, err)
+
+	formatter := diff.NewFormatter(false)
+
+	detector := &Detector{
+		cfg:          cfg,
+		stateManager: stateManager,
+		formatter:    formatter,
+	}
+
+	// Event with timestamp in RawEvent
+	event := types.Event{
+		Provider:     "aws",
+		ResourceType: "aws_instance",
+		ResourceID:   "i-1234567890abcdef0",
+		EventName:    "ModifyInstanceAttribute",
+		Changes: map[string]interface{}{
+			"instance_type": "t3.large",
+		},
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "admin",
+		},
+		RawEvent: map[string]interface{}{
+			"eventTime": "2024-01-15T10:30:00Z",
+		},
+	}
+
+	assert.NotPanics(t, func() {
+		detector.handleEvent(event)
+	})
 }
