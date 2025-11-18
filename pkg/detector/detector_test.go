@@ -1,10 +1,12 @@
 package detector
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/diff"
+	"github.com/keitahigaki/tfdrift-falco/pkg/notifier"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	"github.com/stretchr/testify/assert"
@@ -873,5 +875,215 @@ func TestHandleEvent_WithTimestamp(t *testing.T) {
 
 	assert.NotPanics(t, func() {
 		detector.handleEvent(event)
+	})
+}
+
+func TestHandleAutoImport(t *testing.T) {
+	cfg := &config.Config{
+		DryRun: true,
+		AutoImport: config.AutoImportConfig{
+			Enabled:          true,
+			TerraformDir:     ".",
+			RequireApproval:  false,
+			AllowedResources: []string{"aws_instance"},
+			OutputDir:        "/tmp",
+		},
+	}
+
+	importer := terraform.NewImporter(".", true)
+	approvalManager := terraform.NewApprovalManager(importer, false)
+
+	detector := &Detector{
+		cfg:             cfg,
+		importer:        importer,
+		approvalManager: approvalManager,
+	}
+
+	event := &types.Event{
+		Provider:     "aws",
+		ResourceType: "aws_instance",
+		ResourceID:   "i-unmanaged-123",
+		EventName:    "RunInstances",
+		Changes: map[string]interface{}{
+			"instance_type": "t3.micro",
+		},
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "admin",
+			ARN:      "arn:aws:iam::123456789012:user/admin",
+		},
+	}
+
+	// Should not panic
+	assert.NotPanics(t, func() {
+		detector.handleAutoImport(context.Background(), event)
+	})
+}
+
+func TestHandleAutoImport_NotAllowed(t *testing.T) {
+	cfg := &config.Config{
+		DryRun: true,
+		AutoImport: config.AutoImportConfig{
+			Enabled:          true,
+			TerraformDir:     ".",
+			RequireApproval:  false,
+			AllowedResources: []string{"aws_s3_bucket"}, // Not aws_instance
+			OutputDir:        "/tmp",
+		},
+	}
+
+	importer := terraform.NewImporter(".", true)
+	approvalManager := terraform.NewApprovalManager(importer, false)
+
+	detector := &Detector{
+		cfg:             cfg,
+		importer:        importer,
+		approvalManager: approvalManager,
+	}
+
+	event := &types.Event{
+		Provider:     "aws",
+		ResourceType: "aws_instance", // Not in allowed list
+		ResourceID:   "i-unmanaged-456",
+		EventName:    "RunInstances",
+		Changes:      map[string]interface{}{},
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "admin",
+			ARN:      "arn:aws:iam::123456789012:user/admin",
+		},
+	}
+
+	// Should not panic even if not allowed
+	assert.NotPanics(t, func() {
+		detector.handleAutoImport(context.Background(), event)
+	})
+}
+
+func TestHandleAutoImport_EmptyAllowList(t *testing.T) {
+	cfg := &config.Config{
+		DryRun: true,
+		AutoImport: config.AutoImportConfig{
+			Enabled:          true,
+			TerraformDir:     ".",
+			RequireApproval:  false,
+			AllowedResources: []string{}, // Empty = allow all
+			OutputDir:        "/tmp",
+		},
+	}
+
+	importer := terraform.NewImporter(".", true)
+	approvalManager := terraform.NewApprovalManager(importer, false)
+
+	detector := &Detector{
+		cfg:             cfg,
+		importer:        importer,
+		approvalManager: approvalManager,
+	}
+
+	event := &types.Event{
+		Provider:     "aws",
+		ResourceType: "aws_iam_role",
+		ResourceID:   "role-123",
+		EventName:    "CreateRole",
+		Changes:      map[string]interface{}{},
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "admin",
+			ARN:      "arn:aws:iam::123456789012:user/admin",
+		},
+	}
+
+	// Should not panic with empty allow list
+	assert.NotPanics(t, func() {
+		detector.handleAutoImport(context.Background(), event)
+	})
+}
+
+func TestHandleEvent_WithAutoImport(t *testing.T) {
+	cfg := &config.Config{
+		DriftRules: []config.DriftRule{},
+		DryRun:     true,
+		AutoImport: config.AutoImportConfig{
+			Enabled:          true,
+			TerraformDir:     ".",
+			RequireApproval:  false,
+			AllowedResources: []string{"aws_instance"},
+		},
+	}
+
+	stateManager := &terraform.StateManager{}
+	formatter := diff.NewFormatter(false)
+	importer := terraform.NewImporter(".", true)
+	approvalManager := terraform.NewApprovalManager(importer, false)
+
+	detector := &Detector{
+		cfg:             cfg,
+		stateManager:    stateManager,
+		formatter:       formatter,
+		importer:        importer,
+		approvalManager: approvalManager,
+	}
+
+	// Unmanaged resource should trigger auto-import
+	event := types.Event{
+		Provider:     "aws",
+		ResourceType: "aws_instance",
+		ResourceID:   "i-new-resource",
+		EventName:    "RunInstances",
+		Changes: map[string]interface{}{
+			"instance_type": "t3.micro",
+		},
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "admin",
+		},
+	}
+
+	assert.NotPanics(t, func() {
+		detector.handleEvent(event)
+	})
+}
+
+func TestSendAlert_WithNotifier(t *testing.T) {
+	cfg := &config.Config{
+		DryRun: false, // Not dry-run
+		Notifications: config.NotificationsConfig{
+			Slack: config.SlackConfig{
+				Enabled:    true,
+				WebhookURL: "http://invalid-url",
+				Channel:    "#test",
+			},
+		},
+	}
+
+	formatter := diff.NewFormatter(false)
+	// Create notifier (will fail to send but shouldn't panic)
+	notifierMgr, err := notifier.NewManager(cfg.Notifications)
+	require.NoError(t, err)
+
+	detector := &Detector{
+		cfg:       cfg,
+		formatter: formatter,
+		notifier:  notifierMgr,
+	}
+
+	alert := &types.DriftAlert{
+		Severity:     "high",
+		ResourceType: "aws_instance",
+		ResourceName: "web",
+		ResourceID:   "i-123",
+		Attribute:    "instance_type",
+		OldValue:     "t3.micro",
+		NewValue:     "t3.large",
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "admin",
+		},
+	}
+
+	// Should not panic even if notification fails
+	assert.NotPanics(t, func() {
+		detector.sendAlert(alert)
 	})
 }
