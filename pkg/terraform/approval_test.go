@@ -1,13 +1,23 @@
 package terraform
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+// mockStdin creates a mock stdin reader with predefined input for testing
+func mockStdin(input string) io.Reader {
+	if input != "" && input[len(input)-1] != '\n' {
+		input += "\n"
+	}
+	return bytes.NewBufferString(input)
+}
 
 func TestNewApprovalManager(t *testing.T) {
 	importer := NewImporter(".", true)
@@ -353,6 +363,197 @@ func TestPromptForApproval_NotInteractiveMode(t *testing.T) {
 	assert.Error(t, err)
 	assert.False(t, approved)
 	assert.Contains(t, err.Error(), "not in interactive mode")
+}
+
+func TestPromptForApproval_UserApprovesWithY(t *testing.T) {
+	importer := NewImporter(".", true)
+	manager := NewApprovalManager(importer, true) // interactive mode
+	manager.stdin = mockStdin("y")
+
+	request := manager.RequestApproval("aws_instance", "i-123", nil, "user@example.com")
+
+	ctx := context.Background()
+	approved, err := manager.PromptForApproval(ctx, request)
+
+	assert.NoError(t, err)
+	assert.True(t, approved)
+	assert.Equal(t, ApprovalApproved, request.Status)
+	assert.Equal(t, "console-user", request.ApprovedBy)
+	assert.False(t, request.ApprovedAt.IsZero())
+}
+
+func TestPromptForApproval_UserApprovesWithYes(t *testing.T) {
+	importer := NewImporter(".", true)
+	manager := NewApprovalManager(importer, true)
+	manager.stdin = mockStdin("yes")
+
+	request := manager.RequestApproval("aws_s3_bucket", "my-bucket", map[string]interface{}{
+		"versioning": true,
+	}, "admin@example.com")
+
+	ctx := context.Background()
+	approved, err := manager.PromptForApproval(ctx, request)
+
+	assert.NoError(t, err)
+	assert.True(t, approved)
+	assert.Equal(t, ApprovalApproved, request.Status)
+}
+
+func TestPromptForApproval_UserRejectsWithN(t *testing.T) {
+	importer := NewImporter(".", true)
+	manager := NewApprovalManager(importer, true)
+	manager.stdin = mockStdin("n")
+
+	request := manager.RequestApproval("aws_instance", "i-456", nil, "user")
+
+	ctx := context.Background()
+	approved, err := manager.PromptForApproval(ctx, request)
+
+	assert.NoError(t, err)
+	assert.False(t, approved)
+	assert.Equal(t, ApprovalRejected, request.Status)
+	assert.Empty(t, request.ApprovedBy)
+	assert.True(t, request.ApprovedAt.IsZero())
+}
+
+func TestPromptForApproval_UserRejectsWithNo(t *testing.T) {
+	importer := NewImporter(".", true)
+	manager := NewApprovalManager(importer, true)
+	manager.stdin = mockStdin("no")
+
+	request := manager.RequestApproval("aws_iam_role", "role-789", nil, "user")
+
+	ctx := context.Background()
+	approved, err := manager.PromptForApproval(ctx, request)
+
+	assert.NoError(t, err)
+	assert.False(t, approved)
+	assert.Equal(t, ApprovalRejected, request.Status)
+}
+
+func TestPromptForApproval_EmptyInput(t *testing.T) {
+	importer := NewImporter(".", true)
+	manager := NewApprovalManager(importer, true)
+	manager.stdin = mockStdin("") // Just press Enter
+
+	request := manager.RequestApproval("aws_instance", "i-empty", nil, "user")
+
+	ctx := context.Background()
+	approved, err := manager.PromptForApproval(ctx, request)
+
+	// Empty input (EOF) causes read error, which is expected
+	assert.Error(t, err)
+	assert.False(t, approved)
+	assert.Contains(t, err.Error(), "failed to read input")
+}
+
+func TestPromptForApproval_InvalidInput(t *testing.T) {
+	importer := NewImporter(".", true)
+	manager := NewApprovalManager(importer, true)
+	manager.stdin = mockStdin("maybe")
+
+	request := manager.RequestApproval("aws_instance", "i-invalid", nil, "user")
+
+	ctx := context.Background()
+	approved, err := manager.PromptForApproval(ctx, request)
+
+	assert.NoError(t, err)
+	assert.False(t, approved) // Invalid input treated as reject
+	assert.Equal(t, ApprovalRejected, request.Status)
+}
+
+func TestPromptForApproval_CaseInsensitive(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{"Uppercase Y", "Y", true},
+		{"Uppercase YES", "YES", true},
+		{"Mixed case Yes", "Yes", true},
+		{"Uppercase N", "N", false},
+		{"Uppercase NO", "NO", false},
+		{"Mixed case No", "No", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			importer := NewImporter(".", true)
+			manager := NewApprovalManager(importer, true)
+			manager.stdin = mockStdin(tt.input)
+
+			request := manager.RequestApproval("aws_instance", "i-case", nil, "user")
+
+			ctx := context.Background()
+			approved, err := manager.PromptForApproval(ctx, request)
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, approved)
+			if tt.expected {
+				assert.Equal(t, ApprovalApproved, request.Status)
+			} else {
+				assert.Equal(t, ApprovalRejected, request.Status)
+			}
+		})
+	}
+}
+
+func TestPromptForApproval_WithChanges(t *testing.T) {
+	importer := NewImporter(".", true)
+	manager := NewApprovalManager(importer, true)
+	manager.stdin = mockStdin("y")
+
+	changes := map[string]interface{}{
+		"instance_type": "t3.large",
+		"monitoring":    true,
+		"tags": map[string]string{
+			"Environment": "production",
+			"Team":        "DevOps",
+		},
+	}
+
+	request := manager.RequestApproval("aws_instance", "i-prod-001", changes, "admin@company.com")
+
+	ctx := context.Background()
+	approved, err := manager.PromptForApproval(ctx, request)
+
+	assert.NoError(t, err)
+	assert.True(t, approved)
+	assert.Equal(t, ApprovalApproved, request.Status)
+	assert.Equal(t, changes, request.Changes) // Changes preserved
+}
+
+func TestPromptForApproval_MultipleSequentialPrompts(t *testing.T) {
+	importer := NewImporter(".", true)
+	manager := NewApprovalManager(importer, true)
+
+	// Create multiple requests
+	req1 := manager.RequestApproval("aws_instance", "i-111", nil, "user1")
+	req2 := manager.RequestApproval("aws_s3_bucket", "bucket-222", nil, "user2")
+	req3 := manager.RequestApproval("aws_iam_role", "role-333", nil, "user3")
+
+	ctx := context.Background()
+
+	// Approve first
+	manager.stdin = mockStdin("yes")
+	approved1, err1 := manager.PromptForApproval(ctx, req1)
+	assert.NoError(t, err1)
+	assert.True(t, approved1)
+	assert.Equal(t, ApprovalApproved, req1.Status)
+
+	// Reject second
+	manager.stdin = mockStdin("no")
+	approved2, err2 := manager.PromptForApproval(ctx, req2)
+	assert.NoError(t, err2)
+	assert.False(t, approved2)
+	assert.Equal(t, ApprovalRejected, req2.Status)
+
+	// Approve third
+	manager.stdin = mockStdin("y")
+	approved3, err3 := manager.PromptForApproval(ctx, req3)
+	assert.NoError(t, err3)
+	assert.True(t, approved3)
+	assert.Equal(t, ApprovalApproved, req3.Status)
 }
 
 func TestFormatApprovalSummary_WithChanges(t *testing.T) {

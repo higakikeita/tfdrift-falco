@@ -533,3 +533,86 @@ func TestImportCommand_StringFormat(t *testing.T) {
 		})
 	}
 }
+
+func TestAutoImport_ValidationFailure(t *testing.T) {
+	// Use a non-existent working directory to trigger validation failure
+	importer := NewImporter("/nonexistent/directory/for/testing/123456", false)
+
+	ctx := context.Background()
+	attributes := map[string]interface{}{
+		"ami": "ami-12345678",
+	}
+
+	result := importer.AutoImport(ctx, "aws_instance", "i-test", attributes)
+
+	assert.NotNil(t, result)
+	assert.False(t, result.Success)
+	assert.NotNil(t, result.Error)
+	assert.Contains(t, result.Error.Error(), "validation failed")
+}
+
+func TestAutoImport_Success_DryRun(t *testing.T) {
+	importer := NewImporter(".", true) // dry-run mode
+
+	ctx := context.Background()
+	attributes := map[string]interface{}{
+		"ami":           "ami-abc123",
+		"instance_type": "t3.small",
+		"monitoring":    true,
+	}
+
+	result := importer.AutoImport(ctx, "aws_instance", "i-success-test", attributes)
+
+	assert.NotNil(t, result)
+	assert.True(t, result.Success)
+	assert.NoError(t, result.Error)
+	assert.NotNil(t, result.Command)
+	assert.Equal(t, "aws_instance", result.Command.ResourceType)
+	assert.Equal(t, "i-success-test", result.Command.ResourceID)
+	assert.NotEmpty(t, result.GeneratedCode)
+	assert.Contains(t, result.GeneratedCode, "aws_instance")
+	assert.Contains(t, result.GeneratedCode, "ami-abc123")
+}
+
+func TestValidateImport_TerraformNotFound(t *testing.T) {
+	// Create importer with non-existent binary
+	importer := &Importer{
+		terraformBinary: "/nonexistent/terraform/binary/path/123456",
+		workingDir:      ".",
+		dryRun:          false,
+	}
+
+	cmd := &ImportCommand{
+		ResourceType: "aws_instance",
+		ResourceName: "test",
+		ResourceID:   "i-123",
+	}
+
+	ctx := context.Background()
+	err := importer.ValidateImport(ctx, cmd)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "terraform binary not found")
+}
+
+func TestExecute_NonDryRun_InvalidDirectory(t *testing.T) {
+	// Use non-existent directory to ensure command fails
+	importer := &Importer{
+		terraformBinary: "terraform",
+		workingDir:      "/nonexistent/directory/12345678",
+		dryRun:          false,
+	}
+
+	cmd := &ImportCommand{
+		ResourceType: "aws_instance",
+		ResourceName: "test",
+		ResourceID:   "i-123",
+	}
+
+	ctx := context.Background()
+	err := importer.Execute(ctx, cmd)
+
+	// Should fail because working directory doesn't exist
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "terraform import failed")
+}

@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -41,6 +43,8 @@ type ApprovalManager struct {
 	pendingRequests map[string]*ApprovalRequest
 	importer        *Importer
 	interactiveMode bool
+	mu              sync.RWMutex
+	stdin           io.Reader // For testing: if nil, uses os.Stdin
 }
 
 // NewApprovalManager creates a new approval manager
@@ -100,8 +104,12 @@ func (am *ApprovalManager) PromptForApproval(ctx context.Context, request *Appro
 
 	fmt.Printf("\n❓ Approve this import? [y/N]: ")
 
-	// Read user input
-	reader := bufio.NewReader(os.Stdin)
+	// Read user input - use injected stdin for testing, fallback to os.Stdin
+	stdinReader := am.stdin
+	if stdinReader == nil {
+		stdinReader = os.Stdin
+	}
+	reader := bufio.NewReader(stdinReader)
 	input, err := reader.ReadString('\n')
 	if err != nil {
 		return false, fmt.Errorf("failed to read input: %w", err)
