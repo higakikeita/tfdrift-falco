@@ -1,9 +1,9 @@
-# Go言語プロジェクトのテストカバレッジを0%から52%に向上させた話
+# Go言語プロジェクトのテストカバレッジを0%から60%に向上させた話
 
 ## TL;DR
 
-- 🎯 **成果**: テストカバレッジ 0% → 52.2% (4週間)
-- 📝 **テスト数**: 200+テストケース、11ファイル
+- 🎯 **成果**: テストカバレッジ 0% → 59.8% (5週間)
+- 📝 **テスト数**: 250+テストケース、13ファイル
 - 🚀 **CI/CD**: GitHub Actions + golangci-lint (17 linters)
 - 🛠️ **ツール**: testify, httptest, カスタムモック
 
@@ -18,12 +18,12 @@ Before:
 └── CI/CD: なし
 
 After:
-├── テストコード: ~3,000行
-├── カバレッジ: 52.2%
+├── テストコード: ~3,900行
+├── カバレッジ: 59.8%
 └── CI/CD: 完全自動化
 ```
 
-## 4フェーズ戦略
+## 5フェーズ戦略
 
 ### Phase 1: 基盤（Week 1）
 **対象**: `pkg/types`, `pkg/config`
@@ -93,6 +93,21 @@ func TestSend_Slack(t *testing.T) {
 ```
 
 **成果**: 63-95.5%カバレッジ ✅
+
+### Phase 5: CLI + 追加（Week 5）
+**対象**: `cmd/tfdrift`, `cmd/test-drift`, `pkg/detector`追加
+
+CLIツールと残りの関数をテスト：
+
+```go
+func TestNewApprovalCmd(t *testing.T) {
+    cmd := newApprovalCmd()
+    assert.True(t, cmd.HasSubCommands())
+    assert.Len(t, cmd.Commands(), 4)
+}
+```
+
+**成果**: cmd/tfdrift 47.2%, detector 51.8% ✅
 
 ## CI/CD構築
 
@@ -194,7 +209,9 @@ expected: nil,  // Go では nil == empty slice
 | pkg/metrics | 81.2% | ⭐⭐ |
 | pkg/terraform | 77.2% | ⭐⭐ |
 | pkg/falco | 63.0% | ⭐ |
-| **全体** | **52.2%** | **✅** |
+| pkg/detector | 51.8% | ⭐ |
+| cmd/tfdrift | 47.2% | ⭐ |
+| **全体** | **59.8%** | **✅** |
 
 ## ベストプラクティス
 
@@ -235,6 +252,7 @@ Week 1: 基盤（簡単）     → 15%
 Week 2: コア（中程度）   → 31%
 Week 3: 統合（やや難）   → 37%
 Week 4: 外部依存（難）   → 52%
+Week 5: CLI + 追加       → 60%
 ```
 
 ## 学んだこと
@@ -256,12 +274,12 @@ Week 4: 外部依存（難）   → 52%
 ## 次のステップ
 
 ### 短期（1-2ヶ月）
-- [ ] pkg/detector: 21% → 60%
-- [ ] cmd/: 0% → 30%
+- [x] pkg/detector: 21% → 51.8% ✅
+- [x] cmd/: 0% → 47.2% ✅
 - [ ] 統合テスト追加
 
 ### 中期（3-6ヶ月）
-- [ ] カバレッジ80%達成
+- [ ] カバレッジ70%達成
 - [ ] パフォーマンステスト
 - [ ] Fuzzing導入
 

@@ -1,22 +1,22 @@
 ---
-title: Go言語プロジェクトのテストカバレッジを0%から52%に向上させた話
+title: Go言語プロジェクトのテストカバレッジを0%から60%に向上させた話
 tags: Go, Testing, CI/CD, DevOps, テスト
 author: [Your Name]
 slide: false
 ---
 
-# Go言語プロジェクトのテストカバレッジを0%から52%に向上させた話
+# Go言語プロジェクトのテストカバレッジを0%から60%に向上させた話
 
 ## はじめに
 
-この記事では、オープンソースプロジェクト「TFDrift-Falco」において、テストカバレッジを**0%から52.2%**まで向上させた取り組みを紹介します。
+この記事では、オープンソースプロジェクト「TFDrift-Falco」において、テストカバレッジを**0%から59.8%**まで向上させた取り組みを紹介します。
 
-4週間で200以上のテストケースを追加し、CI/CDパイプラインを構築した実践的なアプローチをお伝えします。
+4週間で250以上のテストケースを追加し、CI/CDパイプラインを構築した実践的なアプローチをお伝えします。
 
 ## TL;DR
 
-- 🎯 **成果**: テストカバレッジ 0% → 52.2% (4週間)
-- 📝 **テスト数**: 200+テストケース、11ファイル、~3,000行
+- 🎯 **成果**: テストカバレッジ 0% → 59.8% (4週間)
+- 📝 **テスト数**: 250+テストケース、13ファイル、~3,900行
 - 🚀 **CI/CD**: GitHub Actions + golangci-lint (17 linters)
 - 🛠️ **ツール**: testify, httptest, カスタムモック
 
@@ -32,8 +32,8 @@ slide: false
 
 完了時:
 ├── 実装コード: 2,624行
-├── テストコード: ~3,000行
-└── カバレッジ: 52.2% ✅
+├── テストコード: ~3,900行
+└── カバレッジ: 59.8% ✅
 ```
 
 ## 戦略: 4フェーズアプローチ
@@ -171,6 +171,47 @@ func TestSend_Slack(t *testing.T) {
 - 104テストケース作成
 - pkg/notifier: **95.5%カバレッジ** ✅
 - Phase 4完了時: **52.2%** 🎉
+
+### Phase 5: コマンドラインテスト（Week 5）- 目標60%
+
+**対象**: `cmd/tfdrift`, `cmd/test-drift`, `pkg/detector`追加テスト
+
+コマンドラインツールとDetectorの残りの関数をテスト：
+
+```go
+func TestNewApprovalCmd(t *testing.T) {
+    cmd := newApprovalCmd()
+
+    assert.NotNil(t, cmd)
+    assert.Equal(t, "approval", cmd.Use)
+    assert.True(t, cmd.HasSubCommands())
+
+    // Verify all subcommands are present
+    subcommands := cmd.Commands()
+    assert.Len(t, subcommands, 4)
+}
+
+func TestNew_WithAutoImport(t *testing.T) {
+    cfg := &config.Config{
+        AutoImport: config.AutoImportConfig{
+            Enabled:         true,
+            TerraformDir:    ".",
+            RequireApproval: true,
+        },
+    }
+
+    detector, err := New(cfg)
+
+    assert.NoError(t, err)
+    assert.NotNil(t, detector.importer)
+    assert.NotNil(t, detector.approvalManager)
+}
+```
+
+**成果**:
+- cmd/tfdrift: **47.2%カバレッジ** ✅
+- pkg/detector追加テスト: **51.8%カバレッジ** ✅
+- Phase 5完了時: **59.8%** 🎉
 
 ## CI/CD環境の構築
 
@@ -356,8 +397,9 @@ expected: nil,  // Go では nil == empty slice
 | pkg/metrics | 81.2% | ⭐⭐ |
 | pkg/terraform | 77.2% | ⭐⭐ |
 | pkg/falco | 63.0% | ⭐ |
-| pkg/detector | 21.1% | ⚠️ |
-| **全体** | **52.2%** | **✅** |
+| pkg/detector | 51.8% | ⭐ |
+| cmd/tfdrift | 47.2% | ⭐ |
+| **全体** | **59.8%** | **✅** |
 
 ## ベストプラクティス
 
@@ -417,6 +459,7 @@ Week 1: 基盤（簡単）     → 15%
 Week 2: コア（中程度）   → 31%
 Week 3: 統合（やや難）   → 37%
 Week 4: 外部依存（難）   → 52%
+Week 5: CLI + 追加（仕上げ） → 60%
 ```
 
 一度に全てをテストしようとせず、優先度をつけて段階的に進める。
