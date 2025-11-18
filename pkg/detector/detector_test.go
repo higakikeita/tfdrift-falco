@@ -688,6 +688,10 @@ func TestHandleEvent_DriftDetected(t *testing.T) {
 	stateManager, err := terraform.NewStateManager(stateConfig)
 	require.NoError(t, err)
 
+	// Load the state
+	err = stateManager.Load(context.Background())
+	require.NoError(t, err)
+
 	formatter := diff.NewFormatter(false)
 
 	detector := &Detector{
@@ -699,7 +703,7 @@ func TestHandleEvent_DriftDetected(t *testing.T) {
 	event := types.Event{
 		Provider:     "aws",
 		ResourceType: "aws_instance",
-		ResourceID:   "i-1234567890abcdef0",
+		ResourceID:   "i-0cea65ac652556767",
 		EventName:    "ModifyInstanceAttribute",
 		Changes: map[string]interface{}{
 			"instance_type": "t3.large", // Changed from t3.micro in state
@@ -732,6 +736,10 @@ func TestHandleEvent_NoDrift(t *testing.T) {
 	stateManager, err := terraform.NewStateManager(stateConfig)
 	require.NoError(t, err)
 
+	// Load the state
+	err = stateManager.Load(context.Background())
+	require.NoError(t, err)
+
 	formatter := diff.NewFormatter(false)
 
 	detector := &Detector{
@@ -743,7 +751,7 @@ func TestHandleEvent_NoDrift(t *testing.T) {
 	event := types.Event{
 		Provider:     "aws",
 		ResourceType: "aws_instance",
-		ResourceID:   "i-1234567890abcdef0",
+		ResourceID:   "i-0cea65ac652556767",
 		EventName:    "DescribeInstances",
 		Changes:      map[string]interface{}{
 			// No actual changes
@@ -776,7 +784,7 @@ func TestSendAlert_DryRun(t *testing.T) {
 		Severity:     "high",
 		ResourceType: "aws_instance",
 		ResourceName: "web",
-		ResourceID:   "i-1234567890abcdef0",
+		ResourceID:   "i-0cea65ac652556767",
 		Attribute:    "instance_type",
 		OldValue:     "t3.micro",
 		NewValue:     "t3.large",
@@ -849,6 +857,10 @@ func TestHandleEvent_WithTimestamp(t *testing.T) {
 	stateManager, err := terraform.NewStateManager(stateConfig)
 	require.NoError(t, err)
 
+	// Load the state
+	err = stateManager.Load(context.Background())
+	require.NoError(t, err)
+
 	formatter := diff.NewFormatter(false)
 
 	detector := &Detector{
@@ -861,7 +873,7 @@ func TestHandleEvent_WithTimestamp(t *testing.T) {
 	event := types.Event{
 		Provider:     "aws",
 		ResourceType: "aws_instance",
-		ResourceID:   "i-1234567890abcdef0",
+		ResourceID:   "i-0cea65ac652556767",
 		EventName:    "ModifyInstanceAttribute",
 		Changes: map[string]interface{}{
 			"instance_type": "t3.large",
@@ -1135,7 +1147,7 @@ func TestProcessEvents(t *testing.T) {
 	testEvent := types.Event{
 		Provider:     "aws",
 		ResourceType: "aws_instance",
-		ResourceID:   "i-1234567890abcdef0",
+		ResourceID:   "i-0cea65ac652556767",
 		EventName:    "ModifyInstanceAttribute",
 		Changes: map[string]interface{}{
 			"instance_type": "t3.large",
@@ -1344,7 +1356,7 @@ func TestProcessEvents_MultipleEvents(t *testing.T) {
 		event := types.Event{
 			Provider:     "aws",
 			ResourceType: "aws_instance",
-			ResourceID:   "i-1234567890abcdef0",
+			ResourceID:   "i-0cea65ac652556767",
 			EventName:    "ModifyInstanceAttribute",
 			Changes: map[string]interface{}{
 				"instance_type": "t3.large",
