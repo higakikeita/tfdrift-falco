@@ -7,7 +7,7 @@
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
 [![Test](https://github.com/higakikeita/tfdrift-falco/actions/workflows/test.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/test.yml)
 [![Lint](https://github.com/higakikeita/tfdrift-falco/actions/workflows/lint.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/lint.yml)
-[![Coverage](https://img.shields.io/badge/coverage-70.5%25-brightgreen)](https://github.com/higakikeita/tfdrift-falco)
+[![Coverage](https://img.shields.io/badge/coverage-80.0%25-brightgreen)](https://github.com/higakikeita/tfdrift-falco)
 
 [English](#english) | [日本語](#japanese)
 
