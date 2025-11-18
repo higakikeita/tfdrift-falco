@@ -1,0 +1,19 @@
+providers:
+  aws:
+    enabled: true
+    regions:
+      - us-east-1
+    state:
+      backend: local
+      local_path: ./terraform.tfstate
+
+falco:
+  enabled: false
+
+notifications:
+  slack:
+    enabled: false
+
+logging:
+  level: info
+  format: text

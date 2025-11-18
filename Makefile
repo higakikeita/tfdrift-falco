@@ -56,17 +56,37 @@ test:
 	@echo "Running tests..."
 	$(GO) test -v ./...
 
-## test-coverage: Run tests with coverage
+## test-coverage: Run tests with coverage report
 test-coverage:
 	@echo "Running tests with coverage..."
 	$(GO) test -cover -coverprofile=coverage.out ./...
-	$(GO) tool cover -html=coverage.out -o coverage.html
+	@$(GO) tool cover -func=coverage.out
+	@$(GO) tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
+
+## test-coverage-threshold: Run tests and check coverage threshold
+test-coverage-threshold:
+	@echo "Running tests with coverage threshold check..."
+	$(GO) test -coverprofile=coverage.out -covermode=atomic ./...
+	@COVERAGE=$$($(GO) tool cover -func=coverage.out | grep total | awk '{print $$3}' | sed 's/%//'); \
+	echo "Total coverage: $${COVERAGE}%"; \
+	THRESHOLD=30.0; \
+	if [ $$(echo "$${COVERAGE} < $${THRESHOLD}" | bc -l) -eq 1 ]; then \
+		echo "❌ Coverage $${COVERAGE}% is below threshold $${THRESHOLD}%"; \
+		exit 1; \
+	else \
+		echo "✅ Coverage $${COVERAGE}% meets threshold $${THRESHOLD}%"; \
+	fi
 
 ## test-race: Run tests with race detection
 test-race:
 	@echo "Running tests with race detection..."
 	$(GO) test -race ./...
+
+## test-short: Run short tests only
+test-short:
+	@echo "Running short tests..."
+	$(GO) test -short -v ./...
 
 ## lint: Run linters
 lint:
@@ -124,5 +144,13 @@ init:
 ## check: Run all checks (fmt, lint, test)
 check: fmt lint test
 	@echo "All checks passed!"
+
+## ci: Run all CI checks locally
+ci: deps fmt lint test-coverage-threshold test-race
+	@echo "✅ All CI checks passed!"
+
+## ci-local: Quick CI checks without race detector (faster)
+ci-local: fmt lint test-coverage
+	@echo "✅ Local CI checks passed!"
 
 .DEFAULT_GOAL := help

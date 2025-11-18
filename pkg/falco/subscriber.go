@@ -149,45 +149,45 @@ func (s *Subscriber) parseFalcoOutput(res *outputs.Response) *types.Event {
 func (s *Subscriber) isRelevantEvent(eventName string) bool {
 	relevantEvents := map[string]bool{
 		// EC2
-		"ModifyInstanceAttribute":          true,
-		"ModifyNetworkInterfaceAttribute":  true,
-		"ModifyVolume":                     true,
+		"ModifyInstanceAttribute":         true,
+		"ModifyNetworkInterfaceAttribute": true,
+		"ModifyVolume":                    true,
 
 		// IAM - Policy modifications
-		"PutUserPolicy":                    true,
-		"PutRolePolicy":                    true,
-		"PutGroupPolicy":                   true,
-		"UpdateAssumeRolePolicy":           true,
-		"AttachUserPolicy":                 true,
-		"AttachRolePolicy":                 true,
-		"AttachGroupPolicy":                true,
-		"CreatePolicy":                     true,
-		"CreatePolicyVersion":              true,
+		"PutUserPolicy":          true,
+		"PutRolePolicy":          true,
+		"PutGroupPolicy":         true,
+		"UpdateAssumeRolePolicy": true,
+		"AttachUserPolicy":       true,
+		"AttachRolePolicy":       true,
+		"AttachGroupPolicy":      true,
+		"CreatePolicy":           true,
+		"CreatePolicyVersion":    true,
 
 		// IAM - User/Role/Group lifecycle
-		"CreateRole":                       true,
-		"DeleteRole":                       true,
-		"CreateUser":                       true,
-		"DeleteUser":                       true,
-		"CreateAccessKey":                  true,
-		"AddUserToGroup":                   true,
-		"RemoveUserFromGroup":              true,
-		"UpdateAccountPasswordPolicy":      true,
+		"CreateRole":                  true,
+		"DeleteRole":                  true,
+		"CreateUser":                  true,
+		"DeleteUser":                  true,
+		"CreateAccessKey":             true,
+		"AddUserToGroup":              true,
+		"RemoveUserFromGroup":         true,
+		"UpdateAccountPasswordPolicy": true,
 
 		// S3
-		"PutBucketPolicy":                  true,
-		"PutBucketVersioning":              true,
-		"PutBucketEncryption":              true,
-		"DeleteBucketEncryption":           true,
-		"PutBucketLogging":                 true,
+		"PutBucketPolicy":        true,
+		"PutBucketVersioning":    true,
+		"PutBucketEncryption":    true,
+		"DeleteBucketEncryption": true,
+		"PutBucketLogging":       true,
 
 		// RDS
-		"ModifyDBInstance":                 true,
-		"ModifyDBCluster":                  true,
+		"ModifyDBInstance": true,
+		"ModifyDBCluster":  true,
 
 		// Lambda
-		"UpdateFunctionConfiguration":     true,
-		"UpdateFunctionCode":               true,
+		"UpdateFunctionConfiguration": true,
+		"UpdateFunctionCode":          true,
 	}
 
 	return relevantEvents[eventName]
@@ -197,37 +197,37 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 func (s *Subscriber) extractResourceID(eventName string, fields map[string]string) string {
 	// Try different field names based on event type
 	idFieldMap := map[string][]string{
-		"ModifyInstanceAttribute":      {"ct.request.instanceid", "ct.resource.instanceid"},
-		"ModifyVolume":                 {"ct.request.volumeid"},
-		"PutBucketPolicy":              {"ct.request.bucket", "ct.resource.bucket"},
-		"PutBucketEncryption":          {"ct.request.bucket"},
-		"DeleteBucketEncryption":       {"ct.request.bucket"},
-		"ModifyDBInstance":             {"ct.request.dbinstanceidentifier"},
-		"UpdateFunctionConfiguration":  {"ct.request.functionname"},
+		"ModifyInstanceAttribute":     {"ct.request.instanceid", "ct.resource.instanceid"},
+		"ModifyVolume":                {"ct.request.volumeid"},
+		"PutBucketPolicy":             {"ct.request.bucket", "ct.resource.bucket"},
+		"PutBucketEncryption":         {"ct.request.bucket"},
+		"DeleteBucketEncryption":      {"ct.request.bucket"},
+		"ModifyDBInstance":            {"ct.request.dbinstanceidentifier"},
+		"UpdateFunctionConfiguration": {"ct.request.functionname"},
 
 		// IAM - Roles
-		"PutRolePolicy":                {"ct.request.rolename"},
-		"UpdateAssumeRolePolicy":       {"ct.request.rolename"},
-		"AttachRolePolicy":             {"ct.request.rolename"},
-		"CreateRole":                   {"ct.request.rolename"},
-		"DeleteRole":                   {"ct.request.rolename"},
+		"PutRolePolicy":          {"ct.request.rolename"},
+		"UpdateAssumeRolePolicy": {"ct.request.rolename"},
+		"AttachRolePolicy":       {"ct.request.rolename"},
+		"CreateRole":             {"ct.request.rolename"},
+		"DeleteRole":             {"ct.request.rolename"},
 
 		// IAM - Users
-		"PutUserPolicy":                {"ct.request.username"},
-		"AttachUserPolicy":             {"ct.request.username"},
-		"CreateUser":                   {"ct.request.username"},
-		"DeleteUser":                   {"ct.request.username"},
-		"CreateAccessKey":              {"ct.request.username"},
-		"AddUserToGroup":               {"ct.request.username"},
-		"RemoveUserFromGroup":          {"ct.request.username"},
+		"PutUserPolicy":       {"ct.request.username"},
+		"AttachUserPolicy":    {"ct.request.username"},
+		"CreateUser":          {"ct.request.username"},
+		"DeleteUser":          {"ct.request.username"},
+		"CreateAccessKey":     {"ct.request.username"},
+		"AddUserToGroup":      {"ct.request.username"},
+		"RemoveUserFromGroup": {"ct.request.username"},
 
 		// IAM - Groups
-		"PutGroupPolicy":               {"ct.request.groupname"},
-		"AttachGroupPolicy":            {"ct.request.groupname"},
+		"PutGroupPolicy":    {"ct.request.groupname"},
+		"AttachGroupPolicy": {"ct.request.groupname"},
 
 		// IAM - Policies
-		"CreatePolicy":                 {"ct.request.policyname"},
-		"CreatePolicyVersion":          {"ct.request.policyarn"},
+		"CreatePolicy":        {"ct.request.policyname"},
+		"CreatePolicyVersion": {"ct.request.policyarn"},
 	}
 
 	// Get possible field names for this event
@@ -402,47 +402,47 @@ func (s *Subscriber) extractChanges(eventName string, fields map[string]string) 
 func (s *Subscriber) mapEventToResourceType(eventName string) string {
 	mapping := map[string]string{
 		// EC2
-		"ModifyInstanceAttribute":          "aws_instance",
-		"ModifyVolume":                     "aws_ebs_volume",
+		"ModifyInstanceAttribute": "aws_instance",
+		"ModifyVolume":            "aws_ebs_volume",
 
 		// IAM - Roles
-		"PutRolePolicy":                    "aws_iam_role_policy",
-		"UpdateAssumeRolePolicy":           "aws_iam_role",
-		"AttachRolePolicy":                 "aws_iam_role_policy_attachment",
-		"CreateRole":                       "aws_iam_role",
-		"DeleteRole":                       "aws_iam_role",
+		"PutRolePolicy":          "aws_iam_role_policy",
+		"UpdateAssumeRolePolicy": "aws_iam_role",
+		"AttachRolePolicy":       "aws_iam_role_policy_attachment",
+		"CreateRole":             "aws_iam_role",
+		"DeleteRole":             "aws_iam_role",
 
 		// IAM - Users
-		"PutUserPolicy":                    "aws_iam_user_policy",
-		"AttachUserPolicy":                 "aws_iam_user_policy_attachment",
-		"CreateUser":                       "aws_iam_user",
-		"DeleteUser":                       "aws_iam_user",
-		"CreateAccessKey":                  "aws_iam_access_key",
-		"AddUserToGroup":                   "aws_iam_user_group_membership",
-		"RemoveUserFromGroup":              "aws_iam_user_group_membership",
+		"PutUserPolicy":       "aws_iam_user_policy",
+		"AttachUserPolicy":    "aws_iam_user_policy_attachment",
+		"CreateUser":          "aws_iam_user",
+		"DeleteUser":          "aws_iam_user",
+		"CreateAccessKey":     "aws_iam_access_key",
+		"AddUserToGroup":      "aws_iam_user_group_membership",
+		"RemoveUserFromGroup": "aws_iam_user_group_membership",
 
 		// IAM - Groups
-		"PutGroupPolicy":                   "aws_iam_group_policy",
-		"AttachGroupPolicy":                "aws_iam_group_policy_attachment",
+		"PutGroupPolicy":    "aws_iam_group_policy",
+		"AttachGroupPolicy": "aws_iam_group_policy_attachment",
 
 		// IAM - Policies
-		"CreatePolicy":                     "aws_iam_policy",
-		"CreatePolicyVersion":              "aws_iam_policy",
+		"CreatePolicy":        "aws_iam_policy",
+		"CreatePolicyVersion": "aws_iam_policy",
 
 		// IAM - Account
-		"UpdateAccountPasswordPolicy":      "aws_iam_account_password_policy",
+		"UpdateAccountPasswordPolicy": "aws_iam_account_password_policy",
 
 		// S3
-		"PutBucketPolicy":                  "aws_s3_bucket_policy",
-		"PutBucketVersioning":              "aws_s3_bucket",
-		"PutBucketEncryption":              "aws_s3_bucket",
-		"DeleteBucketEncryption":           "aws_s3_bucket",
+		"PutBucketPolicy":        "aws_s3_bucket_policy",
+		"PutBucketVersioning":    "aws_s3_bucket",
+		"PutBucketEncryption":    "aws_s3_bucket",
+		"DeleteBucketEncryption": "aws_s3_bucket",
 
 		// RDS
-		"ModifyDBInstance":                 "aws_db_instance",
+		"ModifyDBInstance": "aws_db_instance",
 
 		// Lambda
-		"UpdateFunctionConfiguration":     "aws_lambda_function",
+		"UpdateFunctionConfiguration": "aws_lambda_function",
 	}
 
 	if resourceType, ok := mapping[eventName]; ok {

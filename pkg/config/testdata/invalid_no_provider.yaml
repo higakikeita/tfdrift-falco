@@ -1,0 +1,18 @@
+providers:
+  aws:
+    enabled: false
+  gcp:
+    enabled: false
+
+falco:
+  enabled: true
+  hostname: localhost
+  port: 5060
+
+notifications:
+  slack:
+    enabled: false
+
+logging:
+  level: info
+  format: text

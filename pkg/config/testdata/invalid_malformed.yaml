@@ -1,0 +1,5 @@
+providers:
+  aws:
+    enabled: true
+    regions: [
+  this is not valid yaml syntax

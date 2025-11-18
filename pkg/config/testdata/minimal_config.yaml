@@ -1,0 +1,32 @@
+providers:
+  aws:
+    enabled: true
+    regions:
+      - us-east-1
+    state:
+      backend: local
+      local_path: ./terraform.tfstate
+  gcp:
+    enabled: false
+
+falco:
+  enabled: true
+  hostname: localhost
+  port: 5060
+
+notifications:
+  slack:
+    enabled: false
+  discord:
+    enabled: false
+  falco_output:
+    enabled: false
+  webhook:
+    enabled: false
+
+logging:
+  level: info
+  format: text
+
+auto_import:
+  enabled: false

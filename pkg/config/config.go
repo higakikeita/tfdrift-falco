@@ -42,7 +42,7 @@ type TerraformStateConfig struct {
 
 // GCPConfig contains GCP-specific settings
 type GCPConfig struct {
-	Enabled bool     `yaml:"enabled"`
+	Enabled  bool     `yaml:"enabled"`
 	Projects []string `yaml:"projects"`
 }
 
@@ -66,10 +66,10 @@ type DriftRule struct {
 
 // NotificationsConfig contains notification channel settings
 type NotificationsConfig struct {
-	Slack        SlackConfig   `yaml:"slack"`
-	Discord      DiscordConfig `yaml:"discord"`
-	FalcoOutput  FalcoOutputConfig `yaml:"falco_output"`
-	Webhook      WebhookConfig `yaml:"webhook"`
+	Slack       SlackConfig       `yaml:"slack"`
+	Discord     DiscordConfig     `yaml:"discord"`
+	FalcoOutput FalcoOutputConfig `yaml:"falco_output"`
+	Webhook     WebhookConfig     `yaml:"webhook"`
 }
 
 // SlackConfig contains Slack notification settings

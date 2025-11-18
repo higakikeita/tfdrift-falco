@@ -1,0 +1,66 @@
+providers:
+  aws:
+    enabled: true
+    regions:
+      - us-east-1
+      - us-west-2
+    state:
+      backend: s3
+      s3_bucket: my-terraform-state
+      s3_key: prod/terraform.tfstate
+  gcp:
+    enabled: false
+    projects: []
+
+falco:
+  enabled: true
+  hostname: localhost
+  port: 5060
+  cert_file: /etc/falco/certs/client.crt
+  key_file: /etc/falco/certs/client.key
+  ca_root_file: /etc/falco/certs/ca.crt
+
+drift_rules:
+  - name: critical-security-group-change
+    resource_types:
+      - AWS::EC2::SecurityGroup
+    watched_attributes:
+      - ingress_rules
+      - egress_rules
+    severity: critical
+  - name: iam-policy-change
+    resource_types:
+      - AWS::IAM::Policy
+      - AWS::IAM::Role
+    watched_attributes:
+      - policy_document
+    severity: high
+
+notifications:
+  slack:
+    enabled: true
+    webhook_url: https://hooks.slack.com/services/XXX/YYY/ZZZ
+    channel: "#alerts"
+  discord:
+    enabled: false
+    webhook_url: ""
+  falco_output:
+    enabled: true
+    priority: warning
+  webhook:
+    enabled: false
+    url: ""
+    headers: {}
+
+logging:
+  level: info
+  format: json
+
+auto_import:
+  enabled: true
+  terraform_dir: /path/to/terraform
+  output_dir: /path/to/output
+  allowed_resources:
+    - AWS::EC2::Instance
+    - AWS::S3::Bucket
+  require_approval: true
