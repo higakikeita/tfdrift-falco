@@ -42,11 +42,11 @@ jobs:
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Total coverage: ${COVERAGE}%"
 
-          # Phase 1-5 complete: all core packages + CLI
-          # Current: 59.8%
-          # Target: 55% (buffer for future changes)
+          # Phase 1-6 complete: all core packages + CLI + integration tests
+          # Current: 64.1%
+          # Target: 60% (buffer for future changes)
           # Goal: 70%+
-          THRESHOLD=55.0
+          THRESHOLD=60.0
 
           if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
             echo "❌ Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
@@ -116,8 +116,8 @@ jobs:
 
             summary += '\n### Coverage Status\n\n';
             summary += '- Current: ' + totalCoverage + '\n';
-            summary += '- Threshold: 55%\n';
-            summary += '- Phase 1-5: Complete ✅\n';
+            summary += '- Threshold: 60%\n';
+            summary += '- Phase 1-6: Complete ✅\n';
             summary += '- Next Goal: 70%\n';
 
             github.rest.issues.createComment({
