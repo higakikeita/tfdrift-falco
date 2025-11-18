@@ -55,11 +55,36 @@ func TestNewApprovalListCmd(t *testing.T) {
 	assert.NotNil(t, cmd)
 	assert.Equal(t, "list", cmd.Use)
 	assert.Equal(t, "List pending approval requests", cmd.Short)
-
-	// Execute the command (output goes to stdout, we just verify it doesn't error)
-	// Since the command uses fmt.Println, we can't easily capture it in tests
-	// But we can verify the command structure and that it executes without error
 	assert.NotNil(t, cmd.Run)
+}
+
+func TestNewApprovalListCmd_Execute(t *testing.T) {
+	cmd := newApprovalListCmd()
+
+	// Capture stdout
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	// Execute the command
+	cmd.Run(cmd, []string{})
+
+	// Restore stdout
+	w.Close()
+	os.Stdout = oldStdout
+
+	// Read captured output
+	var buf bytes.Buffer
+	buf.ReadFrom(r)
+	output := buf.String()
+
+	// Verify output contains expected messages
+	assert.Contains(t, output, "This feature requires a running TFDrift-Falco instance")
+	assert.Contains(t, output, "approval requests are only available during interactive sessions")
+	assert.Contains(t, output, "To use approval workflow:")
+	assert.Contains(t, output, "Enable auto_import in config.yaml")
+	assert.Contains(t, output, "require_approval: true")
+	assert.Contains(t, output, "tfdrift --config config.yaml --interactive")
 }
 
 func TestNewApprovalApproveCmd(t *testing.T) {

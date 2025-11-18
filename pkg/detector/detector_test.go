@@ -1014,6 +1014,90 @@ func TestHandleAutoImport_EmptyAllowList(t *testing.T) {
 	})
 }
 
+func TestHandleAutoImport_WithApprovalRequired_NonInteractive(t *testing.T) {
+	cfg := &config.Config{
+		DryRun: true,
+		AutoImport: config.AutoImportConfig{
+			Enabled:         true,
+			TerraformDir:    ".",
+			RequireApproval: true, // Requires approval
+			OutputDir:       "/tmp",
+		},
+	}
+
+	importer := terraform.NewImporter(".", true)
+	approvalManager := terraform.NewApprovalManager(importer, false) // NON-interactive mode
+
+	detector := &Detector{
+		cfg:             cfg,
+		importer:        importer,
+		approvalManager: approvalManager,
+	}
+
+	event := &types.Event{
+		Provider:     "aws",
+		ResourceType: "aws_instance",
+		ResourceID:   "i-noninteractive-123",
+		EventName:    "RunInstances",
+		Changes:      map[string]interface{}{"instance_type": "t3.micro"},
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "admin",
+			ARN:      "arn:aws:iam::123456789012:user/admin",
+		},
+	}
+
+	// Should handle non-interactive mode gracefully (prompt will fail, should log error)
+	assert.NotPanics(t, func() {
+		detector.handleAutoImport(context.Background(), event)
+	})
+}
+
+func TestHandleAutoImport_WithGeneratedCode(t *testing.T) {
+	cfg := &config.Config{
+		DryRun: true,
+		AutoImport: config.AutoImportConfig{
+			Enabled:          true,
+			TerraformDir:     ".",
+			RequireApproval:  false,
+			AllowedResources: []string{"aws_s3_bucket"},
+			OutputDir:        "/tmp/terraform-imports",
+		},
+	}
+
+	importer := terraform.NewImporter(".", true)
+	approvalManager := terraform.NewApprovalManager(importer, false)
+
+	detector := &Detector{
+		cfg:             cfg,
+		importer:        importer,
+		approvalManager: approvalManager,
+	}
+
+	event := &types.Event{
+		Provider:     "aws",
+		ResourceType: "aws_s3_bucket",
+		ResourceID:   "my-new-bucket",
+		EventName:    "CreateBucket",
+		Changes: map[string]interface{}{
+			"bucket":         "my-new-bucket",
+			"versioning":     true,
+			"acl":            "private",
+			"force_destroy":  false,
+		},
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "devops",
+			ARN:      "arn:aws:iam::123456789012:user/devops",
+		},
+	}
+
+	// Should generate code and suggest output file
+	assert.NotPanics(t, func() {
+		detector.handleAutoImport(context.Background(), event)
+	})
+}
+
 func TestHandleEvent_WithAutoImport(t *testing.T) {
 	cfg := &config.Config{
 		DriftRules: []config.DriftRule{},
@@ -1376,4 +1460,210 @@ func TestProcessEvents_MultipleEvents(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	assert.True(t, true) // No panic = success
+}
+
+func TestNew_WithAutoImportNoApproval(t *testing.T) {
+	// Test New with auto-import enabled but no approval required
+	cfg := &config.Config{
+		Providers: config.ProvidersConfig{
+			AWS: config.AWSConfig{
+				Enabled: true,
+				Regions: []string{"us-east-1"},
+				State: config.TerraformStateConfig{
+					Backend:   "local",
+					LocalPath: "testdata/terraform.tfstate",
+				},
+			},
+		},
+		Falco: config.FalcoConfig{
+			Enabled:  true,
+			Hostname: "localhost",
+			Port:     5060,
+		},
+		Notifications: config.NotificationsConfig{
+			Slack: config.SlackConfig{
+				Enabled: false,
+			},
+		},
+		AutoImport: config.AutoImportConfig{
+			Enabled:          true,
+			TerraformDir:     ".",
+			OutputDir:        "/tmp",
+			AllowedResources: []string{"aws_instance", "aws_s3_bucket"},
+			RequireApproval:  false, // Auto-approve with whitelist
+		},
+		DryRun: true,
+	}
+
+	detector, err := New(cfg)
+
+	require.NoError(t, err)
+	require.NotNil(t, detector)
+	assert.NotNil(t, detector.importer)
+	assert.NotNil(t, detector.approvalManager)
+}
+
+func TestNew_WithAutoImportWithApproval(t *testing.T) {
+	// Test New with auto-import enabled and approval required
+	cfg := &config.Config{
+		Providers: config.ProvidersConfig{
+			AWS: config.AWSConfig{
+				Enabled: true,
+				Regions: []string{"us-east-1"},
+				State: config.TerraformStateConfig{
+					Backend:   "local",
+					LocalPath: "testdata/terraform.tfstate",
+				},
+			},
+		},
+		Falco: config.FalcoConfig{
+			Enabled:  true,
+			Hostname: "localhost",
+			Port:     5060,
+		},
+		Notifications: config.NotificationsConfig{
+			Slack: config.SlackConfig{
+				Enabled: false,
+			},
+		},
+		AutoImport: config.AutoImportConfig{
+			Enabled:         true,
+			TerraformDir:    ".",
+			OutputDir:       "/tmp",
+			RequireApproval: true, // Manual approval required
+		},
+		DryRun: true,
+	}
+
+	detector, err := New(cfg)
+
+	require.NoError(t, err)
+	require.NotNil(t, detector)
+	assert.NotNil(t, detector.importer)
+	assert.NotNil(t, detector.approvalManager)
+}
+
+func TestNew_WithAutoImportNoWhitelist(t *testing.T) {
+	// Test New with auto-import enabled, no approval, no whitelist (auto-approve all)
+	cfg := &config.Config{
+		Providers: config.ProvidersConfig{
+			AWS: config.AWSConfig{
+				Enabled: true,
+				Regions: []string{"us-east-1"},
+				State: config.TerraformStateConfig{
+					Backend:   "local",
+					LocalPath: "testdata/terraform.tfstate",
+				},
+			},
+		},
+		Falco: config.FalcoConfig{
+			Enabled:  true,
+			Hostname: "localhost",
+			Port:     5060,
+		},
+		Notifications: config.NotificationsConfig{
+			Slack: config.SlackConfig{
+				Enabled: false,
+			},
+		},
+		AutoImport: config.AutoImportConfig{
+			Enabled:          true,
+			TerraformDir:     ".",
+			OutputDir:        "/tmp",
+			AllowedResources: []string{}, // Empty whitelist
+			RequireApproval:  false,
+		},
+		DryRun: true,
+	}
+
+	detector, err := New(cfg)
+
+	require.NoError(t, err)
+	require.NotNil(t, detector)
+	assert.NotNil(t, detector.importer)
+	assert.NotNil(t, detector.approvalManager)
+}
+
+func TestSendUnmanagedResourceAlert_NotifierError(t *testing.T) {
+	cfg := &config.Config{
+		DryRun: false, // Not dry-run, so it will try to send notifications
+		Notifications: config.NotificationsConfig{
+			Slack: config.SlackConfig{
+				Enabled:    true,
+				WebhookURL: "https://invalid-webhook-url-that-will-fail.example.com/webhook",
+				Channel:    "#test",
+			},
+		},
+	}
+
+	notifierMgr, err := notifier.NewManager(cfg.Notifications)
+	require.NoError(t, err)
+
+	formatter := diff.NewFormatter(false)
+
+	detector := &Detector{
+		cfg:       cfg,
+		notifier:  notifierMgr,
+		formatter: formatter,
+	}
+
+	event := &types.Event{
+		Provider:     "aws",
+		ResourceType: "aws_instance",
+		ResourceID:   "i-unmanaged-123",
+		EventName:    "RunInstances",
+		Changes: map[string]interface{}{
+			"instance_type": "t3.micro",
+		},
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "test-user",
+			ARN:      "arn:aws:iam::123456789012:user/test-user",
+		},
+		RawEvent: map[string]interface{}{
+			"eventTime": time.Now().Format(time.RFC3339),
+		},
+	}
+
+	// Should not panic even if notifier fails
+	assert.NotPanics(t, func() {
+		detector.sendUnmanagedResourceAlert(event)
+	})
+}
+
+func TestHandleAutoImport_DryRunMode(t *testing.T) {
+	cfg := &config.Config{
+		DryRun: true, // Dry-run mode
+		AutoImport: config.AutoImportConfig{
+			Enabled:      true,
+			TerraformDir: ".",
+			OutputDir:    "/tmp",
+		},
+	}
+
+	importer := terraform.NewImporter(".", true)
+	approvalManager := terraform.NewApprovalManager(importer, false)
+
+	detector := &Detector{
+		cfg:             cfg,
+		importer:        importer,
+		approvalManager: approvalManager,
+	}
+
+	event := &types.Event{
+		Provider:     "aws",
+		ResourceType: "aws_instance",
+		ResourceID:   "i-dryrun-123",
+		EventName:    "RunInstances",
+		Changes:      map[string]interface{}{"instance_type": "t3.micro"},
+		UserIdentity: types.UserIdentity{
+			Type:     "IAMUser",
+			UserName: "admin",
+		},
+	}
+
+	// Should handle dry-run mode gracefully
+	assert.NotPanics(t, func() {
+		detector.handleAutoImport(context.Background(), event)
+	})
 }

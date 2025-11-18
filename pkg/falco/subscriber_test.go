@@ -388,6 +388,100 @@ func TestExtractChanges(t *testing.T) {
 			wantKeys: []string{"minimum_password_length", "require_symbols"},
 		},
 		{
+			name:      "DeleteRole",
+			eventName: "DeleteRole",
+			fields: map[string]string{
+				"ct.request.rolename": "obsolete-role",
+			},
+			wantKeys: []string{"deleted_role"},
+		},
+		{
+			name:      "CreateUser",
+			eventName: "CreateUser",
+			fields: map[string]string{
+				"ct.request.username": "new-user",
+			},
+			wantKeys: []string{"user_name"},
+		},
+		{
+			name:      "RemoveUserFromGroup",
+			eventName: "RemoveUserFromGroup",
+			fields: map[string]string{
+				"ct.request.username":  "jane",
+				"ct.request.groupname": "admins",
+			},
+			wantKeys: []string{"user_name", "group_name"},
+		},
+		{
+			name:      "CreatePolicy",
+			eventName: "CreatePolicy",
+			fields: map[string]string{
+				"ct.request.policyname":     "new-policy",
+				"ct.request.policydocument": `{"Version":"2012-10-17","Statement":[]}`,
+			},
+			wantKeys: []string{"policy_name", "policy_document"},
+		},
+		{
+			name:      "CreatePolicyVersion",
+			eventName: "CreatePolicyVersion",
+			fields: map[string]string{
+				"ct.request.policyarn":      "arn:aws:iam::123:policy/my-policy",
+				"ct.request.setasdefault":   "true",
+				"ct.request.policydocument": `{"Version":"2012-10-17"}`,
+			},
+			wantKeys: []string{"policy_arn", "set_as_default", "policy_document"},
+		},
+		{
+			name:      "AttachUserPolicy",
+			eventName: "AttachUserPolicy",
+			fields: map[string]string{
+				"ct.request.policyarn": "arn:aws:iam::aws:policy/PowerUserAccess",
+			},
+			wantKeys: []string{"attached_policy_arn"},
+		},
+		{
+			name:      "AttachGroupPolicy",
+			eventName: "AttachGroupPolicy",
+			fields: map[string]string{
+				"ct.request.policyarn": "arn:aws:iam::aws:policy/ReadOnlyAccess",
+			},
+			wantKeys: []string{"attached_policy_arn"},
+		},
+		{
+			name:      "PutUserPolicy",
+			eventName: "PutUserPolicy",
+			fields: map[string]string{
+				"ct.request.policyname":     "user-inline-policy",
+				"ct.request.policydocument": `{"Version":"2012-10-17"}`,
+			},
+			wantKeys: []string{"inline_policy_name", "policy_document"},
+		},
+		{
+			name:      "PutGroupPolicy",
+			eventName: "PutGroupPolicy",
+			fields: map[string]string{
+				"ct.request.policyname":     "group-inline-policy",
+				"ct.request.policydocument": `{"Version":"2012-10-17"}`,
+			},
+			wantKeys: []string{"inline_policy_name", "policy_document"},
+		},
+		{
+			name:      "UpdateFunctionConfiguration - Only Timeout",
+			eventName: "UpdateFunctionConfiguration",
+			fields: map[string]string{
+				"ct.request.timeout": "30",
+			},
+			wantKeys: []string{"timeout"},
+		},
+		{
+			name:      "UpdateFunctionConfiguration - Only Memory",
+			eventName: "UpdateFunctionConfiguration",
+			fields: map[string]string{
+				"ct.request.memorysize": "1024",
+			},
+			wantKeys: []string{"memory_size"},
+		},
+		{
 			name:      "Unknown Event",
 			eventName: "UnknownEvent",
 			fields: map[string]string{

@@ -87,3 +87,25 @@ func TestMockReadWriter(t *testing.T) {
 	assert.Equal(t, len(input), n)
 	assert.Equal(t, input, string(buf))
 }
+
+func TestMockReadWriter_GetOutput(t *testing.T) {
+	rw := NewMockReadWriter()
+
+	// Write some data
+	output1 := "first line"
+	n, err := rw.Write([]byte(output1))
+	require.NoError(t, err)
+	assert.Equal(t, len(output1), n)
+
+	// Check output
+	assert.Equal(t, output1, rw.GetOutput())
+
+	// Write more data
+	output2 := " second line"
+	n, err = rw.Write([]byte(output2))
+	require.NoError(t, err)
+	assert.Equal(t, len(output2), n)
+
+	// Check combined output
+	assert.Equal(t, output1+output2, rw.GetOutput())
+}

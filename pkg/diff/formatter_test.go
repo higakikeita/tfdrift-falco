@@ -206,6 +206,31 @@ func TestFormatTerraformValue(t *testing.T) {
 			value:    []interface{}{"a", "b"},
 			expected: "[\"a\", \"b\"]",
 		},
+		{
+			name:     "Map",
+			value:    map[string]interface{}{"key": "value"},
+			expected: "{\n    key = \"value\"\n  }",
+		},
+		{
+			name:     "Nested map",
+			value:    map[string]interface{}{"outer": map[string]interface{}{"inner": "value"}},
+			expected: "{\n    outer = {\n    inner = \"value\"\n  }\n  }",
+		},
+		{
+			name:     "Nil value",
+			value:    nil,
+			expected: "null",
+		},
+		{
+			name:     "Int64",
+			value:    int64(999),
+			expected: "999",
+		},
+		{
+			name:     "Float64",
+			value:    float64(123.456),
+			expected: "123.456",
+		},
 	}
 
 	for _, tt := range tests {
@@ -358,6 +383,27 @@ func TestFormatSideBySide(t *testing.T) {
 	assert.Contains(t, result, "old-value")
 	assert.Contains(t, result, "new-value")
 	assert.Contains(t, result, "│") // Column separator
+}
+
+func TestFormatSideBySide_ComplexValues(t *testing.T) {
+	formatter := NewFormatter(false)
+
+	alert := &types.DriftAlert{
+		OldValue: map[string]interface{}{
+			"key1": "value1",
+			"key2": "value2",
+		},
+		NewValue: map[string]interface{}{
+			"key1": "changed",
+			"key3": "new",
+		},
+	}
+
+	result := formatter.FormatSideBySide(alert)
+
+	assert.Contains(t, result, "Terraform State")
+	assert.Contains(t, result, "Actual Configuration")
+	assert.Contains(t, result, "│")
 }
 
 func TestFormatUnmanagedResource(t *testing.T) {

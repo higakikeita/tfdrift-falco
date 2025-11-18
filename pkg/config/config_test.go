@@ -277,6 +277,47 @@ func TestSave(t *testing.T) {
 	assert.Equal(t, cfg.Falco.Hostname, loadedCfg.Falco.Hostname)
 }
 
+func TestSave_InvalidPath(t *testing.T) {
+	cfg := &Config{
+		Providers: ProvidersConfig{
+			AWS: AWSConfig{
+				Enabled: true,
+			},
+		},
+		Falco: FalcoConfig{
+			Enabled: true,
+		},
+	}
+
+	// Try to save to invalid path (directory doesn't exist)
+	invalidPath := "/nonexistent/directory/config.yaml"
+	err := cfg.Save(invalidPath)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to write config file")
+}
+
+func TestSave_ReadOnly(t *testing.T) {
+	cfg := &Config{
+		Providers: ProvidersConfig{
+			AWS: AWSConfig{Enabled: true},
+		},
+		Falco: FalcoConfig{Enabled: true},
+	}
+
+	// Create a read-only directory
+	tmpDir := t.TempDir()
+	readOnlyDir := filepath.Join(tmpDir, "readonly")
+	err := os.Mkdir(readOnlyDir, 0444) // Read-only
+	require.NoError(t, err)
+
+	filePath := filepath.Join(readOnlyDir, "config.yaml")
+	err = cfg.Save(filePath)
+
+	// Should fail because directory is read-only
+	assert.Error(t, err)
+}
+
 func TestDriftRule_Structure(t *testing.T) {
 	rule := DriftRule{
 		Name:              "test-rule",
