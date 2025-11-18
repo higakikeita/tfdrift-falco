@@ -1,0 +1,101 @@
+# TFDrift-Falco プロジェクトメタデータ
+# Claude Code による検索・管理を効率化
+
+name: "TFDrift-Falco"
+category: oss-development
+tags:
+  - terraform
+  - drift-detection
+  - falco
+  - security
+  - infrastructure-as-code
+  - opensource
+  - go
+  - kubernetes
+  - aws
+  - cloud-security
+
+status: active
+priority: critical  # 🌟 最重要プロジェクト
+
+description: |
+  Terraformのドリフト（構成乖離）を検出し、Falcoルールと統合してセキュリティ監視を実現するOSSプロジェクト。
+  クラウドインフラの変更を継続的に監視し、意図しない変更や不正な変更を即座に検知します。
+
+git_managed: true
+repository: ""  # GitHubリポジトリURLを記入
+
+# 最終更新日
+last_updated: "2025-11-18"
+
+# 関連記事（tech-articles内）
+related_articles:
+  - "tech-articles/qiita/2025-01-15_tfdrift-falco-oss-journey.md"
+  - "tech-articles/qiita/2025-01-15_tfdrift-falco-progress-01.md"
+  - "tech-articles/zenn/2025-01-15_tfdrift-falco-technical-old.md"
+
+# マイルストーン
+milestones:
+  - version: "v0.1.0"
+    target_date: "2025-Q1"
+    description: "初回リリース - 基本的なドリフト検出機能"
+    status: "planning"  # planning, in-progress, completed
+
+  - version: "v0.2.0"
+    target_date: "2025-Q2"
+    description: "Falcoルール統合"
+    status: "planning"
+
+  - version: "v1.0.0"
+    target_date: "2025-Q3"
+    description: "本番環境対応・GA"
+    status: "planning"
+
+# 技術スタック
+tech_stack:
+  - Go
+  - Terraform
+  - Falco
+  - AWS SDK
+  - Kubernetes
+
+# 開発環境
+development:
+  language: "Go 1.21+"
+  testing: "go test, integration tests"
+  ci_cd: "GitHub Actions"
+  deployment: "Container (Docker)"
+
+# バックアップポリシー
+backup:
+  frequency: "weekly"  # 週次バックアップ
+  location: "external"  # 外部ストレージ
+  automated: true
+
+# 品質指標
+metrics:
+  test_coverage_target: 80
+  code_review_required: true
+  documentation_required: true
+
+# 優先タスク
+priority_tasks:
+  - "コアロジックの実装"
+  - "テストカバレッジの向上"
+  - "ドキュメント整備"
+  - "サンプル・デモの作成"
+
+# 外部リンク
+external_links:
+  - name: "Terraform公式ドキュメント"
+    url: "https://www.terraform.io/docs"
+  - name: "Falco公式サイト"
+    url: "https://falco.org/"
+
+# ノート
+notes: |
+  このプロジェクトはOSS化を前提としているため、以下に注意:
+  - コードコメントは英語
+  - READMEは日本語・英語両方
+  - ライセンスはApache 2.0またはMIT
+  - セキュリティ関連の配慮（クレデンシャル管理等）
