@@ -1,0 +1,111 @@
+#
+# Falco Configuration for TFDrift-Falco
+# This configuration enables gRPC output and the CloudTrail plugin
+#
+
+# gRPC Output (Required for TFDrift-Falco)
+grpc:
+  enabled: true
+  bind_address: "0.0.0.0:5060"
+  threadiness: 0
+
+# gRPC Output format
+grpc_output:
+  enabled: true
+
+# CloudTrail Plugin Configuration
+plugins:
+  - name: cloudtrail
+    library_path: libcloudtrail.so
+    init_config:
+      # S3 bucket where CloudTrail logs are stored
+      # Override via environment: CLOUDTRAIL_S3_BUCKET
+      s3_bucket: "${CLOUDTRAIL_S3_BUCKET}"
+
+      # AWS region
+      aws_region: "${AWS_REGION:-us-east-1}"
+
+      # Optional: SQS queue for real-time events (recommended)
+      # sqs_queue: "${CLOUDTRAIL_SQS_QUEUE}"
+
+      # Use SQS for lower latency if available
+      use_sqs: ${CLOUDTRAIL_USE_SQS:-false}
+
+      # Interval to check for new CloudTrail files (if not using SQS)
+      s3_interval: 30
+
+    open_params: ''
+
+# Load plugins
+load_plugins: [cloudtrail]
+
+# Rules files
+rules_file:
+  - /etc/falco/falco_rules.yaml
+  - /etc/falco/rules.d
+
+# Output format
+json_output: true
+json_include_output_property: true
+json_include_tags_property: true
+
+# Logging
+log_stderr: true
+log_syslog: false
+log_level: info
+
+# Priority filter (send all events to gRPC)
+priority: debug
+
+# Buffered output
+buffered_outputs: false
+
+# Output channels
+outputs:
+  rate: 0  # Unlimited rate
+  max_burst: 1000
+
+# Syscall event drops
+syscall_event_drops:
+  actions:
+    - log
+    - alert
+  rate: 0.03333
+  max_burst: 1
+
+# Syscall event timeouts
+syscall_event_timeouts:
+  max_consecutives: 1000
+
+# Metadata download
+metadata_download:
+  max_mb: 100
+  chunk_wait_us: 1000
+  watch_freq_sec: 1
+
+# File output (disabled, using gRPC)
+file_output:
+  enabled: false
+
+# Stdout output (disabled, using gRPC)
+stdout_output:
+  enabled: false
+
+# Webserver (disabled)
+webserver:
+  enabled: false
+
+# Metrics
+metrics:
+  enabled: false
+
+# Output timeout
+output_timeout: 2000
+
+# Program output (disabled)
+program_output:
+  enabled: false
+
+# HTTP output (disabled)
+http_output:
+  enabled: false

@@ -132,9 +132,11 @@ Read more: [Test Coverage 80% Achievement Article](./docs/test-coverage-80-achie
 ### Prerequisites
 
 - Go 1.21 or later
-- **Falco 0.35+** with CloudTrail plugin (required)
+- **Falco 0.35+** with CloudTrail plugin (required) - [Setup Guide](docs/falco-setup.md)
 - Terraform 1.0+
 - AWS CLI configured (for AWS support)
+
+> **Important**: TFDrift-Falco requires a running Falco instance with gRPC enabled and the CloudTrail plugin configured. See the [Falco Setup Guide](docs/falco-setup.md) for detailed installation instructions.
 
 ### Installation
 
@@ -158,13 +160,37 @@ go build -o tfdrift ./cmd/tfdrift
 #### Option 3: Docker
 
 ```bash
-docker pull keitahigaki/tfdrift-falco:latest
+# Build image
+make docker-build
 
-docker run -v $(pwd)/config.yaml:/config.yaml \
-           -v ~/.aws:/root/.aws:ro \
-           keitahigaki/tfdrift-falco:latest \
-           --config /config.yaml
+# Or pull from registry (when available)
+# docker pull keitahigaki/tfdrift-falco:latest
+
+# Run with Docker
+docker run -d \
+  --name tfdrift-falco \
+  -v $(pwd)/config.yaml:/config/config.yaml:ro \
+  -v ~/.aws:/root/.aws:ro \
+  tfdrift-falco:latest \
+  --config /config/config.yaml
 ```
+
+#### Option 4: Docker Compose (Recommended)
+
+The easiest way to run TFDrift-Falco with all dependencies:
+
+```bash
+# Start the full stack (Falco + TFDrift)
+make docker-compose-up
+
+# View logs
+make docker-compose-logs
+
+# Stop services
+make docker-compose-down
+```
+
+See [Deployment Guide](docs/deployment.md) for detailed Docker and Kubernetes deployment instructions.
 
 ### Configuration
 
@@ -433,13 +459,13 @@ See [dashboards/grafana/README.md](dashboards/grafana/README.md) for more detail
 
 ## 🗺️ Roadmap
 
-### Phase 1: MVP (Current)
+### Phase 1: MVP (✅ Complete)
 - [x] AWS CloudTrail integration
 - [x] Terraform state comparison (local)
 - [x] Slack notifications
 - [x] Basic drift rules (EC2, IAM, S3)
-- [ ] Falco event integration
-- [ ] Docker container support
+- [x] Falco event integration (gRPC)
+- [x] Docker container support
 
 ### Phase 2: Enhanced Detection
 - [ ] GCP Audit Logs support
@@ -513,11 +539,11 @@ tfdrift-falco/
 ## 📚 Documentation
 
 - [Architecture Overview](docs/architecture.md)
-- [Configuration Guide](docs/configuration.md)
-- [Drift Rules Reference](docs/rules.md)
-- [API Documentation](docs/api.md)
-- [Deployment Guide](docs/deployment.md)
-- [Troubleshooting](docs/troubleshooting.md)
+- [Falco Setup Guide](docs/falco-setup.md) - **Start here for Falco installation**
+- [Deployment Guide](docs/deployment.md) - **Docker, Kubernetes, Systemd deployments**
+- [Usage Guide](docs/USAGE.md)
+- [Auto-Import Guide](docs/auto-import-guide.md)
+- [Test Coverage Achievement](docs/test-coverage-80-achievement.md)
 
 ## 🛡️ Security
 
@@ -584,9 +610,11 @@ TFDrift-FalcoがTerraform Stateと比較
 ### 前提条件
 
 - Go 1.21以降
-- Falco 0.35+（オプション、拡張検知用）
+- **Falco 0.35+** CloudTrailプラグイン必須 - [セットアップガイド](docs/falco-setup.md)
 - Terraform 1.0+
 - AWS CLI設定済み（AWSサポート用）
+
+> **重要**: TFDrift-Falcoは、gRPCが有効でCloudTrailプラグインが設定されたFalcoインスタンスが必要です。詳細なインストール手順は[Falcoセットアップガイド](docs/falco-setup.md)を参照してください。
 
 ### インストール
 
@@ -610,13 +638,37 @@ go build -o tfdrift ./cmd/tfdrift
 #### オプション3: Docker
 
 ```bash
-docker pull keitahigaki/tfdrift-falco:latest
+# イメージをビルド
+make docker-build
 
-docker run -v $(pwd)/config.yaml:/config.yaml \
-           -v ~/.aws:/root/.aws:ro \
-           keitahigaki/tfdrift-falco:latest \
-           --config /config.yaml
+# または公式イメージを取得（利用可能時）
+# docker pull keitahigaki/tfdrift-falco:latest
+
+# Dockerで実行
+docker run -d \
+  --name tfdrift-falco \
+  -v $(pwd)/config.yaml:/config/config.yaml:ro \
+  -v ~/.aws:/root/.aws:ro \
+  tfdrift-falco:latest \
+  --config /config/config.yaml
 ```
+
+#### オプション4: Docker Compose（推奨）
+
+全ての依存関係を含む完全なスタックを実行する最も簡単な方法：
+
+```bash
+# フルスタックを起動（Falco + TFDrift）
+make docker-compose-up
+
+# ログを表示
+make docker-compose-logs
+
+# サービスを停止
+make docker-compose-down
+```
+
+Docker、Kubernetes、Systemdデプロイメントの詳細は[デプロイメントガイド](docs/deployment.md)を参照してください。
 
 ### 設定
 
@@ -703,13 +755,13 @@ IaCワークフローをバイパスした不正なインフラ変更を検知�
 
 ## 🗺️ ロードマップ
 
-### フェーズ1: MVP（現在）
+### フェーズ1: MVP（✅ 完了）
 - [x] AWS CloudTrail統合
 - [x] Terraform State比較（ローカル）
 - [x] Slack通知
 - [x] 基本ドリフトルール（EC2、IAM、S3）
-- [ ] Falcoイベント統合
-- [ ] Dockerコンテナサポート
+- [x] Falcoイベント統合（gRPC）
+- [x] Dockerコンテナサポート
 
 ### フェーズ2: 検知強化
 - [ ] GCP Audit Logsサポート

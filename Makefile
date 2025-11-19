@@ -122,6 +122,36 @@ docker-run:
 	@echo "Running Docker container..."
 	docker run --rm -v $(PWD)/config.yaml:/config.yaml tfdrift-falco:latest --config /config.yaml
 
+## docker-compose-up: Start all services with Docker Compose
+docker-compose-up:
+	@echo "Starting TFDrift-Falco stack..."
+	docker-compose up -d
+
+## docker-compose-down: Stop all services
+docker-compose-down:
+	@echo "Stopping TFDrift-Falco stack..."
+	docker-compose down
+
+## docker-compose-logs: View logs from all services
+docker-compose-logs:
+	@echo "Viewing logs..."
+	docker-compose logs -f
+
+## docker-compose-restart: Restart all services
+docker-compose-restart:
+	@echo "Restarting TFDrift-Falco stack..."
+	docker-compose restart
+
+## docker-compose-build: Build and start all services
+docker-compose-build:
+	@echo "Building and starting TFDrift-Falco stack..."
+	docker-compose up -d --build
+
+## docker-compose-ps: Show running containers
+docker-compose-ps:
+	@echo "Running containers:"
+	docker-compose ps
+
 ## run: Run the application locally
 run: build
 	@echo "Running $(BINARY_NAME)..."
