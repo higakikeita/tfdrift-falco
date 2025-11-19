@@ -1,8 +1,18 @@
-# テストカバレッジ80%達成への道のり - TFDrift-Falcoプロジェクト
+# テストカバレッジ80%達成からリファクタリングまで - TFDrift-Falcoプロジェクト
 
 ## 🎯 はじめに
 
-本記事では、オープンソースプロジェクト「TFDrift-Falco」において、テストカバレッジを**36.9%から80.0%まで向上**させた経験を共有します。単なる数値改善ではなく、コードの品質向上と保守性の確保を目指した実践的なアプローチを紹介します。
+本記事では、オープンソースプロジェクト「TFDrift-Falco」において、テストカバレッジを**36.9%から80.0%まで向上**させ、さらに**3つの主要ファイル（計1,410行）を責任ごとに分割するリファクタリング**を実施した経験を共有します。
+
+単なる数値改善ではなく、**テストによる安全性を確保しながら、保守性の高いコードベースを構築する実践的なアプローチ**を紹介します。
+
+### この記事で得られること
+
+- ✅ テストカバレッジを段階的に向上させる具体的な手法
+- ✅ テーブル駆動テストやモックを活用した効率的なテスト作成
+- ✅ テストカバレッジ80%達成後のリファクタリング実践例
+- ✅ golangci-lintを使った静的解析とコード品質向上
+- ✅ Single Responsibility Principleに基づくファイル分割戦略
 
 ### TFDrift-Falcoとは？
 
@@ -11,6 +21,7 @@ Falcoのランタイムセキュリティ監視とTerraform状態管理を組み
 - **リポジトリ**: https://github.com/higakikeita/tfdrift-falco
 - **言語**: Go 1.21+
 - **総コード行数**: 約2,600行
+- **実施期間**: テストカバレッジ向上（1日）+ リファクタリング（1日）
 
 ## 📊 プロジェクトの初期状態
 
@@ -569,86 +580,150 @@ func TestWithTempDir(t *testing.T) {
 }
 ```
 
-## 🔄 次のステップ: リファクタリング計画
+## 🔄 次のステップ: リファクタリング実施報告
 
-80%達成後、次に取り組むべき課題が見えてきました。
+80%達成後、コード品質をさらに向上させるため、計画的にリファクタリングを実施しました。
 
-### 現状分析
+### リファクタリング前の状態
 
 ```bash
 $ find . -name "*.go" -not -path "./vendor/*" | xargs wc -l | sort -rn | head -10
 
-1669 ./pkg/detector/detector_test.go  ← 大きすぎ
+1669 ./pkg/detector/detector_test.go
  671 ./pkg/falco/subscriber_test.go
- 513 ./pkg/diff/formatter.go          ← 関数数18個
- 471 ./pkg/falco/subscriber.go
- 426 ./pkg/detector/detector.go
+ 513 ./pkg/diff/formatter.go          ← 18関数、責任が混在
+ 471 ./pkg/falco/subscriber.go        ← イベント処理が肥大化
+ 426 ./pkg/detector/detector.go       ← 複数の責任が混在
 ```
 
-### リファクタリング優先順位
+### 実施したリファクタリング
 
-#### 優先度: 高
+#### ✅ 1. golangci-lint による静的解析（完了）
 
-**1. Linter実行**
 ```bash
-golangci-lint run --enable-all
-```
-- 自動検出できる問題を先に解決
-- コーディング規約の統一
-
-**2. 大きなファイルの分割**
-- `pkg/diff/formatter.go` (513行, 18関数)
-  - Console formatter
-  - Markdown formatter
-  - JSON formatter
-  - 等に分割を検討
-
-**3. 重複コードの抽出**
-- テストヘルパーの共通化
-- エラーメッセージの定数化
-
-#### 優先度: 中
-
-**4. エラーハンドリングの統一**
-```go
-// Before: 各所でエラーメッセージが異なる
-return fmt.Errorf("failed to load config: %w", err)
-return fmt.Errorf("config load error: %w", err)
-
-// After: 統一されたエラー型
-return errors.Wrap(err, "failed to load config")
+golangci-lint run
 ```
 
-**5. コンテキストの一貫した使用**
-```go
-// すべての長時間実行関数にcontextを渡す
-func (d *Detector) Start(ctx context.Context) error
-func (s *StateManager) Load(ctx context.Context) error
+**修正内容**:
+- 未チェックエラー16件を修正（特に`defer c.Close()`のエラーハンドリング）
+- 到達不能コード（unreachable code）の削除
+- セキュリティ警告（gosec）への対応
+- 未使用変数の削除
+
+**成果**: 重要な警告0件達成
+
+#### ✅ 2. formatter.goの分割（513行 → 6ファイル）
+
+```bash
+pkg/diff/
+├── formatter.go          (27行)   # インターフェース定義のみ
+├── helpers.go           (177行)   # 共通ヘルパー関数
+├── console_formatter.go (138行)   # コンソール出力
+├── markdown_formatter.go (85行)   # Markdown形式
+├── json_formatter.go     (43行)   # JSON形式
+└── diff_formatter.go     (76行)   # Unified/Side-by-side Diff
 ```
+
+**成果**:
+- 513行のモノリシックファイルを、責任ごとに分割
+- 各フォーマッターが独立してメンテナンス可能に
+
+#### ✅ 3. detector.goの分割（426行 → 6ファイル）
+
+```bash
+pkg/detector/
+├── detector.go        (87行)   # コア構造体と初期化
+├── lifecycle.go       (68行)   # Start/Stop ライフサイクル管理
+├── event_handler.go   (66行)   # イベント受信と処理
+├── drift_detector.go  (88行)   # ドリフト検出アルゴリズム
+├── alert_sender.go    (80行)   # アラート送信ロジック
+└── auto_import.go     (76行)   # 自動インポート機能
+```
+
+**成果**:
+- Single Responsibility Principleに従った設計
+- 各機能が独立してテスト可能に
+
+#### ✅ 4. subscriber.goの分割（473行 → 89行、81%削減）
+
+```bash
+pkg/falco/
+├── subscriber.go        (89行)   # コアSubscriber構造体とStart()
+├── event_parser.go      (81行)   # Falcoイベントのパース処理
+├── resource_mapper.go   (56行)   # EventName → ResourceType マッピング
+├── change_extractor.go (158行)   # CloudTrailイベントの変更抽出
+└── helpers.go           (23行)   # ユーティリティ関数
+```
+
+**成果**:
+- 473行 → 89行（81%削減）
+- 各ファイルが単一の責任を持つ明確な構造
+- イベントタイプ追加時の変更箇所が明確化
+
+### リファクタリング後の状態
+
+```bash
+# 500行を超える実装ファイル
+before: 3個 (formatter.go, subscriber.go, detector.go)
+after:  0個
+
+# 最大ファイルサイズ（実装ファイル）
+before: 513行 (formatter.go)
+after:  177行 (diff/helpers.go)
+
+# golangci-lint 重要警告
+before: 16件
+after:  0件
+
+# テストカバレッジ
+before: 80.0%
+after:  80.0% (維持)
+```
+
+### 定量的な改善指標
+
+| 指標 | リファクタリング前 | リファクタリング後 | 改善率 |
+|-----|-----------------|-----------------|-------|
+| 500行超ファイル数 | 3個 | 0個 | 100%削減 |
+| 最大ファイル行数 | 513行 | 177行 | 65%削減 |
+| 平均ファイル行数 | 181行 | 92行 | 49%削減 |
+| golangci-lint警告 | 16件 | 0件 | 100%解消 |
+
+### 残りの課題
+
+テストカバレッジ80%達成とコード品質改善により、プロジェクトの基盤は大幅に強化されました。今後の課題：
 
 #### 優先度: 低
 
-**6. ドキュメント・コメントの充実**
+**1. 大きなテストファイルの分割**
+- `pkg/detector/detector_test.go` (1669行)
+- `pkg/falco/subscriber_test.go` (671行)
+
+これらはテストケースが豊富な証拠でもあり、緊急性は低い
+
+**2. エラーハンドリングの統一**
+```go
+// 現在: 標準のerror wrapping
+return fmt.Errorf("failed to load config: %w", err)
+
+// 将来: カスタムエラー型の導入検討
+return errors.Wrap(err, "failed to load config")
+```
+
+**3. パッケージドキュメントの充実**
 ```go
 // Package detector provides real-time infrastructure drift detection
 // by comparing Falco runtime events with Terraform state.
-//
-// The main component is the Detector, which:
-// - Subscribes to Falco events
-// - Compares with Terraform state
-// - Generates drift alerts
 package detector
 ```
 
-### 目標
+### 達成した目標
 
-機能追加前に以下を達成：
-
-- [ ] golangci-lint のwarning 0件
-- [ ] 500行超のファイル 0個
-- [ ] 重複コード削減（DRYスコア向上）
-- [ ] 全public関数にGodocコメント
-- [ ] CI/CDパイプラインの強化
+✅ golangci-lint の重要警告 0件
+✅ 500行超のファイル 0個（実装ファイル）
+✅ テストカバレッジ 80.0% 維持
+✅ Single Responsibility Principle に従った構造
+✅ 継続的なテスト基盤の確立
 
 ## 🎓 まとめ
 
@@ -673,16 +748,28 @@ package detector
 
 ### 所感
 
-テストカバレッジ向上は、単なる数値改善ではなく、**コードへの理解を深め、品質を向上させるプロセス**でした。
+このプロジェクトを通じて、**テストカバレッジ向上とリファクタリングは車の両輪**だと実感しました。
 
-特に印象的だったのは：
-- テストを書くことで、自分のコードの問題点に気づけた
-- リファクタリングの安全性が確保された
-- 新機能追加時の不安が減った
+#### テストカバレッジ80%達成で得られたもの
 
-**80%という数値は通過点であり、目的はより保守しやすく、信頼性の高いコードベースを作ること**だと実感しました。
+- ✅ テストを書くことで、自分のコードの問題点に気づけた
+- ✅ リファクタリングの安全性が確保された
+- ✅ 新機能追加時の不安が大幅に減った
+- ✅ コードレビュー時の品質チェックポイントが明確に
 
-これから機能追加のPRが来る予定ですが、この強固なテスト基盤があれば、自信を持ってレビューとマージができます。
+#### リファクタリング実施で得られたもの
+
+- ✅ 500行超のファイルが0個に（実装ファイル）
+- ✅ Single Responsibility Principleに従った明確な構造
+- ✅ 機能追加時の変更箇所が特定しやすい設計
+- ✅ golangci-lintによる静的解析で品質基準を維持
+
+**重要な気づき**:
+- 80%という数値は通過点であり、目的はより保守しやすく、信頼性の高いコードベースを作ること
+- テストがあるからこそ、安心してリファクタリングできる
+- リファクタリング後もテストカバレッジ80%を維持できたことで、品質の継続性を確認
+
+この強固なテスト基盤とクリーンなコード構造があれば、今後の機能追加やコントリビューション受け入れにも自信を持って対応できます。
 
 ## 🔗 参考リンク
 
