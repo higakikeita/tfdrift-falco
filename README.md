@@ -7,7 +7,10 @@
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
 [![Test](https://github.com/higakikeita/tfdrift-falco/actions/workflows/test.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/test.yml)
 [![Lint](https://github.com/higakikeita/tfdrift-falco/actions/workflows/lint.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/lint.yml)
+[![Security](https://github.com/higakikeita/tfdrift-falco/actions/workflows/security.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/security.yml)
 [![Coverage](https://img.shields.io/badge/coverage-80.0%25-brightgreen)](https://github.com/higakikeita/tfdrift-falco)
+[![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
+[![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
 [English](#english) | [日本語](#japanese)
 
@@ -87,6 +90,42 @@ graph TB
 | **Drift Engine** | Compares IaC definitions with runtime changes |
 | **Context Enricher** | Adds user identity, resource tags, change history |
 | **Notifier** | Sends alerts to configured channels |
+
+## 📊 Code Quality & Testing
+
+TFDrift-Falco maintains high code quality standards with comprehensive testing and continuous integration:
+
+### Test Coverage: 80%+ 🎯
+
+- **Unit Tests**: All core packages (detector, falco, diff, config)
+- **Integration Tests**: End-to-end drift detection workflows
+- **Table-Driven Tests**: Efficient coverage of edge cases
+- **CI/CD**: Automated testing on every PR with coverage threshold enforcement (78%)
+
+### Code Quality Tools
+
+- ✅ **golangci-lint**: Static analysis with 15+ linters enabled
+- ✅ **Snyk**: Dependency vulnerability scanning (weekly)
+- ✅ **GoSec**: Security-focused static analysis
+- ✅ **Nancy**: Go dependency checker
+- ✅ **go vet**: Official Go static analyzer
+- ✅ **staticcheck**: Advanced Go linter
+
+### Architecture Quality
+
+- 📁 **Single Responsibility Principle**: Modular design with focused files (<200 lines)
+- 🧩 **Dependency Injection**: Testable components with mock support
+- 🔄 **Clean Refactoring**: Major refactoring completed (1,410 lines → 17 modular files)
+- 📝 **Comprehensive Documentation**: Inline comments and package docs
+
+### Recent Achievements
+
+- Improved test coverage from 36.9% to 80.0% ✅
+- Refactored 3 major files (513, 426, 473 lines) into focused modules ✅
+- Eliminated all 500+ line files (excluding tests) ✅
+- Resolved all critical golangci-lint warnings ✅
+
+Read more: [Test Coverage 80% Achievement Article](./docs/test-coverage-80-achievement.md)
 
 ## 🚀 Quick Start
 
