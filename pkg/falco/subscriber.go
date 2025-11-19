@@ -45,7 +45,11 @@ func (s *Subscriber) Start(ctx context.Context, eventCh chan<- types.Event) erro
 		return fmt.Errorf("failed to create Falco client: %w", err)
 	}
 	s.client = c
-	defer c.Close()
+	defer func() {
+		if closeErr := c.Close(); closeErr != nil {
+			log.Warnf("Failed to close Falco client: %v", closeErr)
+		}
+	}()
 
 	log.Infof("Connected to Falco at %s:%d", s.cfg.Hostname, s.cfg.Port)
 
@@ -85,9 +89,6 @@ func (s *Subscriber) Start(ctx context.Context, eventCh chan<- types.Event) erro
 			}
 		}
 	}
-
-	log.Info("Falco subscriber stopped")
-	return nil
 }
 
 // parseFalcoOutput parses a Falco output response into a TFDrift event

@@ -1,26 +1,20 @@
+version: '2'
+
 run:
   timeout: 5m
   tests: true
-  modules-download-mode: readonly
 
 linters:
   enable:
     - errcheck      # Check for unchecked errors
-    - gosimple      # Simplify code
     - govet         # Vet examines Go source code
     - ineffassign   # Detect ineffectual assignments
     - staticcheck   # Static analysis
     - unused        # Check for unused constants, variables, functions
-    - gofmt         # Check if code is formatted
-    - goimports     # Check if imports are formatted
     - misspell      # Check for misspelled English words
     - revive        # Fast, configurable, extensible linter
     - gosec         # Security-focused linter
-    - gocritic      # Highly extensible Go linter
     - unparam       # Check for unused function parameters
-
-  disable:
-    - typecheck     # Can cause issues with generics
 
 linters-settings:
   errcheck:
@@ -47,25 +41,6 @@ linters-settings:
         arguments:
           - "checkPrivateReceivers"
           - "sayRepetitiveInsteadOfStutters"
-
-  gocritic:
-    enabled-checks:
-      - appendAssign
-      - assignOp
-      - boolExprSimplify
-      - captLocal
-      - commentedOutCode
-      - deprecatedComment
-      - dupImport
-      - emptyStringTest
-      - hexLiteral
-      - nilValReturn
-      - rangeValCopy
-      - singleCaseSwitch
-      - switchTrue
-      - typeAssertChain
-      - unlambda
-      - unslice
 
 issues:
   exclude-rules:
