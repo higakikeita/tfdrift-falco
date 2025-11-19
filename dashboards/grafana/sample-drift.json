@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-01-01T12:00:00Z",
+  "resource_type": "aws_security_group",
+  "resource_id": "sg-123456",
+  "changed_by": "root-console",
+  "severity": "high",
+  "diff": {
+    "ingress": {
+      "expected": ["80/tcp"],
+      "actual": ["80/tcp", "22/tcp"]
+    }
+  },
+  "action": "drift_detected"
+}
