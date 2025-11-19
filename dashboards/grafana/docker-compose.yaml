@@ -7,6 +7,11 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    volumes:
+      - ./provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./dashboards:/var/lib/grafana/dashboards
 
   loki:
     image: grafana/loki:2.9.0
@@ -17,6 +22,6 @@ services:
   promtail:
     image: grafana/promtail:2.9.0
     volumes:
-      - ./sample-drift.json:/var/log/tfdrift/sample-drift.json
+      - ./sample-logs:/var/log/tfdrift
       - ./promtail-config.yaml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml

@@ -16,3 +16,10 @@ scrape_configs:
         labels:
           job: tfdrift-falco
           __path__: /var/log/tfdrift/*.json
+  - job_name: "tfdrift-falco-jsonl"
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: tfdrift-falco
+          __path__: /var/log/tfdrift/*.jsonl
