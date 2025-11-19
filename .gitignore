@@ -54,3 +54,4 @@ release/
 # Environment files
 .env
 .env.local
+lint-results.txt
