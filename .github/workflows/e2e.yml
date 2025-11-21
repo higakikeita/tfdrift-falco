@@ -1,0 +1,281 @@
+name: E2E Tests
+
+on:
+  # Run on manual trigger
+  workflow_dispatch:
+    inputs:
+      cleanup:
+        description: 'Cleanup infrastructure after tests'
+        required: false
+        default: 'true'
+        type: boolean
+
+  # Scheduled runs (weekly on Sundays at 2 AM UTC)
+  schedule:
+    - cron: '0 2 * * 0'
+
+  # Allow running on PRs with specific label
+  pull_request:
+    types: [labeled]
+
+jobs:
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    # Only run if manually triggered, scheduled, or PR has 'run-e2e' label
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-e2e'))
+
+    # E2E tests take 20-30 minutes due to CloudTrail delays
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.E2E_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.E2E_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Verify AWS credentials
+        run: |
+          aws sts get-caller-identity
+          echo "✅ AWS credentials configured"
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.5.0'
+
+      - name: Start Falco
+        run: |
+          cd tests/e2e
+          export CLOUDTRAIL_S3_BUCKET=${{ secrets.E2E_CLOUDTRAIL_BUCKET }}
+          export AWS_REGION=us-east-1
+          docker-compose -f docker-compose.e2e.yml up -d
+
+          echo "Waiting for Falco to be ready..."
+          sleep 10
+
+          docker ps
+          docker logs tfdrift-e2e-falco
+
+      - name: Verify Falco is running
+        run: |
+          docker exec tfdrift-e2e-falco pgrep -f falco
+          echo "✅ Falco is running"
+
+      - name: Set up E2E test infrastructure
+        id: setup
+        run: |
+          cd tests/e2e
+          make setup
+          echo "✅ Test infrastructure created"
+
+      - name: Run E2E tests
+        id: e2e_tests
+        run: |
+          cd tests/e2e
+          echo "Running E2E tests (this takes 20-30 minutes due to CloudTrail delays)..."
+          go test -v -timeout 45m ./... 2>&1 | tee e2e-results.txt
+        continue-on-error: true
+
+      - name: View Falco logs
+        if: always()
+        run: |
+          echo "=== Falco Logs ==="
+          docker logs tfdrift-e2e-falco --tail 100
+
+      - name: Cleanup E2E infrastructure
+        if: always() && (github.event.inputs.cleanup == 'true' || github.event.inputs.cleanup == '')
+        run: |
+          cd tests/e2e
+          make cleanup
+          echo "✅ Test infrastructure cleaned up"
+
+      - name: Stop Falco
+        if: always()
+        run: |
+          cd tests/e2e
+          docker-compose -f docker-compose.e2e.yml down
+
+      - name: Parse test results
+        if: always()
+        id: parse_results
+        run: |
+          cd tests/e2e
+          if [ -f e2e-results.txt ]; then
+            TOTAL=$(grep -c "=== RUN" e2e-results.txt || echo "0")
+            PASSED=$(grep -c "--- PASS:" e2e-results.txt || echo "0")
+            FAILED=$(grep -c "--- FAIL:" e2e-results.txt || echo "0")
+
+            echo "total=$TOTAL" >> $GITHUB_OUTPUT
+            echo "passed=$PASSED" >> $GITHUB_OUTPUT
+            echo "failed=$FAILED" >> $GITHUB_OUTPUT
+
+            if [ "$FAILED" -gt 0 ]; then
+              echo "status=failure" >> $GITHUB_OUTPUT
+            else
+              echo "status=success" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "status=unknown" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results-${{ github.sha }}
+          path: |
+            tests/e2e/e2e-results.txt
+            tests/e2e/terraform/terraform.tfstate
+            tests/e2e/fixtures/terraform_outputs.json
+          retention-days: 30
+
+      - name: Comment PR with E2E results
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let results = '';
+            try {
+              results = fs.readFileSync('tests/e2e/e2e-results.txt', 'utf8');
+            } catch (e) {
+              results = 'Could not read test results';
+            }
+
+            const status = '${{ steps.parse_results.outputs.status }}';
+            const total = '${{ steps.parse_results.outputs.total }}';
+            const passed = '${{ steps.parse_results.outputs.passed }}';
+            const failed = '${{ steps.parse_results.outputs.failed }}';
+
+            let summary = '## 🌐 E2E Test Results\n\n';
+
+            if (status === 'success') {
+              summary += '✅ **All E2E tests passed!**\n\n';
+            } else if (status === 'failure') {
+              summary += '❌ **Some E2E tests failed**\n\n';
+            } else {
+              summary += '⚠️ **E2E test status unknown**\n\n';
+            }
+
+            if (total !== '0') {
+              summary += `- Total: ${total}\n`;
+              summary += `- Passed: ${passed}\n`;
+              summary += `- Failed: ${failed}\n\n`;
+            }
+
+            // Extract test details
+            const testLines = results.split('\n').filter(line =>
+              line.includes('=== RUN') || line.includes('--- PASS') || line.includes('--- FAIL')
+            );
+
+            if (testLines.length > 0) {
+              summary += '### Test Details\n\n';
+              summary += '```\n';
+              summary += testLines.join('\n');
+              summary += '\n```\n\n';
+            }
+
+            // Extract any failure details
+            const failureLines = results.split('\n').filter(line =>
+              line.includes('FAIL:') || line.includes('Error:')
+            ).slice(0, 10);
+
+            if (failureLines.length > 0) {
+              summary += '### Failure Details\n\n';
+              summary += '```\n';
+              summary += failureLines.join('\n');
+              summary += '\n```\n\n';
+            }
+
+            summary += '### What are E2E Tests?\n\n';
+            summary += 'E2E tests validate the complete system with real AWS and Falco:\n';
+            summary += '- Real AWS infrastructure (EC2, IAM, S3)\n';
+            summary += '- Real CloudTrail event generation\n';
+            summary += '- Real Falco event processing\n';
+            summary += '- Real drift detection and alerting\n';
+            summary += '- ⏱️ Takes 20-30 minutes due to CloudTrail propagation delays\n\n';
+            summary += '### Test Scenarios\n\n';
+            summary += '1. **EC2 Termination Protection** - Modify `disable_api_termination`\n';
+            summary += '2. **IAM Assume Role Policy** - Modify trust relationships\n';
+            summary += '3. **S3 Bucket Encryption** - Disable default encryption\n';
+            summary += '4. **Multiple Changes** - Concurrent drift detection\n';
+            summary += '5. **User Context** - Validate event metadata\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+      - name: Fail job if tests failed
+        if: steps.parse_results.outputs.status == 'failure'
+        run: |
+          echo "❌ E2E tests failed"
+          exit 1
+
+      - name: Notify on scheduled failure
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `E2E Tests Failed - Scheduled Run ${new Date().toISOString().split('T')[0]}`,
+              body: `The scheduled E2E test run failed. Please check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`,
+              labels: ['test-failure', 'e2e', 'automated']
+            });
+
+  e2e-quick:
+    name: Quick E2E Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-e2e-quick')
+
+    # Quick tests skip CloudTrail delay
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.E2E_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.E2E_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Run quick E2E tests
+        run: |
+          cd tests/e2e
+          echo "Running quick E2E tests (without CloudTrail delay)..."
+          go test -v -short ./...

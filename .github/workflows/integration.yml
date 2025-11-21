@@ -1,0 +1,126 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run integration tests
+        run: |
+          cd tests/integration
+          go test -v -race -coverprofile=integration-coverage.out ./...
+
+      - name: Generate integration coverage report
+        run: |
+          cd tests/integration
+          go tool cover -func=integration-coverage.out
+
+      - name: Upload integration coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./tests/integration/integration-coverage.out
+          flags: integration
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  integration-summary:
+    name: Integration Test Summary
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    if: always() && github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Run integration tests for summary
+        run: |
+          cd tests/integration
+          go test -v ./... 2>&1 | tee integration-results.txt
+        continue-on-error: true
+
+      - name: Comment PR with integration test results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let results = '';
+            try {
+              results = fs.readFileSync('tests/integration/integration-results.txt', 'utf8');
+            } catch (e) {
+              results = 'Could not read test results';
+            }
+
+            // Parse test results
+            const passMatch = results.match(/PASS/g);
+            const failMatch = results.match(/FAIL/g);
+            const passCount = passMatch ? passMatch.length : 0;
+            const failCount = failMatch ? failMatch.length : 0;
+
+            // Extract test names
+            const testLines = results.split('\n').filter(line =>
+              line.includes('=== RUN') || line.includes('--- PASS') || line.includes('--- FAIL')
+            );
+
+            let summary = '## 🔗 Integration Test Results\n\n';
+
+            if (failCount === 0) {
+              summary += '✅ **All integration tests passed!**\n\n';
+            } else {
+              summary += '❌ **Some integration tests failed**\n\n';
+            }
+
+            summary += `- Passed: ${passCount}\n`;
+            summary += `- Failed: ${failCount}\n\n`;
+
+            if (testLines.length > 0) {
+              summary += '### Test Details\n\n';
+              summary += '```\n';
+              summary += testLines.slice(0, 20).join('\n'); // First 20 lines
+              if (testLines.length > 20) {
+                summary += '\n... (truncated)\n';
+              }
+              summary += '\n```\n';
+            }
+
+            summary += '\n### What are Integration Tests?\n\n';
+            summary += 'Integration tests validate component interactions with mocked external dependencies:\n';
+            summary += '- Slack/Discord webhook notifications\n';
+            summary += '- Falco gRPC event parsing\n';
+            summary += '- State loading and comparison\n';
+            summary += '- No real AWS or Falco required\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
