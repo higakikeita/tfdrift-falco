@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # Falco for E2E testing
+  falco:
+    image: falcosecurity/falco:0.37.1
+    container_name: tfdrift-e2e-falco
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - "5060:5060"
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock:ro
+      - /dev:/host/dev:ro
+      - /proc:/host/proc:ro
+      - ../../rules/terraform_drift.yaml:/etc/falco/rules.d/terraform_drift.yaml:ro
+      - ../../deployments/falco/falco.yaml:/etc/falco/falco.yaml:ro
+      - ${HOME}/.aws:/root/.aws:ro
+    environment:
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - CLOUDTRAIL_S3_BUCKET=${CLOUDTRAIL_S3_BUCKET}
+      - CLOUDTRAIL_SQS_QUEUE=${CLOUDTRAIL_SQS_QUEUE}
+      - CLOUDTRAIL_USE_SQS=${CLOUDTRAIL_USE_SQS:-false}
+    networks:
+      - tfdrift-e2e
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "falco"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  tfdrift-e2e:
+    driver: bridge
+    name: tfdrift-e2e-network
+
+# Usage:
+#
+# 1. Set environment variables:
+#    export AWS_REGION=us-east-1
+#    export CLOUDTRAIL_S3_BUCKET=my-cloudtrail-bucket
+#
+# 2. Start Falco:
+#    docker-compose -f docker-compose.e2e.yml up -d
+#
+# 3. Verify Falco is running:
+#    docker logs tfdrift-e2e-falco
+#    grpcurl -plaintext localhost:5060 list
+#
+# 4. Run E2E tests:
+#    go test -v ./...
+#
+# 5. Stop Falco:
+#    docker-compose -f docker-compose.e2e.yml down

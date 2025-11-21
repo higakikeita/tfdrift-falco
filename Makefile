@@ -183,4 +183,34 @@ ci: deps fmt lint test-coverage-threshold test-race
 ci-local: fmt lint test-coverage
 	@echo "✅ Local CI checks passed!"
 
+## test-integration: Run integration tests
+test-integration:
+	@echo "Running integration tests..."
+	cd tests/integration && $(GO) test -v ./...
+
+## test-benchmark: Run benchmark tests
+test-benchmark:
+	@echo "Running benchmark tests..."
+	cd tests/benchmark && $(GO) test -bench=. -benchmem -benchtime=10s
+
+## test-e2e: Run E2E tests (requires AWS & Falco)
+test-e2e:
+	@echo "Running E2E tests..."
+	@echo "⚠️  Note: E2E tests take 20-30 minutes due to CloudTrail delays"
+	cd tests/e2e && $(GO) test -v -timeout 45m ./...
+
+## test-all: Run all tests (unit + integration + benchmark)
+test-all: test test-integration test-benchmark
+	@echo "✅ All tests passed!"
+
+## test-e2e-setup: Set up E2E test infrastructure
+test-e2e-setup:
+	@echo "Setting up E2E infrastructure..."
+	cd tests/e2e && make setup
+
+## test-e2e-cleanup: Clean up E2E test infrastructure
+test-e2e-cleanup:
+	@echo "Cleaning up E2E infrastructure..."
+	cd tests/e2e && make cleanup
+
 .DEFAULT_GOAL := help

@@ -1,0 +1,57 @@
+# TFDrift-Falco E2E Test Configuration
+# Copy this to config.yaml and customize
+
+providers:
+  aws:
+    enabled: true
+    regions:
+      - us-east-1
+    state:
+      backend: "s3"
+      s3_bucket: "your-terraform-state-bucket"
+      s3_key: "e2e/terraform.tfstate"
+
+falco:
+  enabled: true
+  hostname: "localhost"  # Or "tfdrift-e2e-falco" if running in Docker network
+  port: 5060
+
+drift_rules:
+  - name: "EC2 Instance Changes"
+    resource_types:
+      - "aws_instance"
+    watched_attributes:
+      - "disable_api_termination"
+      - "instance_type"
+    severity: "high"
+
+  - name: "IAM Policy Changes"
+    resource_types:
+      - "aws_iam_role"
+      - "aws_iam_policy"
+    watched_attributes:
+      - "assume_role_policy"
+      - "policy"
+    severity: "critical"
+
+  - name: "S3 Encryption Changes"
+    resource_types:
+      - "aws_s3_bucket"
+    watched_attributes:
+      - "server_side_encryption_configuration"
+    severity: "critical"
+
+notifications:
+  slack:
+    enabled: false  # Disable for E2E tests
+
+  falco_output:
+    enabled: true
+    priority: "info"
+
+logging:
+  level: "debug"  # Verbose logging for tests
+  format: "text"
+
+auto_import:
+  enabled: false  # Disable for E2E tests
