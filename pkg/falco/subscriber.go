@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/falcosecurity/client-go/pkg/api/outputs"
 	"github.com/falcosecurity/client-go/pkg/client"
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
@@ -14,8 +15,10 @@ import (
 
 // Subscriber subscribes to Falco outputs via gRPC
 type Subscriber struct {
-	cfg    config.FalcoConfig
-	client *client.Client
+	cfg        config.FalcoConfig
+	client     *client.Client
+	grpcConn   *grpc.ClientConn
+	isInsecure bool
 }
 
 // NewSubscriber creates a new Falco subscriber
@@ -29,35 +32,28 @@ func NewSubscriber(cfg config.FalcoConfig) (*Subscriber, error) {
 func (s *Subscriber) Start(ctx context.Context, eventCh chan<- types.Event) error {
 	log.Info("Starting Falco subscriber...")
 
-	// Create Falco client configuration
-	var c *client.Client
-	var err error
-
 	// Check if TLS certificates are configured
 	if s.cfg.CertFile != "" && s.cfg.KeyFile != "" {
-		// Use TLS connection with certificates
+		// Use TLS connection with certificates via client-go library
 		log.Infof("Using TLS connection to Falco at %s:%d", s.cfg.Hostname, s.cfg.Port)
-		clientConfig := &client.Config{
-			Hostname:   s.cfg.Hostname,
-			Port:       s.cfg.Port,
-			CertFile:   s.cfg.CertFile,
-			KeyFile:    s.cfg.KeyFile,
-			CARootFile: s.cfg.CARootFile,
-		}
-		c, err = client.NewForConfig(ctx, clientConfig)
+		return s.startWithTLS(ctx, eventCh)
 	} else {
-		// Use insecure plaintext connection (no TLS)
+		// Use insecure plaintext connection (direct gRPC)
 		log.Infof("Using insecure plaintext connection to Falco at %s:%d", s.cfg.Hostname, s.cfg.Port)
-		c, err = client.NewForConfig(ctx, &client.Config{
-			Hostname:                  s.cfg.Hostname,
-			Port:                      s.cfg.Port,
-			InsecureSkipMutualTLSAuth: true,
-			DialOptions: []grpc.DialOption{
-				grpc.WithTransportCredentials(insecure.NewCredentials()),
-			},
-		})
+		return s.startWithInsecure(ctx, eventCh)
 	}
+}
 
+// startWithTLS creates a TLS connection using the client-go library
+func (s *Subscriber) startWithTLS(ctx context.Context, eventCh chan<- types.Event) error {
+	clientConfig := &client.Config{
+		Hostname:   s.cfg.Hostname,
+		Port:       s.cfg.Port,
+		CertFile:   s.cfg.CertFile,
+		KeyFile:    s.cfg.KeyFile,
+		CARootFile: s.cfg.CARootFile,
+	}
+	c, err := client.NewForConfig(ctx, clientConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create Falco client: %w", err)
 	}
@@ -82,6 +78,45 @@ func (s *Subscriber) Start(ctx context.Context, eventCh chan<- types.Event) erro
 		return fmt.Errorf("failed to subscribe to Falco outputs: %w", err)
 	}
 
+	return s.receiveMessages(ctx, stream, eventCh)
+}
+
+// startWithInsecure creates a plaintext gRPC connection directly
+func (s *Subscriber) startWithInsecure(ctx context.Context, eventCh chan<- types.Event) error {
+	// Create direct gRPC connection with insecure credentials
+	target := fmt.Sprintf("%s:%d", s.cfg.Hostname, s.cfg.Port)
+	conn, err := grpc.DialContext(
+		ctx,
+		target,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to connect to Falco: %w", err)
+	}
+	s.grpcConn = conn
+	s.isInsecure = true
+	defer func() {
+		if closeErr := conn.Close(); closeErr != nil {
+			log.Warnf("Failed to close gRPC connection: %v", closeErr)
+		}
+	}()
+
+	log.Infof("Connected to Falco at %s", target)
+
+	// Create outputs service client directly from gRPC connection
+	outputClient := outputs.NewServiceClient(conn)
+
+	// Start streaming using Sub method
+	stream, err := outputClient.Sub(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to subscribe to Falco outputs: %w", err)
+	}
+
+	return s.receiveMessages(ctx, stream, eventCh)
+}
+
+// receiveMessages receives and processes messages from the Falco stream
+func (s *Subscriber) receiveMessages(ctx context.Context, stream outputs.Service_SubClient, eventCh chan<- types.Event) error {
 	// Receive messages from stream
 	for {
 		select {
