@@ -10,7 +10,7 @@ terraform {
 
   # S3 backend configuration
   backend "s3" {
-    bucket = "YOUR_BUCKET_NAME"  # Replace with your bucket name
+    bucket = "tfdrift-falco-state-test"
     key    = "tfdrift-test/terraform.tfstate"
     region = "us-east-1"
   }
@@ -287,4 +287,140 @@ output "security_group_id" {
 output "vpc_id" {
   description = "VPC ID"
   value       = aws_vpc.test.id
+}
+
+# ======================
+# AWS WAF (Regional)
+# ======================
+
+# WAF IP Set - for IP-based restrictions
+resource "aws_wafv2_ip_set" "test" {
+  name               = "${var.project_name}-ip-set"
+  description        = "Test IP set for drift detection"
+  scope              = "REGIONAL"
+  ip_address_version = "IPV4"
+
+  # Initial allowed IPs (we'll modify these via console for testing)
+  addresses = [
+    "203.0.113.0/24",  # Example IP range
+  ]
+
+  tags = {
+    Name      = "${var.project_name}-ip-set"
+    Project   = var.project_name
+    ManagedBy = "terraform"
+  }
+
+  lifecycle {
+    # Ignore changes to addresses so Terraform doesn't revert manual changes
+    ignore_changes = [addresses, tags]
+  }
+}
+
+# WAF Web ACL with IP-based rule
+resource "aws_wafv2_web_acl" "test" {
+  name        = "${var.project_name}-web-acl"
+  description = "Test Web ACL for drift detection"
+  scope       = "REGIONAL"
+
+  default_action {
+    block {}  # Block by default, only allow IPs in the IP set
+  }
+
+  # Rule to allow IPs from the IP set
+  rule {
+    name     = "AllowSpecificIPs"
+    priority = 1
+
+    action {
+      allow {}
+    }
+
+    statement {
+      ip_set_reference_statement {
+        arn = aws_wafv2_ip_set.test.arn
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "AllowSpecificIPs"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # Rule to block SQL injection
+  rule {
+    name     = "BlockSQLInjection"
+    priority = 2
+
+    action {
+      block {}
+    }
+
+    statement {
+      sqli_match_statement {
+        field_to_match {
+          body {
+            oversize_handling = "CONTINUE"
+          }
+        }
+
+        text_transformation {
+          priority = 0
+          type     = "URL_DECODE"
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "BlockSQLInjection"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  tags = {
+    Name      = "${var.project_name}-web-acl"
+    Project   = var.project_name
+    ManagedBy = "terraform"
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "${var.project_name}-web-acl"
+    sampled_requests_enabled   = true
+  }
+
+  lifecycle {
+    # Ignore changes to rules and default action for testing
+    ignore_changes = [rule, default_action, tags]
+  }
+}
+
+# Optional: Associate WAF with ALB (if you want to test association changes)
+# Uncomment if you create an ALB
+# resource "aws_wafv2_web_acl_association" "test" {
+#   resource_arn = aws_lb.test.arn
+#   web_acl_arn  = aws_wafv2_web_acl.test.arn
+# }
+
+output "waf_ip_set_id" {
+  description = "WAF IP Set ID"
+  value       = aws_wafv2_ip_set.test.id
+}
+
+output "waf_ip_set_arn" {
+  description = "WAF IP Set ARN"
+  value       = aws_wafv2_ip_set.test.arn
+}
+
+output "waf_web_acl_id" {
+  description = "WAF Web ACL ID"
+  value       = aws_wafv2_web_acl.test.id
+}
+
+output "waf_web_acl_arn" {
+  description = "WAF Web ACL ARN"
+  value       = aws_wafv2_web_acl.test.arn
 }

@@ -8,6 +8,8 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // Subscriber subscribes to Falco outputs via gRPC
@@ -28,16 +30,34 @@ func (s *Subscriber) Start(ctx context.Context, eventCh chan<- types.Event) erro
 	log.Info("Starting Falco subscriber...")
 
 	// Create Falco client configuration
-	clientConfig := &client.Config{
-		Hostname:   s.cfg.Hostname,
-		Port:       s.cfg.Port,
-		CertFile:   s.cfg.CertFile,
-		KeyFile:    s.cfg.KeyFile,
-		CARootFile: s.cfg.CARootFile,
+	var c *client.Client
+	var err error
+
+	// Check if TLS certificates are configured
+	if s.cfg.CertFile != "" && s.cfg.KeyFile != "" {
+		// Use TLS connection with certificates
+		log.Infof("Using TLS connection to Falco at %s:%d", s.cfg.Hostname, s.cfg.Port)
+		clientConfig := &client.Config{
+			Hostname:   s.cfg.Hostname,
+			Port:       s.cfg.Port,
+			CertFile:   s.cfg.CertFile,
+			KeyFile:    s.cfg.KeyFile,
+			CARootFile: s.cfg.CARootFile,
+		}
+		c, err = client.NewForConfig(ctx, clientConfig)
+	} else {
+		// Use insecure plaintext connection (no TLS)
+		log.Infof("Using insecure plaintext connection to Falco at %s:%d", s.cfg.Hostname, s.cfg.Port)
+		c, err = client.NewForConfig(ctx, &client.Config{
+			Hostname:                  s.cfg.Hostname,
+			Port:                      s.cfg.Port,
+			InsecureSkipMutualTLSAuth: true,
+			DialOptions: []grpc.DialOption{
+				grpc.WithTransportCredentials(insecure.NewCredentials()),
+			},
+		})
 	}
 
-	// Create Falco gRPC client
-	c, err := client.NewForConfig(ctx, clientConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create Falco client: %w", err)
 	}
