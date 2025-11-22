@@ -35,9 +35,12 @@ type AWSConfig struct {
 // TerraformStateConfig contains Terraform state settings
 type TerraformStateConfig struct {
 	Backend   string `yaml:"backend" mapstructure:"backend"`
-	S3Bucket  string `yaml:"s3_bucket" mapstructure:"s3_bucket"`
-	S3Key     string `yaml:"s3_key" mapstructure:"s3_key"`
 	LocalPath string `yaml:"local_path" mapstructure:"local_path"`
+
+	// S3 backend settings
+	S3Bucket string `yaml:"s3_bucket" mapstructure:"s3_bucket"`
+	S3Key    string `yaml:"s3_key" mapstructure:"s3_key"`
+	S3Region string `yaml:"s3_region" mapstructure:"s3_region"`
 }
 
 // GCPConfig contains GCP-specific settings

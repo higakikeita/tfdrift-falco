@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
+	"github.com/keitahigaki/tfdrift-falco/pkg/terraform/backend"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -58,52 +59,27 @@ func NewStateManager(cfg config.TerraformStateConfig) (*StateManager, error) {
 
 // Load loads the Terraform state
 func (sm *StateManager) Load(ctx context.Context) error {
-	var state State
-	var err error
-
-	switch sm.cfg.Backend {
-	case "local", "":
-		state, err = sm.loadLocal()
-	case "s3":
-		state, err = sm.loadS3(ctx)
-	default:
-		return fmt.Errorf("unsupported backend: %s", sm.cfg.Backend)
+	// Create backend
+	be, err := backend.NewBackend(ctx, sm.cfg)
+	if err != nil {
+		return fmt.Errorf("failed to create backend: %w", err)
 	}
 
+	log.Infof("Loading state from %s backend", be.Name())
+
+	// Load state data
+	data, err := be.Load(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load state from %s backend: %w", be.Name(), err)
+	}
+
+	// Parse state
+	var state State
+	if err := json.Unmarshal(data, &state); err != nil {
+		return fmt.Errorf("failed to parse state file: %w", err)
 	}
 
 	return sm.indexState(state)
-}
-
-// loadLocal loads state from local file
-func (sm *StateManager) loadLocal() (State, error) {
-	path := sm.cfg.LocalPath
-	if path == "" {
-		path = "./terraform.tfstate"
-	}
-
-	log.Infof("Loading Terraform state from: %s (config path: %s)", path, sm.cfg.LocalPath)
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return State{}, fmt.Errorf("failed to read state file: %w", err)
-	}
-
-	var state State
-	if err := json.Unmarshal(data, &state); err != nil {
-		return State{}, fmt.Errorf("failed to parse state file: %w", err)
-	}
-
-	log.Infof("Loaded local Terraform state from %s", path)
-	return state, nil
-}
-
-// loadS3 loads state from S3 backend
-func (sm *StateManager) loadS3(ctx context.Context) (State, error) {
-	// TODO: Implement S3 backend loading
-	return State{}, fmt.Errorf("S3 backend not yet implemented")
 }
 
 // indexState indexes the state resources for quick lookup
