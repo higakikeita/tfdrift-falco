@@ -8,9 +8,26 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      # Alerting configuration
+      - GF_ALERTING_ENABLED=true
+      - GF_UNIFIED_ALERTING_ENABLED=true
+      # Optional: Slack webhook URL for notifications
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
+      # Optional: Email addresses for notifications
+      - ALERT_EMAIL_ADDRESSES=${ALERT_EMAIL_ADDRESSES:-admin@example.com}
+      # Optional: Generic webhook URL
+      - WEBHOOK_URL=${WEBHOOK_URL:-}
+      # Optional: SMTP configuration for email alerts
+      - GF_SMTP_ENABLED=${GF_SMTP_ENABLED:-false}
+      - GF_SMTP_HOST=${GF_SMTP_HOST:-smtp.gmail.com:587}
+      - GF_SMTP_USER=${GF_SMTP_USER:-}
+      - GF_SMTP_PASSWORD=${GF_SMTP_PASSWORD:-}
+      - GF_SMTP_FROM_ADDRESS=${GF_SMTP_FROM_ADDRESS:-grafana@example.com}
+      - GF_SMTP_FROM_NAME=${GF_SMTP_FROM_NAME:-TFDrift Grafana}
     volumes:
       - ./provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./provisioning/alerting:/etc/grafana/provisioning/alerting
       - ./dashboards:/var/lib/grafana/dashboards
 
   loki:

@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  # Falco with CloudTrail plugin
+  falco:
+    image: falcosecurity/falco:0.36.0
+    container_name: falco-load-test
+    privileged: true
+    volumes:
+      - ../../deployments/falco/falco.yaml:/etc/falco/falco.yaml:ro
+      - ./simulated-cloudtrail-logs:/cloudtrail-logs:ro
+    environment:
+      - CLOUDTRAIL_S3_BUCKET=simulated-bucket
+      - AWS_REGION=us-east-1
+      - CLOUDTRAIL_USE_SQS=false
+    networks:
+      - tfdrift-network
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:5060"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # TFDrift-Falco
+  tfdrift:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    container_name: tfdrift-load-test
+    depends_on:
+      falco:
+        condition: service_healthy
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./generated-terraform-state:/terraform:ro
+      - ./logs:/var/log/tfdrift
+    environment:
+      - CONFIG_FILE=/app/config.yaml
+      - LOG_LEVEL=info
+      - LOG_FORMAT=json
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+    networks:
+      - tfdrift-network
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: prometheus-load-test
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - tfdrift-network
+
+  # Grafana Loki for log aggregation
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki-load-test
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - tfdrift-network
+
+  # Promtail to ship logs to Loki
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail-load-test
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yml:ro
+      - ./logs:/var/log/tfdrift:ro
+    networks:
+      - tfdrift-network
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: grafana-load-test
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ../../dashboards/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../../dashboards/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - tfdrift-network
+
+networks:
+  tfdrift-network:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  loki-data:
+  grafana-data:

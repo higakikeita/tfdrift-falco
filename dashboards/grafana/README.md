@@ -2,6 +2,14 @@
 
 This directory contains a complete Grafana observability stack for visualizing tfdrift-falco drift events using Grafana, Loki, and Promtail.
 
+## Quick Links
+
+- 🚀 **[Getting Started Guide](./GETTING_STARTED.md)** - **START HERE** - Complete setup guide for end users
+- 📖 **[Integration Test Results](./INTEGRATION_TEST_RESULTS.md)** - Detailed test report and verification
+- 🚨 **[Alert Configuration Guide](./ALERTS.md)** - Step-by-step alert setup instructions
+- 🎨 **[Customization Guide](./CUSTOMIZATION_GUIDE.md)** - Dashboard customization and best practices
+- 🧪 **[Integration Test Script](../../tests/integration/test_grafana.sh)** - Automated testing
+
 ## Features
 
 ### 📊 Three Pre-Built Dashboards
@@ -59,33 +67,32 @@ dashboards/grafana/
 
 ## Getting Started
 
-### 1. Start the Stack
+### Quick Start (5 minutes)
 
 ```bash
+# 1. Start the Grafana stack
 cd dashboards/grafana
 docker-compose up -d
+
+# 2. Open your browser
+open http://localhost:3000
+
+# 3. Login (username: admin, password: admin)
+
+# 4. Navigate to Dashboards → TFDrift-Falco folder
 ```
 
-This will start:
-- **Grafana** on http://localhost:3000
-- **Loki** on http://localhost:3100
-- **Promtail** (log collector)
+**See sample data immediately!** All dashboards are pre-loaded with 20+ sample drift events.
 
-### 2. Access Grafana
+### Connect to Real Data
 
-Open http://localhost:3000 in your browser:
+To monitor actual TFDrift-Falco drift events, see the **[Getting Started Guide](./GETTING_STARTED.md)** for:
+- Connecting TFDrift-Falco logs
+- Setting up alerts
+- Real-world usage examples
+- Troubleshooting
 
-- **Username**: `admin`
-- **Password**: `admin`
-
-### 3. View Dashboards
-
-Navigate to **Dashboards** → **TFDrift-Falco** folder to see:
-- TFDrift-Falco Overview
-- TFDrift-Falco Diff Details
-- TFDrift-Falco Heatmap & Analytics
-
-All dashboards are pre-loaded with sample data showing 20+ drift events across multiple AWS resource types.
+**TL;DR**: Mount your TFDrift-Falco log directory to Promtail and restart.
 
 ## Using with Real Data
 
