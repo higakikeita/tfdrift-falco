@@ -21,19 +21,19 @@ import (
 
 // TestContext holds test resources and clients
 type TestContext struct {
-	t               *testing.T
-	cfg             *config.Config
-	detector        *detector.Detector
-	awsSession      *session.Session
-	ec2Client       *ec2.EC2
-	iamClient       *iam.IAM
-	s3Client        *s3.S3
-	alertChan       chan types.DriftAlert
-	cleanupFuncs    []func()
-	testInstanceID  string
-	testRoleName    string
-	testBucketName  string
-	testPolicyName  string
+	t              *testing.T
+	cfg            *config.Config
+	detector       *detector.Detector
+	awsSession     *session.Session
+	ec2Client      *ec2.EC2
+	iamClient      *iam.IAM
+	s3Client       *s3.S3
+	alertChan      chan types.DriftAlert
+	cleanupFuncs   []func()
+	testInstanceID string
+	testRoleName   string
+	testBucketName string
+	testPolicyName string
 }
 
 // NewTestContext creates a new test context

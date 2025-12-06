@@ -208,8 +208,8 @@ func TestGenerateTerraformCode(t *testing.T) {
 			resourceType: "aws_s3_bucket",
 			resourceName: "data",
 			attributes: map[string]interface{}{
-				"bucket":         "my-bucket",
-				"force_destroy":  true,
+				"bucket":             "my-bucket",
+				"force_destroy":      true,
 				"versioning_enabled": false,
 			},
 			wantContains: []string{
@@ -224,10 +224,10 @@ func TestGenerateTerraformCode(t *testing.T) {
 			resourceType: "aws_db_instance",
 			resourceName: "main",
 			attributes: map[string]interface{}{
-				"identifier":       "mydb",
+				"identifier":        "mydb",
 				"allocated_storage": 100,
-				"port":             3306,
-				"backup_retention": float64(7),
+				"port":              3306,
+				"backup_retention":  float64(7),
 			},
 			wantContains: []string{
 				`resource "aws_db_instance" "main"`,

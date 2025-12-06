@@ -12,19 +12,19 @@ import (
 
 // CloudTrailEvent represents a simulated CloudTrail event
 type CloudTrailEvent struct {
-	EventVersion string                 `json:"eventVersion"`
-	EventTime    string                 `json:"eventTime"`
-	EventSource  string                 `json:"eventSource"`
-	EventName    string                 `json:"eventName"`
-	AWSRegion    string                 `json:"awsRegion"`
-	SourceIPAddr string                 `json:"sourceIPAddress"`
-	UserAgent    string                 `json:"userAgent"`
-	UserIdentity UserIdentity           `json:"userIdentity"`
-	RequestParams map[string]interface{} `json:"requestParameters"`
+	EventVersion     string                 `json:"eventVersion"`
+	EventTime        string                 `json:"eventTime"`
+	EventSource      string                 `json:"eventSource"`
+	EventName        string                 `json:"eventName"`
+	AWSRegion        string                 `json:"awsRegion"`
+	SourceIPAddr     string                 `json:"sourceIPAddress"`
+	UserAgent        string                 `json:"userAgent"`
+	UserIdentity     UserIdentity           `json:"userIdentity"`
+	RequestParams    map[string]interface{} `json:"requestParameters"`
 	ResponseElements map[string]interface{} `json:"responseElements"`
-	RequestID    string                 `json:"requestId"`
-	EventID      string                 `json:"eventID"`
-	EventType    string                 `json:"eventType"`
+	RequestID        string                 `json:"requestId"`
+	EventID          string                 `json:"eventID"`
+	EventType        string                 `json:"eventType"`
 }
 
 type UserIdentity struct {
