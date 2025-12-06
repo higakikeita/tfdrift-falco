@@ -216,6 +216,106 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"CreateIntegration":           "aws_apigatewayv2_integration",
 		"DeleteIntegration":           "aws_apigatewayv2_integration",
 		"UpdateIntegration":           "aws_apigatewayv2_integration",
+
+		// CloudWatch - Alarms
+		"PutMetricAlarm":              "aws_cloudwatch_metric_alarm",
+		"DeleteAlarms":                "aws_cloudwatch_metric_alarm",
+		"DisableAlarmActions":         "aws_cloudwatch_metric_alarm",
+		"EnableAlarmActions":          "aws_cloudwatch_metric_alarm",
+		"SetAlarmState":               "aws_cloudwatch_metric_alarm",
+
+		// CloudWatch - Logs
+		"CreateLogGroup":              "aws_cloudwatch_log_group",
+		"DeleteLogGroup":              "aws_cloudwatch_log_group",
+		"PutRetentionPolicy":          "aws_cloudwatch_log_group",
+		"DeleteRetentionPolicy":       "aws_cloudwatch_log_group",
+		"AssociateKmsKey":             "aws_cloudwatch_log_group",
+		"DisassociateKmsKey":          "aws_cloudwatch_log_group",
+		"PutMetricFilter":             "aws_cloudwatch_log_metric_filter",
+		"DeleteMetricFilter":          "aws_cloudwatch_log_metric_filter",
+		"CreateLogStream":             "aws_cloudwatch_log_stream",
+		"DeleteLogStream":             "aws_cloudwatch_log_stream",
+		"PutDashboard":                "aws_cloudwatch_dashboard",
+		"DeleteDashboards":            "aws_cloudwatch_dashboard",
+
+		// SNS
+		"CreateTopic":                 "aws_sns_topic",
+		"DeleteTopic":                 "aws_sns_topic",
+		"SetTopicAttributes":          "aws_sns_topic",
+		"Subscribe":                   "aws_sns_topic_subscription",
+		"Unsubscribe":                 "aws_sns_topic_subscription",
+		"ConfirmSubscription":         "aws_sns_topic_subscription",
+
+		// SQS
+		"CreateQueue":                 "aws_sqs_queue",
+		"DeleteQueue":                 "aws_sqs_queue",
+		"SetQueueAttributes":          "aws_sqs_queue",
+		"PurgeQueue":                  "aws_sqs_queue",
+
+		// Route53
+		"ChangeResourceRecordSets":    "aws_route53_record",
+		"CreateHostedZone":            "aws_route53_zone",
+		"DeleteHostedZone":            "aws_route53_zone",
+		"ChangeTagsForResource":       "aws_route53_zone",
+		"AssociateVPCWithHostedZone":  "aws_route53_zone_association",
+		"DisassociateVPCFromHostedZone": "aws_route53_zone_association",
+
+		// ECR
+		"PutImageScanningConfiguration": "aws_ecr_repository",
+		"PutImageTagMutability":       "aws_ecr_repository",
+		"PutLifecyclePolicy":          "aws_ecr_lifecycle_policy",
+		"DeleteLifecyclePolicy":       "aws_ecr_lifecycle_policy",
+		"SetRepositoryPolicy":         "aws_ecr_repository_policy",
+		"DeleteRepositoryPolicy":      "aws_ecr_repository_policy",
+		"CreateRepository":            "aws_ecr_repository",
+		"DeleteRepository":            "aws_ecr_repository",
+		"PutReplicationConfiguration": "aws_ecr_replication_configuration",
+
+		// SSM Parameter Store
+		"PutParameter":                "aws_ssm_parameter",
+		"DeleteParameter":             "aws_ssm_parameter",
+		"DeleteParameters":            "aws_ssm_parameter",
+		"LabelParameterVersion":       "aws_ssm_parameter",
+
+		// Secrets Manager
+		"CreateSecret":                "aws_secretsmanager_secret",
+		"DeleteSecret":                "aws_secretsmanager_secret",
+		"UpdateSecret":                "aws_secretsmanager_secret",
+		"PutSecretValue":              "aws_secretsmanager_secret_version",
+		"RotateSecret":                "aws_secretsmanager_secret_rotation",
+		"CancelRotateSecret":          "aws_secretsmanager_secret_rotation",
+		"UpdateSecretVersionStage":    "aws_secretsmanager_secret_version",
+		"PutResourcePolicy":           "aws_secretsmanager_secret_policy",
+		"DeleteResourcePolicy":        "aws_secretsmanager_secret_policy",
+
+		// CloudFront
+		"CreateDistribution":          "aws_cloudfront_distribution",
+		"DeleteDistribution":          "aws_cloudfront_distribution",
+		"UpdateDistribution":          "aws_cloudfront_distribution",
+		"CreateInvalidation":          "aws_cloudfront_invalidation",
+
+		// CloudTrail
+		"CreateTrail":                 "aws_cloudtrail",
+		"DeleteTrail":                 "aws_cloudtrail",
+		"UpdateTrail":                 "aws_cloudtrail",
+		"StartLogging":                "aws_cloudtrail",
+		"StopLogging":                 "aws_cloudtrail",
+		"PutEventSelectors":           "aws_cloudtrail_event_data_store",
+		"PutInsightSelectors":         "aws_cloudtrail",
+
+		// EKS
+		"UpdateClusterConfig":         "aws_eks_cluster",
+		"UpdateClusterVersion":        "aws_eks_cluster",
+		"CreateAddon":                 "aws_eks_addon",
+		"DeleteAddon":                 "aws_eks_addon",
+		"UpdateAddon":                 "aws_eks_addon",
+		"UpdateNodegroupConfig":       "aws_eks_node_group",
+
+		// Redshift
+		"ModifyCluster":               "aws_redshift_cluster",
+		"ModifyClusterParameterGroup": "aws_redshift_parameter_group",
+		"CreateClusterParameterGroup": "aws_redshift_parameter_group",
+		"DeleteClusterParameterGroup": "aws_redshift_parameter_group",
 	}
 
 	if resourceType, ok := mapping[eventName]; ok {
