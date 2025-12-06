@@ -77,7 +77,7 @@ jobs:
 
       - name: Install MkDocs and dependencies
         run: |
-          pip install mkdocs mkdocs-material pymdown-extensions
+          pip install mkdocs mkdocs-material mkdocs-minify-plugin pymdown-extensions
 
       - name: Build site for link checking
         run: mkdocs build
