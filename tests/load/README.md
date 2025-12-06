@@ -85,18 +85,47 @@ go run terraform_state_generator.go \
 
 ### 3. 負荷テスト実行
 
+#### スモークテスト（インフラ確認）
+
+```bash
+cd tests/load
+
+# 負荷テストインフラの動作確認（約15秒）
+go test -v -run=TestLoadTest_QuickSmoke -timeout=5m
+```
+
+#### 実際の負荷テスト
+
+```bash
+cd tests/load
+
+# 小規模環境（1時間）
+go test -v -run=TestLoadScenario1_Small -timeout=2h
+
+# 中規模環境（4時間）
+go test -v -run=TestLoadScenario2_Medium -timeout=5h
+
+# 大規模環境（8時間）
+go test -v -run=TestLoadScenario3_Large -timeout=10h
+```
+
+**注意事項**:
+- 負荷テストは長時間実行されます
+- Docker環境が必要です
+- テスト終了後、自動でクリーンアップされます
+- `-short` フラグを付けるとスキップされます
+
+#### 手動でのテスト環境操作
+
 ```bash
 # テスト環境起動
 docker-compose -f docker-compose.load-test.yml up -d
 
-# 負荷テスト実行
-go test -v -run=TestLoadScenario1 -timeout=2h
-
 # メトリクス収集
-./collect_metrics.sh
+./collect_metrics.sh "Manual Test"
 
 # テスト環境停止
-docker-compose -f docker-compose.load-test.yml down
+docker-compose -f docker-compose.load-test.yml down -v
 ```
 
 ---
@@ -171,18 +200,39 @@ docker-compose -f docker-compose.load-test.yml down
 
 ### 1. `cloudtrail_simulator.go`
 CloudTrail イベントをシミュレート
+- 設定可能なイベントレート（events/min）
+- 15種類のAWSサービスイベントをサポート
+- 時間毎のログファイルローテーション
 
 ### 2. `terraform_state_generator.go`
 大規模な Terraform State を生成
+- 500～50,000リソースの生成
+- 17種類のAWSリソースタイプ
+- 現実的な属性値とweighted distribution
 
-### 3. `load_test.go`
-統合負荷テスト
+### 3. `load_test.go` ✨ **NEW**
+統合負荷テスト実装
+- **TestLoadScenario1_Small**: 小規模環境（100 events/min, 500 resources, 1h）
+- **TestLoadScenario2_Medium**: 中規模環境（1,000 events/min, 5,000 resources, 4h）
+- **TestLoadScenario3_Large**: 大規模環境（10,000 events/min, 50,000 resources, 8h）
+- **TestLoadTest_QuickSmoke**: インフラ動作確認（15秒）
+
+**実装内容**:
+- 自動的なセットアップ・実行・検証・クリーンアップ
+- Docker Compose環境の管理
+- メトリクス収集と検証
+- 合格基準の自動チェック
 
 ### 4. `collect_metrics.sh`
 メトリクス収集スクリプト
+- Docker container stats
+- Prometheus metrics
+- Loki event counts
 
-### 5. `analyze_results.py`
-結果分析・レポート生成
+### 5. `run_load_test.sh`
+統合テストランナー
+- 3つのシナリオの自動実行
+- レポート生成
 
 ---
 
