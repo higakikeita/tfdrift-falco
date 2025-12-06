@@ -20,13 +20,13 @@ func TestLoadScenario1_Small(t *testing.T) {
 	}
 
 	scenario := LoadScenario{
-		Name:              "Small Scale",
-		EventRate:         100,  // events/min
+		Name:               "Small Scale",
+		EventRate:          100, // events/min
 		TerraformResources: 500,
-		Duration:          1 * time.Hour,
-		ExpectedP95:       100 * time.Millisecond,
-		MaxMemoryMB:       512,
-		MaxCPUPercent:     10,
+		Duration:           1 * time.Hour,
+		ExpectedP95:        100 * time.Millisecond,
+		MaxMemoryMB:        512,
+		MaxCPUPercent:      10,
 	}
 
 	runLoadTest(t, scenario)
@@ -39,13 +39,13 @@ func TestLoadScenario2_Medium(t *testing.T) {
 	}
 
 	scenario := LoadScenario{
-		Name:              "Medium Scale",
-		EventRate:         1000, // events/min
+		Name:               "Medium Scale",
+		EventRate:          1000, // events/min
 		TerraformResources: 5000,
-		Duration:          4 * time.Hour,
-		ExpectedP95:       500 * time.Millisecond,
-		MaxMemoryMB:       2048,
-		MaxCPUPercent:     30,
+		Duration:           4 * time.Hour,
+		ExpectedP95:        500 * time.Millisecond,
+		MaxMemoryMB:        2048,
+		MaxCPUPercent:      30,
 	}
 
 	runLoadTest(t, scenario)
@@ -58,13 +58,13 @@ func TestLoadScenario3_Large(t *testing.T) {
 	}
 
 	scenario := LoadScenario{
-		Name:              "Large Scale",
-		EventRate:         10000, // events/min
+		Name:               "Large Scale",
+		EventRate:          10000, // events/min
 		TerraformResources: 50000,
-		Duration:          8 * time.Hour,
-		ExpectedP95:       1000 * time.Millisecond,
-		MaxMemoryMB:       4096,
-		MaxCPUPercent:     50,
+		Duration:           8 * time.Hour,
+		ExpectedP95:        1000 * time.Millisecond,
+		MaxMemoryMB:        4096,
+		MaxCPUPercent:      50,
 	}
 
 	runLoadTest(t, scenario)
@@ -147,14 +147,14 @@ func setupLoadTest(ctx context.Context, t *testing.T, scenario LoadScenario) err
 
 // LoadTestMetrics contains collected metrics from the load test
 type LoadTestMetrics struct {
-	EventsProcessed   int
-	AverageLatency    time.Duration
-	P95Latency        time.Duration
-	P99Latency        time.Duration
-	MaxMemoryMB       int
-	AvgCPUPercent     float64
-	ErrorRate         float64
-	Duration          time.Duration
+	EventsProcessed int
+	AverageLatency  time.Duration
+	P95Latency      time.Duration
+	P99Latency      time.Duration
+	MaxMemoryMB     int
+	AvgCPUPercent   float64
+	ErrorRate       float64
+	Duration        time.Duration
 }
 
 // executeLoadTest runs the actual load test
