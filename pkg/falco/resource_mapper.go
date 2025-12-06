@@ -126,13 +126,96 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"DeleteBucketPublicAccessBlock": "aws_s3_bucket_public_access_block",
 		"PutBucketAcl":                  "aws_s3_bucket_acl",
 
-		// RDS
-		"ModifyDBInstance": "aws_db_instance",
+		// RDS - DB Instances
+		"CreateDBInstance":           "aws_db_instance",
+		"DeleteDBInstance":           "aws_db_instance",
+		"ModifyDBInstance":           "aws_db_instance",
+		"RebootDBInstance":           "aws_db_instance",
+		"StartDBInstance":            "aws_db_instance",
+		"StopDBInstance":             "aws_db_instance",
+		"ModifyDBInstanceAttribute":  "aws_db_instance",
+
+		// RDS - DB Clusters (Aurora)
+		"CreateDBCluster":            "aws_rds_cluster",
+		"DeleteDBCluster":            "aws_rds_cluster",
+		"ModifyDBCluster":            "aws_rds_cluster",
+		"StartDBCluster":             "aws_rds_cluster",
+		"StopDBCluster":              "aws_rds_cluster",
+		"FailoverDBCluster":          "aws_rds_cluster",
+		"AddRoleToDBCluster":         "aws_rds_cluster_role_association",
+		"RemoveRoleFromDBCluster":    "aws_rds_cluster_role_association",
+		"ModifyDBClusterEndpoint":    "aws_rds_cluster_endpoint",
+		"CreateDBClusterEndpoint":    "aws_rds_cluster_endpoint",
+		"DeleteDBClusterEndpoint":    "aws_rds_cluster_endpoint",
+		"ModifyGlobalCluster":        "aws_rds_global_cluster",
+
+		// RDS - Snapshots
+		"CreateDBSnapshot":           "aws_db_snapshot",
+		"DeleteDBSnapshot":           "aws_db_snapshot",
+		"ModifyDBSnapshotAttribute":  "aws_db_snapshot",
+		"CreateDBClusterSnapshot":    "aws_db_cluster_snapshot",
+		"DeleteDBClusterSnapshot":    "aws_db_cluster_snapshot",
+
+		// RDS - Parameter Groups
+		"CreateDBParameterGroup":     "aws_db_parameter_group",
+		"DeleteDBParameterGroup":     "aws_db_parameter_group",
+		"ModifyDBParameterGroup":     "aws_db_parameter_group",
+
+		// RDS - Subnet Groups
+		"CreateDBSubnetGroup":        "aws_db_subnet_group",
+		"DeleteDBSubnetGroup":        "aws_db_subnet_group",
+		"ModifyDBSubnetGroup":        "aws_db_subnet_group",
+
+		// RDS - Restore
+		"RestoreDBInstanceFromDBSnapshot": "aws_db_instance",
+		"RestoreDBClusterFromSnapshot":    "aws_rds_cluster",
 
 		// Lambda
 		"UpdateFunctionConfiguration": "aws_lambda_function",
 		"AddPermission":               "aws_lambda_permission",
 		"RemovePermission":            "aws_lambda_permission",
+
+		// API Gateway - REST API
+		"CreateRestApi":               "aws_api_gateway_rest_api",
+		"DeleteRestApi":               "aws_api_gateway_rest_api",
+		"UpdateRestApi":               "aws_api_gateway_rest_api",
+		"CreateResource":              "aws_api_gateway_resource",
+		"DeleteResource":              "aws_api_gateway_resource",
+		"CreateMethod":                "aws_api_gateway_method",
+		"DeleteMethod":                "aws_api_gateway_method",
+		"PutMethod":                   "aws_api_gateway_method",
+		"UpdateMethod":                "aws_api_gateway_method",
+		"CreateDeployment":            "aws_api_gateway_deployment",
+		"DeleteDeployment":            "aws_api_gateway_deployment",
+		"CreateStage":                 "aws_api_gateway_stage",
+		"DeleteStage":                 "aws_api_gateway_stage",
+		"UpdateStage":                 "aws_api_gateway_stage",
+
+		// API Gateway - Authorizers & Models
+		"CreateAuthorizer":            "aws_api_gateway_authorizer",
+		"DeleteAuthorizer":            "aws_api_gateway_authorizer",
+		"UpdateAuthorizer":            "aws_api_gateway_authorizer",
+		"CreateModel":                 "aws_api_gateway_model",
+		"DeleteModel":                 "aws_api_gateway_model",
+
+		// API Gateway - API Keys & Usage Plans
+		"CreateApiKey":                "aws_api_gateway_api_key",
+		"DeleteApiKey":                "aws_api_gateway_api_key",
+		"UpdateApiKey":                "aws_api_gateway_api_key",
+		"CreateUsagePlan":             "aws_api_gateway_usage_plan",
+		"DeleteUsagePlan":             "aws_api_gateway_usage_plan",
+		"UpdateUsagePlan":             "aws_api_gateway_usage_plan",
+
+		// API Gateway v2 (HTTP/WebSocket)
+		"CreateApi":                   "aws_apigatewayv2_api",
+		"DeleteApi":                   "aws_apigatewayv2_api",
+		"UpdateApi":                   "aws_apigatewayv2_api",
+		"CreateRoute":                 "aws_apigatewayv2_route",
+		"DeleteRoute":                 "aws_apigatewayv2_route",
+		"UpdateRoute":                 "aws_apigatewayv2_route",
+		"CreateIntegration":           "aws_apigatewayv2_integration",
+		"DeleteIntegration":           "aws_apigatewayv2_integration",
+		"UpdateIntegration":           "aws_apigatewayv2_integration",
 	}
 
 	if resourceType, ok := mapping[eventName]; ok {

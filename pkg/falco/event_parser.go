@@ -183,15 +183,99 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"DeleteBucketPublicAccessBlock": true,
 		"PutBucketAcl":                  true,
 
-		// RDS
-		"ModifyDBInstance": true,
-		"ModifyDBCluster":  true,
+		// RDS - DB Instances
+		"CreateDBInstance":           true,
+		"DeleteDBInstance":           true,
+		"ModifyDBInstance":           true,
+		"RebootDBInstance":           true,
+		"StartDBInstance":            true,
+		"StopDBInstance":             true,
+
+		// RDS - DB Clusters (including Aurora)
+		"CreateDBCluster":            true,
+		"DeleteDBCluster":            true,
+		"ModifyDBCluster":            true,
+		"StartDBCluster":             true,
+		"StopDBCluster":              true,
+		"FailoverDBCluster":          true,
+
+		// RDS - Aurora Specific
+		"AddRoleToDBCluster":         true,
+		"RemoveRoleFromDBCluster":    true,
+		"ModifyDBClusterEndpoint":    true,
+		"CreateDBClusterEndpoint":    true,
+		"DeleteDBClusterEndpoint":    true,
+		"ModifyGlobalCluster":        true,
+
+		// RDS - Snapshots
+		"CreateDBSnapshot":           true,
+		"DeleteDBSnapshot":           true,
+		"ModifyDBSnapshotAttribute":  true,
+		"CreateDBClusterSnapshot":    true,
+		"DeleteDBClusterSnapshot":    true,
+
+		// RDS - Parameter Groups
+		"CreateDBParameterGroup":     true,
+		"DeleteDBParameterGroup":     true,
+		"ModifyDBParameterGroup":     true,
+
+		// RDS - Subnet Groups
+		"CreateDBSubnetGroup":        true,
+		"DeleteDBSubnetGroup":        true,
+		"ModifyDBSubnetGroup":        true,
+
+		// RDS - Security & Backup
+		"ModifyDBInstanceAttribute":  true,
+		"RestoreDBInstanceFromDBSnapshot": true,
+		"RestoreDBClusterFromSnapshot":    true,
 
 		// Lambda
 		"UpdateFunctionConfiguration": true,
 		"UpdateFunctionCode":          true,
 		"AddPermission":               true,
 		"RemovePermission":            true,
+
+		// API Gateway - REST API
+		"CreateRestApi":               true,
+		"DeleteRestApi":               true,
+		"UpdateRestApi":               true,
+		"CreateResource":              true,
+		"DeleteResource":              true,
+		"CreateMethod":                true,
+		"DeleteMethod":                true,
+		"PutMethod":                   true,
+		"UpdateMethod":                true,
+		"CreateDeployment":            true,
+		"DeleteDeployment":            true,
+		"CreateStage":                 true,
+		"DeleteStage":                 true,
+		"UpdateStage":                 true,
+
+		// API Gateway - Authorizers & Models
+		"CreateAuthorizer":            true,
+		"DeleteAuthorizer":            true,
+		"UpdateAuthorizer":            true,
+		"CreateModel":                 true,
+		"DeleteModel":                 true,
+
+		// API Gateway - API Keys & Usage Plans
+		"CreateApiKey":                true,
+		"DeleteApiKey":                true,
+		"UpdateApiKey":                true,
+		"CreateUsagePlan":             true,
+		"DeleteUsagePlan":             true,
+		"UpdateUsagePlan":             true,
+
+		// API Gateway v2 (HTTP/WebSocket)
+		"CreateApi":                   true,
+		"DeleteApi":                   true,
+		"UpdateApi":                   true,
+		"CreateRoute":                 true,
+		"DeleteRoute":                 true,
+		"UpdateRoute":                 true,
+		"CreateIntegration":           true,
+		"DeleteIntegration":           true,
+		"UpdateIntegration":           true,
 	}
 
 	return relevantEvents[eventName]
@@ -320,6 +404,90 @@ func (s *Subscriber) extractResourceID(eventName string, fields map[string]strin
 		// Lambda
 		"AddPermission":    {"ct.request.functionname"},
 		"RemovePermission": {"ct.request.functionname"},
+
+		// RDS - DB Instances
+		"CreateDBInstance":           {"ct.response.dbinstanceidentifier", "ct.request.dbinstanceidentifier"},
+		"DeleteDBInstance":           {"ct.request.dbinstanceidentifier"},
+		"RebootDBInstance":           {"ct.request.dbinstanceidentifier"},
+		"StartDBInstance":            {"ct.request.dbinstanceidentifier"},
+		"StopDBInstance":             {"ct.request.dbinstanceidentifier"},
+		"ModifyDBInstanceAttribute":  {"ct.request.dbinstanceidentifier"},
+
+		// RDS - DB Clusters
+		"CreateDBCluster":            {"ct.response.dbclusteridentifier", "ct.request.dbclusteridentifier"},
+		"DeleteDBCluster":            {"ct.request.dbclusteridentifier"},
+		"StartDBCluster":             {"ct.request.dbclusteridentifier"},
+		"StopDBCluster":              {"ct.request.dbclusteridentifier"},
+		"FailoverDBCluster":          {"ct.request.dbclusteridentifier"},
+		"AddRoleToDBCluster":         {"ct.request.dbclusteridentifier"},
+		"RemoveRoleFromDBCluster":    {"ct.request.dbclusteridentifier"},
+		"ModifyDBClusterEndpoint":    {"ct.request.dbclusterendpointidentifier"},
+		"CreateDBClusterEndpoint":    {"ct.response.dbclusterendpointidentifier"},
+		"DeleteDBClusterEndpoint":    {"ct.request.dbclusterendpointidentifier"},
+		"ModifyGlobalCluster":        {"ct.request.globalclusteridentifier"},
+
+		// RDS - Snapshots
+		"CreateDBSnapshot":           {"ct.request.dbsnapshotidentifier"},
+		"DeleteDBSnapshot":           {"ct.request.dbsnapshotidentifier"},
+		"ModifyDBSnapshotAttribute":  {"ct.request.dbsnapshotidentifier"},
+		"CreateDBClusterSnapshot":    {"ct.request.dbclustersnapshotidentifier"},
+		"DeleteDBClusterSnapshot":    {"ct.request.dbclustersnapshotidentifier"},
+
+		// RDS - Parameter Groups
+		"CreateDBParameterGroup":     {"ct.request.dbparametergroupname"},
+		"DeleteDBParameterGroup":     {"ct.request.dbparametergroupname"},
+		"ModifyDBParameterGroup":     {"ct.request.dbparametergroupname"},
+
+		// RDS - Subnet Groups
+		"CreateDBSubnetGroup":        {"ct.request.dbsubnetgroupname"},
+		"DeleteDBSubnetGroup":        {"ct.request.dbsubnetgroupname"},
+		"ModifyDBSubnetGroup":        {"ct.request.dbsubnetgroupname"},
+
+		// RDS - Restore
+		"RestoreDBInstanceFromDBSnapshot": {"ct.request.dbinstanceidentifier"},
+		"RestoreDBClusterFromSnapshot":    {"ct.request.dbclusteridentifier"},
+
+		// API Gateway - REST API
+		"CreateRestApi":              {"ct.response.id", "ct.response.restapiid"},
+		"DeleteRestApi":              {"ct.request.restapiid"},
+		"UpdateRestApi":              {"ct.request.restapiid"},
+		"CreateResource":             {"ct.response.id"},
+		"DeleteResource":             {"ct.request.resourceid"},
+		"CreateMethod":               {"ct.request.resourceid"},
+		"DeleteMethod":               {"ct.request.resourceid"},
+		"PutMethod":                  {"ct.request.resourceid"},
+		"UpdateMethod":               {"ct.request.resourceid"},
+		"CreateDeployment":           {"ct.response.id"},
+		"DeleteDeployment":           {"ct.request.deploymentid"},
+		"CreateStage":                {"ct.request.stagename"},
+		"DeleteStage":                {"ct.request.stagename"},
+		"UpdateStage":                {"ct.request.stagename"},
+
+		// API Gateway - Authorizers & Models
+		"CreateAuthorizer":           {"ct.response.id"},
+		"DeleteAuthorizer":           {"ct.request.authorizerid"},
+		"UpdateAuthorizer":           {"ct.request.authorizerid"},
+		"CreateModel":                {"ct.response.name"},
+		"DeleteModel":                {"ct.request.modelname"},
+
+		// API Gateway - API Keys & Usage Plans
+		"CreateApiKey":               {"ct.response.id"},
+		"DeleteApiKey":               {"ct.request.apikeyid"},
+		"UpdateApiKey":               {"ct.request.apikeyid"},
+		"CreateUsagePlan":            {"ct.response.id"},
+		"DeleteUsagePlan":            {"ct.request.usageplanid"},
+		"UpdateUsagePlan":            {"ct.request.usageplanid"},
+
+		// API Gateway v2
+		"CreateApi":                  {"ct.response.apiid"},
+		"DeleteApi":                  {"ct.request.apiid"},
+		"UpdateApi":                  {"ct.request.apiid"},
+		"CreateRoute":                {"ct.response.routeid"},
+		"DeleteRoute":                {"ct.request.routeid"},
+		"UpdateRoute":                {"ct.request.routeid"},
+		"CreateIntegration":          {"ct.response.integrationid"},
+		"DeleteIntegration":          {"ct.request.integrationid"},
+		"UpdateIntegration":          {"ct.request.integrationid"},
 	}
 
 	// Get possible field names for this event
