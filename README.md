@@ -553,12 +553,29 @@ go test ./...
 # Run with race detection
 go test -race ./...
 
+# Run security scans
+./scripts/security-scan.sh
+
 # Build
 make build
 
 # Run locally
 ./tfdrift --config examples/config.yaml
 ```
+
+### Security Scanning
+
+Multiple security tools run on every commit:
+- **Snyk**: Dependency vulnerability scanning
+- **GoSec**: Go code security audit
+- **Nancy**: OSS dependency scanner
+
+Run local security scans:
+```bash
+./scripts/security-scan.sh
+```
+
+See [SECURITY.md](.github/SECURITY.md) for security policy and reporting vulnerabilities.
 
 ### Project Structure
 
