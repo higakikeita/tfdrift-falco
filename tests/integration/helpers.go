@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	"github.com/stretchr/testify/require"
@@ -46,14 +47,10 @@ func CreateTestAlert() types.DriftAlert {
 		ResourceType: "aws_instance",
 		ResourceID:   "i-1234567890abcdef0",
 		ResourceName: "web-server",
-		Changes: map[string]types.Change{
-			"disable_api_termination": {
-				Attribute: "disable_api_termination",
-				OldValue:  true,
-				NewValue:  false,
-			},
-		},
-		Severity: "high",
+		Attribute:    "disable_api_termination",
+		OldValue:     true,
+		NewValue:     false,
+		Severity:     "high",
 		UserIdentity: types.UserIdentity{
 			Type:        "IAMUser",
 			UserName:    "admin@example.com",
@@ -61,31 +58,26 @@ func CreateTestAlert() types.DriftAlert {
 			ARN:         "arn:aws:iam::123456789012:user/admin",
 			AccountID:   "123456789012",
 		},
-		EventMetadata: types.EventMetadata{
-			EventTime: "2025-11-20T10:30:00Z",
-			EventName: "ModifyInstanceAttribute",
-			SourceIP:  "203.0.113.42",
-			UserAgent: "AWS Console",
-		},
+		Timestamp: "2025-11-20T10:30:00Z",
 	}
 }
 
 // CreateTestUnmanagedAlert creates a test unmanaged resource alert
 func CreateTestUnmanagedAlert() types.UnmanagedResourceAlert {
 	return types.UnmanagedResourceAlert{
+		Severity:     "medium",
 		ResourceType: "aws_instance",
 		ResourceID:   "i-unmanaged-instance",
-		ResourceARN:  "arn:aws:ec2:us-east-1:123456789012:instance/i-unmanaged-instance",
-		Region:       "us-east-1",
+		EventName:    "RunInstances",
 		UserIdentity: types.UserIdentity{
 			Type:     "IAMUser",
 			UserName: "developer@example.com",
 		},
-		EventMetadata: types.EventMetadata{
-			EventTime: "2025-11-20T10:35:00Z",
-			EventName: "RunInstances",
+		Changes: map[string]interface{}{
+			"instance_type": "t2.micro",
 		},
-		ImportCommand: "terraform import aws_instance.unmanaged i-unmanaged-instance",
+		Timestamp: "2025-11-20T10:35:00Z",
+		Reason:    "Resource not found in Terraform state",
 	}
 }
 

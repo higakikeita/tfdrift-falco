@@ -287,7 +287,7 @@ func AssertAlertReceived(t *testing.T, alert *types.DriftAlert, resourceType, re
 	require.NotNil(t, alert, "Expected alert but got nil")
 	require.Equal(t, resourceType, alert.ResourceType, "Resource type mismatch")
 	require.Equal(t, resourceID, alert.ResourceID, "Resource ID mismatch")
-	require.NotEmpty(t, alert.Changes, "Expected changes but got empty")
+	require.NotEmpty(t, alert.Attribute, "Expected attribute but got empty")
 	require.NotEmpty(t, alert.UserIdentity.UserName, "Expected user identity")
 }
 

@@ -207,11 +207,10 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"UpdateUsagePlan": "aws_api_gateway_usage_plan",
 
 		// API Gateway v2 (HTTP/WebSocket)
-		"CreateApi":         "aws_apigatewayv2_api",
-		"DeleteApi":         "aws_apigatewayv2_api",
-		"UpdateApi":         "aws_apigatewayv2_api",
-		"CreateRoute":       "aws_apigatewayv2_route",
-		"DeleteRoute":       "aws_apigatewayv2_route",
+		"CreateApi": "aws_apigatewayv2_api",
+		"DeleteApi": "aws_apigatewayv2_api",
+		"UpdateApi": "aws_apigatewayv2_api",
+		// Note: CreateRoute/DeleteRoute mapped to aws_route (VPC) above
 		"UpdateRoute":       "aws_apigatewayv2_route",
 		"CreateIntegration": "aws_apigatewayv2_integration",
 		"DeleteIntegration": "aws_apigatewayv2_integration",

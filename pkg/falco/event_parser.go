@@ -267,11 +267,10 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"UpdateUsagePlan": true,
 
 		// API Gateway v2 (HTTP/WebSocket)
-		"CreateApi":         true,
-		"DeleteApi":         true,
-		"UpdateApi":         true,
-		"CreateRoute":       true,
-		"DeleteRoute":       true,
+		"CreateApi": true,
+		"DeleteApi": true,
+		"UpdateApi": true,
+		// Note: CreateRoute/DeleteRoute covered by VPC Route Tables section
 		"UpdateRoute":       true,
 		"CreateIntegration": true,
 		"DeleteIntegration": true,
@@ -311,16 +310,14 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"Subscribe":           true,
 		"Unsubscribe":         true,
 		"ConfirmSubscription": true,
-		"AddPermission":       true,
-		"RemovePermission":    true,
+		// Note: AddPermission/RemovePermission covered by Lambda section
 
 		// SQS (Critical for async processing)
 		"CreateQueue":        true,
 		"DeleteQueue":        true,
 		"SetQueueAttributes": true,
-		"AddPermission":      true,
-		"RemovePermission":   true,
-		"PurgeQueue":         true,
+		// Note: AddPermission/RemovePermission covered by Lambda section
+		"PurgeQueue": true,
 
 		// Route53 (Critical for DNS)
 		"ChangeResourceRecordSets":      true,
@@ -384,8 +381,7 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"UpdateNodegroupConfig": true,
 
 		// Redshift
-		"CreateCluster":               true,
-		"DeleteCluster":               true,
+		// Note: CreateCluster/DeleteCluster covered by EKS section
 		"ModifyCluster":               true,
 		"ModifyClusterParameterGroup": true,
 		"CreateClusterParameterGroup": true,
@@ -593,11 +589,10 @@ func (s *Subscriber) extractResourceID(eventName string, fields map[string]strin
 		"UpdateUsagePlan": {"ct.request.usageplanid"},
 
 		// API Gateway v2
-		"CreateApi":         {"ct.response.apiid"},
-		"DeleteApi":         {"ct.request.apiid"},
-		"UpdateApi":         {"ct.request.apiid"},
-		"CreateRoute":       {"ct.response.routeid"},
-		"DeleteRoute":       {"ct.request.routeid"},
+		"CreateApi": {"ct.response.apiid"},
+		"DeleteApi": {"ct.request.apiid"},
+		"UpdateApi": {"ct.request.apiid"},
+		// Note: CreateRoute/DeleteRoute covered by VPC Route Tables section above
 		"UpdateRoute":       {"ct.request.routeid"},
 		"CreateIntegration": {"ct.response.integrationid"},
 		"DeleteIntegration": {"ct.request.integrationid"},
