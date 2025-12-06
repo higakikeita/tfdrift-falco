@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Backend Package Tests** - Comprehensive test coverage for Terraform backend abstraction layer
+  - Local filesystem backend: validation, error handling, file operations
+  - S3 backend: configuration validation, region defaults
+  - Factory pattern tests for backend selection
+  - Coverage improved from 0.0% to 67.4%
+
+- **Benchmark Test Suite** - Performance baseline establishment
+  - Event processing benchmarks: ~44μs/op, 9.5KB/op, 117 allocs/op
+  - State comparison benchmarks: ~4ns/op (cached lookups)
+  - Concurrent event handling benchmarks
+  - Memory usage tests with leak detection
+  - Created test helper methods (HandleEventForTest, GetStateManagerForTest)
+
+- **Security Infrastructure**
+  - Snyk workflow with proper SARIF output configuration
+  - Local security scanning script (`scripts/security-scan.sh`)
+  - Comprehensive security policy documentation (`.github/SECURITY.md`)
+  - GoSec, Nancy, and govulncheck integration
+  - Security scanning section in README
+
+### Fixed
+- Fixed Snyk SARIF file generation with `--sarif-file-output` flag
+- Fixed benchmark test API compatibility issues (HandleEvent → HandleEventForTest)
+- Fixed memory test uint64 underflow by using TotalAlloc instead of Alloc
+- Fixed memory leak detection growth calculation
+
+### Documentation
+- Added `docs/v0.2.0-beta-quality-improvements-diary.md` - Development diary for post-release improvements
+- Updated README with security scanning section
+- Added security policy and vulnerability reporting process
+
 ## [0.2.0-beta] - 2025-12-05
 
 ### 🎉 Major Release - Production Readiness & VPC Support

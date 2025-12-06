@@ -9,7 +9,7 @@
 [![Test](https://github.com/higakikeita/tfdrift-falco/actions/workflows/test.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/test.yml)
 [![Lint](https://github.com/higakikeita/tfdrift-falco/actions/workflows/lint.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/lint.yml)
 [![Security](https://github.com/higakikeita/tfdrift-falco/actions/workflows/security.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/security.yml)
-[![Coverage](https://img.shields.io/badge/coverage-80.0%25-brightgreen)](https://github.com/higakikeita/tfdrift-falco)
+[![Coverage](https://img.shields.io/badge/coverage-71.9%25-brightgreen)](https://github.com/higakikeita/tfdrift-falco)
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
