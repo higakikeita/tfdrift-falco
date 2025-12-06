@@ -6,9 +6,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
+[![Docker](https://img.shields.io/badge/Docker-GHCR-2496ED?logo=docker)](https://ghcr.io/higakikeita/tfdrift-falco)
+[![Docker Pulls](https://img.shields.io/badge/dynamic/json?url=https://ghcr.io/v2/higakikeita/tfdrift-falco/manifests/latest&label=pulls&query=$.name&color=2496ED&logo=docker)](https://github.com/higakikeita/tfdrift-falco/pkgs/container/tfdrift-falco)
 [![Test](https://github.com/higakikeita/tfdrift-falco/actions/workflows/test.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/test.yml)
 [![Lint](https://github.com/higakikeita/tfdrift-falco/actions/workflows/lint.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/lint.yml)
 [![Security](https://github.com/higakikeita/tfdrift-falco/actions/workflows/security.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/security.yml)
+[![Publish GHCR](https://github.com/higakikeita/tfdrift-falco/actions/workflows/publish-ghcr.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/publish-ghcr.yml)
 [![Coverage](https://img.shields.io/badge/coverage-71.9%25-brightgreen)](https://github.com/higakikeita/tfdrift-falco)
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
@@ -149,14 +152,43 @@ TFDrift-Falco maintains high code quality standards with comprehensive testing a
 
 Read more: [Test Coverage 80% Achievement Article](./docs/test-coverage-80-achievement.md)
 
-## 🚀 Quick Start
+## 🐳 Quick Start with Docker (Easiest)
+
+**Get started in 30 seconds with the official Docker image:**
+
+```bash
+# Pull and run the official image
+docker run -d \
+  --name tfdrift-falco \
+  -e TF_STATE_BACKEND=s3 \
+  -e TF_STATE_S3_BUCKET=my-terraform-state \
+  -e TF_STATE_S3_KEY=prod/terraform.tfstate \
+  -e AWS_REGION=us-east-1 \
+  -v ~/.aws:/root/.aws:ro \
+  ghcr.io/higakikeita/tfdrift-falco:latest
+```
+
+**View logs:**
+```bash
+docker logs -f tfdrift-falco
+```
+
+**Available on GitHub Container Registry:**
+- 🚀 `ghcr.io/higakikeita/tfdrift-falco:latest` - Latest stable
+- 📌 `ghcr.io/higakikeita/tfdrift-falco:v0.2.0-beta` - Specific version
+- 🔖 See all tags: https://github.com/higakikeita/tfdrift-falco/pkgs/container/tfdrift-falco
+
+---
+
+## 🚀 Full Installation Guide
 
 ### Prerequisites
 
-- Go 1.21 or later
+- Go 1.21 or later (for building from source)
 - **Falco 0.35+** with CloudTrail plugin (required) - [Setup Guide](docs/falco-setup.md)
 - Terraform 1.0+
 - AWS CLI configured (for AWS support)
+- **Docker** (recommended for easiest setup)
 
 > **Important**: TFDrift-Falco requires a running Falco instance with gRPC enabled and the CloudTrail plugin configured. See the [Falco Setup Guide](docs/falco-setup.md) for detailed installation instructions.
 
@@ -179,16 +211,48 @@ cd tfdrift-falco
 go build -o tfdrift ./cmd/tfdrift
 ```
 
-#### Option 3: Docker
+#### Option 3: Docker (Recommended ⭐)
+
+**Official image available on GitHub Container Registry (GHCR)**
 
 ```bash
-# Build image
-make docker-build
+# Pull the latest official image
+docker pull ghcr.io/higakikeita/tfdrift-falco:latest
 
-# Or pull from registry (when available)
-# docker pull keitahigaki/tfdrift-falco:latest
+# Or use a specific version
+docker pull ghcr.io/higakikeita/tfdrift-falco:v0.2.0-beta
 
 # Run with Docker
+docker run -d \
+  --name tfdrift-falco \
+  -v $(pwd)/config.yaml:/config/config.yaml:ro \
+  -v ~/.aws:/root/.aws:ro \
+  ghcr.io/higakikeita/tfdrift-falco:latest \
+  --config /config/config.yaml
+```
+
+**Quick start with environment variables:**
+
+```bash
+docker run -d \
+  --name tfdrift-falco \
+  -e TF_STATE_BACKEND=s3 \
+  -e TF_STATE_S3_BUCKET=my-terraform-state \
+  -e TF_STATE_S3_KEY=prod/terraform.tfstate \
+  -e AWS_REGION=us-east-1 \
+  -e FALCO_HOSTNAME=localhost \
+  -e FALCO_PORT=5060 \
+  -v ~/.aws:/root/.aws:ro \
+  ghcr.io/higakikeita/tfdrift-falco:latest
+```
+
+**Build from source (for development):**
+
+```bash
+# Build image locally
+make docker-build
+
+# Run locally built image
 docker run -d \
   --name tfdrift-falco \
   -v $(pwd)/config.yaml:/config/config.yaml:ro \
@@ -667,14 +731,43 @@ TFDrift-FalcoがTerraform Stateと比較
 - 🎨 **拡張可能なルール** - YAMLでカスタムドリフト検知ルールを定義
 - 🐳 **コンテナ対応** - サイドカーまたはスタンドアロンコンテナとして実行
 
-## 🚀 クイックスタート
+## 🐳 Dockerで30秒クイックスタート
+
+**公式Dockerイメージで即座に開始:**
+
+```bash
+# 公式イメージをプル＆実行
+docker run -d \
+  --name tfdrift-falco \
+  -e TF_STATE_BACKEND=s3 \
+  -e TF_STATE_S3_BUCKET=my-terraform-state \
+  -e TF_STATE_S3_KEY=prod/terraform.tfstate \
+  -e AWS_REGION=ap-northeast-1 \
+  -v ~/.aws:/root/.aws:ro \
+  ghcr.io/higakikeita/tfdrift-falco:latest
+```
+
+**ログ確認:**
+```bash
+docker logs -f tfdrift-falco
+```
+
+**GitHub Container Registryで利用可能:**
+- 🚀 `ghcr.io/higakikeita/tfdrift-falco:latest` - 最新安定版
+- 📌 `ghcr.io/higakikeita/tfdrift-falco:v0.2.0-beta` - 特定バージョン
+- 🔖 全タグを見る: https://github.com/higakikeita/tfdrift-falco/pkgs/container/tfdrift-falco
+
+---
+
+## 🚀 完全インストールガイド
 
 ### 前提条件
 
-- Go 1.21以降
+- Go 1.21以降（ソースからビルドする場合）
 - **Falco 0.35+** CloudTrailプラグイン必須 - [セットアップガイド](docs/falco-setup.md)
 - Terraform 1.0+
 - AWS CLI設定済み（AWSサポート用）
+- **Docker**（最も簡単なセットアップ方法として推奨）
 
 > **重要**: TFDrift-Falcoは、gRPCが有効でCloudTrailプラグインが設定されたFalcoインスタンスが必要です。詳細なインストール手順は[Falcoセットアップガイド](docs/falco-setup.md)を参照してください。
 
@@ -697,16 +790,48 @@ cd tfdrift-falco
 go build -o tfdrift ./cmd/tfdrift
 ```
 
-#### オプション3: Docker
+#### オプション3: Docker（推奨 ⭐）
+
+**GitHub Container Registry（GHCR）で公式イメージが利用可能**
 
 ```bash
-# イメージをビルド
-make docker-build
+# 最新の公式イメージをプル
+docker pull ghcr.io/higakikeita/tfdrift-falco:latest
 
-# または公式イメージを取得（利用可能時）
-# docker pull keitahigaki/tfdrift-falco:latest
+# または特定バージョンを使用
+docker pull ghcr.io/higakikeita/tfdrift-falco:v0.2.0-beta
 
 # Dockerで実行
+docker run -d \
+  --name tfdrift-falco \
+  -v $(pwd)/config.yaml:/config/config.yaml:ro \
+  -v ~/.aws:/root/.aws:ro \
+  ghcr.io/higakikeita/tfdrift-falco:latest \
+  --config /config/config.yaml
+```
+
+**環境変数で簡単スタート:**
+
+```bash
+docker run -d \
+  --name tfdrift-falco \
+  -e TF_STATE_BACKEND=s3 \
+  -e TF_STATE_S3_BUCKET=my-terraform-state \
+  -e TF_STATE_S3_KEY=prod/terraform.tfstate \
+  -e AWS_REGION=ap-northeast-1 \
+  -e FALCO_HOSTNAME=localhost \
+  -e FALCO_PORT=5060 \
+  -v ~/.aws:/root/.aws:ro \
+  ghcr.io/higakikeita/tfdrift-falco:latest
+```
+
+**ソースからビルド（開発用）:**
+
+```bash
+# ローカルでイメージをビルド
+make docker-build
+
+# ローカルビルドイメージを実行
 docker run -d \
   --name tfdrift-falco \
   -v $(pwd)/config.yaml:/config/config.yaml:ro \
