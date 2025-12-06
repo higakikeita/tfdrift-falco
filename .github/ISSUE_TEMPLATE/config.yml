@@ -1,5 +1,8 @@
 blank_issues_enabled: true
 contact_links:
+  - name: 🗺️ AWS Coverage Roadmap
+    url: https://github.com/higakikeita/tfdrift-falco/blob/main/docs/AWS_COVERAGE_ROADMAP.md
+    about: View the planned AWS service coverage for upcoming releases
   - name: 💬 GitHub Discussions
     url: https://github.com/higakikeita/tfdrift-falco/discussions
     about: Ask questions, share ideas, and engage with the community
