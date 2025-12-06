@@ -1,0 +1,152 @@
+site_name: TFDrift-Falco Documentation
+site_description: Real-time Terraform Drift Detection using CloudTrail + Falco
+site_url: https://higakikeita.github.io/tfdrift-falco/
+repo_url: https://github.com/higakikeita/tfdrift-falco
+repo_name: higakikeita/tfdrift-falco
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+  logo: assets/logo.png
+  favicon: assets/favicon.png
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Overview: overview.md
+      - How It Works: how-it-works.md
+      - Architecture: architecture.md
+      - Quickstart: quickstart.md
+      - Deployment: deployment.md
+      - Falco Setup: falco-setup.md
+  - AWS Services:
+      - services/index.md
+      - Compute:
+          - EC2: services/ec2.md
+      - Networking:
+          - VPC: services/vpc.md
+          - Route53: services/route53.md
+          - CloudFront: services/cloudfront.md
+      - Storage:
+          - S3: services/s3.md
+      - Databases:
+          - RDS/Aurora: services/rds.md
+      - Security:
+          - IAM: services/iam.md
+          - KMS: services/kms.md
+      - Application:
+          - API Gateway: services/api-gateway.md
+      - Messaging:
+          - SNS: services/sns.md
+          - SQS: services/sqs.md
+      - Containers:
+          - ECR: services/ecr.md
+  - Release Notes:
+      - v0.2.0-beta: release-notes/v0.2.0-beta.md
+      - v0.3.0 (planned): release-notes/v0.3.0.md
+      - Architecture Changes: release-notes/architecture-changes.md
+  - Community:
+      - Contributing: CONTRIBUTING.md
+      - Code of Conduct: CODE_OF_CONDUCT.md
+      - Security: SECURITY.md
+
+plugins:
+  - search:
+      lang: en
+      separator: '[\s\-\.]+'
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - codehilite:
+      guess_lang: false
+  - def_list
+  - footnotes
+  - meta
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: higakikeita
+      repo: tfdrift-falco
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra:
+  version:
+    provider: mike
+    default: stable
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/higakikeita/tfdrift-falco
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/higakikeita
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX  # Replace with your Google Analytics ID
+
+copyright: Copyright &copy; 2024 Keita Higaki
