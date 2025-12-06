@@ -1,3 +1,4 @@
+// Package notifier handles alert notifications via multiple channels.
 package notifier
 
 import (

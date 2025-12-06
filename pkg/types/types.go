@@ -1,3 +1,4 @@
+// Package types defines core data structures used throughout TFDrift-Falco.
 package types
 
 // Event represents a cloud event that might indicate drift

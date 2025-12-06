@@ -1,3 +1,4 @@
+// Package diff provides diff formatting utilities for drift alerts.
 package diff
 
 import (

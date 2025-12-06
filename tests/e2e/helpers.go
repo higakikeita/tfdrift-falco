@@ -1,3 +1,4 @@
+// Package e2e provides end-to-end testing utilities for TFDrift-Falco.
 package e2e
 
 import (

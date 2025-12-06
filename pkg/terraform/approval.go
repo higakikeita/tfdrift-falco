@@ -1,3 +1,4 @@
+// Package terraform provides Terraform state management and import automation.
 package terraform
 
 import (
@@ -31,11 +32,12 @@ type ApprovalRequest struct {
 // ApprovalStatus represents the status of an approval request
 type ApprovalStatus string
 
+// Approval status constants
 const (
-	ApprovalPending  ApprovalStatus = "pending"
-	ApprovalApproved ApprovalStatus = "approved"
-	ApprovalRejected ApprovalStatus = "rejected"
-	ApprovalExpired  ApprovalStatus = "expired"
+	ApprovalPending  ApprovalStatus = "pending"  // Request is pending approval
+	ApprovalApproved ApprovalStatus = "approved" // Request has been approved
+	ApprovalRejected ApprovalStatus = "rejected" // Request has been rejected
+	ApprovalExpired  ApprovalStatus = "expired"  // Request has expired
 )
 
 // ApprovalManager manages import approval workflow
@@ -79,7 +81,7 @@ func (am *ApprovalManager) RequestApproval(resourceType, resourceID string, chan
 }
 
 // PromptForApproval prompts the user for approval in interactive mode
-func (am *ApprovalManager) PromptForApproval(ctx context.Context, request *ApprovalRequest) (bool, error) {
+func (am *ApprovalManager) PromptForApproval(_ context.Context, request *ApprovalRequest) (bool, error) {
 	if !am.interactiveMode {
 		return false, fmt.Errorf("not in interactive mode")
 	}

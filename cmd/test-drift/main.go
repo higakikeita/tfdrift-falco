@@ -1,3 +1,4 @@
+// Package main provides a test utility for simulating Terraform drift detection.
 package main
 
 import (

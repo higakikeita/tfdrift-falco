@@ -8,7 +8,7 @@ import (
 )
 
 // NewBackend creates a backend based on configuration
-func NewBackend(ctx context.Context, cfg config.TerraformStateConfig) (Backend, error) {
+func NewBackend(_ context.Context, cfg config.TerraformStateConfig) (Backend, error) {
 	switch cfg.Backend {
 	case "local", "":
 		path := cfg.LocalPath

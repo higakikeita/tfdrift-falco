@@ -133,7 +133,7 @@ func (i *Importer) GenerateTerraformCode(resourceType, resourceName string, attr
 }
 
 // ValidateImport checks if the import would be successful without actually importing
-func (i *Importer) ValidateImport(ctx context.Context, cmd *ImportCommand) error {
+func (i *Importer) ValidateImport(ctx context.Context, _ *ImportCommand) error {
 	// Check if terraform binary exists
 	if _, err := exec.LookPath(i.terraformBinary); err != nil {
 		return fmt.Errorf("terraform binary not found: %w", err)

@@ -30,7 +30,7 @@ func NewLocalBackend(path string) (*LocalBackend, error) {
 }
 
 // Load reads the state file from local filesystem
-func (b *LocalBackend) Load(ctx context.Context) ([]byte, error) {
+func (b *LocalBackend) Load(_ context.Context) ([]byte, error) {
 	log.Infof("Loading Terraform state from local file: %s", b.path)
 
 	data, err := os.ReadFile(b.path)
