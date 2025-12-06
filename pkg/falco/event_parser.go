@@ -69,6 +69,89 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"ModifyNetworkInterfaceAttribute": true,
 		"ModifyVolume":                    true,
 
+		// VPC - Security Groups (Critical)
+		"AuthorizeSecurityGroupIngress": true,
+		"AuthorizeSecurityGroupEgress":  true,
+		"RevokeSecurityGroupIngress":    true,
+		"RevokeSecurityGroupEgress":     true,
+		"CreateSecurityGroup":           true,
+		"DeleteSecurityGroup":           true,
+		"ModifySecurityGroupRules":      true,
+
+		// VPC - Core
+		"CreateVpc":           true,
+		"DeleteVpc":           true,
+		"ModifyVpcAttribute":  true,
+		"CreateSubnet":        true,
+		"DeleteSubnet":        true,
+		"ModifySubnetAttribute": true,
+
+		// VPC - Route Tables (Critical)
+		"CreateRoute":         true,
+		"DeleteRoute":         true,
+		"ReplaceRoute":        true,
+		"CreateRouteTable":    true,
+		"DeleteRouteTable":    true,
+		"AssociateRouteTable": true,
+
+		// VPC - Internet/NAT Gateways
+		"AttachInternetGateway": true,
+		"DetachInternetGateway": true,
+		"CreateNatGateway":      true,
+		"DeleteNatGateway":      true,
+
+		// VPC - Network ACLs
+		"CreateNetworkAcl":      true,
+		"DeleteNetworkAcl":      true,
+		"CreateNetworkAclEntry": true,
+		"DeleteNetworkAclEntry": true,
+		"ReplaceNetworkAclEntry": true,
+
+		// VPC - VPC Endpoints
+		"CreateVpcEndpoint": true,
+		"DeleteVpcEndpoint": true,
+		"ModifyVpcEndpoint": true,
+
+		// ELB/ALB - Load Balancers
+		"CreateLoadBalancer":             true,
+		"DeleteLoadBalancer":             true,
+		"ModifyLoadBalancerAttributes":   true,
+
+		// ELB/ALB - Target Groups
+		"CreateTargetGroup":              true,
+		"DeleteTargetGroup":              true,
+		"ModifyTargetGroup":              true,
+		"ModifyTargetGroupAttributes":    true,
+		"RegisterTargets":                true,
+		"DeregisterTargets":              true,
+
+		// ELB/ALB - Listeners & Rules (Critical)
+		"CreateListener":                 true,
+		"DeleteListener":                 true,
+		"ModifyListener":                 true,
+		"CreateRule":                     true,
+		"DeleteRule":                     true,
+		"ModifyRule":                     true,
+
+		// KMS (Critical)
+		"ScheduleKeyDeletion":  true,
+		"DisableKey":           true,
+		"EnableKey":            true,
+		"PutKeyPolicy":         true,
+		"CreateKey":            true,
+		"CreateAlias":          true,
+		"DeleteAlias":          true,
+		"UpdateAlias":          true,
+		"EnableKeyRotation":    true,
+		"DisableKeyRotation":   true,
+
+		// DynamoDB
+		"CreateTable":          true,
+		"DeleteTable":          true,
+		"UpdateTable":          true,
+		"UpdateTimeToLive":     true,
+		"UpdateContinuousBackups": true,
+
 		// IAM - Policy modifications
 		"PutUserPolicy":          true,
 		"PutRolePolicy":          true,
@@ -91,11 +174,14 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"UpdateAccountPasswordPolicy": true,
 
 		// S3
-		"PutBucketPolicy":        true,
-		"PutBucketVersioning":    true,
-		"PutBucketEncryption":    true,
-		"DeleteBucketEncryption": true,
-		"PutBucketLogging":       true,
+		"PutBucketPolicy":               true,
+		"PutBucketVersioning":           true,
+		"PutBucketEncryption":           true,
+		"DeleteBucketEncryption":        true,
+		"PutBucketLogging":              true,
+		"PutBucketPublicAccessBlock":    true,
+		"DeleteBucketPublicAccessBlock": true,
+		"PutBucketAcl":                  true,
 
 		// RDS
 		"ModifyDBInstance": true,
@@ -104,6 +190,8 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		// Lambda
 		"UpdateFunctionConfiguration": true,
 		"UpdateFunctionCode":          true,
+		"AddPermission":               true,
+		"RemovePermission":            true,
 	}
 
 	return relevantEvents[eventName]
@@ -120,6 +208,85 @@ func (s *Subscriber) extractResourceID(eventName string, fields map[string]strin
 		"DeleteBucketEncryption":      {"ct.request.bucket"},
 		"ModifyDBInstance":            {"ct.request.dbinstanceidentifier"},
 		"UpdateFunctionConfiguration": {"ct.request.functionname"},
+
+		// VPC - Security Groups
+		"AuthorizeSecurityGroupIngress": {"ct.request.groupid", "ct.request.groupname"},
+		"AuthorizeSecurityGroupEgress":  {"ct.request.groupid", "ct.request.groupname"},
+		"RevokeSecurityGroupIngress":    {"ct.request.groupid", "ct.request.groupname"},
+		"RevokeSecurityGroupEgress":     {"ct.request.groupid", "ct.request.groupname"},
+		"CreateSecurityGroup":           {"ct.response.groupid", "ct.request.groupname"},
+		"DeleteSecurityGroup":           {"ct.request.groupid", "ct.request.groupname"},
+		"ModifySecurityGroupRules":      {"ct.request.groupid"},
+
+		// VPC - Core
+		"CreateVpc":            {"ct.response.vpcid", "ct.response.vpc.vpcid"},
+		"DeleteVpc":            {"ct.request.vpcid"},
+		"ModifyVpcAttribute":   {"ct.request.vpcid"},
+		"CreateSubnet":         {"ct.response.subnetid", "ct.response.subnet.subnetid"},
+		"DeleteSubnet":         {"ct.request.subnetid"},
+		"ModifySubnetAttribute": {"ct.request.subnetid"},
+
+		// VPC - Route Tables
+		"CreateRoute":         {"ct.request.routetableid"},
+		"DeleteRoute":         {"ct.request.routetableid"},
+		"ReplaceRoute":        {"ct.request.routetableid"},
+		"CreateRouteTable":    {"ct.response.routetableid", "ct.response.routetable.routetableid"},
+		"DeleteRouteTable":    {"ct.request.routetableid"},
+		"AssociateRouteTable": {"ct.request.routetableid"},
+
+		// VPC - Gateways
+		"AttachInternetGateway": {"ct.request.internetgatewayid"},
+		"DetachInternetGateway": {"ct.request.internetgatewayid"},
+		"CreateNatGateway":      {"ct.response.natgatewayid", "ct.response.natgateway.natgatewayid"},
+		"DeleteNatGateway":      {"ct.request.natgatewayid"},
+
+		// VPC - Network ACLs
+		"CreateNetworkAcl":       {"ct.response.networkaclid"},
+		"DeleteNetworkAcl":       {"ct.request.networkaclid"},
+		"CreateNetworkAclEntry":  {"ct.request.networkaclid"},
+		"DeleteNetworkAclEntry":  {"ct.request.networkaclid"},
+		"ReplaceNetworkAclEntry": {"ct.request.networkaclid"},
+
+		// VPC - Endpoints
+		"CreateVpcEndpoint": {"ct.response.vpcendpointid"},
+		"DeleteVpcEndpoint": {"ct.request.vpcendpointid"},
+		"ModifyVpcEndpoint": {"ct.request.vpcendpointid"},
+
+		// ELB/ALB
+		"CreateLoadBalancer":           {"ct.response.loadbalancers.0.loadbalancerarn"},
+		"DeleteLoadBalancer":           {"ct.request.loadbalancerarn"},
+		"ModifyLoadBalancerAttributes": {"ct.request.loadbalancerarn"},
+		"CreateTargetGroup":            {"ct.response.targetgroups.0.targetgrouparn"},
+		"DeleteTargetGroup":            {"ct.request.targetgrouparn"},
+		"ModifyTargetGroup":            {"ct.request.targetgrouparn"},
+		"ModifyTargetGroupAttributes":  {"ct.request.targetgrouparn"},
+		"RegisterTargets":              {"ct.request.targetgrouparn"},
+		"DeregisterTargets":            {"ct.request.targetgrouparn"},
+		"CreateListener":               {"ct.response.listeners.0.listenerarn"},
+		"DeleteListener":               {"ct.request.listenerarn"},
+		"ModifyListener":               {"ct.request.listenerarn"},
+		"CreateRule":                   {"ct.response.rules.0.rulearn"},
+		"DeleteRule":                   {"ct.request.rulearn"},
+		"ModifyRule":                   {"ct.request.rulearn"},
+
+		// KMS
+		"ScheduleKeyDeletion": {"ct.request.keyid"},
+		"DisableKey":          {"ct.request.keyid"},
+		"EnableKey":           {"ct.request.keyid"},
+		"PutKeyPolicy":        {"ct.request.keyid"},
+		"CreateKey":           {"ct.response.keymetadata.keyid"},
+		"CreateAlias":         {"ct.request.aliasname"},
+		"DeleteAlias":         {"ct.request.aliasname"},
+		"UpdateAlias":         {"ct.request.aliasname"},
+		"EnableKeyRotation":   {"ct.request.keyid"},
+		"DisableKeyRotation":  {"ct.request.keyid"},
+
+		// DynamoDB
+		"CreateTable":             {"ct.request.tablename"},
+		"DeleteTable":             {"ct.request.tablename"},
+		"UpdateTable":             {"ct.request.tablename"},
+		"UpdateTimeToLive":        {"ct.request.tablename"},
+		"UpdateContinuousBackups": {"ct.request.tablename"},
 
 		// IAM - Roles
 		"PutRolePolicy":          {"ct.request.rolename"},
@@ -144,6 +311,15 @@ func (s *Subscriber) extractResourceID(eventName string, fields map[string]strin
 		// IAM - Policies
 		"CreatePolicy":        {"ct.request.policyname"},
 		"CreatePolicyVersion": {"ct.request.policyarn"},
+
+		// S3
+		"PutBucketPublicAccessBlock":    {"ct.request.bucket"},
+		"DeleteBucketPublicAccessBlock": {"ct.request.bucket"},
+		"PutBucketAcl":                  {"ct.request.bucket"},
+
+		// Lambda
+		"AddPermission":    {"ct.request.functionname"},
+		"RemovePermission": {"ct.request.functionname"},
 	}
 
 	// Get possible field names for this event
