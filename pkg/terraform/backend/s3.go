@@ -72,7 +72,7 @@ func (b *S3Backend) Load(ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get object from S3 s3://%s/%s: %w", b.bucket, b.key, err)
 	}
-	defer result.Body.Close()
+	defer func() { _ = result.Body.Close() }()
 
 	data, err := io.ReadAll(result.Body)
 	if err != nil {

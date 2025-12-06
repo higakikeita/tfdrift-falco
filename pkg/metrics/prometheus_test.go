@@ -353,7 +353,7 @@ func TestStartMetricsServer(t *testing.T) {
 		// This is okay - we just verified the function can be called
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Verify we got a successful response
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
