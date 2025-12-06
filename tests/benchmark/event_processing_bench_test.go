@@ -1,14 +1,10 @@
-//go:build ignore
-// +build ignore
-
 package benchmark
 
 import (
 	"context"
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
+	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
@@ -21,7 +17,7 @@ func BenchmarkEventProcessing_Single(b *testing.B) {
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		det.HandleEvent(event)
+		det.HandleEventForTest(event)
 	}
 }
 
@@ -38,7 +34,7 @@ func BenchmarkEventProcessing_Batch(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		for _, event := range events {
-			det.HandleEvent(event)
+			det.HandleEventForTest(event)
 		}
 	}
 }
@@ -72,14 +68,15 @@ func BenchmarkStateComparison(b *testing.B) {
 
 	// Load state once
 	ctx := context.Background()
-	_ = det.GetStateManager().Load(ctx)
+	sm := det.GetStateManagerForTest().(*terraform.StateManager)
+	_ = sm.Load(ctx)
 
 	b.ResetTimer()
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
 		// Simulate state comparison
-		resource := det.GetStateManager().GetResource(event.ResourceType, event.ResourceID)
+		resource, _ := sm.GetResource(event.ResourceID)
 		_ = resource != nil
 	}
 }
@@ -101,7 +98,7 @@ func BenchmarkDriftDetection_EC2(b *testing.B) {
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		det.HandleEvent(event)
+		det.HandleEventForTest(event)
 	}
 }
 
@@ -124,7 +121,7 @@ func BenchmarkDriftDetection_IAM(b *testing.B) {
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		det.HandleEvent(event)
+		det.HandleEventForTest(event)
 	}
 }
 
@@ -145,7 +142,7 @@ func BenchmarkDriftDetection_S3(b *testing.B) {
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		det.HandleEvent(event)
+		det.HandleEventForTest(event)
 	}
 }
 
@@ -159,71 +156,9 @@ func BenchmarkConcurrentEvents(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			det.HandleEvent(event)
+			det.HandleEventForTest(event)
 		}
 	})
 }
 
-// Helper functions
-
-func setupBenchmarkDetector(b *testing.B) *detector.Detector {
-	cfg := &config.Config{
-		Providers: config.ProvidersConfig{
-			AWS: config.AWSConfig{
-				Enabled: true,
-				Regions: []string{"us-east-1"},
-				State: config.TerraformStateConfig{
-					Backend:   "local",
-					LocalPath: "../e2e/terraform/testdata/terraform.tfstate",
-				},
-			},
-		},
-		Falco: config.FalcoConfig{
-			Enabled:  false, // Disabled for benchmarking
-			Hostname: "localhost",
-			Port:     5060,
-		},
-		DriftRules: []config.DriftRule{
-			{
-				Name:              "test-rule",
-				ResourceTypes:     []string{"aws_instance", "aws_iam_role", "aws_s3_bucket"},
-				WatchedAttributes: []string{"*"},
-				Severity:          "high",
-			},
-		},
-		DryRun: true,
-	}
-
-	det, err := detector.New(cfg)
-	if err != nil {
-		b.Fatalf("Failed to create detector: %v", err)
-	}
-
-	return det
-}
-
-func createBenchmarkEvent() types.Event {
-	return types.Event{
-		Provider:     "aws",
-		ResourceType: "aws_instance",
-		ResourceID:   "i-1234567890abcdef0",
-		EventName:    "ModifyInstanceAttribute",
-		Changes: map[string]interface{}{
-			"instance_type": "t3.large",
-		},
-		UserIdentity: types.UserIdentity{
-			Type:     "IAMUser",
-			UserName: "admin",
-		},
-	}
-}
-
-func parseEvent(rawEvent map[string]interface{}) types.Event {
-	// Simplified parsing for benchmark
-	return types.Event{
-		Provider:     "aws",
-		ResourceType: "aws_instance",
-		ResourceID:   "i-test",
-		EventName:    rawEvent["rule"].(string),
-	}
-}
+// Helper functions are now in helpers.go
