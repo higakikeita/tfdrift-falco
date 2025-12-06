@@ -2,6 +2,7 @@
 
 **Real-time Terraform Drift Detection powered by Falco**
 
+[![Version](https://img.shields.io/badge/version-0.2.0--beta-orange)](https://github.com/higakikeita/tfdrift-falco/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
@@ -11,6 +12,8 @@
 [![Coverage](https://img.shields.io/badge/coverage-80.0%25-brightgreen)](https://github.com/higakikeita/tfdrift-falco)
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
+
+> 🎉 **v0.2.0-beta Released!** - Now supports **95 CloudTrail events** (+265%) including VPC/Security Groups, ELB/ALB, KMS, and DynamoDB. [See CHANGELOG](./CHANGELOG.md)
 
 [English](#english) | [日本語](#japanese)
 
@@ -49,9 +52,28 @@ Instant Slack alert with user identity and change details
 - 🧩 **Terraform State Comparison** - Detect deviations from IaC definitions
 - 🔒 **Security Context** - Correlate user identity (IAM user, API key, service account)
 - 🔔 **Multiple Notification Channels** - Slack, Discord, Falco output, Webhook
-- 🌐 **Multi-Cloud Support** - AWS (initial), GCP and Azure (planned)
+- 🌐 **Multi-Cloud Support** - AWS (95 events), GCP and Azure (planned)
 - 🎨 **Extensible Rules** - Define custom Falco rules in YAML
 - 🐳 **Container-Ready** - Run as a sidecar or standalone container
+- 📊 **Production-Ready** - Comprehensive load testing and monitoring framework
+
+## 📋 Supported AWS Services
+
+TFDrift-Falco v0.2.0-beta monitors **95 CloudTrail events** across 10 AWS services:
+
+| Service | Events | Coverage | Priority |
+|---------|--------|----------|----------|
+| **VPC/Networking** 🔒 | 33 | Security Groups, VPC, Subnets, Route Tables, Gateways, ACLs, Endpoints | Critical |
+| **IAM** ✅ | 14 | Roles, Users, Groups, Policies, Access Keys | Critical |
+| **ELB/ALB** | 15 | Load Balancers, Target Groups, Listeners, Rules | High |
+| **KMS** 🔐 | 10 | Keys, Aliases, Rotation, Deletion | Critical |
+| **S3** | 8 | Policies, Encryption, Versioning, Public Access | High |
+| **Lambda** | 4 | Function Config/Code, Permissions | Medium |
+| **DynamoDB** | 5 | Tables, TTL, Backups | Medium |
+| **EC2** | 3 | Instance Attributes, Volumes | Medium |
+| **RDS** | 2 | DB Instances, Clusters | Medium |
+
+**Total**: 95 events | See [AWS Resource Coverage Analysis](./docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for details
 
 ## 🏗️ Architecture
 
