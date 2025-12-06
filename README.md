@@ -78,6 +78,22 @@ TFDrift-Falco v0.2.0-beta monitors **95 CloudTrail events** across 10 AWS servic
 
 **Total**: 95 events | See [AWS Resource Coverage Analysis](./docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for details
 
+### 🗺️ AWS Service Coverage Roadmap
+
+We're expanding AWS service coverage in a phased approach. See the **[AWS Coverage Roadmap](./docs/AWS_COVERAGE_ROADMAP.md)** for the complete plan.
+
+**Upcoming in v0.3.0 (Q1 2025):**
+- **ECS** (Elastic Container Service) - 15 events
+- **EKS** (Elastic Kubernetes Service) - 12 events
+- **Lambda Enhanced** - +10 events (total 14)
+- **EC2 Enhanced** - +15 events (total 18)
+- **ElastiCache** - 12 events
+- **Auto Scaling** - 10 events
+
+**Target: +82 events** (198 total by v0.3.0)
+
+**Want to see a service added?** Submit a [Service Request](https://github.com/higakikeita/tfdrift-falco/issues/new?template=service-request.yml) or check the [full roadmap](./docs/AWS_COVERAGE_ROADMAP.md) for upcoming releases.
+
 ## 🏗️ Architecture
 
 ```mermaid
