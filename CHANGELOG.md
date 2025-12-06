@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **MkDocs Documentation Site** (PR #3) - Professional project documentation
+  - Material for MkDocs theme with dark/light mode toggle
+  - Complete documentation structure: Getting Started, Configuration, Development, API
+  - AWS service coverage matrix (54+ services documented)
+  - Automated link checking in CI
+  - GitHub Pages deployment configured
+
+- **Official Docker Image Support** (PR #4) - GHCR container registry integration
+  - Multi-architecture builds (linux/amd64, linux/arm64)
+  - Automated publishing to `ghcr.io/higakikeita/tfdrift-falco`
+  - Version tagging: `latest`, `vX.Y.Z`, `vX.Y`, `vX`
+  - SHA-based tags for immutable deployments
+  - Updated Dockerfile with optimized Alpine 3.21 base
+
 - **Backend Package Tests** - Comprehensive test coverage for Terraform backend abstraction layer
   - Local filesystem backend: validation, error handling, file operations
   - S3 backend: configuration validation, region defaults
@@ -36,16 +50,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - GoSec, Nancy, and govulncheck integration
   - Security scanning section in README
 
+### Security
+- **Critical Vulnerability Fixes** (PR #5) - Updated Go stdlib and dependencies
+  - Fixed GO-2025-4175: crypto/x509 DNS name constraint verification (CVSS 7.5)
+  - Fixed GO-2025-4155: crypto/x509 excessive resource consumption (CVSS 5.3)
+  - Updated Go toolchain: 1.23.0 → 1.24.0/1.25.5
+  - Updated dependencies: grpc v1.77.0, cobra v1.10.2, viper v1.21.0
+  - Updated Docker base images to latest secure versions
+
 ### Fixed
+- **Test Expectation Updates** (PR #6) - Fixed failing unit tests
+  - Fixed pkg/terraform state backend error handling tests
+  - Fixed pkg/config validation message case sensitivity
+  - Fixed pkg/falco RDS event relevance detection
+  - All tests now passing locally
+
 - Fixed Snyk SARIF file generation with `--sarif-file-output` flag
 - Fixed benchmark test API compatibility issues (HandleEvent → HandleEventForTest)
 - Fixed memory test uint64 underflow by using TotalAlloc instead of Alloc
 - Fixed memory leak detection growth calculation
 
 ### Documentation
+- Added comprehensive MkDocs documentation site with AWS service coverage
+- Added `SECURITY_FIXES.md` documenting crypto/x509 vulnerability remediation
 - Added `docs/v0.2.0-beta-quality-improvements-diary.md` - Development diary for post-release improvements
+- Updated README with Docker usage instructions and GHCR registry
 - Updated README with security scanning section
 - Added security policy and vulnerability reporting process
+- Copied community health files to docs/ for MkDocs integration
 
 ## [0.2.0-beta] - 2025-12-05
 
