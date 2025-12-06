@@ -109,7 +109,7 @@ func (i *Importer) Execute(ctx context.Context, cmd *ImportCommand) error {
 func (i *Importer) GenerateTerraformCode(resourceType, resourceName string, attributes map[string]interface{}) string {
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("# Auto-generated resource block for import\n"))
+	b.WriteString("# Auto-generated resource block for import\n")
 	b.WriteString(fmt.Sprintf("resource \"%s\" \"%s\" {\n", resourceType, resourceName))
 
 	// Add basic attributes
@@ -133,7 +133,7 @@ func (i *Importer) GenerateTerraformCode(resourceType, resourceName string, attr
 }
 
 // ValidateImport checks if the import would be successful without actually importing
-func (i *Importer) ValidateImport(ctx context.Context, cmd *ImportCommand) error {
+func (i *Importer) ValidateImport(ctx context.Context, _ *ImportCommand) error {
 	// Check if terraform binary exists
 	if _, err := exec.LookPath(i.terraformBinary); err != nil {
 		return fmt.Errorf("terraform binary not found: %w", err)

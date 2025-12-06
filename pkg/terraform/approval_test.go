@@ -177,9 +177,9 @@ func TestCleanupExpired(t *testing.T) {
 	req3 := manager.RequestApproval("aws_iam_role", "role-333", nil, "user")
 
 	// Manually set detection times
-	req1.DetectedAt = time.Now().Add(-2 * time.Hour) // Old
+	req1.DetectedAt = time.Now().Add(-2 * time.Hour)    // Old
 	req2.DetectedAt = time.Now().Add(-30 * time.Minute) // Recent
-	req3.DetectedAt = time.Now().Add(-3 * time.Hour) // Very old
+	req3.DetectedAt = time.Now().Add(-3 * time.Hour)    // Very old
 
 	// Cleanup requests older than 1 hour
 	count := manager.CleanupExpired(1 * time.Hour)

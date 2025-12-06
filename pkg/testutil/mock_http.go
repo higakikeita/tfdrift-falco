@@ -49,7 +49,7 @@ func (m *MockHTTPServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Send response
 	w.WriteHeader(m.statusCode)
-	w.Write([]byte(m.responseBody))
+	_, _ = w.Write([]byte(m.responseBody))
 }
 
 // SetStatusCode sets the status code to return

@@ -1,3 +1,4 @@
+// Package config provides configuration management for TFDrift-Falco.
 package config
 
 import (
@@ -35,9 +36,12 @@ type AWSConfig struct {
 // TerraformStateConfig contains Terraform state settings
 type TerraformStateConfig struct {
 	Backend   string `yaml:"backend" mapstructure:"backend"`
-	S3Bucket  string `yaml:"s3_bucket" mapstructure:"s3_bucket"`
-	S3Key     string `yaml:"s3_key" mapstructure:"s3_key"`
 	LocalPath string `yaml:"local_path" mapstructure:"local_path"`
+
+	// S3 backend settings
+	S3Bucket string `yaml:"s3_bucket" mapstructure:"s3_bucket"`
+	S3Key    string `yaml:"s3_key" mapstructure:"s3_key"`
+	S3Region string `yaml:"s3_region" mapstructure:"s3_region"`
 }
 
 // GCPConfig contains GCP-specific settings
@@ -159,13 +163,13 @@ func (c *Config) Validate() error {
 
 	// Validate Falco configuration
 	if !c.Falco.Enabled {
-		return fmt.Errorf("Falco must be enabled - TFDrift-Falco requires Falco gRPC connection")
+		return fmt.Errorf("falco must be enabled - TFDrift-Falco requires Falco gRPC connection")
 	}
 	if c.Falco.Hostname == "" {
-		return fmt.Errorf("Falco hostname must be specified")
+		return fmt.Errorf("falco hostname must be specified")
 	}
 	if c.Falco.Port == 0 {
-		return fmt.Errorf("Falco port must be specified")
+		return fmt.Errorf("falco port must be specified")
 	}
 
 	return nil
@@ -178,7 +182,7 @@ func (c *Config) Save(path string) error {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	if err := os.WriteFile(path, data, 0644); err != nil {
+	if err := os.WriteFile(path, data, 0600); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 

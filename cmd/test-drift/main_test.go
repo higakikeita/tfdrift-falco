@@ -146,7 +146,7 @@ func TestEmojis(t *testing.T) {
 	emojis := []string{
 		"🧪", // Test tube
 		"📋", // Clipboard
-		"✓",  // Check mark
+		"✓", // Check mark
 		"📄", // Document
 		"📊", // Chart
 		"📝", // Memo

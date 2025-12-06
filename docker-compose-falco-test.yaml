@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  falco:
+    image: falcosecurity/falco-no-driver:latest
+    container_name: falco-cloudtrail-test
+    ports:
+      - "5060:5060"
+    volumes:
+      - ./deployments/falco/falco-minimal.yaml:/etc/falco/falco.yaml:ro
+    environment:
+      - AWS_PROFILE=draios-dev-developer
+      - AWS_REGION=us-east-1
+      - CLOUDTRAIL_S3_BUCKET=sysdig-secure-integration-230446364776
+      - CLOUDTRAIL_USE_SQS=false
+    command:
+      - /usr/bin/falco
+      - -c
+      - /etc/falco/falco.yaml
+    restart: unless-stopped
+    networks:
+      - tfdrift-network
+
+networks:
+  tfdrift-network:
+    driver: bridge

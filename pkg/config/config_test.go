@@ -107,9 +107,9 @@ notifications:
 logging:
   level: info
 `
-	err := os.WriteFile(tmpConfig, []byte(content), 0644)
+	err := os.WriteFile(tmpConfig, []byte(content), 0600)
 	require.NoError(t, err)
-	defer os.Remove(tmpConfig)
+	defer func() { _ = os.Remove(tmpConfig) }()
 
 	// Load with empty path (should use default config.yaml)
 	cfg, err := Load("")

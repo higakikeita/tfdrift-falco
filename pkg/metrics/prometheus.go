@@ -1,3 +1,4 @@
+// Package metrics provides Prometheus metrics collection for TFDrift-Falco.
 package metrics
 
 import (

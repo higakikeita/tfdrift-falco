@@ -1,0 +1,86 @@
+providers:
+  aws:
+    enabled: true
+    regions:
+      - us-east-1
+    state:
+      backend: "s3"
+      s3_bucket: "tfdrift-falco-state-test"
+      s3_key: "tfdrift-test/terraform.tfstate"
+      s3_region: "us-east-1"
+
+falco:
+  enabled: true
+  hostname: "localhost"
+  port: 5060
+
+drift_rules:
+  - name: "EC2 Instance Changes"
+    resource_types:
+      - "aws_instance"
+    watched_attributes:
+      - "disable_api_termination"
+      - "instance_type"
+      - "tags"
+    severity: "high"
+
+  - name: "IAM Policy Changes"
+    resource_types:
+      - "aws_iam_role"
+      - "aws_iam_policy"
+    watched_attributes:
+      - "assume_role_policy"
+      - "policy"
+    severity: "critical"
+
+  - name: "S3 Security Changes"
+    resource_types:
+      - "aws_s3_bucket"
+      - "aws_s3_bucket_versioning"
+      - "aws_s3_bucket_public_access_block"
+    watched_attributes:
+      - "versioning_configuration"
+      - "block_public_acls"
+      - "block_public_policy"
+      - "tags"
+    severity: "critical"
+
+  - name: "Security Group Changes"
+    resource_types:
+      - "aws_security_group"
+    watched_attributes:
+      - "ingress"
+      - "egress"
+      - "tags"
+    severity: "high"
+
+  - name: "WAF IP Set Changes"
+    resource_types:
+      - "aws_wafv2_ip_set"
+    watched_attributes:
+      - "addresses"
+      - "description"
+    severity: "critical"
+
+  - name: "WAF Web ACL Changes"
+    resource_types:
+      - "aws_wafv2_web_acl"
+    watched_attributes:
+      - "rule"
+      - "default_action"
+    severity: "critical"
+
+notifications:
+  slack:
+    enabled: false  # Set to true and add webhook_url if you want Slack notifications
+
+  falco_output:
+    enabled: true
+    priority: "info"
+
+logging:
+  level: "info"
+  format: "json"
+
+auto_import:
+  enabled: false

@@ -1,0 +1,64 @@
+#
+# Falco Configuration with TLS for testing gRPC connection
+#
+
+# gRPC Output (Required for TFDrift-Falco)
+grpc:
+  enabled: true
+  bind_address: "0.0.0.0:5060"
+  threadiness: 0
+  private_key: "/etc/falco/certs/server.key"
+  cert_chain: "/etc/falco/certs/server.crt"
+  root_certs: "/etc/falco/certs/ca.crt"
+
+# gRPC Output format
+grpc_output:
+  enabled: true
+
+# Rules files - use default Falco rules
+rules_files:
+  - /etc/falco/falco_rules.yaml
+
+# Output format
+json_output: true
+json_include_output_property: true
+json_include_tags_property: true
+
+# Logging
+log_stderr: true
+log_syslog: false
+log_level: info
+
+# Priority filter (send all events to gRPC)
+priority: debug
+
+# Buffered output
+buffered_outputs: false
+
+# Output channels
+outputs:
+  rate: 0  # Unlimited rate
+  max_burst: 1000
+
+# File output (disabled, using gRPC)
+file_output:
+  enabled: false
+
+# Stdout output (disabled, using gRPC)
+stdout_output:
+  enabled: false
+
+# Webserver (disabled)
+webserver:
+  enabled: false
+
+# Metrics
+metrics:
+  enabled: false
+
+# Output timeout
+output_timeout: 2000
+
+# HTTP output (disabled)
+http_output:
+  enabled: false

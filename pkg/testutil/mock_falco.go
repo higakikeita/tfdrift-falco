@@ -41,7 +41,7 @@ func (m *MockFalcoClient) AddEvents(events []*types.Event) {
 }
 
 // Connect simulates connecting to Falco
-func (m *MockFalcoClient) Connect(ctx context.Context) error {
+func (m *MockFalcoClient) Connect(_ context.Context) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

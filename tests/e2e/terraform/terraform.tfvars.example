@@ -1,0 +1,22 @@
+# TFDrift-Falco E2E Test Configuration
+# Copy this file to terraform.tfvars and customize
+
+# AWS Region
+aws_region = "us-east-1"
+
+# Unique test ID (used for resource naming)
+# Use your username or timestamp to avoid conflicts
+test_id = "mytest-20251120"
+
+# EC2 instance type
+instance_type = "t3.micro"
+
+# CloudTrail setup
+# Set to true if you don't have an existing CloudTrail
+create_cloudtrail = false
+
+# Additional tags
+tags = {
+  Owner = "your-name"
+  Team  = "sre"
+}

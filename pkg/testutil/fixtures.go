@@ -19,14 +19,14 @@ func CreateTempDir(t *testing.T, pattern string) (string, func()) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	return dir, func() { os.RemoveAll(dir) }
+	return dir, func() { _ = os.RemoveAll(dir) }
 }
 
 // WriteTestFile writes content to a temporary file
 func WriteTestFile(t *testing.T, dir, filename, content string) string {
 	t.Helper()
 	path := filepath.Join(dir, filename)
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
 		t.Fatalf("Failed to write test file: %v", err)
 	}
 	return path

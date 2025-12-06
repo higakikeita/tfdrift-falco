@@ -19,7 +19,7 @@ func TestCreateTempDir(t *testing.T) {
 
 	// Verify directory is writable
 	testFile := filepath.Join(dir, "test.txt")
-	err = os.WriteFile(testFile, []byte("test"), 0644)
+	err = os.WriteFile(testFile, []byte("test"), 0600)
 	assert.NoError(t, err)
 }
 

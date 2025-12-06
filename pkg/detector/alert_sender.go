@@ -1,3 +1,4 @@
+// Package detector implements drift detection logic for TFDrift-Falco.
 package detector
 
 import (

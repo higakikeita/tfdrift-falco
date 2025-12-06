@@ -57,6 +57,12 @@ issues:
         - errcheck
         - unused
 
+    # Temporarily ignore AWS SDK v1 deprecation warnings until migration to v2
+    # TODO: Remove this exclusion after migrating to aws-sdk-go-v2
+    - linters:
+        - staticcheck
+      text: "aws-sdk-go is deprecated"
+
   max-issues-per-linter: 0
   max-same-issues: 0
 

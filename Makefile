@@ -122,6 +122,36 @@ docker-run:
 	@echo "Running Docker container..."
 	docker run --rm -v $(PWD)/config.yaml:/config.yaml tfdrift-falco:latest --config /config.yaml
 
+## docker-compose-up: Start all services with Docker Compose
+docker-compose-up:
+	@echo "Starting TFDrift-Falco stack..."
+	docker-compose up -d
+
+## docker-compose-down: Stop all services
+docker-compose-down:
+	@echo "Stopping TFDrift-Falco stack..."
+	docker-compose down
+
+## docker-compose-logs: View logs from all services
+docker-compose-logs:
+	@echo "Viewing logs..."
+	docker-compose logs -f
+
+## docker-compose-restart: Restart all services
+docker-compose-restart:
+	@echo "Restarting TFDrift-Falco stack..."
+	docker-compose restart
+
+## docker-compose-build: Build and start all services
+docker-compose-build:
+	@echo "Building and starting TFDrift-Falco stack..."
+	docker-compose up -d --build
+
+## docker-compose-ps: Show running containers
+docker-compose-ps:
+	@echo "Running containers:"
+	docker-compose ps
+
 ## run: Run the application locally
 run: build
 	@echo "Running $(BINARY_NAME)..."
@@ -152,5 +182,35 @@ ci: deps fmt lint test-coverage-threshold test-race
 ## ci-local: Quick CI checks without race detector (faster)
 ci-local: fmt lint test-coverage
 	@echo "✅ Local CI checks passed!"
+
+## test-integration: Run integration tests
+test-integration:
+	@echo "Running integration tests..."
+	cd tests/integration && $(GO) test -v ./...
+
+## test-benchmark: Run benchmark tests
+test-benchmark:
+	@echo "Running benchmark tests..."
+	cd tests/benchmark && $(GO) test -bench=. -benchmem -benchtime=10s
+
+## test-e2e: Run E2E tests (requires AWS & Falco)
+test-e2e:
+	@echo "Running E2E tests..."
+	@echo "⚠️  Note: E2E tests take 20-30 minutes due to CloudTrail delays"
+	cd tests/e2e && $(GO) test -v -timeout 45m ./...
+
+## test-all: Run all tests (unit + integration + benchmark)
+test-all: test test-integration test-benchmark
+	@echo "✅ All tests passed!"
+
+## test-e2e-setup: Set up E2E test infrastructure
+test-e2e-setup:
+	@echo "Setting up E2E infrastructure..."
+	cd tests/e2e && make setup
+
+## test-e2e-cleanup: Clean up E2E test infrastructure
+test-e2e-cleanup:
+	@echo "Cleaning up E2E infrastructure..."
+	cd tests/e2e && make cleanup
 
 .DEFAULT_GOAL := help

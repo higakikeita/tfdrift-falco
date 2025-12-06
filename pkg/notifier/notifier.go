@@ -1,3 +1,4 @@
+// Package notifier handles alert notifications via multiple channels.
 package notifier
 
 import (
@@ -210,7 +211,7 @@ func (m *Manager) sendWebhook(url string, payload interface{}) error {
 	if err != nil {
 		return fmt.Errorf("failed to send webhook: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 400 {
 		return fmt.Errorf("webhook returned error status: %d", resp.StatusCode)

@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # Falco - Runtime security monitoring with CloudTrail plugin
+  falco:
+    image: falcosecurity/falco:0.37.1
+    container_name: tfdrift-falco-falco
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - "5060:5060"  # gRPC API
+    volumes:
+      # Docker socket for container monitoring
+      - /var/run/docker.sock:/host/var/run/docker.sock:ro
+      - /dev:/host/dev:ro
+      - /proc:/host/proc:ro
+
+      # TFDrift Falco rules
+      - ./rules/terraform_drift.yaml:/etc/falco/rules.d/terraform_drift.yaml:ro
+
+      # Falco configuration
+      - ./deployments/falco/falco.yaml:/etc/falco/falco.yaml:ro
+
+      # AWS credentials for CloudTrail plugin
+      - ${HOME}/.aws:/root/.aws:ro
+    environment:
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+    networks:
+      - tfdrift
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:5060"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # TFDrift-Falco - Main drift detection service
+  tfdrift:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tfdrift-falco:latest
+    container_name: tfdrift-falco-app
+    restart: unless-stopped
+    depends_on:
+      falco:
+        condition: service_healthy
+    ports:
+      - "9090:9090"  # Metrics endpoint (future)
+    volumes:
+      # Configuration
+      - ./config.yaml:/config/config.yaml:ro
+
+      # AWS credentials
+      - ${HOME}/.aws:/root/.aws:ro
+
+      # Terraform state (if using local backend)
+      - ${TERRAFORM_STATE_DIR:-./terraform}:/terraform:ro
+
+      # Auto-import output directory (if enabled)
+      - ./terraform-imports:/terraform-imports
+    environment:
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - TZ=${TZ:-UTC}
+
+      # Optional: Override config via environment variables
+      # - TFDRIFT_FALCO_HOSTNAME=falco
+      # - TFDRIFT_FALCO_PORT=5060
+      # - TFDRIFT_SLACK_WEBHOOK=${SLACK_WEBHOOK_URL}
+    networks:
+      - tfdrift
+    command: ["--config", "/config/config.yaml"]
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "tfdrift"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  tfdrift:
+    driver: bridge
+    name: tfdrift-network
+
+# Example usage:
+#
+# 1. Basic setup:
+#    docker-compose up -d
+#
+# 2. With custom config:
+#    docker-compose up -d
+#
+# 3. View logs:
+#    docker-compose logs -f tfdrift
+#    docker-compose logs -f falco
+#
+# 4. Stop services:
+#    docker-compose down
+#
+# 5. Rebuild:
+#    docker-compose up -d --build

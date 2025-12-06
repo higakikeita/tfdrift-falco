@@ -134,9 +134,9 @@ func TestStateManager_LoadLocal_DefaultPath(t *testing.T) {
 			}
 		]
 	}`
-	err := os.WriteFile(tmpState, []byte(content), 0644)
+	err := os.WriteFile(tmpState, []byte(content), 0600)
 	require.NoError(t, err)
-	defer os.Remove(tmpState)
+	defer func() { _ = os.Remove(tmpState) }()
 
 	// Test with empty LocalPath (should use default)
 	cfg := config.TerraformStateConfig{
@@ -355,7 +355,7 @@ func TestStateManager_Refresh(t *testing.T) {
 			}
 		]
 	}`
-	err := os.WriteFile(statePath, []byte(initialState), 0644)
+	err := os.WriteFile(statePath, []byte(initialState), 0600)
 	require.NoError(t, err)
 
 	cfg := config.TerraformStateConfig{
@@ -396,7 +396,7 @@ func TestStateManager_Refresh(t *testing.T) {
 			}
 		]
 	}`
-	err = os.WriteFile(statePath, []byte(updatedState), 0644)
+	err = os.WriteFile(statePath, []byte(updatedState), 0600)
 	require.NoError(t, err)
 
 	// Refresh state

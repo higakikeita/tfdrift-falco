@@ -1,0 +1,61 @@
+apiVersion: 1
+
+contactPoints:
+  # Slack notification (requires webhook URL)
+  - orgId: 1
+    name: slack-alerts
+    receivers:
+      - uid: slack-tfdrift
+        type: slack
+        settings:
+          url: ${SLACK_WEBHOOK_URL}
+          text: |
+            {{ define "slack.title" }}
+            [{{ .Status | toUpper }}] TFDrift Alert: {{ .GroupLabels.alertname }}
+            {{ end }}
+
+            {{ define "slack.text" }}
+            *Alert:* {{ .GroupLabels.alertname }}
+            *Severity:* {{ .GroupLabels.severity }}
+            *Resource Type:* {{ .GroupLabels.resource_type }}
+            *Status:* {{ .Status }}
+
+            {{ range .Alerts }}
+            *Description:* {{ .Annotations.description }}
+            {{ end }}
+            {{ end }}
+          title: '{{ template "slack.title" . }}'
+        disableResolveMessage: false
+
+  # Email notification (requires SMTP configuration)
+  - orgId: 1
+    name: email-alerts
+    receivers:
+      - uid: email-tfdrift
+        type: email
+        settings:
+          addresses: ${ALERT_EMAIL_ADDRESSES}
+          singleEmail: false
+        disableResolveMessage: false
+
+  # Webhook notification (generic)
+  - orgId: 1
+    name: webhook-alerts
+    receivers:
+      - uid: webhook-tfdrift
+        type: webhook
+        settings:
+          url: ${WEBHOOK_URL}
+          httpMethod: POST
+          maxAlerts: 10
+        disableResolveMessage: false
+
+  # Default contact point (logs to Grafana only)
+  - orgId: 1
+    name: default-contact-point
+    receivers:
+      - uid: default-receiver
+        type: prometheus-alertmanager
+        settings:
+          url: http://localhost:9093
+        disableResolveMessage: false

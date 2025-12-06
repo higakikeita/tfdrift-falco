@@ -28,8 +28,8 @@ func TestExecMocker_OnCommand(t *testing.T) {
 func TestExecMocker_GetCalls(t *testing.T) {
 	mocker := NewExecMocker()
 
-	mocker.Execute("cmd1", "arg1")
-	mocker.Execute("cmd2", "arg2", "arg3")
+	_, _, _ = mocker.Execute("cmd1", "arg1")
+	_, _, _ = mocker.Execute("cmd2", "arg2", "arg3")
 
 	calls := mocker.GetCalls()
 
@@ -43,8 +43,8 @@ func TestExecMocker_GetCalls(t *testing.T) {
 func TestExecMocker_WasCalled(t *testing.T) {
 	mocker := NewExecMocker()
 
-	mocker.Execute("terraform", "version")
-	mocker.Execute("git", "status")
+	_, _, _ = mocker.Execute("terraform", "version")
+	_, _, _ = mocker.Execute("git", "status")
 
 	assert.True(t, mocker.WasCalled("terraform"))
 	assert.True(t, mocker.WasCalled("git"))
@@ -54,7 +54,7 @@ func TestExecMocker_WasCalled(t *testing.T) {
 func TestExecMocker_WasCalledWith(t *testing.T) {
 	mocker := NewExecMocker()
 
-	mocker.Execute("terraform", "import", "aws_instance.web", "i-123")
+	_, _, _ = mocker.Execute("terraform", "import", "aws_instance.web", "i-123")
 
 	assert.True(t, mocker.WasCalledWith("terraform", "import", "aws_instance.web", "i-123"))
 	assert.False(t, mocker.WasCalledWith("terraform", "import", "aws_s3_bucket.data", "bucket-456"))
@@ -82,7 +82,7 @@ func TestExecMocker_Reset(t *testing.T) {
 	mocker := NewExecMocker()
 
 	mocker.OnCommand("test", ExecResult{Stdout: "output"})
-	mocker.Execute("test")
+	_, _, _ = mocker.Execute("test")
 
 	assert.Equal(t, 1, mocker.GetCallCount())
 

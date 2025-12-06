@@ -1,0 +1,316 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: tfdrift-alerts
+    folder: TFDrift-Falco
+    interval: 1m
+    rules:
+      # Alert 1: Critical Severity Drift Detected
+      - uid: tfdrift-critical-alert
+        title: Critical Drift Detected
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: Loki
+            model:
+              expr: 'count_over_time({job="tfdrift-falco"} | json | severity="critical" [5m])'
+              queryType: range
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 1
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          description: 'Critical severity drift detected in the last 5 minutes. Resource: {{ $values.A.resource_id }}'
+          summary: 'Critical drift alert'
+        labels:
+          severity: critical
+          team: security
+
+      # Alert 2: High Severity Drift Detected
+      - uid: tfdrift-high-alert
+        title: High Severity Drift Detected
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: Loki
+            model:
+              expr: 'count_over_time({job="tfdrift-falco"} | json | severity="high" [10m])'
+              queryType: range
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 3
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          description: 'High severity drift detected (>3 events in 10 minutes)'
+          summary: 'Multiple high severity drifts detected'
+        labels:
+          severity: high
+          team: platform
+
+      # Alert 3: Security Group Drift
+      - uid: tfdrift-sg-alert
+        title: Security Group Drift Detected
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: Loki
+            model:
+              expr: 'count_over_time({job="tfdrift-falco"} | json | resource_type="aws_security_group" [5m])'
+              queryType: range
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 1
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          description: 'AWS Security Group configuration drift detected'
+          summary: 'Security Group drift alert'
+        labels:
+          severity: high
+          resource_type: aws_security_group
+          team: security
+
+      # Alert 4: IAM Policy Drift
+      - uid: tfdrift-iam-alert
+        title: IAM Policy/Role Drift Detected
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: Loki
+            model:
+              expr: 'count_over_time({job="tfdrift-falco"} | json | resource_type=~"aws_iam_.*" [5m])'
+              queryType: range
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 1
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          description: 'IAM Policy or Role configuration drift detected'
+          summary: 'IAM drift alert'
+        labels:
+          severity: critical
+          resource_type: aws_iam
+          team: security
+
+      # Alert 5: S3 Bucket Public Access Drift
+      - uid: tfdrift-s3-public-alert
+        title: S3 Bucket Public Access Drift
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: Loki
+            model:
+              expr: 'count_over_time({job="tfdrift-falco"} | json | resource_type="aws_s3_bucket" | line_match_regex "public_access_block|block_public" [5m])'
+              queryType: range
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 1
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 30s
+        annotations:
+          description: 'S3 bucket public access configuration has drifted - potential security risk!'
+          summary: 'S3 public access drift (CRITICAL)'
+        labels:
+          severity: critical
+          resource_type: aws_s3_bucket
+          team: security
+
+      # Alert 6: Excessive Drift Rate
+      - uid: tfdrift-rate-alert
+        title: Excessive Drift Rate Detected
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: Loki
+            model:
+              expr: 'count_over_time({job="tfdrift-falco"} | json | action="drift_detected" [1h])'
+              queryType: range
+          - refId: B
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 10
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          description: 'More than 10 drift events detected in the last hour. This may indicate a systemic issue.'
+          summary: 'Excessive drift rate alert'
+        labels:
+          severity: medium
+          team: platform

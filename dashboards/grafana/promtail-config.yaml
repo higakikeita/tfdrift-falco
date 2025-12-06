@@ -16,3 +16,42 @@ scrape_configs:
         labels:
           job: tfdrift-falco
           __path__: /var/log/tfdrift/*.json
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            resource_type: resource_type
+            resource_id: resource_id
+            changed_by: changed_by
+            severity: severity
+            action: action
+      - labels:
+          severity:
+          resource_type:
+          action:
+      - timestamp:
+          source: timestamp
+          format: RFC3339
+  - job_name: "tfdrift-falco-jsonl"
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: tfdrift-falco
+          __path__: /var/log/tfdrift/*.jsonl
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            resource_type: resource_type
+            resource_id: resource_id
+            changed_by: changed_by
+            severity: severity
+            action: action
+      - labels:
+          severity:
+          resource_type:
+          action:
+      - timestamp:
+          source: timestamp
+          format: RFC3339
