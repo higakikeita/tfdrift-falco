@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	// TODO: Migrate to aws-sdk-go-v2 (aws-sdk-go-v1 deprecated, EOL July 31, 2025)
+	// See: https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-go-v1-on-july-31-2025/
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -254,6 +256,7 @@ func getEnvOrDefault(key, defaultValue string) string {
 }
 
 // skipIfShort skips test if running in short mode
+// Note: Used in E2E tests which are excluded from normal builds with //go:build ignore
 func skipIfShort(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping E2E test in short mode")
@@ -261,6 +264,7 @@ func skipIfShort(t *testing.T) {
 }
 
 // skipIfNoAWS skips test if AWS credentials are not available
+// Note: Used in E2E tests which are excluded from normal builds with //go:build ignore
 func skipIfNoAWS(t *testing.T) {
 	if os.Getenv("AWS_ACCESS_KEY_ID") == "" {
 		t.Skip("Skipping E2E test: AWS credentials not found")
@@ -268,6 +272,7 @@ func skipIfNoAWS(t *testing.T) {
 }
 
 // skipIfNoFalco skips test if Falco is not available
+// Note: Used in E2E tests which are excluded from normal builds with //go:build ignore
 func skipIfNoFalco(t *testing.T) {
 	falcoHost := getEnvOrDefault("FALCO_HOSTNAME", "localhost")
 	falcoPort := getEnvOrDefault("FALCO_PORT", "5060")

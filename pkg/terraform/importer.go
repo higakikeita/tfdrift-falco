@@ -109,7 +109,7 @@ func (i *Importer) Execute(ctx context.Context, cmd *ImportCommand) error {
 func (i *Importer) GenerateTerraformCode(resourceType, resourceName string, attributes map[string]interface{}) string {
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("# Auto-generated resource block for import\n"))
+	b.WriteString("# Auto-generated resource block for import\n")
 	b.WriteString(fmt.Sprintf("resource \"%s\" \"%s\" {\n", resourceType, resourceName))
 
 	// Add basic attributes

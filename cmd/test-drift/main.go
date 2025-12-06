@@ -36,7 +36,7 @@ func main() {
 
 	// Load Terraform state
 	log.Info("Loading Terraform state...")
-	if err := stateManager.Load(nil); err != nil {
+	if err := stateManager.Load(context.TODO()); err != nil {
 		log.Fatalf("Failed to load Terraform state: %v", err)
 	}
 

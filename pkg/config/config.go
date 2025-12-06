@@ -162,13 +162,13 @@ func (c *Config) Validate() error {
 
 	// Validate Falco configuration
 	if !c.Falco.Enabled {
-		return fmt.Errorf("Falco must be enabled - TFDrift-Falco requires Falco gRPC connection")
+		return fmt.Errorf("falco must be enabled - TFDrift-Falco requires Falco gRPC connection")
 	}
 	if c.Falco.Hostname == "" {
-		return fmt.Errorf("Falco hostname must be specified")
+		return fmt.Errorf("falco hostname must be specified")
 	}
 	if c.Falco.Port == 0 {
-		return fmt.Errorf("Falco port must be specified")
+		return fmt.Errorf("falco port must be specified")
 	}
 
 	return nil

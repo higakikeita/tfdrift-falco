@@ -72,7 +72,9 @@ func (am *ApprovalManager) RequestApproval(resourceType, resourceID string, chan
 		Status:        ApprovalPending,
 	}
 
+	am.mu.Lock()
 	am.pendingRequests[request.ID] = request
+	am.mu.Unlock()
 	return request
 }
 
@@ -133,12 +135,15 @@ func (am *ApprovalManager) PromptForApproval(ctx context.Context, request *Appro
 
 // ApproveAndExecute approves and executes an import
 func (am *ApprovalManager) ApproveAndExecute(ctx context.Context, requestID string, approvedBy string) (*ImportResult, error) {
+	am.mu.Lock()
 	request, exists := am.pendingRequests[requestID]
 	if !exists {
+		am.mu.Unlock()
 		return nil, fmt.Errorf("approval request not found: %s", requestID)
 	}
 
 	if request.Status != ApprovalPending {
+		am.mu.Unlock()
 		return nil, fmt.Errorf("request is not pending (status: %s)", request.Status)
 	}
 
@@ -146,6 +151,7 @@ func (am *ApprovalManager) ApproveAndExecute(ctx context.Context, requestID stri
 	request.Status = ApprovalApproved
 	request.ApprovedBy = approvedBy
 	request.ApprovedAt = time.Now()
+	am.mu.Unlock()
 
 	log.Infof("Import approved by %s: %s", approvedBy, request.ImportCommand.String())
 
@@ -153,13 +159,18 @@ func (am *ApprovalManager) ApproveAndExecute(ctx context.Context, requestID stri
 	result := am.importer.AutoImport(ctx, request.ResourceType, request.ResourceID, request.Changes)
 
 	// Clean up
+	am.mu.Lock()
 	delete(am.pendingRequests, requestID)
+	am.mu.Unlock()
 
 	return result, nil
 }
 
 // Reject rejects an import request
 func (am *ApprovalManager) Reject(requestID string, reason string) error {
+	am.mu.Lock()
+	defer am.mu.Unlock()
+
 	request, exists := am.pendingRequests[requestID]
 	if !exists {
 		return fmt.Errorf("approval request not found: %s", requestID)
@@ -174,6 +185,9 @@ func (am *ApprovalManager) Reject(requestID string, reason string) error {
 
 // ListPending returns all pending approval requests
 func (am *ApprovalManager) ListPending() []*ApprovalRequest {
+	am.mu.RLock()
+	defer am.mu.RUnlock()
+
 	pending := make([]*ApprovalRequest, 0, len(am.pendingRequests))
 	for _, req := range am.pendingRequests {
 		if req.Status == ApprovalPending {
@@ -185,6 +199,9 @@ func (am *ApprovalManager) ListPending() []*ApprovalRequest {
 
 // CleanupExpired removes expired approval requests
 func (am *ApprovalManager) CleanupExpired(expiryDuration time.Duration) int {
+	am.mu.Lock()
+	defer am.mu.Unlock()
+
 	count := 0
 	now := time.Now()
 

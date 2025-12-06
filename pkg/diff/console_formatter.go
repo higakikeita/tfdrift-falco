@@ -13,9 +13,9 @@ func (f *DiffFormatter) FormatConsole(alert *types.DriftAlert) string {
 
 	// Header
 	severityColor := f.getSeverityColor(alert.Severity)
-	b.WriteString(f.color(severityColor, fmt.Sprintf("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")))
+	b.WriteString(f.color(severityColor, "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"))
 	b.WriteString(f.color(ColorBold, fmt.Sprintf("🚨 DRIFT DETECTED: %s.%s\n", alert.ResourceType, alert.ResourceName)))
-	b.WriteString(f.color(severityColor, fmt.Sprintf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")))
+	b.WriteString(f.color(severityColor, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"))
 
 	// Severity
 	b.WriteString(f.color(ColorBold, "\n📊 Severity: "))
