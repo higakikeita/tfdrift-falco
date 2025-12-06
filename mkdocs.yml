@@ -41,8 +41,8 @@ theme:
     - content.code.annotate
   icon:
     repo: fontawesome/brands/github
-  logo: assets/logo.png
-  favicon: assets/favicon.png
+  # logo: assets/logo.png  # TODO: Add logo
+  # favicon: assets/favicon.png  # TODO: Add favicon
 
 nav:
   - Home: index.md
