@@ -91,8 +91,9 @@ func TestStateManager_LoadLocal_FileNotFound(t *testing.T) {
 	ctx := context.Background()
 	err = sm.Load(ctx)
 
+	// The backend creation should fail when file doesn't exist
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to read state file")
+	assert.Contains(t, err.Error(), "state file not found")
 }
 
 func TestStateManager_LoadLocal_InvalidJSON(t *testing.T) {
@@ -167,8 +168,10 @@ func TestStateManager_LoadS3_NotImplemented(t *testing.T) {
 	ctx := context.Background()
 	err = sm.Load(ctx)
 
+	// S3 backend is implemented but will fail without AWS credentials
+	// This test verifies the error contains credential issues
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "S3 backend not yet implemented")
+	assert.Contains(t, err.Error(), "failed to get object from S3")
 }
 
 func TestStateManager_LoadUnsupportedBackend(t *testing.T) {
