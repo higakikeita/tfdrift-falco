@@ -43,7 +43,7 @@ func TestIsRelevantEvent(t *testing.T) {
 
 		// RDS Events
 		{"RDS ModifyDBInstance", "ModifyDBInstance", true},
-		{"RDS Irrelevant", "CreateDBInstance", false},
+		{"RDS CreateDBInstance", "CreateDBInstance", true}, // Creates need to be imported
 
 		// Lambda Events
 		{"Lambda UpdateFunctionConfiguration", "UpdateFunctionConfiguration", true},

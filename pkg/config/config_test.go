@@ -134,7 +134,7 @@ func TestValidate_FalcoDisabled(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Nil(t, cfg)
-	assert.Contains(t, err.Error(), "Falco must be enabled")
+	assert.Contains(t, err.Error(), "falco must be enabled")
 }
 
 func TestValidate_AWSNoRegions(t *testing.T) {
@@ -174,7 +174,7 @@ func TestValidate_FalcoMissingHostname(t *testing.T) {
 
 	err := cfg.Validate()
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Falco hostname must be specified")
+	assert.Contains(t, err.Error(), "falco hostname must be specified")
 }
 
 func TestValidate_FalcoMissingPort(t *testing.T) {
@@ -194,7 +194,7 @@ func TestValidate_FalcoMissingPort(t *testing.T) {
 
 	err := cfg.Validate()
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Falco port must be specified")
+	assert.Contains(t, err.Error(), "falco port must be specified")
 }
 
 func TestValidate_ValidConfig(t *testing.T) {
