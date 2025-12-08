@@ -313,6 +313,132 @@
   source: aws_cloudtrail
   tags: [terraform, drift, ebs]
 
+# ECS Rules
+- rule: ECS Service Created
+  desc: Detect when an ECS service is created
+  condition: >
+    ct.name="CreateService"
+  output: >
+    ECS service created
+    (user=%ct.user service=%ct.request.serviceName cluster=%ct.request.cluster region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, ecs, container]
+
+- rule: ECS Service Updated
+  desc: Detect when an ECS service is updated
+  condition: >
+    ct.name="UpdateService"
+  output: >
+    ECS service updated
+    (user=%ct.user service=%ct.request.service cluster=%ct.request.cluster region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, ecs, container]
+
+- rule: ECS Service Deleted
+  desc: Detect when an ECS service is deleted
+  condition: >
+    ct.name="DeleteService"
+  output: >
+    ECS service deleted
+    (user=%ct.user service=%ct.request.service cluster=%ct.request.cluster region=%ct.region account=%ct.account)
+  priority: CRITICAL
+  source: aws_cloudtrail
+  tags: [terraform, drift, ecs, container, security]
+
+- rule: ECS Task Definition Registered
+  desc: Detect when a new ECS task definition is registered
+  condition: >
+    ct.name="RegisterTaskDefinition"
+  output: >
+    ECS task definition registered
+    (user=%ct.user family=%ct.request.family region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, ecs, container]
+
+- rule: ECS Task Definition Deregistered
+  desc: Detect when an ECS task definition is deregistered
+  condition: >
+    ct.name="DeregisterTaskDefinition"
+  output: >
+    ECS task definition deregistered
+    (user=%ct.user taskDefinition=%ct.request.taskDefinition region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, ecs, container]
+
+# Note: CreateCluster and DeleteCluster events are shared between ECS, EKS, and Redshift
+# Context-specific detection requires additional fields to distinguish between services
+# For ECS-specific cluster management, monitor UpdateCluster and UpdateClusterSettings instead
+
+- rule: ECS Cluster Updated
+  desc: Detect when an ECS cluster configuration is updated
+  condition: >
+    ct.name="UpdateCluster" or ct.name="UpdateClusterSettings"
+  output: >
+    ECS cluster updated
+    (user=%ct.user cluster=%ct.request.cluster region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, ecs, container]
+
+- rule: ECS Cluster Capacity Providers Changed
+  desc: Detect when ECS cluster capacity providers are modified
+  condition: >
+    ct.name="PutClusterCapacityProviders"
+  output: >
+    ECS cluster capacity providers changed
+    (user=%ct.user cluster=%ct.request.cluster region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, ecs, container]
+
+- rule: ECS Container Instance State Changed
+  desc: Detect when ECS container instance state is modified
+  condition: >
+    ct.name="UpdateContainerInstancesState"
+  output: >
+    ECS container instance state changed
+    (user=%ct.user status=%ct.request.status region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, ecs, container]
+
+- rule: ECS Capacity Provider Created
+  desc: Detect when an ECS capacity provider is created
+  condition: >
+    ct.name="CreateCapacityProvider"
+  output: >
+    ECS capacity provider created
+    (user=%ct.user name=%ct.request.name region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, ecs, container]
+
+- rule: ECS Capacity Provider Updated
+  desc: Detect when an ECS capacity provider is updated
+  condition: >
+    ct.name="UpdateCapacityProvider"
+  output: >
+    ECS capacity provider updated
+    (user=%ct.user name=%ct.request.name region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, ecs, container]
+
+- rule: ECS Capacity Provider Deleted
+  desc: Detect when an ECS capacity provider is deleted
+  condition: >
+    ct.name="DeleteCapacityProvider"
+  output: >
+    ECS capacity provider deleted
+    (user=%ct.user capacityProvider=%ct.request.capacityProvider region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, ecs, container]
+
 # Macro for common Terraform-managed resource filter
 - macro: is_terraform_managed
   condition: >
