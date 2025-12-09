@@ -49,6 +49,29 @@ func TestIsRelevantEvent(t *testing.T) {
 		{"Lambda UpdateFunctionConfiguration", "UpdateFunctionConfiguration", true},
 		{"Lambda Irrelevant", "CreateFunction", false},
 
+		// ECS Events - Services
+		{"ECS CreateService", "CreateService", true},
+		{"ECS UpdateService", "UpdateService", true},
+		{"ECS DeleteService", "DeleteService", true},
+
+		// ECS Events - Task Definitions
+		{"ECS RegisterTaskDefinition", "RegisterTaskDefinition", true},
+		{"ECS DeregisterTaskDefinition", "DeregisterTaskDefinition", true},
+
+		// ECS Events - Clusters
+		{"ECS UpdateCluster", "UpdateCluster", true},
+		{"ECS UpdateClusterSettings", "UpdateClusterSettings", true},
+		{"ECS PutClusterCapacityProviders", "PutClusterCapacityProviders", true},
+		{"ECS UpdateContainerInstancesState", "UpdateContainerInstancesState", true},
+
+		// ECS Events - Capacity Providers
+		{"ECS CreateCapacityProvider", "CreateCapacityProvider", true},
+		{"ECS UpdateCapacityProvider", "UpdateCapacityProvider", true},
+		{"ECS DeleteCapacityProvider", "DeleteCapacityProvider", true},
+
+		// ECS Irrelevant
+		{"ECS Irrelevant", "DescribeServices", false},
+
 		// Completely irrelevant
 		{"Unknown Event", "SomeRandomEvent", false},
 		{"Empty Event", "", false},
@@ -126,6 +149,106 @@ func TestExtractResourceID(t *testing.T) {
 				"ct.request.functionname": "my-function",
 			},
 			want: "my-function",
+		},
+		// ECS - Services
+		{
+			name:      "ECS CreateService",
+			eventName: "CreateService",
+			fields: map[string]string{
+				"ct.response.service.servicearn": "arn:aws:ecs:us-east-1:123456789012:service/my-cluster/my-service",
+			},
+			want: "arn:aws:ecs:us-east-1:123456789012:service/my-cluster/my-service",
+		},
+		{
+			name:      "ECS UpdateService",
+			eventName: "UpdateService",
+			fields: map[string]string{
+				"ct.request.service": "arn:aws:ecs:us-east-1:123456789012:service/my-cluster/my-service",
+			},
+			want: "arn:aws:ecs:us-east-1:123456789012:service/my-cluster/my-service",
+		},
+		{
+			name:      "ECS DeleteService",
+			eventName: "DeleteService",
+			fields: map[string]string{
+				"ct.request.service": "my-service",
+			},
+			want: "my-service",
+		},
+		// ECS - Task Definitions
+		{
+			name:      "ECS RegisterTaskDefinition",
+			eventName: "RegisterTaskDefinition",
+			fields: map[string]string{
+				"ct.response.taskdefinition.taskdefinitionarn": "arn:aws:ecs:us-east-1:123456789012:task-definition/my-task:1",
+			},
+			want: "arn:aws:ecs:us-east-1:123456789012:task-definition/my-task:1",
+		},
+		{
+			name:      "ECS DeregisterTaskDefinition",
+			eventName: "DeregisterTaskDefinition",
+			fields: map[string]string{
+				"ct.request.taskdefinition": "my-task:1",
+			},
+			want: "my-task:1",
+		},
+		// ECS - Clusters
+		{
+			name:      "ECS UpdateCluster",
+			eventName: "UpdateCluster",
+			fields: map[string]string{
+				"ct.request.cluster": "my-cluster",
+			},
+			want: "my-cluster",
+		},
+		{
+			name:      "ECS UpdateClusterSettings",
+			eventName: "UpdateClusterSettings",
+			fields: map[string]string{
+				"ct.request.cluster": "arn:aws:ecs:us-east-1:123456789012:cluster/my-cluster",
+			},
+			want: "arn:aws:ecs:us-east-1:123456789012:cluster/my-cluster",
+		},
+		{
+			name:      "ECS PutClusterCapacityProviders",
+			eventName: "PutClusterCapacityProviders",
+			fields: map[string]string{
+				"ct.request.cluster": "my-cluster",
+			},
+			want: "my-cluster",
+		},
+		{
+			name:      "ECS UpdateContainerInstancesState",
+			eventName: "UpdateContainerInstancesState",
+			fields: map[string]string{
+				"ct.request.containerinstances.0": "arn:aws:ecs:us-east-1:123456789012:container-instance/abc123",
+			},
+			want: "arn:aws:ecs:us-east-1:123456789012:container-instance/abc123",
+		},
+		// ECS - Capacity Providers
+		{
+			name:      "ECS CreateCapacityProvider",
+			eventName: "CreateCapacityProvider",
+			fields: map[string]string{
+				"ct.response.capacityprovider.capacityproviderarn": "arn:aws:ecs:us-east-1:123456789012:capacity-provider/my-provider",
+			},
+			want: "arn:aws:ecs:us-east-1:123456789012:capacity-provider/my-provider",
+		},
+		{
+			name:      "ECS UpdateCapacityProvider",
+			eventName: "UpdateCapacityProvider",
+			fields: map[string]string{
+				"ct.request.name": "my-provider",
+			},
+			want: "my-provider",
+		},
+		{
+			name:      "ECS DeleteCapacityProvider",
+			eventName: "DeleteCapacityProvider",
+			fields: map[string]string{
+				"ct.request.capacityprovider": "my-provider",
+			},
+			want: "my-provider",
 		},
 		{
 			name:      "Missing Resource ID",
