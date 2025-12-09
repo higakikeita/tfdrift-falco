@@ -2,8 +2,6 @@ module github.com/keitahigaki/tfdrift-falco
 
 go 1.24.0
 
-toolchain go1.25.5
-
 require (
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/falcosecurity/client-go v0.6.1

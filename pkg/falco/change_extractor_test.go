@@ -218,6 +218,124 @@ func TestExtractChanges(t *testing.T) {
 			},
 			wantKeys: []string{},
 		},
+		// ECS - Services
+		{
+			name:      "CreateService",
+			eventName: "CreateService",
+			fields: map[string]string{
+				"ct.request.servicename":   "my-service",
+				"ct.request.cluster":       "my-cluster",
+				"ct.request.taskdefinition": "my-task:1",
+				"ct.request.desiredcount":  "2",
+				"ct.request.launchtype":    "FARGATE",
+			},
+			wantKeys: []string{"service_name", "cluster", "task_definition", "desired_count", "launch_type"},
+		},
+		{
+			name:      "UpdateService",
+			eventName: "UpdateService",
+			fields: map[string]string{
+				"ct.request.desiredcount":        "3",
+				"ct.request.taskdefinition":      "my-task:2",
+				"ct.request.forcenewdeployment":  "true",
+				"ct.request.enableexecutecommand": "true",
+			},
+			wantKeys: []string{"desired_count", "task_definition", "force_new_deployment", "enable_execute_command"},
+		},
+		{
+			name:      "DeleteService",
+			eventName: "DeleteService",
+			fields: map[string]string{
+				"ct.request.service": "my-service",
+				"ct.request.force":   "true",
+			},
+			wantKeys: []string{"deleted_service", "force"},
+		},
+		// ECS - Task Definitions
+		{
+			name:      "RegisterTaskDefinition",
+			eventName: "RegisterTaskDefinition",
+			fields: map[string]string{
+				"ct.request.family":                  "my-task",
+				"ct.request.containerdefinitions":    `[{"name":"app","image":"nginx:latest"}]`,
+				"ct.request.taskrolearn":             "arn:aws:iam::123456789012:role/task-role",
+				"ct.request.executionrolearn":        "arn:aws:iam::123456789012:role/execution-role",
+				"ct.request.networkmode":             "awsvpc",
+				"ct.request.cpu":                     "256",
+				"ct.request.memory":                  "512",
+				"ct.request.requirescompatibilities": "FARGATE",
+			},
+			wantKeys: []string{"family", "container_definitions", "task_role_arn", "execution_role_arn", "network_mode", "cpu", "memory", "requires_compatibilities"},
+		},
+		{
+			name:      "DeregisterTaskDefinition",
+			eventName: "DeregisterTaskDefinition",
+			fields: map[string]string{
+				"ct.request.taskdefinition": "my-task:1",
+			},
+			wantKeys: []string{"deregistered_task_definition"},
+		},
+		// ECS - Clusters
+		{
+			name:      "UpdateCluster",
+			eventName: "UpdateCluster",
+			fields: map[string]string{
+				"ct.request.settings": `[{"name":"containerInsights","value":"enabled"}]`,
+			},
+			wantKeys: []string{"settings"},
+		},
+		{
+			name:      "UpdateClusterSettings",
+			eventName: "UpdateClusterSettings",
+			fields: map[string]string{
+				"ct.request.settings": `[{"name":"containerInsights","value":"disabled"}]`,
+			},
+			wantKeys: []string{"settings"},
+		},
+		{
+			name:      "PutClusterCapacityProviders",
+			eventName: "PutClusterCapacityProviders",
+			fields: map[string]string{
+				"ct.request.capacityproviders":             `["FARGATE","FARGATE_SPOT"]`,
+				"ct.request.defaultcapacityproviderstrategy": `[{"capacityProvider":"FARGATE","weight":1}]`,
+			},
+			wantKeys: []string{"capacity_providers", "default_capacity_provider_strategy"},
+		},
+		// ECS - Container Instances
+		{
+			name:      "UpdateContainerInstancesState",
+			eventName: "UpdateContainerInstancesState",
+			fields: map[string]string{
+				"ct.request.status": "DRAINING",
+			},
+			wantKeys: []string{"status"},
+		},
+		// ECS - Capacity Providers
+		{
+			name:      "CreateCapacityProvider",
+			eventName: "CreateCapacityProvider",
+			fields: map[string]string{
+				"ct.request.name":                    "my-provider",
+				"ct.request.autoscalinggroupprovider": `{"autoScalingGroupArn":"arn:aws:autoscaling:us-east-1:123456789012:autoScalingGroup:abc123"}`,
+			},
+			wantKeys: []string{"name", "auto_scaling_group_provider"},
+		},
+		{
+			name:      "UpdateCapacityProvider",
+			eventName: "UpdateCapacityProvider",
+			fields: map[string]string{
+				"ct.request.autoscalinggroupprovider": `{"managedScaling":{"status":"ENABLED"}}`,
+			},
+			wantKeys: []string{"auto_scaling_group_provider"},
+		},
+		{
+			name:      "DeleteCapacityProvider",
+			eventName: "DeleteCapacityProvider",
+			fields: map[string]string{
+				"ct.request.capacityprovider": "my-provider",
+			},
+			wantKeys: []string{"deleted_capacity_provider"},
+		},
 	}
 
 	for _, tt := range tests {

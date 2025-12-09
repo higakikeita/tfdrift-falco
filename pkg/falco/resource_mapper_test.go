@@ -49,6 +49,26 @@ func TestMapEventToResourceType(t *testing.T) {
 		// Lambda
 		{"Lambda Function", "UpdateFunctionConfiguration", "aws_lambda_function"},
 
+		// ECS - Services
+		{"ECS Service Create", "CreateService", "aws_ecs_service"},
+		{"ECS Service Update", "UpdateService", "aws_ecs_service"},
+		{"ECS Service Delete", "DeleteService", "aws_ecs_service"},
+
+		// ECS - Task Definitions
+		{"ECS Task Definition Register", "RegisterTaskDefinition", "aws_ecs_task_definition"},
+		{"ECS Task Definition Deregister", "DeregisterTaskDefinition", "aws_ecs_task_definition"},
+
+		// ECS - Clusters
+		{"ECS Cluster Update", "UpdateCluster", "aws_ecs_cluster"},
+		{"ECS Cluster Settings Update", "UpdateClusterSettings", "aws_ecs_cluster"},
+		{"ECS Cluster Capacity Providers", "PutClusterCapacityProviders", "aws_ecs_cluster_capacity_providers"},
+		{"ECS Container Instance State", "UpdateContainerInstancesState", "aws_ecs_container_instance"},
+
+		// ECS - Capacity Providers
+		{"ECS Capacity Provider Create", "CreateCapacityProvider", "aws_ecs_capacity_provider"},
+		{"ECS Capacity Provider Update", "UpdateCapacityProvider", "aws_ecs_capacity_provider"},
+		{"ECS Capacity Provider Delete", "DeleteCapacityProvider", "aws_ecs_capacity_provider"},
+
 		// Unknown
 		{"Unknown Event", "UnknownEvent", "unknown"},
 	}

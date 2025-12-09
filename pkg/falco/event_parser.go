@@ -370,6 +370,27 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"PutEventSelectors":   true,
 		"PutInsightSelectors": true,
 
+		// ECS - Services (Critical for container orchestration)
+		"CreateService": true,
+		"UpdateService": true,
+		"DeleteService": true,
+
+		// ECS - Task Definitions
+		"RegisterTaskDefinition":   true,
+		"DeregisterTaskDefinition": true,
+
+		// ECS - Clusters
+		// Note: CreateCluster/DeleteCluster are handled by context (ECS vs EKS vs Redshift)
+		"UpdateCluster":                 true,
+		"UpdateClusterSettings":         true,
+		"PutClusterCapacityProviders":   true,
+		"UpdateContainerInstancesState": true,
+
+		// ECS - Capacity Providers
+		"CreateCapacityProvider": true,
+		"UpdateCapacityProvider": true,
+		"DeleteCapacityProvider": true,
+
 		// EKS (Control Plane)
 		"CreateCluster":         true,
 		"DeleteCluster":         true,
@@ -683,6 +704,28 @@ func (s *Subscriber) extractResourceID(eventName string, fields map[string]strin
 		"StopLogging":         {"ct.request.name"},
 		"PutEventSelectors":   {"ct.request.trailname"},
 		"PutInsightSelectors": {"ct.request.trailname"},
+
+		// ECS - Services
+		"CreateService": {"ct.response.service.servicearn"},
+		"UpdateService": {"ct.request.service"},
+		"DeleteService": {"ct.request.service"},
+
+		// ECS - Task Definitions
+		"RegisterTaskDefinition":   {"ct.response.taskdefinition.taskdefinitionarn"},
+		"DeregisterTaskDefinition": {"ct.request.taskdefinition"},
+
+		// ECS - Clusters
+		// Note: CreateCluster/DeleteCluster are context-dependent (ECS vs EKS vs Redshift)
+		// ECS-specific cluster operations use different event names
+		"UpdateCluster":                 {"ct.request.cluster"},
+		"UpdateClusterSettings":         {"ct.request.cluster"},
+		"PutClusterCapacityProviders":   {"ct.request.cluster"},
+		"UpdateContainerInstancesState": {"ct.request.containerinstances.0"},
+
+		// ECS - Capacity Providers
+		"CreateCapacityProvider": {"ct.response.capacityprovider.capacityproviderarn"},
+		"UpdateCapacityProvider": {"ct.request.name"},
+		"DeleteCapacityProvider": {"ct.request.capacityprovider"},
 
 		// EKS
 		"UpdateClusterConfig":   {"ct.request.name"},
