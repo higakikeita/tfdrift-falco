@@ -74,6 +74,7 @@ nav:
           - SNS: services/sns.md
           - SQS: services/sqs.md
       - Containers:
+          - ECS: services/ecs.md
           - ECR: services/ecr.md
   - Release Notes:
       - v0.2.0-beta: release-notes/v0.2.0-beta.md
