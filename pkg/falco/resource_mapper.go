@@ -324,13 +324,25 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"UpdateCapacityProvider": "aws_ecs_capacity_provider",
 		"DeleteCapacityProvider": "aws_ecs_capacity_provider",
 
-		// EKS
-		"UpdateClusterConfig":   "aws_eks_cluster",
-		"UpdateClusterVersion":  "aws_eks_cluster",
-		"CreateAddon":           "aws_eks_addon",
-		"DeleteAddon":           "aws_eks_addon",
-		"UpdateAddon":           "aws_eks_addon",
-		"UpdateNodegroupConfig": "aws_eks_node_group",
+		// EKS - Clusters
+		"CreateCluster":        "aws_eks_cluster",
+		"DeleteCluster":        "aws_eks_cluster",
+		"UpdateClusterConfig":  "aws_eks_cluster",
+		"UpdateClusterVersion": "aws_eks_cluster",
+
+		// EKS - Node Groups
+		"CreateNodegroup":        "aws_eks_node_group",
+		"DeleteNodegroup":        "aws_eks_node_group",
+		"UpdateNodegroupConfig":  "aws_eks_node_group",
+		"UpdateNodegroupVersion": "aws_eks_node_group",
+
+		// EKS - Addons
+		"CreateAddon": "aws_eks_addon",
+		"DeleteAddon": "aws_eks_addon",
+		"UpdateAddon": "aws_eks_addon",
+
+		// EKS - Fargate Profiles
+		"CreateFargateProfile": "aws_eks_fargate_profile",
 
 		// Redshift
 		"ModifyCluster":               "aws_redshift_cluster",

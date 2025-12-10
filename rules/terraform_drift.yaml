@@ -439,6 +439,139 @@
   source: aws_cloudtrail
   tags: [terraform, drift, ecs, container]
 
+# EKS Rules
+- rule: EKS Cluster Created
+  desc: Detect when an EKS cluster is created
+  condition: >
+    ct.name="CreateCluster" and ct.request.name exists
+  output: >
+    EKS cluster created
+    (user=%ct.user cluster=%ct.request.name version=%ct.request.version region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, eks, kubernetes]
+
+- rule: EKS Cluster Deleted
+  desc: Detect when an EKS cluster is deleted
+  condition: >
+    ct.name="DeleteCluster"
+  output: >
+    EKS cluster deleted
+    (user=%ct.user cluster=%ct.request.name region=%ct.region account=%ct.account)
+  priority: CRITICAL
+  source: aws_cloudtrail
+  tags: [terraform, drift, eks, kubernetes, security]
+
+- rule: EKS Cluster Configuration Updated
+  desc: Detect when an EKS cluster configuration is updated
+  condition: >
+    ct.name="UpdateClusterConfig"
+  output: >
+    EKS cluster configuration updated
+    (user=%ct.user cluster=%ct.request.name region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, eks, kubernetes]
+
+- rule: EKS Cluster Version Updated
+  desc: Detect when an EKS cluster Kubernetes version is upgraded
+  condition: >
+    ct.name="UpdateClusterVersion"
+  output: >
+    EKS cluster version upgraded
+    (user=%ct.user cluster=%ct.request.name version=%ct.request.version region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, eks, kubernetes]
+
+- rule: EKS Node Group Created
+  desc: Detect when an EKS node group is created
+  condition: >
+    ct.name="CreateNodegroup"
+  output: >
+    EKS node group created
+    (user=%ct.user nodegroup=%ct.request.nodegroupName cluster=%ct.request.clusterName region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, eks, kubernetes]
+
+- rule: EKS Node Group Deleted
+  desc: Detect when an EKS node group is deleted
+  condition: >
+    ct.name="DeleteNodegroup"
+  output: >
+    EKS node group deleted
+    (user=%ct.user nodegroup=%ct.request.nodegroupName cluster=%ct.request.clusterName region=%ct.region account=%ct.account)
+  priority: CRITICAL
+  source: aws_cloudtrail
+  tags: [terraform, drift, eks, kubernetes, security]
+
+- rule: EKS Node Group Configuration Updated
+  desc: Detect when an EKS node group configuration is updated
+  condition: >
+    ct.name="UpdateNodegroupConfig"
+  output: >
+    EKS node group configuration updated
+    (user=%ct.user nodegroup=%ct.request.nodegroupName cluster=%ct.request.clusterName region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, eks, kubernetes]
+
+- rule: EKS Node Group Version Updated
+  desc: Detect when an EKS node group version is updated
+  condition: >
+    ct.name="UpdateNodegroupVersion"
+  output: >
+    EKS node group version updated
+    (user=%ct.user nodegroup=%ct.request.nodegroupName version=%ct.request.version region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, eks, kubernetes]
+
+- rule: EKS Addon Created
+  desc: Detect when an EKS addon is created
+  condition: >
+    ct.name="CreateAddon"
+  output: >
+    EKS addon created
+    (user=%ct.user addon=%ct.request.addonName cluster=%ct.request.clusterName version=%ct.request.addonVersion region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, eks, kubernetes]
+
+- rule: EKS Addon Deleted
+  desc: Detect when an EKS addon is deleted
+  condition: >
+    ct.name="DeleteAddon"
+  output: >
+    EKS addon deleted
+    (user=%ct.user addon=%ct.request.addonName cluster=%ct.request.clusterName region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, eks, kubernetes]
+
+- rule: EKS Addon Updated
+  desc: Detect when an EKS addon is updated
+  condition: >
+    ct.name="UpdateAddon"
+  output: >
+    EKS addon updated
+    (user=%ct.user addon=%ct.request.addonName cluster=%ct.request.clusterName version=%ct.request.addonVersion region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, eks, kubernetes]
+
+- rule: EKS Fargate Profile Created
+  desc: Detect when an EKS Fargate profile is created
+  condition: >
+    ct.name="CreateFargateProfile"
+  output: >
+    EKS Fargate profile created
+    (user=%ct.user profile=%ct.request.fargateProfileName cluster=%ct.request.clusterName region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, eks, kubernetes, fargate]
+
 # Macro for common Terraform-managed resource filter
 - macro: is_terraform_managed
   condition: >

@@ -292,6 +292,172 @@ func (s *Subscriber) extractChanges(eventName string, fields map[string]string) 
 		if capacityProvider, ok := fields["ct.request.capacityprovider"]; ok && capacityProvider != "" {
 			changes["deleted_capacity_provider"] = capacityProvider
 		}
+
+	// EKS - Clusters
+	case "CreateCluster":
+		if name, ok := fields["ct.request.name"]; ok && name != "" {
+			changes["cluster_name"] = name
+		}
+		if version, ok := fields["ct.request.version"]; ok && version != "" {
+			changes["version"] = version
+		}
+		if roleArn, ok := fields["ct.request.rolearn"]; ok && roleArn != "" {
+			changes["role_arn"] = roleArn
+		}
+		if resourcesVpcConfig := getStringField(fields, "ct.request.resourcesvpcconfig"); resourcesVpcConfig != "" {
+			var vpcConfig map[string]interface{}
+			if err := json.Unmarshal([]byte(resourcesVpcConfig), &vpcConfig); err == nil {
+				changes["resources_vpc_config"] = vpcConfig
+			}
+		}
+
+	case "DeleteCluster":
+		if name, ok := fields["ct.request.name"]; ok && name != "" {
+			changes["deleted_cluster"] = name
+		}
+
+	case "UpdateClusterConfig":
+		if resourcesVpcConfig := getStringField(fields, "ct.request.resourcesvpcconfig"); resourcesVpcConfig != "" {
+			var vpcConfig map[string]interface{}
+			if err := json.Unmarshal([]byte(resourcesVpcConfig), &vpcConfig); err == nil {
+				changes["resources_vpc_config"] = vpcConfig
+			}
+		}
+		if logging := getStringField(fields, "ct.request.logging"); logging != "" {
+			var loggingConfig map[string]interface{}
+			if err := json.Unmarshal([]byte(logging), &loggingConfig); err == nil {
+				changes["logging"] = loggingConfig
+			}
+		}
+
+	case "UpdateClusterVersion":
+		if version, ok := fields["ct.request.version"]; ok && version != "" {
+			changes["version"] = version
+		}
+
+	// EKS - Node Groups
+	case "CreateNodegroup":
+		if nodegroupName, ok := fields["ct.request.nodegroupname"]; ok && nodegroupName != "" {
+			changes["nodegroup_name"] = nodegroupName
+		}
+		if clusterName, ok := fields["ct.request.clustername"]; ok && clusterName != "" {
+			changes["cluster_name"] = clusterName
+		}
+		if nodeRole, ok := fields["ct.request.noderole"]; ok && nodeRole != "" {
+			changes["node_role_arn"] = nodeRole
+		}
+		if subnets := getStringField(fields, "ct.request.subnets"); subnets != "" {
+			var subnetList []interface{}
+			if err := json.Unmarshal([]byte(subnets), &subnetList); err == nil {
+				changes["subnets"] = subnetList
+			}
+		}
+		if scalingConfig := getStringField(fields, "ct.request.scalingconfig"); scalingConfig != "" {
+			var scaling map[string]interface{}
+			if err := json.Unmarshal([]byte(scalingConfig), &scaling); err == nil {
+				changes["scaling_config"] = scaling
+			}
+		}
+		if instanceTypes := getStringField(fields, "ct.request.instancetypes"); instanceTypes != "" {
+			var types []interface{}
+			if err := json.Unmarshal([]byte(instanceTypes), &types); err == nil {
+				changes["instance_types"] = types
+			}
+		}
+		if amiType, ok := fields["ct.request.amitype"]; ok && amiType != "" {
+			changes["ami_type"] = amiType
+		}
+		if diskSize, ok := fields["ct.request.disksize"]; ok && diskSize != "" {
+			changes["disk_size"] = diskSize
+		}
+
+	case "DeleteNodegroup":
+		if nodegroupName, ok := fields["ct.request.nodegroupname"]; ok && nodegroupName != "" {
+			changes["deleted_nodegroup"] = nodegroupName
+		}
+
+	case "UpdateNodegroupConfig":
+		if scalingConfig := getStringField(fields, "ct.request.scalingconfig"); scalingConfig != "" {
+			var scaling map[string]interface{}
+			if err := json.Unmarshal([]byte(scalingConfig), &scaling); err == nil {
+				changes["scaling_config"] = scaling
+			}
+		}
+		if labels := getStringField(fields, "ct.request.labels"); labels != "" {
+			var labelsMap map[string]interface{}
+			if err := json.Unmarshal([]byte(labels), &labelsMap); err == nil {
+				changes["labels"] = labelsMap
+			}
+		}
+		if taints := getStringField(fields, "ct.request.taints"); taints != "" {
+			var taintsList []interface{}
+			if err := json.Unmarshal([]byte(taints), &taintsList); err == nil {
+				changes["taints"] = taintsList
+			}
+		}
+
+	case "UpdateNodegroupVersion":
+		if version, ok := fields["ct.request.version"]; ok && version != "" {
+			changes["version"] = version
+		}
+		if releaseVersion, ok := fields["ct.request.releaseversion"]; ok && releaseVersion != "" {
+			changes["release_version"] = releaseVersion
+		}
+
+	// EKS - Addons
+	case "CreateAddon":
+		if addonName, ok := fields["ct.request.addonname"]; ok && addonName != "" {
+			changes["addon_name"] = addonName
+		}
+		if clusterName, ok := fields["ct.request.clustername"]; ok && clusterName != "" {
+			changes["cluster_name"] = clusterName
+		}
+		if addonVersion, ok := fields["ct.request.addonversion"]; ok && addonVersion != "" {
+			changes["addon_version"] = addonVersion
+		}
+		if serviceAccountRoleArn, ok := fields["ct.request.serviceaccountrolearn"]; ok && serviceAccountRoleArn != "" {
+			changes["service_account_role_arn"] = serviceAccountRoleArn
+		}
+
+	case "DeleteAddon":
+		if addonName, ok := fields["ct.request.addonname"]; ok && addonName != "" {
+			changes["deleted_addon"] = addonName
+		}
+
+	case "UpdateAddon":
+		if addonVersion, ok := fields["ct.request.addonversion"]; ok && addonVersion != "" {
+			changes["addon_version"] = addonVersion
+		}
+		if serviceAccountRoleArn, ok := fields["ct.request.serviceaccountrolearn"]; ok && serviceAccountRoleArn != "" {
+			changes["service_account_role_arn"] = serviceAccountRoleArn
+		}
+		if resolveConflicts, ok := fields["ct.request.resolveconflicts"]; ok && resolveConflicts != "" {
+			changes["resolve_conflicts"] = resolveConflicts
+		}
+
+	// EKS - Fargate Profiles
+	case "CreateFargateProfile":
+		if fargateProfileName, ok := fields["ct.request.fargateprofilename"]; ok && fargateProfileName != "" {
+			changes["fargate_profile_name"] = fargateProfileName
+		}
+		if clusterName, ok := fields["ct.request.clustername"]; ok && clusterName != "" {
+			changes["cluster_name"] = clusterName
+		}
+		if podExecutionRoleArn, ok := fields["ct.request.podexecutionrolearn"]; ok && podExecutionRoleArn != "" {
+			changes["pod_execution_role_arn"] = podExecutionRoleArn
+		}
+		if subnets := getStringField(fields, "ct.request.subnets"); subnets != "" {
+			var subnetList []interface{}
+			if err := json.Unmarshal([]byte(subnets), &subnetList); err == nil {
+				changes["subnets"] = subnetList
+			}
+		}
+		if selectors := getStringField(fields, "ct.request.selectors"); selectors != "" {
+			var selectorsList []interface{}
+			if err := json.Unmarshal([]byte(selectors), &selectorsList); err == nil {
+				changes["selectors"] = selectorsList
+			}
+		}
 	}
 
 	return changes
