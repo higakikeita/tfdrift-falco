@@ -69,6 +69,26 @@ func TestMapEventToResourceType(t *testing.T) {
 		{"ECS Capacity Provider Update", "UpdateCapacityProvider", "aws_ecs_capacity_provider"},
 		{"ECS Capacity Provider Delete", "DeleteCapacityProvider", "aws_ecs_capacity_provider"},
 
+		// EKS - Clusters
+		{"EKS Cluster Create", "CreateCluster", "aws_eks_cluster"},
+		{"EKS Cluster Delete", "DeleteCluster", "aws_eks_cluster"},
+		{"EKS Cluster Config Update", "UpdateClusterConfig", "aws_eks_cluster"},
+		{"EKS Cluster Version Update", "UpdateClusterVersion", "aws_eks_cluster"},
+
+		// EKS - Node Groups
+		{"EKS Node Group Create", "CreateNodegroup", "aws_eks_node_group"},
+		{"EKS Node Group Delete", "DeleteNodegroup", "aws_eks_node_group"},
+		{"EKS Node Group Config Update", "UpdateNodegroupConfig", "aws_eks_node_group"},
+		{"EKS Node Group Version Update", "UpdateNodegroupVersion", "aws_eks_node_group"},
+
+		// EKS - Addons
+		{"EKS Addon Create", "CreateAddon", "aws_eks_addon"},
+		{"EKS Addon Delete", "DeleteAddon", "aws_eks_addon"},
+		{"EKS Addon Update", "UpdateAddon", "aws_eks_addon"},
+
+		// EKS - Fargate Profiles
+		{"EKS Fargate Profile Create", "CreateFargateProfile", "aws_eks_fargate_profile"},
+
 		// Unknown
 		{"Unknown Event", "UnknownEvent", "unknown"},
 	}

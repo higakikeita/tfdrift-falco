@@ -72,6 +72,29 @@ func TestIsRelevantEvent(t *testing.T) {
 		// ECS Irrelevant
 		{"ECS Irrelevant", "DescribeServices", false},
 
+		// EKS Events - Clusters
+		{"EKS CreateCluster", "CreateCluster", true},
+		{"EKS DeleteCluster", "DeleteCluster", true},
+		{"EKS UpdateClusterConfig", "UpdateClusterConfig", true},
+		{"EKS UpdateClusterVersion", "UpdateClusterVersion", true},
+
+		// EKS Events - Node Groups
+		{"EKS CreateNodegroup", "CreateNodegroup", true},
+		{"EKS DeleteNodegroup", "DeleteNodegroup", true},
+		{"EKS UpdateNodegroupConfig", "UpdateNodegroupConfig", true},
+		{"EKS UpdateNodegroupVersion", "UpdateNodegroupVersion", true},
+
+		// EKS Events - Addons
+		{"EKS CreateAddon", "CreateAddon", true},
+		{"EKS DeleteAddon", "DeleteAddon", true},
+		{"EKS UpdateAddon", "UpdateAddon", true},
+
+		// EKS Events - Fargate Profiles
+		{"EKS CreateFargateProfile", "CreateFargateProfile", true},
+
+		// EKS Irrelevant
+		{"EKS Irrelevant", "DescribeCluster", false},
+
 		// Completely irrelevant
 		{"Unknown Event", "SomeRandomEvent", false},
 		{"Empty Event", "", false},
@@ -249,6 +272,106 @@ func TestExtractResourceID(t *testing.T) {
 				"ct.request.capacityprovider": "my-provider",
 			},
 			want: "my-provider",
+		},
+		// EKS - Clusters
+		{
+			name:      "EKS CreateCluster",
+			eventName: "CreateCluster",
+			fields: map[string]string{
+				"ct.response.cluster.name": "my-eks-cluster",
+			},
+			want: "my-eks-cluster",
+		},
+		{
+			name:      "EKS DeleteCluster",
+			eventName: "DeleteCluster",
+			fields: map[string]string{
+				"ct.request.name": "my-eks-cluster",
+			},
+			want: "my-eks-cluster",
+		},
+		{
+			name:      "EKS UpdateClusterConfig",
+			eventName: "UpdateClusterConfig",
+			fields: map[string]string{
+				"ct.request.name": "my-eks-cluster",
+			},
+			want: "my-eks-cluster",
+		},
+		{
+			name:      "EKS UpdateClusterVersion",
+			eventName: "UpdateClusterVersion",
+			fields: map[string]string{
+				"ct.request.name": "my-eks-cluster",
+			},
+			want: "my-eks-cluster",
+		},
+		// EKS - Node Groups
+		{
+			name:      "EKS CreateNodegroup",
+			eventName: "CreateNodegroup",
+			fields: map[string]string{
+				"ct.response.nodegroup.nodegroupname": "my-nodegroup",
+			},
+			want: "my-nodegroup",
+		},
+		{
+			name:      "EKS DeleteNodegroup",
+			eventName: "DeleteNodegroup",
+			fields: map[string]string{
+				"ct.request.nodegroupname": "my-nodegroup",
+			},
+			want: "my-nodegroup",
+		},
+		{
+			name:      "EKS UpdateNodegroupConfig",
+			eventName: "UpdateNodegroupConfig",
+			fields: map[string]string{
+				"ct.request.nodegroupname": "my-nodegroup",
+			},
+			want: "my-nodegroup",
+		},
+		{
+			name:      "EKS UpdateNodegroupVersion",
+			eventName: "UpdateNodegroupVersion",
+			fields: map[string]string{
+				"ct.request.nodegroupname": "my-nodegroup",
+			},
+			want: "my-nodegroup",
+		},
+		// EKS - Addons
+		{
+			name:      "EKS CreateAddon",
+			eventName: "CreateAddon",
+			fields: map[string]string{
+				"ct.response.addon.addonname": "vpc-cni",
+			},
+			want: "vpc-cni",
+		},
+		{
+			name:      "EKS DeleteAddon",
+			eventName: "DeleteAddon",
+			fields: map[string]string{
+				"ct.request.addonname": "vpc-cni",
+			},
+			want: "vpc-cni",
+		},
+		{
+			name:      "EKS UpdateAddon",
+			eventName: "UpdateAddon",
+			fields: map[string]string{
+				"ct.request.addonname": "vpc-cni",
+			},
+			want: "vpc-cni",
+		},
+		// EKS - Fargate Profiles
+		{
+			name:      "EKS CreateFargateProfile",
+			eventName: "CreateFargateProfile",
+			fields: map[string]string{
+				"ct.response.fargateprofile.fargateprofilename": "my-fargate-profile",
+			},
+			want: "my-fargate-profile",
 		},
 		{
 			name:      "Missing Resource ID",
