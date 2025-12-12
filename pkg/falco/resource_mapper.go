@@ -303,9 +303,9 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"PutInsightSelectors": "aws_cloudtrail",
 
 		// ECS - Services
-		"CreateService":  "aws_ecs_service",
-		"UpdateService":  "aws_ecs_service",
-		"DeleteService":  "aws_ecs_service",
+		"CreateService": "aws_ecs_service",
+		"UpdateService": "aws_ecs_service",
+		"DeleteService": "aws_ecs_service",
 
 		// ECS - Task Definitions
 		"RegisterTaskDefinition":   "aws_ecs_task_definition",
@@ -314,10 +314,10 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		// ECS - Clusters
 		// Note: CreateCluster/DeleteCluster can be ECS, EKS, or Redshift - context-dependent
 		// For ECS clusters, use UpdateCluster, UpdateClusterSettings instead
-		"UpdateCluster":                   "aws_ecs_cluster",
-		"UpdateClusterSettings":           "aws_ecs_cluster",
-		"PutClusterCapacityProviders":     "aws_ecs_cluster_capacity_providers",
-		"UpdateContainerInstancesState":   "aws_ecs_container_instance",
+		"UpdateCluster":                 "aws_ecs_cluster",
+		"UpdateClusterSettings":         "aws_ecs_cluster",
+		"PutClusterCapacityProviders":   "aws_ecs_cluster_capacity_providers",
+		"UpdateContainerInstancesState": "aws_ecs_container_instance",
 
 		// ECS - Capacity Providers
 		"CreateCapacityProvider": "aws_ecs_capacity_provider",
