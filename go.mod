@@ -2,8 +2,6 @@ module github.com/keitahigaki/tfdrift-falco
 
 go 1.24.0
 
-toolchain go1.25.5
-
 require (
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/falcosecurity/client-go v0.6.1
@@ -43,4 +41,5 @@ require (
 	golang.org/x/text v0.31.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

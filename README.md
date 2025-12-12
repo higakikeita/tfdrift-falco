@@ -62,21 +62,24 @@ Instant Slack alert with user identity and change details
 
 ## 📋 Supported AWS Services
 
-TFDrift-Falco v0.2.0-beta monitors **95 CloudTrail events** across 10 AWS services:
+TFDrift-Falco v0.3.0-dev monitors **120 CloudTrail events** across 12 AWS services:
 
 | Service | Events | Coverage | Priority |
 |---------|--------|----------|----------|
 | **VPC/Networking** 🔒 | 33 | Security Groups, VPC, Subnets, Route Tables, Gateways, ACLs, Endpoints | Critical |
 | **IAM** ✅ | 14 | Roles, Users, Groups, Policies, Access Keys | Critical |
 | **ELB/ALB** | 15 | Load Balancers, Target Groups, Listeners, Rules | High |
+| **ECS** 🐳 | 13 | Services, Task Definitions, Clusters, Capacity Providers | High |
+| **EKS** ☸️ | 12 | Clusters, Node Groups, Addons, Fargate Profiles | High |
 | **KMS** 🔐 | 10 | Keys, Aliases, Rotation, Deletion | Critical |
 | **S3** | 8 | Policies, Encryption, Versioning, Public Access | High |
 | **Lambda** | 4 | Function Config/Code, Permissions | Medium |
 | **DynamoDB** | 5 | Tables, TTL, Backups | Medium |
 | **EC2** | 3 | Instance Attributes, Volumes | Medium |
 | **RDS** | 2 | DB Instances, Clusters | Medium |
+| **ECR** | 1 | Repository Policies | Medium |
 
-**Total**: 95 events | See [AWS Resource Coverage Analysis](./docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for details
+**Total**: 120 events | See [AWS Resource Coverage Analysis](./docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for details
 
 ## 🏗️ Architecture
 
@@ -568,13 +571,27 @@ TFDrift-Falco → JSON Logs → Promtail → Loki → Grafana Dashboards
 
 ## 🗺️ Roadmap
 
-### Phase 1: MVP (✅ Complete)
+See the **[AWS Coverage Roadmap](./docs/AWS_COVERAGE_ROADMAP.md)** for detailed service expansion plans.
+
+### Phase 1: MVP (✅ Complete - v0.2.0-beta)
 - [x] AWS CloudTrail integration
 - [x] Terraform state comparison (local)
 - [x] Slack notifications
 - [x] Basic drift rules (EC2, IAM, S3)
 - [x] Falco event integration (gRPC)
 - [x] Docker container support
+- [x] 95 CloudTrail events across 10 AWS services
+
+### Phase 1.5: Enhanced AWS Coverage (🚧 In Progress - v0.3.0)
+- [x] **ECS** - Services, Task Definitions, Clusters, Capacity Providers (13 events)
+- [x] **EKS** - Clusters, Node Groups, Addons, Fargate Profiles (12 events)
+- [ ] **Lambda Enhanced** - Additional function configuration (10 events)
+- [ ] **EC2 Enhanced** - Network interfaces, volumes, snapshots (15 events)
+- [ ] **ElastiCache** - Redis/Memcached clusters (12 events)
+- [ ] **Auto Scaling** - ASG configuration and policies (10 events)
+- [ ] **RDS Enhanced** - Parameter groups, subnet groups, snapshots (8 events)
+
+**v0.3.0 Target**: 198 CloudTrail events (120/198 complete - 61%)
 
 ### Phase 2: Enhanced Detection
 - [ ] GCP Audit Logs support

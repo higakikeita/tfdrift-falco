@@ -19,7 +19,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
           cache: true
 
       - name: Download dependencies
@@ -28,12 +28,27 @@ jobs:
       - name: Run integration tests
         run: |
           cd tests/integration
-          go test -v -race -coverprofile=integration-coverage.out ./...
+          # Check if there are active test files (not build-ignored)
+          go list -f '{{.TestGoFiles}}' ./... | grep -q "\[.*\]"
+          if [ $? -eq 0 ]; then
+            go test -v -race -coverprofile=integration-coverage.out ./...
+          else
+            echo "ℹ️  Integration tests are disabled (build tags: ignore)"
+            echo "These tests require external services (Slack, Grafana, etc.)"
+            echo "Skipping..."
+            # Create empty coverage file to satisfy next step
+            touch integration-coverage.out
+            exit 0
+          fi
 
       - name: Generate integration coverage report
         run: |
           cd tests/integration
-          go tool cover -func=integration-coverage.out
+          if [ -s integration-coverage.out ]; then
+            go tool cover -func=integration-coverage.out
+          else
+            echo "No coverage data to report"
+          fi
 
       - name: Upload integration coverage
         uses: codecov/codecov-action@v4
@@ -57,7 +72,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
           cache: true
 
       - name: Run integration tests for summary

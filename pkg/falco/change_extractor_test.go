@@ -218,6 +218,247 @@ func TestExtractChanges(t *testing.T) {
 			},
 			wantKeys: []string{},
 		},
+		// ECS - Services
+		{
+			name:      "CreateService",
+			eventName: "CreateService",
+			fields: map[string]string{
+				"ct.request.servicename":    "my-service",
+				"ct.request.cluster":        "my-cluster",
+				"ct.request.taskdefinition": "my-task:1",
+				"ct.request.desiredcount":   "2",
+				"ct.request.launchtype":     "FARGATE",
+			},
+			wantKeys: []string{"service_name", "cluster", "task_definition", "desired_count", "launch_type"},
+		},
+		{
+			name:      "UpdateService",
+			eventName: "UpdateService",
+			fields: map[string]string{
+				"ct.request.desiredcount":         "3",
+				"ct.request.taskdefinition":       "my-task:2",
+				"ct.request.forcenewdeployment":   "true",
+				"ct.request.enableexecutecommand": "true",
+			},
+			wantKeys: []string{"desired_count", "task_definition", "force_new_deployment", "enable_execute_command"},
+		},
+		{
+			name:      "DeleteService",
+			eventName: "DeleteService",
+			fields: map[string]string{
+				"ct.request.service": "my-service",
+				"ct.request.force":   "true",
+			},
+			wantKeys: []string{"deleted_service", "force"},
+		},
+		// ECS - Task Definitions
+		{
+			name:      "RegisterTaskDefinition",
+			eventName: "RegisterTaskDefinition",
+			fields: map[string]string{
+				"ct.request.family":                  "my-task",
+				"ct.request.containerdefinitions":    `[{"name":"app","image":"nginx:latest"}]`,
+				"ct.request.taskrolearn":             "arn:aws:iam::123456789012:role/task-role",
+				"ct.request.executionrolearn":        "arn:aws:iam::123456789012:role/execution-role",
+				"ct.request.networkmode":             "awsvpc",
+				"ct.request.cpu":                     "256",
+				"ct.request.memory":                  "512",
+				"ct.request.requirescompatibilities": "FARGATE",
+			},
+			wantKeys: []string{"family", "container_definitions", "task_role_arn", "execution_role_arn", "network_mode", "cpu", "memory", "requires_compatibilities"},
+		},
+		{
+			name:      "DeregisterTaskDefinition",
+			eventName: "DeregisterTaskDefinition",
+			fields: map[string]string{
+				"ct.request.taskdefinition": "my-task:1",
+			},
+			wantKeys: []string{"deregistered_task_definition"},
+		},
+		// ECS - Clusters
+		{
+			name:      "UpdateCluster",
+			eventName: "UpdateCluster",
+			fields: map[string]string{
+				"ct.request.settings": `[{"name":"containerInsights","value":"enabled"}]`,
+			},
+			wantKeys: []string{"settings"},
+		},
+		{
+			name:      "UpdateClusterSettings",
+			eventName: "UpdateClusterSettings",
+			fields: map[string]string{
+				"ct.request.settings": `[{"name":"containerInsights","value":"disabled"}]`,
+			},
+			wantKeys: []string{"settings"},
+		},
+		{
+			name:      "PutClusterCapacityProviders",
+			eventName: "PutClusterCapacityProviders",
+			fields: map[string]string{
+				"ct.request.capacityproviders":               `["FARGATE","FARGATE_SPOT"]`,
+				"ct.request.defaultcapacityproviderstrategy": `[{"capacityProvider":"FARGATE","weight":1}]`,
+			},
+			wantKeys: []string{"capacity_providers", "default_capacity_provider_strategy"},
+		},
+		// ECS - Container Instances
+		{
+			name:      "UpdateContainerInstancesState",
+			eventName: "UpdateContainerInstancesState",
+			fields: map[string]string{
+				"ct.request.status": "DRAINING",
+			},
+			wantKeys: []string{"status"},
+		},
+		// ECS - Capacity Providers
+		{
+			name:      "CreateCapacityProvider",
+			eventName: "CreateCapacityProvider",
+			fields: map[string]string{
+				"ct.request.name":                     "my-provider",
+				"ct.request.autoscalinggroupprovider": `{"autoScalingGroupArn":"arn:aws:autoscaling:us-east-1:123456789012:autoScalingGroup:abc123"}`,
+			},
+			wantKeys: []string{"name", "auto_scaling_group_provider"},
+		},
+		{
+			name:      "UpdateCapacityProvider",
+			eventName: "UpdateCapacityProvider",
+			fields: map[string]string{
+				"ct.request.autoscalinggroupprovider": `{"managedScaling":{"status":"ENABLED"}}`,
+			},
+			wantKeys: []string{"auto_scaling_group_provider"},
+		},
+		{
+			name:      "DeleteCapacityProvider",
+			eventName: "DeleteCapacityProvider",
+			fields: map[string]string{
+				"ct.request.capacityprovider": "my-provider",
+			},
+			wantKeys: []string{"deleted_capacity_provider"},
+		},
+		// EKS - Clusters
+		{
+			name:      "CreateCluster",
+			eventName: "CreateCluster",
+			fields: map[string]string{
+				"ct.request.name":               "my-eks-cluster",
+				"ct.request.version":            "1.28",
+				"ct.request.rolearn":            "arn:aws:iam::123456789012:role/eks-cluster-role",
+				"ct.request.resourcesvpcconfig": `{"subnetIds":["subnet-abc123","subnet-def456"]}`,
+			},
+			wantKeys: []string{"cluster_name", "version", "role_arn", "resources_vpc_config"},
+		},
+		{
+			name:      "DeleteCluster",
+			eventName: "DeleteCluster",
+			fields: map[string]string{
+				"ct.request.name": "my-eks-cluster",
+			},
+			wantKeys: []string{"deleted_cluster"},
+		},
+		{
+			name:      "UpdateClusterConfig",
+			eventName: "UpdateClusterConfig",
+			fields: map[string]string{
+				"ct.request.resourcesvpcconfig": `{"endpointPublicAccess":true}`,
+				"ct.request.logging":            `{"clusterLogging":[{"types":["api","audit"],"enabled":true}]}`,
+			},
+			wantKeys: []string{"resources_vpc_config", "logging"},
+		},
+		{
+			name:      "UpdateClusterVersion",
+			eventName: "UpdateClusterVersion",
+			fields: map[string]string{
+				"ct.request.version": "1.29",
+			},
+			wantKeys: []string{"version"},
+		},
+		// EKS - Node Groups
+		{
+			name:      "CreateNodegroup",
+			eventName: "CreateNodegroup",
+			fields: map[string]string{
+				"ct.request.nodegroupname": "my-nodegroup",
+				"ct.request.clustername":   "my-eks-cluster",
+				"ct.request.noderole":      "arn:aws:iam::123456789012:role/eks-node-role",
+				"ct.request.subnets":       `["subnet-abc123","subnet-def456"]`,
+				"ct.request.scalingconfig": `{"minSize":1,"maxSize":3,"desiredSize":2}`,
+				"ct.request.instancetypes": `["t3.medium"]`,
+				"ct.request.amitype":       "AL2_x86_64",
+				"ct.request.disksize":      "20",
+			},
+			wantKeys: []string{"nodegroup_name", "cluster_name", "node_role_arn", "subnets", "scaling_config", "instance_types", "ami_type", "disk_size"},
+		},
+		{
+			name:      "DeleteNodegroup",
+			eventName: "DeleteNodegroup",
+			fields: map[string]string{
+				"ct.request.nodegroupname": "my-nodegroup",
+			},
+			wantKeys: []string{"deleted_nodegroup"},
+		},
+		{
+			name:      "UpdateNodegroupConfig",
+			eventName: "UpdateNodegroupConfig",
+			fields: map[string]string{
+				"ct.request.scalingconfig": `{"minSize":2,"maxSize":5,"desiredSize":3}`,
+				"ct.request.labels":        `{"environment":"production"}`,
+				"ct.request.taints":        `[{"key":"dedicated","value":"backend","effect":"NoSchedule"}]`,
+			},
+			wantKeys: []string{"scaling_config", "labels", "taints"},
+		},
+		{
+			name:      "UpdateNodegroupVersion",
+			eventName: "UpdateNodegroupVersion",
+			fields: map[string]string{
+				"ct.request.version":        "1.29",
+				"ct.request.releaseversion": "1.29.0-20240129",
+			},
+			wantKeys: []string{"version", "release_version"},
+		},
+		// EKS - Addons
+		{
+			name:      "CreateAddon",
+			eventName: "CreateAddon",
+			fields: map[string]string{
+				"ct.request.addonname":             "vpc-cni",
+				"ct.request.clustername":           "my-eks-cluster",
+				"ct.request.addonversion":          "v1.15.1-eksbuild.1",
+				"ct.request.serviceaccountrolearn": "arn:aws:iam::123456789012:role/eks-addon-vpc-cni",
+			},
+			wantKeys: []string{"addon_name", "cluster_name", "addon_version", "service_account_role_arn"},
+		},
+		{
+			name:      "DeleteAddon",
+			eventName: "DeleteAddon",
+			fields: map[string]string{
+				"ct.request.addonname": "vpc-cni",
+			},
+			wantKeys: []string{"deleted_addon"},
+		},
+		{
+			name:      "UpdateAddon",
+			eventName: "UpdateAddon",
+			fields: map[string]string{
+				"ct.request.addonversion":          "v1.16.0-eksbuild.1",
+				"ct.request.serviceaccountrolearn": "arn:aws:iam::123456789012:role/eks-addon-vpc-cni-v2",
+				"ct.request.resolveconflicts":      "OVERWRITE",
+			},
+			wantKeys: []string{"addon_version", "service_account_role_arn", "resolve_conflicts"},
+		},
+		// EKS - Fargate Profiles
+		{
+			name:      "CreateFargateProfile",
+			eventName: "CreateFargateProfile",
+			fields: map[string]string{
+				"ct.request.fargateprofilename":  "my-fargate-profile",
+				"ct.request.clustername":         "my-eks-cluster",
+				"ct.request.podexecutionrolearn": "arn:aws:iam::123456789012:role/eks-fargate-pod-execution-role",
+				"ct.request.subnets":             `["subnet-abc123","subnet-def456"]`,
+				"ct.request.selectors":           `[{"namespace":"default"},{"namespace":"kube-system"}]`,
+			},
+			wantKeys: []string{"fargate_profile_name", "cluster_name", "pod_execution_role_arn", "subnets", "selectors"},
+		},
 	}
 
 	for _, tt := range tests {

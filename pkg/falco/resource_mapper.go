@@ -302,13 +302,47 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"PutEventSelectors":   "aws_cloudtrail_event_data_store",
 		"PutInsightSelectors": "aws_cloudtrail",
 
-		// EKS
-		"UpdateClusterConfig":   "aws_eks_cluster",
-		"UpdateClusterVersion":  "aws_eks_cluster",
-		"CreateAddon":           "aws_eks_addon",
-		"DeleteAddon":           "aws_eks_addon",
-		"UpdateAddon":           "aws_eks_addon",
-		"UpdateNodegroupConfig": "aws_eks_node_group",
+		// ECS - Services
+		"CreateService": "aws_ecs_service",
+		"UpdateService": "aws_ecs_service",
+		"DeleteService": "aws_ecs_service",
+
+		// ECS - Task Definitions
+		"RegisterTaskDefinition":   "aws_ecs_task_definition",
+		"DeregisterTaskDefinition": "aws_ecs_task_definition",
+
+		// ECS - Clusters
+		// Note: CreateCluster/DeleteCluster can be ECS, EKS, or Redshift - context-dependent
+		// For ECS clusters, use UpdateCluster, UpdateClusterSettings instead
+		"UpdateCluster":                 "aws_ecs_cluster",
+		"UpdateClusterSettings":         "aws_ecs_cluster",
+		"PutClusterCapacityProviders":   "aws_ecs_cluster_capacity_providers",
+		"UpdateContainerInstancesState": "aws_ecs_container_instance",
+
+		// ECS - Capacity Providers
+		"CreateCapacityProvider": "aws_ecs_capacity_provider",
+		"UpdateCapacityProvider": "aws_ecs_capacity_provider",
+		"DeleteCapacityProvider": "aws_ecs_capacity_provider",
+
+		// EKS - Clusters
+		"CreateCluster":        "aws_eks_cluster",
+		"DeleteCluster":        "aws_eks_cluster",
+		"UpdateClusterConfig":  "aws_eks_cluster",
+		"UpdateClusterVersion": "aws_eks_cluster",
+
+		// EKS - Node Groups
+		"CreateNodegroup":        "aws_eks_node_group",
+		"DeleteNodegroup":        "aws_eks_node_group",
+		"UpdateNodegroupConfig":  "aws_eks_node_group",
+		"UpdateNodegroupVersion": "aws_eks_node_group",
+
+		// EKS - Addons
+		"CreateAddon": "aws_eks_addon",
+		"DeleteAddon": "aws_eks_addon",
+		"UpdateAddon": "aws_eks_addon",
+
+		// EKS - Fargate Profiles
+		"CreateFargateProfile": "aws_eks_fargate_profile",
 
 		// Redshift
 		"ModifyCluster":               "aws_redshift_cluster",

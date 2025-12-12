@@ -370,15 +370,46 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"PutEventSelectors":   true,
 		"PutInsightSelectors": true,
 
-		// EKS (Control Plane)
-		"CreateCluster":         true,
-		"DeleteCluster":         true,
-		"UpdateClusterConfig":   true,
-		"UpdateClusterVersion":  true,
-		"CreateAddon":           true,
-		"DeleteAddon":           true,
-		"UpdateAddon":           true,
-		"UpdateNodegroupConfig": true,
+		// ECS - Services (Critical for container orchestration)
+		"CreateService": true,
+		"UpdateService": true,
+		"DeleteService": true,
+
+		// ECS - Task Definitions
+		"RegisterTaskDefinition":   true,
+		"DeregisterTaskDefinition": true,
+
+		// ECS - Clusters
+		// Note: CreateCluster/DeleteCluster are handled by context (ECS vs EKS vs Redshift)
+		"UpdateCluster":                 true,
+		"UpdateClusterSettings":         true,
+		"PutClusterCapacityProviders":   true,
+		"UpdateContainerInstancesState": true,
+
+		// ECS - Capacity Providers
+		"CreateCapacityProvider": true,
+		"UpdateCapacityProvider": true,
+		"DeleteCapacityProvider": true,
+
+		// EKS - Clusters
+		"CreateCluster":        true,
+		"DeleteCluster":        true,
+		"UpdateClusterConfig":  true,
+		"UpdateClusterVersion": true,
+
+		// EKS - Node Groups
+		"CreateNodegroup":        true,
+		"DeleteNodegroup":        true,
+		"UpdateNodegroupConfig":  true,
+		"UpdateNodegroupVersion": true,
+
+		// EKS - Addons
+		"CreateAddon": true,
+		"DeleteAddon": true,
+		"UpdateAddon": true,
+
+		// EKS - Fargate Profiles
+		"CreateFargateProfile": true,
 
 		// Redshift
 		// Note: CreateCluster/DeleteCluster covered by EKS section
@@ -684,13 +715,47 @@ func (s *Subscriber) extractResourceID(eventName string, fields map[string]strin
 		"PutEventSelectors":   {"ct.request.trailname"},
 		"PutInsightSelectors": {"ct.request.trailname"},
 
-		// EKS
-		"UpdateClusterConfig":   {"ct.request.name"},
-		"UpdateClusterVersion":  {"ct.request.name"},
-		"CreateAddon":           {"ct.request.clustername"},
-		"DeleteAddon":           {"ct.request.addonname"},
-		"UpdateAddon":           {"ct.request.addonname"},
-		"UpdateNodegroupConfig": {"ct.request.nodegroupname"},
+		// ECS - Services
+		"CreateService": {"ct.response.service.servicearn"},
+		"UpdateService": {"ct.request.service"},
+		"DeleteService": {"ct.request.service"},
+
+		// ECS - Task Definitions
+		"RegisterTaskDefinition":   {"ct.response.taskdefinition.taskdefinitionarn"},
+		"DeregisterTaskDefinition": {"ct.request.taskdefinition"},
+
+		// ECS - Clusters
+		// Note: CreateCluster/DeleteCluster are context-dependent (ECS vs EKS vs Redshift)
+		// ECS-specific cluster operations use different event names
+		"UpdateCluster":                 {"ct.request.cluster"},
+		"UpdateClusterSettings":         {"ct.request.cluster"},
+		"PutClusterCapacityProviders":   {"ct.request.cluster"},
+		"UpdateContainerInstancesState": {"ct.request.containerinstances.0"},
+
+		// ECS - Capacity Providers
+		"CreateCapacityProvider": {"ct.response.capacityprovider.capacityproviderarn"},
+		"UpdateCapacityProvider": {"ct.request.name"},
+		"DeleteCapacityProvider": {"ct.request.capacityprovider"},
+
+		// EKS - Clusters
+		"CreateCluster":        {"ct.response.cluster.name", "ct.request.name"},
+		"DeleteCluster":        {"ct.request.name"},
+		"UpdateClusterConfig":  {"ct.request.name"},
+		"UpdateClusterVersion": {"ct.request.name"},
+
+		// EKS - Node Groups
+		"CreateNodegroup":        {"ct.response.nodegroup.nodegroupname", "ct.request.nodegroupname"},
+		"DeleteNodegroup":        {"ct.request.nodegroupname"},
+		"UpdateNodegroupConfig":  {"ct.request.nodegroupname"},
+		"UpdateNodegroupVersion": {"ct.request.nodegroupname"},
+
+		// EKS - Addons
+		"CreateAddon": {"ct.response.addon.addonname", "ct.request.addonname"},
+		"DeleteAddon": {"ct.request.addonname"},
+		"UpdateAddon": {"ct.request.addonname"},
+
+		// EKS - Fargate Profiles
+		"CreateFargateProfile": {"ct.response.fargateprofile.fargateprofilename", "ct.request.fargateprofilename"},
 
 		// Redshift
 		"ModifyCluster":               {"ct.request.clusteridentifier"},
