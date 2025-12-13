@@ -1,0 +1,114 @@
+---
+title: "Introducing ECS and EKS Support in TFDrift-Falco"
+date: "2025-12-12"
+excerpt: "We're excited to announce comprehensive support for Amazon ECS and EKS, expanding our CloudTrail event coverage by 25 new events."
+author: "Keita Higaki"
+tags: ["release", "ecs", "eks", "aws"]
+---
+
+# Introducing ECS and EKS Support in TFDrift-Falco
+
+We're thrilled to announce that **TFDrift-Falco v0.3.0-dev** now includes comprehensive support for **Amazon ECS (Elastic Container Service)** and **Amazon EKS (Elastic Kubernetes Service)**!
+
+## What's New
+
+### Amazon ECS Support (13 CloudTrail Events)
+
+Monitor critical container orchestration events:
+
+- **Services**: CreateService, UpdateService, DeleteService
+- **Task Definitions**: RegisterTaskDefinition, DeregisterTaskDefinition
+- **Clusters**: CreateCluster, DeleteCluster, UpdateClusterSettings
+- **Capacity Providers**: PutClusterCapacityProviders
+- **Tasks**: RunTask, StartTask, StopTask
+
+### Amazon EKS Support (12 CloudTrail Events)
+
+Track Kubernetes cluster changes in real-time:
+
+- **Clusters**: CreateCluster, DeleteCluster, UpdateClusterConfig
+- **Node Groups**: CreateNodegroup, DeleteNodegroup, UpdateNodegroupConfig
+- **Addons**: CreateAddon, DeleteAddon, UpdateAddon
+- **Fargate Profiles**: DeleteFargateProfile
+
+## Why This Matters
+
+Container orchestration is critical for modern cloud infrastructure. With this release, you can now:
+
+1. **Detect unauthorized changes** to your container clusters instantly
+2. **Track who made what changes** with full IAM context
+3. **Ensure compliance** by monitoring all ECS/EKS modifications
+4. **Prevent configuration drift** in your containerized workloads
+
+## Example Use Case
+
+```yaml
+# Detect when someone modifies your production ECS service
+drift_rules:
+  - name: "Production ECS Service Modified"
+    resource_types:
+      - "aws_ecs_service"
+    watched_attributes:
+      - "desired_count"
+      - "task_definition"
+    severity: "critical"
+    
+notifications:
+  slack:
+    enabled: true
+    channel: "#prod-alerts"
+```
+
+When someone changes the desired count or updates the task definition via AWS Console, you'll get an instant Slack alert with:
+
+- Who made the change (IAM user/role)
+- What was changed (before/after values)
+- When it happened (CloudTrail timestamp)
+- Suggested remediation actions
+
+## Test Coverage
+
+We take quality seriously:
+
+- **ECS**: 85.2% test coverage
+- **EKS**: Comprehensive unit tests
+- All critical paths covered
+
+## What's Next
+
+We're continuing to expand AWS service coverage. Next on the roadmap:
+
+- Lambda Enhanced (10 events)
+- EC2 Enhanced (15 events)
+- ElastiCache (12 events)
+- Auto Scaling (10 events)
+
+**Target for v0.3.0**: 198 CloudTrail events (currently at 120 - 61% complete)
+
+## Get Started
+
+Update to the latest version:
+
+```bash
+docker pull ghcr.io/higakikeita/tfdrift-falco:latest
+```
+
+Or build from source:
+
+```bash
+git pull origin main
+go build -o tfdrift ./cmd/tfdrift
+```
+
+## Documentation
+
+- [ECS Service Documentation](https://github.com/higakikeita/tfdrift-falco/blob/main/docs/services/ecs.md)
+- [EKS Service Documentation](https://github.com/higakikeita/tfdrift-falco/blob/main/docs/services/eks.md)
+
+## Feedback
+
+We'd love to hear your feedback! Join the discussion on [GitHub](https://github.com/higakikeita/tfdrift-falco/discussions) or reach out on [X/Twitter](https://x.com/keitah0322).
+
+---
+
+*Built with ❤️ by the TFDrift-Falco team*
