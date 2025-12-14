@@ -66,8 +66,56 @@ func TestMapEventToResourceType(t *testing.T) {
 		{"S3 Bucket Policy", "PutBucketPolicy", "aws_s3_bucket_policy"},
 		{"S3 Bucket Encryption", "PutBucketEncryption", "aws_s3_bucket"},
 
-		// RDS
-		{"RDS Instance", "ModifyDBInstance", "aws_db_instance"},
+		// RDS - DB Instances
+		{"RDS Instance Create", "CreateDBInstance", "aws_db_instance"},
+		{"RDS Instance Delete", "DeleteDBInstance", "aws_db_instance"},
+		{"RDS Instance Modify", "ModifyDBInstance", "aws_db_instance"},
+		{"RDS Instance Reboot", "RebootDBInstance", "aws_db_instance"},
+		{"RDS Instance Start", "StartDBInstance", "aws_db_instance"},
+		{"RDS Instance Stop", "StopDBInstance", "aws_db_instance"},
+		{"RDS Instance Attribute Modify", "ModifyDBInstanceAttribute", "aws_db_instance"},
+		{"RDS Instance Read Replica Create", "CreateDBInstanceReadReplica", "aws_db_instance"},
+
+		// RDS - DB Clusters (Aurora)
+		{"RDS Cluster Create", "CreateDBCluster", "aws_rds_cluster"},
+		{"RDS Cluster Delete", "DeleteDBCluster", "aws_rds_cluster"},
+		{"RDS Cluster Modify", "ModifyDBCluster", "aws_rds_cluster"},
+		{"RDS Cluster Start", "StartDBCluster", "aws_rds_cluster"},
+		{"RDS Cluster Stop", "StopDBCluster", "aws_rds_cluster"},
+		{"RDS Cluster Failover", "FailoverDBCluster", "aws_rds_cluster"},
+		{"RDS Cluster Role Add", "AddRoleToDBCluster", "aws_rds_cluster_role_association"},
+		{"RDS Cluster Role Remove", "RemoveRoleFromDBCluster", "aws_rds_cluster_role_association"},
+		{"RDS Cluster Endpoint Modify", "ModifyDBClusterEndpoint", "aws_rds_cluster_endpoint"},
+		{"RDS Cluster Endpoint Create", "CreateDBClusterEndpoint", "aws_rds_cluster_endpoint"},
+		{"RDS Cluster Endpoint Delete", "DeleteDBClusterEndpoint", "aws_rds_cluster_endpoint"},
+		{"RDS Global Cluster Modify", "ModifyGlobalCluster", "aws_rds_global_cluster"},
+
+		// RDS - Snapshots
+		{"RDS DB Snapshot Create", "CreateDBSnapshot", "aws_db_snapshot"},
+		{"RDS DB Snapshot Delete", "DeleteDBSnapshot", "aws_db_snapshot"},
+		{"RDS DB Snapshot Attribute Modify", "ModifyDBSnapshotAttribute", "aws_db_snapshot"},
+		{"RDS Cluster Snapshot Create", "CreateDBClusterSnapshot", "aws_db_cluster_snapshot"},
+		{"RDS Cluster Snapshot Delete", "DeleteDBClusterSnapshot", "aws_db_cluster_snapshot"},
+
+		// RDS - Parameter Groups
+		{"RDS Parameter Group Create", "CreateDBParameterGroup", "aws_db_parameter_group"},
+		{"RDS Parameter Group Delete", "DeleteDBParameterGroup", "aws_db_parameter_group"},
+		{"RDS Parameter Group Modify", "ModifyDBParameterGroup", "aws_db_parameter_group"},
+
+		// RDS - Subnet Groups
+		{"RDS Subnet Group Create", "CreateDBSubnetGroup", "aws_db_subnet_group"},
+		{"RDS Subnet Group Delete", "DeleteDBSubnetGroup", "aws_db_subnet_group"},
+		{"RDS Subnet Group Modify", "ModifyDBSubnetGroup", "aws_db_subnet_group"},
+
+		// RDS - Restore
+		{"RDS Instance Restore From Snapshot", "RestoreDBInstanceFromDBSnapshot", "aws_db_instance"},
+		{"RDS Instance Restore To Point In Time", "RestoreDBInstanceToPointInTime", "aws_db_instance"},
+		{"RDS Cluster Restore From Snapshot", "RestoreDBClusterFromSnapshot", "aws_rds_cluster"},
+
+		// RDS - Option Groups
+		{"RDS Option Group Create", "CreateOptionGroup", "aws_db_option_group"},
+		{"RDS Option Group Delete", "DeleteOptionGroup", "aws_db_option_group"},
+		{"RDS Option Group Modify", "ModifyOptionGroup", "aws_db_option_group"},
 
 		// Lambda - Function Management
 		{"Lambda Function Create", "CreateFunction", "aws_lambda_function"},

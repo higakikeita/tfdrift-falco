@@ -62,24 +62,26 @@ Instant Slack alert with user identity and change details
 
 ## 📋 Supported AWS Services
 
-TFDrift-Falco v0.3.0-dev monitors **120 CloudTrail events** across 12 AWS services:
+TFDrift-Falco v0.3.0-dev monitors **169 CloudTrail events** across 16 AWS services:
 
 | Service | Events | Coverage | Priority |
 |---------|--------|----------|----------|
 | **VPC/Networking** 🔒 | 33 | Security Groups, VPC, Subnets, Route Tables, Gateways, ACLs, Endpoints | Critical |
-| **IAM** ✅ | 14 | Roles, Users, Groups, Policies, Access Keys | Critical |
+| **RDS** 🗃️ | 31 | Instances, Clusters, Snapshots, Parameter Groups, Subnet Groups, Option Groups | High |
+| **EC2** 💻 | 17 | Instances, AMIs, EBS Volumes, Snapshots, Network Interfaces | High |
 | **ELB/ALB** | 15 | Load Balancers, Target Groups, Listeners, Rules | High |
+| **IAM** ✅ | 14 | Roles, Users, Groups, Policies, Access Keys | Critical |
 | **ECS** 🐳 | 13 | Services, Task Definitions, Clusters, Capacity Providers | High |
 | **EKS** ☸️ | 12 | Clusters, Node Groups, Addons, Fargate Profiles | High |
+| **ElastiCache** 🗄️ | 12 | Cache Clusters, Replication Groups, Parameter Groups | High |
 | **KMS** 🔐 | 10 | Keys, Aliases, Rotation, Deletion | Critical |
+| **Lambda** ⚡ | 10 | Functions, Event Sources, Permissions, Concurrency | High |
+| **Auto Scaling** 📈 | 10 | ASGs, Launch Configurations, Policies, Scheduled Actions | Medium |
 | **S3** | 8 | Policies, Encryption, Versioning, Public Access | High |
-| **Lambda** | 4 | Function Config/Code, Permissions | Medium |
 | **DynamoDB** | 5 | Tables, TTL, Backups | Medium |
-| **EC2** | 3 | Instance Attributes, Volumes | Medium |
-| **RDS** | 2 | DB Instances, Clusters | Medium |
 | **ECR** | 1 | Repository Policies | Medium |
 
-**Total**: 120 events | See [AWS Resource Coverage Analysis](./docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for details
+**Total**: 169 events | See [AWS Resource Coverage Analysis](./docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for details
 
 ## 🏗️ Architecture
 
@@ -585,13 +587,13 @@ See the **[AWS Coverage Roadmap](./docs/AWS_COVERAGE_ROADMAP.md)** for detailed 
 ### Phase 1.5: Enhanced AWS Coverage (🚧 In Progress - v0.3.0)
 - [x] **ECS** - Services, Task Definitions, Clusters, Capacity Providers (13 events)
 - [x] **EKS** - Clusters, Node Groups, Addons, Fargate Profiles (12 events)
-- [ ] **Lambda Enhanced** - Additional function configuration (10 events)
-- [ ] **EC2 Enhanced** - Network interfaces, volumes, snapshots (15 events)
-- [ ] **ElastiCache** - Redis/Memcached clusters (12 events)
-- [ ] **Auto Scaling** - ASG configuration and policies (10 events)
-- [ ] **RDS Enhanced** - Parameter groups, subnet groups, snapshots (8 events)
+- [x] **Lambda Enhanced** - Additional function configuration (10 events)
+- [x] **EC2 Enhanced** - Network interfaces, volumes, snapshots (17 events)
+- [x] **ElastiCache** - Redis/Memcached clusters (12 events)
+- [x] **Auto Scaling** - ASG configuration and policies (10 events)
+- [x] **RDS Enhanced** - Parameter groups, subnet groups, snapshots, read replicas, option groups (31 events total)
 
-**v0.3.0 Target**: 198 CloudTrail events (120/198 complete - 61%)
+**v0.3.0 Target**: 198 CloudTrail events (169/198 complete - 85%)
 
 ### Phase 2: Enhanced Detection
 - [ ] GCP Audit Logs support

@@ -191,7 +191,16 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 
 		// RDS - Restore
 		"RestoreDBInstanceFromDBSnapshot": "aws_db_instance",
+		"RestoreDBInstanceToPointInTime":  "aws_db_instance",
 		"RestoreDBClusterFromSnapshot":    "aws_rds_cluster",
+
+		// RDS - Read Replicas
+		"CreateDBInstanceReadReplica": "aws_db_instance",
+
+		// RDS - Option Groups
+		"CreateOptionGroup": "aws_db_option_group",
+		"DeleteOptionGroup": "aws_db_option_group",
+		"ModifyOptionGroup": "aws_db_option_group",
 
 		// Lambda - Function Management
 		"CreateFunction":              "aws_lambda_function",
