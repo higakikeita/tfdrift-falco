@@ -13,6 +13,9 @@ export default function Home() {
               <span className="text-2xl font-bold text-white">TFDrift-Falco</span>
             </div>
             <div className="flex items-center space-x-6">
+              <Link href="/blog" className="text-slate-300 hover:text-white transition-colors">
+                Blog
+              </Link>
               <Link href="/releases" className="text-slate-300 hover:text-white transition-colors">
                 Releases
               </Link>
@@ -39,7 +42,7 @@ export default function Home() {
           <div className="text-center space-y-8">
             <div className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-300 text-sm">
               <RocketIcon className="w-4 h-4" />
-              <span>v0.3.0-dev - Now with ECS & EKS Support</span>
+              <span>v0.3.0-dev - 164 CloudTrail Events Across 16 AWS Services</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
@@ -94,8 +97,8 @@ export default function Home() {
             />
             <FeatureCard
               icon={<RocketIcon className="w-8 h-8 text-indigo-400" />}
-              title="120+ CloudTrail Events"
-              description="Monitor ECS, EKS, VPC, IAM, S3, Lambda, and more across 12 AWS services."
+              title="164 CloudTrail Events"
+              description="Monitor Lambda, EC2, ElastiCache, Auto Scaling, ECS, EKS, VPC, IAM, S3, and more across 16 AWS services."
             />
           </div>
         </div>
@@ -105,10 +108,10 @@ export default function Home() {
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 text-center">
-            <StatCard number="120+" label="CloudTrail Events" />
-            <StatCard number="12" label="AWS Services" />
-            <StatCard number="80%+" label="Test Coverage" />
-            <StatCard number="61%" label="Roadmap Complete" />
+            <StatCard number="164" label="CloudTrail Events" />
+            <StatCard number="16" label="AWS Services" />
+            <StatCard number="100%" label="Test Coverage" />
+            <StatCard number="83%" label="Roadmap Complete" />
           </div>
         </div>
       </section>
