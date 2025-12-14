@@ -58,7 +58,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: ./site
-          cname: docs.tfdrift-falco.com  # Optional: Add if you have a custom domain
+          # cname: docs.tfdrift-falco.com  # Disabled: Enable when custom domain DNS is configured
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_message: 'docs: Deploy documentation site'
