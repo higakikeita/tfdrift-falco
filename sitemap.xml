@@ -145,6 +145,10 @@
          <lastmod>2025-12-14</lastmod>
     </url>
     <url>
+         <loc>https://higakikeita.github.io/tfdrift-falco/services/autoscaling/</loc>
+         <lastmod>2025-12-14</lastmod>
+    </url>
+    <url>
          <loc>https://higakikeita.github.io/tfdrift-falco/services/cloudfront/</loc>
          <lastmod>2025-12-14</lastmod>
     </url>
@@ -165,11 +169,19 @@
          <lastmod>2025-12-14</lastmod>
     </url>
     <url>
+         <loc>https://higakikeita.github.io/tfdrift-falco/services/elasticache/</loc>
+         <lastmod>2025-12-14</lastmod>
+    </url>
+    <url>
          <loc>https://higakikeita.github.io/tfdrift-falco/services/iam/</loc>
          <lastmod>2025-12-14</lastmod>
     </url>
     <url>
          <loc>https://higakikeita.github.io/tfdrift-falco/services/kms/</loc>
+         <lastmod>2025-12-14</lastmod>
+    </url>
+    <url>
+         <loc>https://higakikeita.github.io/tfdrift-falco/services/lambda/</loc>
          <lastmod>2025-12-14</lastmod>
     </url>
     <url>
