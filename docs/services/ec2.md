@@ -1,98 +1,266 @@
-# EC2 — Drift Coverage
+# EC2 (Elastic Compute Cloud) — Drift Coverage
+
+## Overview
+
+TFDrift-Falco monitors Amazon EC2 for configuration drift by tracking CloudTrail events related to instances, AMIs, EBS volumes, snapshots, and network interfaces. This enables real-time detection of manual changes made outside of Terraform workflows.
 
 ## Supported CloudTrail Events
-| Event | Description | Status |
-|-------|-------------|--------|
-| RunInstances | Instance launched | ✔ |
-| TerminateInstances | Instance terminated | ✔ |
-| StopInstances | Instance stopped | ✔ |
-| StartInstances | Instance started | ✔ |
-| ModifyInstanceAttribute | Instance attribute modified | ✔ |
-| CreateTags | Tags added/updated | ✔ |
-| DeleteTags | Tags removed | ✔ |
-| ModifyNetworkInterfaceAttribute | Network interface modified | ✔ |
+
+### Instance Management (5 events)
+| Event | Description | Priority | Status |
+|-------|-------------|----------|--------|
+| RunInstances | EC2 instance created | CRITICAL | ✔ |
+| TerminateInstances | EC2 instance terminated | CRITICAL | ✔ |
+| StartInstances | EC2 instance started | WARNING | ✔ |
+| StopInstances | EC2 instance stopped | WARNING | ✔ |
+| ModifyInstanceAttribute | Instance attribute modified | WARNING | ✔ |
+
+### AMI Management (2 events)
+| Event | Description | Priority | Status |
+|-------|-------------|----------|--------|
+| CreateImage | AMI created from instance | WARNING | ✔ |
+| DeregisterImage | AMI deregistered | WARNING | ✔ |
+
+### EBS Volume Management (5 events)
+| Event | Description | Priority | Status |
+|-------|-------------|----------|--------|
+| CreateVolume | EBS volume created | WARNING | ✔ |
+| DeleteVolume | EBS volume deleted | WARNING | ✔ |
+| AttachVolume | Volume attached to instance | WARNING | ✔ |
+| DetachVolume | Volume detached from instance | WARNING | ✔ |
+| ModifyVolume | Volume configuration modified | WARNING | ✔ |
+
+### Snapshot Management (2 events)
+| Event | Description | Priority | Status |
+|-------|-------------|----------|--------|
+| CreateSnapshot | EBS snapshot created | WARNING | ✔ |
+| DeleteSnapshot | EBS snapshot deleted | WARNING | ✔ |
+
+### Network Interface Management (3 events)
+| Event | Description | Priority | Status |
+|-------|-------------|----------|--------|
+| CreateNetworkInterface | Network interface (ENI) created | WARNING | ✔ |
+| DeleteNetworkInterface | Network interface deleted | WARNING | ✔ |
+| AttachNetworkInterface | Network interface attached | WARNING | ✔ |
+
+**Total: 17 CloudTrail events**
+
+## Supported Terraform Resources
+
+- `aws_instance` — EC2 instance configuration
+- `aws_ami` — Amazon Machine Images
+- `aws_ebs_volume` — EBS volume configuration
+- `aws_volume_attachment` — EBS volume attachments
+- `aws_ebs_snapshot` — EBS snapshots
+- `aws_network_interface` — Elastic Network Interfaces (ENI)
+- `aws_network_interface_attachment` — ENI attachments
 
 ## Monitored Drift Attributes
 
-### Instance Configuration
-- instance_type
-- ami
-- monitoring (detailed CloudWatch)
-- user_data
-- iam_instance_profile
-- source_dest_check
-- disable_api_termination
-- ebs_optimized
+### EC2 Instances
+- **instance_type** — Instance size (t3.micro, m5.large, etc.)
+- **ami** — Amazon Machine Image ID
+- **availability_zone** — AZ placement
+- **subnet_id** — VPC subnet
+- **vpc_security_group_ids** — Security groups
+- **iam_instance_profile** — IAM role
+- **user_data** — Initialization script
+- **monitoring** — Detailed CloudWatch monitoring
+- **ebs_optimized** — EBS optimization flag
+- **root_block_device** — Root volume configuration
+- **ebs_block_device** — Additional EBS volumes
+- **network_interface** — Network interface configuration
+- **tags** — Resource tags
 
-### Network
-- vpc_security_group_ids
-- subnet_id
-- associate_public_ip_address
-- private_ip
+### AMIs
+- **name** — AMI name
+- **description** — AMI description
+- **virtualization_type** — HVM or paravirtual
+- **root_device_name** — Root device identifier
+- **ebs_block_device** — EBS snapshot mappings
+- **tags** — Resource tags
 
-### Storage
-- root_block_device
-  - volume_size
-  - volume_type
-  - encrypted
-  - delete_on_termination
-- ebs_block_device (additional volumes)
+### EBS Volumes
+- **availability_zone** — AZ placement
+- **size** — Volume size (GB)
+- **type** — Volume type (gp3, io2, st1, sc1)
+- **iops** — Provisioned IOPS
+- **throughput** — Throughput (MB/s) for gp3
+- **encrypted** — Encryption status
+- **kms_key_id** — KMS key for encryption
+- **snapshot_id** — Source snapshot
+- **tags** — Resource tags
+
+### Volume Attachments
+- **device_name** — Device name (/dev/sdf, /dev/sdg, etc.)
+- **instance_id** — Attached instance
+- **volume_id** — EBS volume ID
+- **force_detach** — Force detachment flag
+- **skip_destroy** — Skip on destroy
+
+### EBS Snapshots
+- **volume_id** — Source volume
+- **description** — Snapshot description
+- **storage_tier** — Standard or archive
+- **tags** — Resource tags
+
+### Network Interfaces
+- **subnet_id** — VPC subnet
+- **private_ips** — Private IP addresses
+- **security_groups** — Security group IDs
+- **source_dest_check** — Source/destination check
+- **attachment** — Attachment configuration
+- **tags** — Resource tags
 
 ## Falco Rule Examples
 
 ```yaml
-rule: ec2_instance_type_changed
-condition:
-  cloud.service = "ec2" and evt.name = "ModifyInstanceAttribute" and
-  drift.attribute = "instance_type"
-output: "EC2 Instance Type Changed (instance=%resource from=%drift.old_value to=%drift.new_value user=%user)"
-priority: warning
+# Instance Lifecycle
+- rule: EC2 Instance Created
+  desc: Detect when an EC2 instance is launched
+  condition: >
+    ct.name="RunInstances"
+  output: >
+    EC2 instance created
+    (user=%ct.user ami=%ct.request.imageId instance_type=%ct.request.instanceType
+     region=%ct.region account=%ct.account)
+  priority: CRITICAL
+  source: aws_cloudtrail
+  tags: [terraform, drift, ec2, compute]
 
-rule: ec2_instance_terminated_unplanned
-condition:
-  cloud.service = "ec2" and evt.name = "TerminateInstances" and
-  drift.planned = false
-output: "Unplanned EC2 Termination (instance=%resource user=%user)"
-priority: error
+- rule: EC2 Instance Terminated
+  desc: Detect when an EC2 instance is terminated
+  condition: >
+    ct.name="TerminateInstances"
+  output: >
+    EC2 instance terminated
+    (user=%ct.user instance=%ct.request.instancesSet.items.instanceId
+     region=%ct.region account=%ct.account)
+  priority: CRITICAL
+  source: aws_cloudtrail
+  tags: [terraform, drift, ec2, compute, security]
+
+# Volume Management
+- rule: EBS Volume Created
+  desc: Detect when an EBS volume is created
+  condition: >
+    ct.name="CreateVolume"
+  output: >
+    EBS volume created
+    (user=%ct.user size=%ct.request.size type=%ct.request.volumeType az=%ct.request.availabilityZone
+     region=%ct.region account=%ct.account)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, ec2, ebs, storage]
 ```
 
-## Example Log Output
+## Configuration Example
 
-```json
-{
-  "service": "ec2",
-  "event": "ModifyInstanceAttribute",
-  "resource": "i-0123456789abcdef0",
-  "changes": {
-    "instance_type": ["t3.micro", "t3.small"],
-    "monitoring": [false, true]
-  },
-  "user": "admin@example.com",
-  "timestamp": "2025-12-06T07:30:00Z"
+```yaml
+# config.yaml
+drift_rules:
+  - name: "EC2 Instance Configuration"
+    resource_types:
+      - "aws_instance"
+    watched_attributes:
+      - "instance_type"
+      - "ami"
+      - "vpc_security_group_ids"
+      - "iam_instance_profile"
+    severity: "critical"
+
+  - name: "EBS Volume Management"
+    resource_types:
+      - "aws_ebs_volume"
+      - "aws_volume_attachment"
+    watched_attributes:
+      - "size"
+      - "type"
+      - "encrypted"
+    severity: "high"
+```
+
+## Best Practices
+
+### 1. Instance Configuration Management
+```hcl
+# Terraform - Immutable infrastructure pattern
+resource "aws_instance" "app" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
+
+  subnet_id                   = aws_subnet.private.id
+  vpc_security_group_ids      = [aws_security_group.app.id]
+  iam_instance_profile        = aws_iam_instance_profile.app.name
+
+  monitoring = true
+
+  root_block_device {
+    volume_type           = "gp3"
+    volume_size           = 20
+    encrypted             = true
+    delete_on_termination = true
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name        = "app-server"
+    Environment = "production"
+  }
 }
 ```
 
-## Grafana Dashboard Examples
+### 2. EBS Volume Management
+```hcl
+resource "aws_ebs_volume" "data" {
+  availability_zone = aws_instance.app.availability_zone
+  size              = 100
+  type              = "gp3"
+  encrypted         = true
+  kms_key_id        = aws_kms_key.ebs.arn
 
-### Metrics
-- EC2 instance type changes (by instance, user, region)
-- Unplanned terminations
-- Security group modifications
-- Tag changes
+  tags = {
+    Name   = "app-data"
+    Backup = "daily"
+  }
+}
 
-### Visualizations
-- Timeline of instance lifecycle events
-- Heatmap of configuration changes by instance
-- Alert panel for critical modifications
+resource "aws_volume_attachment" "data" {
+  device_name = "/dev/sdf"
+  volume_id   = aws_ebs_volume.data.id
+  instance_id = aws_instance.app.id
+}
+```
 
 ## Known Limitations
 
-- Spot instance drift may have CloudTrail delay (up to 15 minutes)
-- Auto Scaling group actions tracked separately
-- EC2 Fleet drift not fully supported yet (v0.3.0 planned)
-- Ephemeral instance store changes not tracked (CloudTrail limitation)
+### 1. Instance State vs Configuration
+- StartInstances/StopInstances track state changes, not configuration
+- Use lifecycle.ignore_changes for instance state with auto-scaling
 
-## Release History
+### 2. AMI Snapshot References
+- CreateImage creates implicit EBS snapshots
+- AMI deregistration doesn't auto-delete underlying snapshots
 
-- **v0.2.0-beta**: Initial EC2 coverage (8 events)
-- **v0.3.0** (planned): Enhanced Auto Scaling integration
+### 3. Network Interface Secondary IPs
+- Secondary private IP assignments not tracked via CloudTrail management events
+
+## Related Documentation
+
+- [AWS EC2 CloudTrail Events](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitor-with-cloudtrail.html)
+- [Terraform aws_instance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance)
+- [Terraform aws_ebs_volume](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ebs_volume)
+- [Terraform aws_ebs_snapshot](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ebs_snapshot)
+
+## Version History
+
+- **v0.2.0-beta** — Initial EC2 coverage (2 events)
+- **v0.3.0** (2025 Q1) — EC2 Enhanced support with 17 CloudTrail events
+  - Instance management (run, terminate, start, stop, modify)
+  - AMI management (create, deregister)
+  - EBS volume management (create, delete, attach, detach, modify)
+  - Snapshot management (create, delete)
+  - Network interface management (create, delete, attach)

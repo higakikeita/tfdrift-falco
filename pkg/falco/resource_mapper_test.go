@@ -14,9 +14,32 @@ func TestMapEventToResourceType(t *testing.T) {
 		eventName string
 		want      string
 	}{
-		// EC2
-		{"EC2 Instance", "ModifyInstanceAttribute", "aws_instance"},
-		{"EBS Volume", "ModifyVolume", "aws_ebs_volume"},
+		// EC2 - Instance Management
+		{"EC2 Instance Run", "RunInstances", "aws_instance"},
+		{"EC2 Instance Terminate", "TerminateInstances", "aws_instance"},
+		{"EC2 Instance Start", "StartInstances", "aws_instance"},
+		{"EC2 Instance Stop", "StopInstances", "aws_instance"},
+		{"EC2 Instance Modify", "ModifyInstanceAttribute", "aws_instance"},
+
+		// EC2 - AMI Management
+		{"EC2 AMI Create", "CreateImage", "aws_ami"},
+		{"EC2 AMI Deregister", "DeregisterImage", "aws_ami"},
+
+		// EC2 - EBS Volume Management
+		{"EBS Volume Create", "CreateVolume", "aws_ebs_volume"},
+		{"EBS Volume Delete", "DeleteVolume", "aws_ebs_volume"},
+		{"EBS Volume Attach", "AttachVolume", "aws_volume_attachment"},
+		{"EBS Volume Detach", "DetachVolume", "aws_volume_attachment"},
+		{"EBS Volume Modify", "ModifyVolume", "aws_ebs_volume"},
+
+		// EC2 - Snapshot Management
+		{"EBS Snapshot Create", "CreateSnapshot", "aws_ebs_snapshot"},
+		{"EBS Snapshot Delete", "DeleteSnapshot", "aws_ebs_snapshot"},
+
+		// EC2 - Network Interface Management
+		{"EC2 Network Interface Create", "CreateNetworkInterface", "aws_network_interface"},
+		{"EC2 Network Interface Delete", "DeleteNetworkInterface", "aws_network_interface"},
+		{"EC2 Network Interface Attach", "AttachNetworkInterface", "aws_network_interface_attachment"},
 
 		// IAM Roles
 		{"IAM Role Policy", "PutRolePolicy", "aws_iam_role_policy"},

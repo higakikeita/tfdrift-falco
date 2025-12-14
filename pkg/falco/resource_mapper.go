@@ -3,9 +3,32 @@ package falco
 // mapEventToResourceType maps a CloudTrail event name to a Terraform resource type
 func (s *Subscriber) mapEventToResourceType(eventName string) string {
 	mapping := map[string]string{
-		// EC2
+		// EC2 - Instance Management
+		"RunInstances":            "aws_instance",
+		"TerminateInstances":      "aws_instance",
+		"StartInstances":          "aws_instance",
+		"StopInstances":           "aws_instance",
 		"ModifyInstanceAttribute": "aws_instance",
-		"ModifyVolume":            "aws_ebs_volume",
+
+		// EC2 - AMI Management
+		"CreateImage":      "aws_ami",
+		"DeregisterImage":  "aws_ami",
+
+		// EC2 - EBS Volume Management
+		"CreateVolume":  "aws_ebs_volume",
+		"DeleteVolume":  "aws_ebs_volume",
+		"AttachVolume":  "aws_volume_attachment",
+		"DetachVolume":  "aws_volume_attachment",
+		"ModifyVolume":  "aws_ebs_volume",
+
+		// EC2 - Snapshot Management
+		"CreateSnapshot": "aws_ebs_snapshot",
+		"DeleteSnapshot": "aws_ebs_snapshot",
+
+		// EC2 - Network Interface Management
+		"CreateNetworkInterface": "aws_network_interface",
+		"DeleteNetworkInterface": "aws_network_interface",
+		"AttachNetworkInterface": "aws_network_interface_attachment",
 
 		// VPC - Security Groups
 		"AuthorizeSecurityGroupIngress": "aws_security_group",
