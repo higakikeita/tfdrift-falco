@@ -5,8 +5,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestInitLogger(t *testing.T) {
@@ -239,4 +241,256 @@ func TestApprovalCommandHelp(t *testing.T) {
 	assert.NotEmpty(t, cmd.Short)
 	assert.NotEmpty(t, cmd.Long)
 	assert.Equal(t, "Manage import approval requests", cmd.Short)
+}
+
+// Tests for L1 Semi-Auto Mode overrides
+
+func TestApplyConfigOverrides_NoOverrides(t *testing.T) {
+	// Reset global flags
+	regionOverride = nil
+	falcoEndpoint = ""
+	statePathOverride = ""
+	backendTypeOverride = ""
+
+	cfg := &config.Config{
+		Providers: config.ProvidersConfig{
+			AWS: config.AWSConfig{
+				Regions: []string{"us-east-1"},
+				State: config.TerraformStateConfig{
+					Backend: "local",
+				},
+			},
+		},
+		Falco: config.FalcoConfig{
+			Hostname: "localhost",
+			Port:     5060,
+		},
+	}
+
+	err := applyConfigOverrides(cfg)
+	require.NoError(t, err)
+
+	// Config should remain unchanged
+	assert.Equal(t, []string{"us-east-1"}, cfg.Providers.AWS.Regions)
+	assert.Equal(t, "localhost", cfg.Falco.Hostname)
+	assert.Equal(t, uint16(5060), cfg.Falco.Port)
+	assert.Equal(t, "local", cfg.Providers.AWS.State.Backend)
+}
+
+func TestApplyConfigOverrides_RegionOverride(t *testing.T) {
+	// Set region override
+	regionOverride = []string{"us-west-2", "ap-northeast-1"}
+	defer func() { regionOverride = nil }()
+
+	cfg := &config.Config{
+		Providers: config.ProvidersConfig{
+			AWS: config.AWSConfig{
+				Regions: []string{"us-east-1"},
+			},
+		},
+		Falco: config.FalcoConfig{
+			Hostname: "localhost",
+			Port:     5060,
+		},
+	}
+
+	err := applyConfigOverrides(cfg)
+	require.NoError(t, err)
+
+	assert.Equal(t, []string{"us-west-2", "ap-northeast-1"}, cfg.Providers.AWS.Regions)
+}
+
+func TestApplyConfigOverrides_FalcoEndpoint(t *testing.T) {
+	// Set Falco endpoint override
+	falcoEndpoint = "prod-falco:5061"
+	defer func() { falcoEndpoint = "" }()
+
+	cfg := &config.Config{
+		Providers: config.ProvidersConfig{
+			AWS: config.AWSConfig{
+				Regions: []string{"us-east-1"},
+			},
+		},
+		Falco: config.FalcoConfig{
+			Hostname: "localhost",
+			Port:     5060,
+		},
+	}
+
+	err := applyConfigOverrides(cfg)
+	require.NoError(t, err)
+
+	assert.Equal(t, "prod-falco", cfg.Falco.Hostname)
+	assert.Equal(t, uint16(5061), cfg.Falco.Port)
+}
+
+func TestApplyConfigOverrides_FalcoEndpoint_Invalid(t *testing.T) {
+	tests := []struct {
+		name     string
+		endpoint string
+		wantErr  string
+	}{
+		{
+			name:     "missing port",
+			endpoint: "localhost",
+			wantErr:  "invalid Falco endpoint format",
+		},
+		{
+			name:     "invalid port",
+			endpoint: "localhost:abc",
+			wantErr:  "invalid port in Falco endpoint",
+		},
+		{
+			name:     "empty",
+			endpoint: "",
+			wantErr:  "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			falcoEndpoint = tt.endpoint
+			defer func() { falcoEndpoint = "" }()
+
+			cfg := &config.Config{
+				Providers: config.ProvidersConfig{
+					AWS: config.AWSConfig{},
+				},
+				Falco: config.FalcoConfig{
+					Hostname: "localhost",
+					Port:     5060,
+				},
+			}
+
+			err := applyConfigOverrides(cfg)
+
+			if tt.wantErr == "" {
+				assert.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestApplyConfigOverrides_StatePath(t *testing.T) {
+	// Set state path override
+	statePathOverride = "/custom/terraform.tfstate"
+	defer func() { statePathOverride = "" }()
+
+	cfg := &config.Config{
+		Providers: config.ProvidersConfig{
+			AWS: config.AWSConfig{
+				State: config.TerraformStateConfig{
+					Backend:   "s3",
+					LocalPath: "",
+				},
+			},
+		},
+		Falco: config.FalcoConfig{
+			Hostname: "localhost",
+			Port:     5060,
+		},
+	}
+
+	err := applyConfigOverrides(cfg)
+	require.NoError(t, err)
+
+	assert.Equal(t, "/custom/terraform.tfstate", cfg.Providers.AWS.State.LocalPath)
+	assert.Equal(t, "local", cfg.Providers.AWS.State.Backend) // Should be changed to local
+}
+
+func TestApplyConfigOverrides_BackendType(t *testing.T) {
+	tests := []struct {
+		name        string
+		backendType string
+		wantErr     bool
+	}{
+		{
+			name:        "local backend",
+			backendType: "local",
+			wantErr:     false,
+		},
+		{
+			name:        "s3 backend",
+			backendType: "s3",
+			wantErr:     false,
+		},
+		{
+			name:        "invalid backend",
+			backendType: "gcs",
+			wantErr:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			backendTypeOverride = tt.backendType
+			defer func() { backendTypeOverride = "" }()
+
+			cfg := &config.Config{
+				Providers: config.ProvidersConfig{
+					AWS: config.AWSConfig{
+						State: config.TerraformStateConfig{
+							Backend: "local",
+						},
+					},
+				},
+				Falco: config.FalcoConfig{
+					Hostname: "localhost",
+					Port:     5060,
+				},
+			}
+
+			err := applyConfigOverrides(cfg)
+
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "invalid backend type")
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.backendType, cfg.Providers.AWS.State.Backend)
+			}
+		})
+	}
+}
+
+func TestApplyConfigOverrides_MultipleOverrides(t *testing.T) {
+	// Set multiple overrides
+	regionOverride = []string{"us-west-2"}
+	falcoEndpoint = "prod:5061"
+	statePathOverride = "/custom/state.json"
+	backendTypeOverride = "local"
+	defer func() {
+		regionOverride = nil
+		falcoEndpoint = ""
+		statePathOverride = ""
+		backendTypeOverride = ""
+	}()
+
+	cfg := &config.Config{
+		Providers: config.ProvidersConfig{
+			AWS: config.AWSConfig{
+				Regions: []string{"us-east-1"},
+				State: config.TerraformStateConfig{
+					Backend: "s3",
+				},
+			},
+		},
+		Falco: config.FalcoConfig{
+			Hostname: "localhost",
+			Port:     5060,
+		},
+	}
+
+	err := applyConfigOverrides(cfg)
+	require.NoError(t, err)
+
+	// All overrides should be applied
+	assert.Equal(t, []string{"us-west-2"}, cfg.Providers.AWS.Regions)
+	assert.Equal(t, "prod", cfg.Falco.Hostname)
+	assert.Equal(t, uint16(5061), cfg.Falco.Port)
+	assert.Equal(t, "/custom/state.json", cfg.Providers.AWS.State.LocalPath)
+	assert.Equal(t, "local", cfg.Providers.AWS.State.Backend)
 }
