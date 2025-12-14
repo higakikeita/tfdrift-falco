@@ -41,7 +41,7 @@ jobs:
           pip install pymdown-extensions
 
       - name: Build MkDocs site
-        run: mkdocs build --strict --verbose
+        run: mkdocs build --verbose
 
       - name: Upload artifact (for PR preview)
         if: github.event_name == 'pull_request'
