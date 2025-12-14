@@ -62,14 +62,16 @@ Instant Slack alert with user identity and change details
 
 ## 📋 Supported AWS Services
 
-TFDrift-Falco v0.3.0-dev monitors **169 CloudTrail events** across 16 AWS services:
+TFDrift-Falco v0.3.0 monitors **203 CloudTrail events** across 19 AWS services:
 
 | Service | Events | Coverage | Priority |
 |---------|--------|----------|----------|
-| **VPC/Networking** 🔒 | 33 | Security Groups, VPC, Subnets, Route Tables, Gateways, ACLs, Endpoints | Critical |
+| **VPC/Networking** 🔒 | 42 | Security Groups, VPC, Subnets, Route Tables, Gateways, ACLs, Endpoints, Peering, Transit Gateway, Flow Logs, Network Firewall | Critical |
 | **RDS** 🗃️ | 31 | Instances, Clusters, Snapshots, Parameter Groups, Subnet Groups, Option Groups | High |
 | **EC2** 💻 | 17 | Instances, AMIs, EBS Volumes, Snapshots, Network Interfaces | High |
+| **SageMaker** 🤖 | 16 | Endpoints, Training Jobs, Model Packages, Notebook Instances | High |
 | **ELB/ALB** | 15 | Load Balancers, Target Groups, Listeners, Rules | High |
+| **DynamoDB** 📊 | 14 | Tables, PITR, Backups, Global Tables, Streams, Monitoring | High |
 | **IAM** ✅ | 14 | Roles, Users, Groups, Policies, Access Keys | Critical |
 | **ECS** 🐳 | 13 | Services, Task Definitions, Clusters, Capacity Providers | High |
 | **EKS** ☸️ | 12 | Clusters, Node Groups, Addons, Fargate Profiles | High |
@@ -78,10 +80,9 @@ TFDrift-Falco v0.3.0-dev monitors **169 CloudTrail events** across 16 AWS servic
 | **Lambda** ⚡ | 10 | Functions, Event Sources, Permissions, Concurrency | High |
 | **Auto Scaling** 📈 | 10 | ASGs, Launch Configurations, Policies, Scheduled Actions | Medium |
 | **S3** | 8 | Policies, Encryption, Versioning, Public Access | High |
-| **DynamoDB** | 5 | Tables, TTL, Backups | Medium |
 | **ECR** | 1 | Repository Policies | Medium |
 
-**Total**: 169 events | See [AWS Resource Coverage Analysis](./docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for details
+**Total**: 203 events | See [AWS Resource Coverage Analysis](./docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for details
 
 ## 🏗️ Architecture
 
@@ -584,16 +585,19 @@ See the **[AWS Coverage Roadmap](./docs/AWS_COVERAGE_ROADMAP.md)** for detailed 
 - [x] Docker container support
 - [x] 95 CloudTrail events across 10 AWS services
 
-### Phase 1.5: Enhanced AWS Coverage (🚧 In Progress - v0.3.0)
+### Phase 1.5: Enhanced AWS Coverage (✅ Complete - v0.3.0)
 - [x] **ECS** - Services, Task Definitions, Clusters, Capacity Providers (13 events)
 - [x] **EKS** - Clusters, Node Groups, Addons, Fargate Profiles (12 events)
 - [x] **Lambda Enhanced** - Additional function configuration (10 events)
 - [x] **EC2 Enhanced** - Network interfaces, volumes, snapshots (17 events)
 - [x] **ElastiCache** - Redis/Memcached clusters (12 events)
 - [x] **Auto Scaling** - ASG configuration and policies (10 events)
-- [x] **RDS Enhanced** - Parameter groups, subnet groups, snapshots, read replicas, option groups (31 events total)
+- [x] **RDS Enhanced** - Parameter groups, subnet groups, snapshots, read replicas, option groups (31 events)
+- [x] **DynamoDB Enhanced** - PITR, backups, global tables, streams (14 events total)
+- [x] **VPC Enhanced** - Peering, Transit Gateway, Flow Logs, Network Firewall (42 events total)
+- [x] **SageMaker** - Endpoints, training, model packages, notebooks (16 events)
 
-**v0.3.0 Target**: 198 CloudTrail events (169/198 complete - 85%)
+**v0.3.0 Achievement**: 203 CloudTrail events (203/198 complete - **103%** 🎉)
 
 ### Phase 2: Enhanced Detection
 - [ ] GCP Audit Logs support

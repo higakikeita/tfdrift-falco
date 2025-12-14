@@ -73,6 +73,23 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"DeleteVpcEndpoint": "aws_vpc_endpoint",
 		"ModifyVpcEndpoint": "aws_vpc_endpoint",
 
+		// VPC - Peering
+		"CreateVpcPeeringConnection": "aws_vpc_peering_connection",
+		"AcceptVpcPeeringConnection": "aws_vpc_peering_connection_accepter",
+		"DeleteVpcPeeringConnection": "aws_vpc_peering_connection",
+
+		// VPC - Transit Gateway
+		"CreateTransitGateway":           "aws_ec2_transit_gateway",
+		"DeleteTransitGateway":           "aws_ec2_transit_gateway",
+		"CreateTransitGatewayVpcAttachment": "aws_ec2_transit_gateway_vpc_attachment",
+
+		// VPC - Flow Logs
+		"CreateFlowLogs": "aws_flow_log",
+		"DeleteFlowLogs": "aws_flow_log",
+
+		// VPC - Network Firewall
+		"DeleteFirewall": "aws_networkfirewall_firewall",
+
 		// ELB/ALB - Load Balancers
 		"CreateLoadBalancer":           "aws_lb",
 		"DeleteLoadBalancer":           "aws_lb",
@@ -106,12 +123,31 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"EnableKeyRotation":   "aws_kms_key",
 		"DisableKeyRotation":  "aws_kms_key",
 
-		// DynamoDB
-		"CreateTable":             "aws_dynamodb_table",
-		"DeleteTable":             "aws_dynamodb_table",
-		"UpdateTable":             "aws_dynamodb_table",
-		"UpdateTimeToLive":        "aws_dynamodb_table",
-		"UpdateContinuousBackups": "aws_dynamodb_table",
+		// DynamoDB - Tables
+		"CreateTable":  "aws_dynamodb_table",
+		"DeleteTable":  "aws_dynamodb_table",
+		"UpdateTable":  "aws_dynamodb_table",
+		"UpdateTimeToLive": "aws_dynamodb_table",
+
+		// DynamoDB - Point-in-Time Recovery
+		"UpdateContinuousBackups":   "aws_dynamodb_table",
+		"RestoreTableToPointInTime": "aws_dynamodb_table",
+
+		// DynamoDB - Backups
+		"CreateBackup":           "aws_dynamodb_table_backup",
+		"DeleteBackup":           "aws_dynamodb_table_backup",
+		"RestoreTableFromBackup": "aws_dynamodb_table",
+
+		// DynamoDB - Global Tables
+		"CreateGlobalTable": "aws_dynamodb_global_table",
+		"UpdateGlobalTable": "aws_dynamodb_global_table",
+
+		// DynamoDB - Streams
+		"EnableKinesisStreamingDestination":  "aws_dynamodb_kinesis_streaming_destination",
+		"DisableKinesisStreamingDestination": "aws_dynamodb_kinesis_streaming_destination",
+
+		// DynamoDB - Monitoring
+		"UpdateContributorInsights": "aws_dynamodb_contributor_insights",
 
 		// IAM - Roles
 		"PutRolePolicy":          "aws_iam_role_policy",
@@ -433,6 +469,33 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"ModifyClusterParameterGroup": "aws_redshift_parameter_group",
 		"CreateClusterParameterGroup": "aws_redshift_parameter_group",
 		"DeleteClusterParameterGroup": "aws_redshift_parameter_group",
+
+		// SageMaker - Endpoints
+		"CreateEndpoint":       "aws_sagemaker_endpoint",
+		"DeleteEndpoint":       "aws_sagemaker_endpoint",
+		"UpdateEndpoint":       "aws_sagemaker_endpoint",
+		"CreateEndpointConfig": "aws_sagemaker_endpoint_configuration",
+
+		// SageMaker - Training Jobs
+		"CreateTrainingJob": "aws_sagemaker_training_job",
+		"StopTrainingJob":   "aws_sagemaker_training_job",
+
+		// SageMaker - Model Packages (Model Registry)
+		"CreateModelPackage":        "aws_sagemaker_model_package",
+		"DeleteModelPackage":        "aws_sagemaker_model_package",
+		"UpdateModelPackage":        "aws_sagemaker_model_package",
+		"CreateModelPackageGroup":   "aws_sagemaker_model_package_group",
+		"DeleteModelPackageGroup":   "aws_sagemaker_model_package_group",
+
+		// SageMaker - Notebook Instances
+		"CreateNotebookInstance": "aws_sagemaker_notebook_instance",
+		"DeleteNotebookInstance": "aws_sagemaker_notebook_instance",
+		"StopNotebookInstance":   "aws_sagemaker_notebook_instance",
+		"StartNotebookInstance":  "aws_sagemaker_notebook_instance",
+		"UpdateNotebookInstance": "aws_sagemaker_notebook_instance",
+
+		// Note: CreateModel/DeleteModel events conflict with API Gateway events (lines 300-301)
+		// SageMaker model events cannot be distinguished from API Gateway model events without eventSource field
 	}
 
 	if resourceType, ok := mapping[eventName]; ok {

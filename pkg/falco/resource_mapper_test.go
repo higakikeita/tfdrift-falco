@@ -214,6 +214,66 @@ func TestMapEventToResourceType(t *testing.T) {
 		{"ElastiCache Parameter Group Delete", "DeleteCacheParameterGroup", "aws_elasticache_parameter_group"},
 		{"ElastiCache Parameter Group Modify", "ModifyCacheParameterGroup", "aws_elasticache_parameter_group"},
 
+		// DynamoDB - Point-in-Time Recovery
+		{"DynamoDB Restore To Point In Time", "RestoreTableToPointInTime", "aws_dynamodb_table"},
+
+		// DynamoDB - Backups
+		{"DynamoDB Backup Create", "CreateBackup", "aws_dynamodb_table_backup"},
+		{"DynamoDB Backup Delete", "DeleteBackup", "aws_dynamodb_table_backup"},
+		{"DynamoDB Restore From Backup", "RestoreTableFromBackup", "aws_dynamodb_table"},
+
+		// DynamoDB - Global Tables
+		{"DynamoDB Global Table Create", "CreateGlobalTable", "aws_dynamodb_global_table"},
+		{"DynamoDB Global Table Update", "UpdateGlobalTable", "aws_dynamodb_global_table"},
+
+		// DynamoDB - Streams
+		{"DynamoDB Kinesis Streaming Enable", "EnableKinesisStreamingDestination", "aws_dynamodb_kinesis_streaming_destination"},
+		{"DynamoDB Kinesis Streaming Disable", "DisableKinesisStreamingDestination", "aws_dynamodb_kinesis_streaming_destination"},
+
+		// DynamoDB - Monitoring
+		{"DynamoDB Contributor Insights Update", "UpdateContributorInsights", "aws_dynamodb_contributor_insights"},
+
+		// VPC - Peering
+		{"VPC Peering Connection Create", "CreateVpcPeeringConnection", "aws_vpc_peering_connection"},
+		{"VPC Peering Connection Accept", "AcceptVpcPeeringConnection", "aws_vpc_peering_connection_accepter"},
+		{"VPC Peering Connection Delete", "DeleteVpcPeeringConnection", "aws_vpc_peering_connection"},
+
+		// VPC - Transit Gateway
+		{"Transit Gateway Create", "CreateTransitGateway", "aws_ec2_transit_gateway"},
+		{"Transit Gateway Delete", "DeleteTransitGateway", "aws_ec2_transit_gateway"},
+		{"Transit Gateway VPC Attachment Create", "CreateTransitGatewayVpcAttachment", "aws_ec2_transit_gateway_vpc_attachment"},
+
+		// VPC - Flow Logs
+		{"VPC Flow Logs Create", "CreateFlowLogs", "aws_flow_log"},
+		{"VPC Flow Logs Delete", "DeleteFlowLogs", "aws_flow_log"},
+
+		// VPC - Network Firewall
+		{"Network Firewall Delete", "DeleteFirewall", "aws_networkfirewall_firewall"},
+
+		// SageMaker - Endpoints
+		{"SageMaker Endpoint Create", "CreateEndpoint", "aws_sagemaker_endpoint"},
+		{"SageMaker Endpoint Delete", "DeleteEndpoint", "aws_sagemaker_endpoint"},
+		{"SageMaker Endpoint Update", "UpdateEndpoint", "aws_sagemaker_endpoint"},
+		{"SageMaker Endpoint Config Create", "CreateEndpointConfig", "aws_sagemaker_endpoint_configuration"},
+
+		// SageMaker - Training Jobs
+		{"SageMaker Training Job Create", "CreateTrainingJob", "aws_sagemaker_training_job"},
+		{"SageMaker Training Job Stop", "StopTrainingJob", "aws_sagemaker_training_job"},
+
+		// SageMaker - Model Packages
+		{"SageMaker Model Package Create", "CreateModelPackage", "aws_sagemaker_model_package"},
+		{"SageMaker Model Package Delete", "DeleteModelPackage", "aws_sagemaker_model_package"},
+		{"SageMaker Model Package Update", "UpdateModelPackage", "aws_sagemaker_model_package"},
+		{"SageMaker Model Package Group Create", "CreateModelPackageGroup", "aws_sagemaker_model_package_group"},
+		{"SageMaker Model Package Group Delete", "DeleteModelPackageGroup", "aws_sagemaker_model_package_group"},
+
+		// SageMaker - Notebook Instances
+		{"SageMaker Notebook Instance Create", "CreateNotebookInstance", "aws_sagemaker_notebook_instance"},
+		{"SageMaker Notebook Instance Delete", "DeleteNotebookInstance", "aws_sagemaker_notebook_instance"},
+		{"SageMaker Notebook Instance Stop", "StopNotebookInstance", "aws_sagemaker_notebook_instance"},
+		{"SageMaker Notebook Instance Start", "StartNotebookInstance", "aws_sagemaker_notebook_instance"},
+		{"SageMaker Notebook Instance Update", "UpdateNotebookInstance", "aws_sagemaker_notebook_instance"},
+
 		// Unknown
 		{"Unknown Event", "UnknownEvent", "unknown"},
 	}
