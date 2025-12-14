@@ -383,6 +383,24 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		// EKS - Fargate Profiles
 		"CreateFargateProfile": "aws_eks_fargate_profile",
 
+		// ElastiCache - Cache Clusters
+		"CreateCacheCluster": "aws_elasticache_cluster",
+		"DeleteCacheCluster": "aws_elasticache_cluster",
+		"ModifyCacheCluster": "aws_elasticache_cluster",
+		"RebootCacheCluster": "aws_elasticache_cluster",
+
+		// ElastiCache - Replication Groups
+		"CreateReplicationGroup":  "aws_elasticache_replication_group",
+		"DeleteReplicationGroup":  "aws_elasticache_replication_group",
+		"ModifyReplicationGroup":  "aws_elasticache_replication_group",
+		"IncreaseReplicaCount":    "aws_elasticache_replication_group",
+		"DecreaseReplicaCount":    "aws_elasticache_replication_group",
+
+		// ElastiCache - Parameter Groups
+		"CreateCacheParameterGroup": "aws_elasticache_parameter_group",
+		"DeleteCacheParameterGroup": "aws_elasticache_parameter_group",
+		"ModifyCacheParameterGroup": "aws_elasticache_parameter_group",
+
 		// Redshift
 		"ModifyCluster":               "aws_redshift_cluster",
 		"ModifyClusterParameterGroup": "aws_redshift_parameter_group",

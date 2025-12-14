@@ -130,6 +130,24 @@ func TestMapEventToResourceType(t *testing.T) {
 		// EKS - Fargate Profiles
 		{"EKS Fargate Profile Create", "CreateFargateProfile", "aws_eks_fargate_profile"},
 
+		// ElastiCache - Cache Clusters
+		{"ElastiCache Cluster Create", "CreateCacheCluster", "aws_elasticache_cluster"},
+		{"ElastiCache Cluster Delete", "DeleteCacheCluster", "aws_elasticache_cluster"},
+		{"ElastiCache Cluster Modify", "ModifyCacheCluster", "aws_elasticache_cluster"},
+		{"ElastiCache Cluster Reboot", "RebootCacheCluster", "aws_elasticache_cluster"},
+
+		// ElastiCache - Replication Groups
+		{"ElastiCache Replication Group Create", "CreateReplicationGroup", "aws_elasticache_replication_group"},
+		{"ElastiCache Replication Group Delete", "DeleteReplicationGroup", "aws_elasticache_replication_group"},
+		{"ElastiCache Replication Group Modify", "ModifyReplicationGroup", "aws_elasticache_replication_group"},
+		{"ElastiCache Replica Count Increase", "IncreaseReplicaCount", "aws_elasticache_replication_group"},
+		{"ElastiCache Replica Count Decrease", "DecreaseReplicaCount", "aws_elasticache_replication_group"},
+
+		// ElastiCache - Parameter Groups
+		{"ElastiCache Parameter Group Create", "CreateCacheParameterGroup", "aws_elasticache_parameter_group"},
+		{"ElastiCache Parameter Group Delete", "DeleteCacheParameterGroup", "aws_elasticache_parameter_group"},
+		{"ElastiCache Parameter Group Modify", "ModifyCacheParameterGroup", "aws_elasticache_parameter_group"},
+
 		// Unknown
 		{"Unknown Event", "UnknownEvent", "unknown"},
 	}
