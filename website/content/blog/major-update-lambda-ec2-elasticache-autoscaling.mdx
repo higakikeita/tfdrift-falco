@@ -1,0 +1,247 @@
+---
+title: "Major Update: Lambda, EC2, ElastiCache, and Auto Scaling Support"
+date: "2025-12-14"
+excerpt: "TFDrift-Falco v0.3.0 development continues with 49 new CloudTrail events across 4 major AWS services, bringing total coverage to 164 events (83% of target)."
+author: "Keita Higaki"
+tags: ["release", "lambda", "ec2", "elasticache", "autoscaling", "aws"]
+---
+
+# Major Update: Lambda, EC2, ElastiCache, and Auto Scaling Support
+
+We're excited to announce a **major expansion** of TFDrift-Falco's drift detection capabilities! Today's update adds comprehensive support for **4 critical AWS services**, increasing our CloudTrail event coverage by **49 new events**.
+
+## What's New
+
+### 🎯 Lambda Enhanced (10 Events)
+
+Complete serverless drift detection:
+
+**Function Management**
+- CreateFunction, DeleteFunction, UpdateFunctionCode
+- UpdateFunctionConfiguration
+
+**Event Sources & Triggers**
+- CreateEventSourceMapping, DeleteEventSourceMapping
+- UpdateEventSourceMapping
+
+**Concurrency Control**
+- PutFunctionConcurrency
+
+**Permissions**
+- AddPermission, RemovePermission
+
+### 🖥️ EC2 Enhanced (17 Events)
+
+Comprehensive compute infrastructure monitoring:
+
+**Instance Lifecycle**
+- RunInstances, TerminateInstances
+- StartInstances, StopInstances
+- ModifyInstanceAttribute
+
+**AMI Management**
+- CreateImage, DeregisterImage
+
+**EBS Volumes**
+- CreateVolume, DeleteVolume, AttachVolume, DetachVolume
+- ModifyVolume
+
+**Snapshots**
+- CreateSnapshot, DeleteSnapshot
+
+**Network Interfaces**
+- CreateNetworkInterface, DeleteNetworkInterface
+- AttachNetworkInterface
+
+### 🗄️ ElastiCache (12 Events)
+
+Redis and Memcached drift detection:
+
+**Cache Clusters**
+- CreateCacheCluster, DeleteCacheCluster
+- ModifyCacheCluster, RebootCacheCluster
+
+**Replication Groups**
+- CreateReplicationGroup, DeleteReplicationGroup
+- ModifyReplicationGroup
+- IncreaseReplicaCount, DecreaseReplicaCount
+
+**Parameter Groups**
+- CreateCacheParameterGroup, DeleteCacheParameterGroup
+- ModifyCacheParameterGroup
+
+### 📈 Auto Scaling (10 Events)
+
+Dynamic capacity management tracking:
+
+**Auto Scaling Groups**
+- CreateAutoScalingGroup, DeleteAutoScalingGroup
+- UpdateAutoScalingGroup, SetDesiredCapacity
+
+**Launch Configurations**
+- CreateLaunchConfiguration, DeleteLaunchConfiguration
+
+**Scaling Policies**
+- PutScalingPolicy, DeletePolicy
+
+**Scheduled Actions**
+- PutScheduledUpdateGroupAction, DeleteScheduledAction
+
+## Coverage Progress
+
+| Metric | Value |
+|--------|-------|
+| **Total Events** | 164 |
+| **Target (v0.3.0)** | 198 |
+| **Progress** | 83% |
+| **AWS Services** | 16 |
+
+### Milestone Timeline
+
+- ✅ **v0.2.0** — Initial 120 events (15 services)
+- ✅ **Lambda Enhanced** — +10 events
+- ✅ **EC2 Enhanced** — +17 events
+- ✅ **ElastiCache** — +12 events
+- ✅ **Auto Scaling** — +10 events
+- 🔄 **Next** — 34 more events to reach v0.3.0
+
+## Use Cases
+
+### Serverless Applications
+
+Detect unauthorized Lambda function changes:
+
+```yaml
+- rule: Lambda Function Deleted
+  condition: ct.name="DeleteFunction"
+  output: "Lambda function deleted (user=%ct.user function=%ct.request.functionName)"
+  priority: CRITICAL
+```
+
+### Compute Infrastructure
+
+Monitor EC2 instance lifecycle:
+
+```yaml
+- rule: EC2 Instance Terminated
+  condition: ct.name="TerminateInstances"
+  output: "EC2 instance terminated (user=%ct.user instance=%ct.request.instancesSet.items.instanceId)"
+  priority: CRITICAL
+```
+
+### Cache Layers
+
+Track ElastiCache configuration drift:
+
+```yaml
+- rule: ElastiCache Cluster Modified
+  condition: ct.name="ModifyCacheCluster"
+  output: "ElastiCache cluster modified (user=%ct.user cluster=%ct.request.cacheClusterId)"
+  priority: WARNING
+```
+
+### Auto Scaling
+
+Detect manual capacity overrides:
+
+```yaml
+- rule: Auto Scaling Capacity Changed
+  condition: ct.name="SetDesiredCapacity"
+  output: "Auto Scaling desired capacity changed (user=%ct.user asg=%ct.request.autoScalingGroupName)"
+  priority: WARNING
+```
+
+## Documentation
+
+Comprehensive service documentation added:
+
+- **[Lambda Service Guide](https://higakikeita.github.io/tfdrift-falco/services/lambda/)** — 600+ lines
+- **[EC2 Service Guide](https://higakikeita.github.io/tfdrift-falco/services/ec2/)** — Complete compute coverage
+- **[ElastiCache Service Guide](https://higakikeita.github.io/tfdrift-falco/services/elasticache/)** — Redis & Memcached
+- **[Auto Scaling Service Guide](https://higakikeita.github.io/tfdrift-falco/services/autoscaling/)** — Dynamic scaling
+
+Each guide includes:
+- Supported CloudTrail events
+- Terraform resource mappings
+- Falco rule examples
+- Drift scenarios with sample alerts
+- Best practices with code examples
+- Security considerations
+
+## Getting Started
+
+### 1. Update to Latest Version
+
+```bash
+git pull origin main
+```
+
+### 2. Configure Falco Rules
+
+Add new service rules to your Falco configuration:
+
+```yaml
+# rules/lambda.yaml
+- rule: Lambda Configuration Changed
+  desc: Detect Lambda function configuration changes
+  condition: ct.name="UpdateFunctionConfiguration"
+  output: >
+    Lambda function configuration changed
+    (user=%ct.user function=%ct.request.functionName
+     region=%ct.region)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, lambda]
+```
+
+### 3. Verify Event Detection
+
+Test with the included test suite:
+
+```bash
+go test ./pkg/falco/... -v
+```
+
+All 164 CloudTrail events now have 100% test coverage!
+
+## Known Limitations
+
+### Lambda Alias Events
+
+Lambda alias operations (CreateAlias, DeleteAlias, UpdateAlias) share event names with KMS aliases and cannot be distinguished without the `eventSource` field in the current implementation. This is documented and planned for a future enhancement.
+
+### Launch Templates
+
+Auto Scaling launch templates are tracked via `UpdateAutoScalingGroup` events. Dedicated launch template events are planned for a future release.
+
+## What's Next
+
+We're continuing toward the v0.3.0 milestone (198 events). Upcoming services include:
+
+- **SageMaker** — ML model deployment tracking
+- **DynamoDB Enhanced** — Additional table operations
+- **VPC Enhanced** — More network infrastructure events
+- **RDS Enhanced** — Additional database operations
+
+## Community
+
+- **GitHub**: [github.com/higakikeita/tfdrift-falco](https://github.com/higakikeita/tfdrift-falco)
+- **Documentation**: [higakikeita.github.io/tfdrift-falco](https://higakikeita.github.io/tfdrift-falco/)
+- **Issues**: [Report bugs or request features](https://github.com/higakikeita/tfdrift-falco/issues)
+- **Discussions**: [Join the conversation](https://github.com/higakikeita/tfdrift-falco/discussions)
+
+## Acknowledgments
+
+Special thanks to the Terraform, Falco, and AWS communities for their invaluable feedback and contributions!
+
+---
+
+**Ready to enhance your drift detection?** Update to the latest version today and start monitoring Lambda, EC2, ElastiCache, and Auto Scaling resources in real-time!
+
+```bash
+git clone https://github.com/higakikeita/tfdrift-falco.git
+cd tfdrift-falco
+make install
+```
+
+Happy drift hunting! 🎯
