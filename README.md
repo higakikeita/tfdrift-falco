@@ -2,7 +2,7 @@
 
 **Real-time Terraform Drift Detection powered by Falco**
 
-[![Version](https://img.shields.io/badge/version-0.3.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
+[![Version](https://img.shields.io/badge/version-0.3.1-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
@@ -20,16 +20,16 @@
 
 ## 🚀 Quick Start (5 minutes)
 
+### L0: Zero Configuration (完全自動)
+
 **Get started with zero configuration** - TFDrift-Falco automatically detects your Terraform state:
 
 ```bash
-# 1. Navigate to your Terraform directory
+# Navigate to your Terraform directory
 cd /path/to/your/terraform/project
 
-# 2. Run with auto-detection (no config file needed!)
+# Run with auto-detection (no config file needed!)
 tfdrift --auto
-
-# That's it! 🎉
 ```
 
 **What it does:**
@@ -37,12 +37,46 @@ tfdrift --auto
 - ✅ Connects to Falco on localhost:5060 by default
 - ✅ Starts monitoring for drift in real-time
 
+### L1: Semi-Auto (部分カスタマイズ)
+
+**Customize specific settings** while keeping auto-detection:
+
+```bash
+# Custom AWS region
+tfdrift --auto --region ap-northeast-1
+
+# Custom Falco endpoint
+tfdrift --auto --falco-endpoint prod-falco:5060
+
+# Custom state file path
+tfdrift --auto --state-path /custom/path/terraform.tfstate
+
+# Multiple customizations
+tfdrift --auto --region us-west-2 --falco-endpoint 192.168.1.100:5060
+```
+
+**Available overrides:**
+- `--region` - AWS region(s) to monitor
+- `--falco-endpoint` - Falco gRPC endpoint (host:port)
+- `--state-path` - Terraform state file path
+- `--backend` - Backend type (local/s3)
+
+### L2: Full Configuration (完全手動)
+
+**Full control** with config.yaml:
+
+```bash
+tfdrift --config config.yaml
+```
+
+See [Configuration Guide](#-configuration) for config.yaml examples.
+
+---
+
 **Requirements:**
 - Terraform initialized directory (`.terraform/` exists)
 - Falco running with CloudTrail plugin
 - AWS credentials configured
-
-> 💡 **Tip**: For advanced configuration (custom Falco endpoint, multiple regions, custom rules), create a `config.yaml` file. See [Configuration Guide](#-configuration) below.
 
 [English](#english) | [日本語](#japanese)
 

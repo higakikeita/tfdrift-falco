@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
@@ -15,12 +17,17 @@ import (
 )
 
 var (
-	version     = "0.3.0"
-	cfgFile     string
-	autoDetect  bool
-	dryRun      bool
-	daemon      bool
-	interactive bool
+	version        = "0.3.1"
+	cfgFile        string
+	autoDetect     bool
+	dryRun         bool
+	daemon         bool
+	interactive    bool
+	// L1 Semi-auto mode flags
+	regionOverride       []string
+	falcoEndpoint        string
+	statePathOverride    string
+	backendTypeOverride  string
 )
 
 func main() {
@@ -39,6 +46,12 @@ and Terraform state comparison.`,
 	rootCmd.Flags().BoolVar(&dryRun, "dry-run", false, "run in dry-run mode (no notifications)")
 	rootCmd.Flags().BoolVar(&daemon, "daemon", false, "run in daemon mode")
 	rootCmd.Flags().BoolVar(&interactive, "interactive", false, "run in interactive mode (for approval prompts)")
+
+	// L1 Semi-auto mode flags (used with --auto)
+	rootCmd.Flags().StringSliceVar(&regionOverride, "region", nil, "AWS region(s) to monitor (e.g., --region us-west-2,ap-northeast-1)")
+	rootCmd.Flags().StringVar(&falcoEndpoint, "falco-endpoint", "", "Falco gRPC endpoint (e.g., --falco-endpoint localhost:5060)")
+	rootCmd.Flags().StringVar(&statePathOverride, "state-path", "", "Terraform state file path (e.g., --state-path ./terraform.tfstate)")
+	rootCmd.Flags().StringVar(&backendTypeOverride, "backend", "", "Backend type: local or s3 (e.g., --backend local)")
 
 	// Add approval subcommands
 	rootCmd.AddCommand(newApprovalCmd())
@@ -134,8 +147,57 @@ func loadAutoConfig() (*config.Config, error) {
 		return nil, fmt.Errorf("failed to create config from auto-detection: %w", err)
 	}
 
+	// Apply L1 Semi-auto mode overrides
+	if err := applyConfigOverrides(cfg); err != nil {
+		return nil, fmt.Errorf("failed to apply config overrides: %w", err)
+	}
+
 	log.Info("✓ Auto-detection successful, starting drift detection...")
 	return cfg, nil
+}
+
+// applyConfigOverrides applies L1 semi-auto mode flag overrides to the config
+func applyConfigOverrides(cfg *config.Config) error {
+	// Override AWS regions if specified
+	if len(regionOverride) > 0 {
+		cfg.Providers.AWS.Regions = regionOverride
+		log.Infof("✓ Using custom region(s): %v", regionOverride)
+	}
+
+	// Override Falco endpoint if specified
+	if falcoEndpoint != "" {
+		parts := strings.Split(falcoEndpoint, ":")
+		if len(parts) != 2 {
+			return fmt.Errorf("invalid Falco endpoint format (expected host:port): %s", falcoEndpoint)
+		}
+
+		port, err := strconv.Atoi(parts[1])
+		if err != nil {
+			return fmt.Errorf("invalid port in Falco endpoint: %s", parts[1])
+		}
+
+		cfg.Falco.Hostname = parts[0]
+		cfg.Falco.Port = uint16(port)
+		log.Infof("✓ Using custom Falco endpoint: %s", falcoEndpoint)
+	}
+
+	// Override state path if specified
+	if statePathOverride != "" {
+		cfg.Providers.AWS.State.LocalPath = statePathOverride
+		cfg.Providers.AWS.State.Backend = "local"
+		log.Infof("✓ Using custom state path: %s", statePathOverride)
+	}
+
+	// Override backend type if specified
+	if backendTypeOverride != "" {
+		if backendTypeOverride != "local" && backendTypeOverride != "s3" {
+			return fmt.Errorf("invalid backend type (must be 'local' or 's3'): %s", backendTypeOverride)
+		}
+		cfg.Providers.AWS.State.Backend = backendTypeOverride
+		log.Infof("✓ Using backend type: %s", backendTypeOverride)
+	}
+
+	return nil
 }
 
 func initLogger() {

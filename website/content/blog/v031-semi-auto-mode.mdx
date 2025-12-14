@@ -1,0 +1,368 @@
+---
+title: "v0.3.1: L1 Semi-Auto Mode - The Perfect Balance"
+description: "Introducing Semi-Auto Mode: Customize what you need, auto-detect the rest"
+date: "2024-12-14"
+author: "Keita Higaki"
+tags: ["release", "feature", "ux", "configuration"]
+---
+
+# 🎯 TFDrift-Falco v0.3.1: L1 Semi-Auto Mode
+
+**Release Date**: December 14, 2024
+
+We're excited to announce **v0.3.1**, introducing **L1 Semi-Auto Mode** - the perfect balance between zero-config convenience and full control.
+
+## 🆕 What's New
+
+### L1 Semi-Auto Mode: Customize Only What You Need
+
+With v0.3.1, you can now **override specific settings** while keeping the convenience of auto-detection:
+
+```bash
+# Auto-detect everything, but use a different AWS region
+tfdrift --auto --region ap-northeast-1
+
+# Auto-detect state, but use a custom Falco endpoint
+tfdrift --auto --falco-endpoint prod-falco:5060
+
+# Combine multiple overrides
+tfdrift --auto --region us-west-2 --falco-endpoint 192.168.1.100:5060
+```
+
+## 📊 Configuration Levels
+
+TFDrift-Falco now offers **three configuration levels** to match your needs:
+
+| Level | Usage | Description | Best For |
+|-------|-------|-------------|----------|
+| **L0: Zero Config** | `tfdrift --auto` | Fully automatic detection | Quick start, local dev |
+| **L1: Semi-Auto** | `tfdrift --auto --region ...` | Selective customization | Most use cases |
+| **L2: Full Config** | `tfdrift --config config.yaml` | Complete control | Production, complex setups |
+
+## 🛠️ Available Overrides
+
+### `--region`
+Override AWS region(s) to monitor:
+
+```bash
+# Single region
+tfdrift --auto --region us-west-2
+
+# Multiple regions
+tfdrift --auto --region us-west-2,ap-northeast-1,eu-west-1
+```
+
+**Use case**: Your Terraform state is in one region, but you want to monitor resources in multiple regions.
+
+### `--falco-endpoint`
+Override Falco gRPC endpoint:
+
+```bash
+# Custom host and port
+tfdrift --auto --falco-endpoint prod-falco.example.com:5060
+
+# IP address
+tfdrift --auto --falco-endpoint 192.168.1.100:5060
+```
+
+**Use case**: Falco is running on a different host, not localhost.
+
+### `--state-path`
+Override Terraform state file path:
+
+```bash
+# Custom local state path
+tfdrift --auto --state-path /custom/terraform/terraform.tfstate
+
+# Non-standard state file name
+tfdrift --auto --state-path ./my-state.json
+```
+
+**Use case**: Using a non-standard state file location or name.
+
+### `--backend`
+Force backend type (local or s3):
+
+```bash
+# Force local backend
+tfdrift --auto --backend local
+
+# Force S3 backend
+tfdrift --auto --backend s3
+```
+
+**Use case**: Override auto-detection when you know your backend type.
+
+## 🎯 Real-World Examples
+
+### Example 1: Multi-Region Production Monitoring
+
+```bash
+# Auto-detect state from current directory
+# Monitor both US and Asia Pacific regions
+# Connect to production Falco instance
+tfdrift --auto \
+  --region us-east-1,us-west-2,ap-northeast-1 \
+  --falco-endpoint prod-falco.internal:5060
+```
+
+### Example 2: Development Environment
+
+```bash
+# Use local state from custom location
+# Connect to local Falco
+tfdrift --auto --state-path ~/dev/terraform/state.json
+```
+
+### Example 3: CI/CD Pipeline
+
+```bash
+# Use S3 backend explicitly
+# Specify exact region
+# No interactive prompts
+tfdrift --auto \
+  --backend s3 \
+  --region us-east-1 \
+  --dry-run
+```
+
+## 🧩 Design Philosophy
+
+The three-level configuration system embodies our design principle:
+
+> **"考えなくていいけど、逃げ道はある"**
+> *(Don't have to think about it, but escape hatches exist)*
+
+- **L0** removes all friction for getting started
+- **L1** provides escape hatches when you need them
+- **L2** gives complete control for complex scenarios
+
+You choose the level that matches your needs.
+
+## 🚀 Migration Guide
+
+### From L0 to L1
+
+Already using `--auto`? Just add flags:
+
+```bash
+# Before
+tfdrift --auto
+
+# After (with custom region)
+tfdrift --auto --region ap-northeast-1
+```
+
+No breaking changes - existing `--auto` usage continues to work.
+
+### From L2 to L1
+
+Using full config.yaml? You might not need it:
+
+```yaml
+# config.yaml (before)
+providers:
+  aws:
+    regions: [us-west-2]
+    # ... rest of config
+falco:
+  hostname: prod-falco
+  port: 5060
+```
+
+```bash
+# Equivalent with L1 (after)
+tfdrift --auto \
+  --region us-west-2 \
+  --falco-endpoint prod-falco:5060
+```
+
+## ✨ Why L1 Semi-Auto?
+
+### Problem: L0 vs L2 Gap
+
+Before v0.3.1:
+- **L0 (--auto)**: Great for local dev, but no customization
+- **L2 (--config)**: Full control, but requires writing yaml
+
+**Missing**: Middle ground for common customizations
+
+### Solution: L1 Semi-Auto Mode
+
+After v0.3.1:
+- **L0**: Still perfect for quick start
+- **L1**: Covers 80% of use cases without yaml
+- **L2**: Available when you need full power
+
+## 📈 Impact
+
+### Reduced Config File Usage
+
+We expect **60-70% of users** can now use L1 instead of L2:
+- Custom region: Most common override
+- Custom Falco endpoint: Common in production
+- Custom state path: Common in CI/CD
+
+### Improved Developer Experience
+
+```bash
+# Before v0.3.1: Need to write config.yaml
+cat > config.yaml <<EOF
+providers:
+  aws:
+    regions: [us-west-2]
+    # ... more yaml
+EOF
+tfdrift --config config.yaml
+
+# After v0.3.1: Single command
+tfdrift --auto --region us-west-2
+```
+
+**Time saved**: ~2-3 minutes per setup
+
+## 🔍 Technical Implementation
+
+### Flag Processing
+
+Flags are processed **after** auto-detection:
+
+1. Auto-detect Terraform state → Generate base config
+2. Apply flag overrides → Customize config
+3. Validate → Start monitoring
+
+### Validation
+
+All overrides are validated before use:
+
+```bash
+# Invalid Falco endpoint format
+$ tfdrift --auto --falco-endpoint invalid
+Error: invalid Falco endpoint format (expected host:port): invalid
+
+# Invalid backend type
+$ tfdrift --auto --backend unknown
+Error: invalid backend type (must be 'local' or 's3'): unknown
+```
+
+Clear error messages help you fix issues quickly.
+
+## 📚 Documentation
+
+### Updated Help
+
+```bash
+$ tfdrift --help
+
+Flags:
+  --auto                    auto-detect Terraform state
+  --backend string          Backend type: local or s3
+  --falco-endpoint string   Falco gRPC endpoint (e.g., localhost:5060)
+  --region strings          AWS region(s) (e.g., us-west-2,ap-northeast-1)
+  --state-path string       Terraform state file path
+```
+
+All flags include examples for clarity.
+
+### Updated README
+
+The Quick Start now shows all three levels:
+- L0: Zero Configuration (完全自動)
+- L1: Semi-Auto (部分カスタマイズ)
+- L2: Full Configuration (完全手動)
+
+## 🎓 Best Practices
+
+### When to Use Each Level
+
+**Use L0 when**:
+- Local development
+- Quick testing
+- Default settings work
+
+**Use L1 when**:
+- Production monitoring
+- CI/CD pipelines
+- Custom Falco deployment
+- Multi-region monitoring
+
+**Use L2 when**:
+- Complex notification rules
+- Custom Falco rules
+- Multiple notification channels
+- Advanced features (auto-import, etc.)
+
+### Flag Combinations
+
+```bash
+# Good: Common production setup
+tfdrift --auto --region us-west-2 --falco-endpoint prod:5060
+
+# Good: CI/CD with explicit backend
+tfdrift --auto --backend s3 --region us-east-1 --dry-run
+
+# Overkill: Too many flags, use config.yaml
+tfdrift --auto --region r1,r2,r3 --falco-endpoint h:p --state-path p --backend s3
+# Better: tfdrift --config config.yaml
+```
+
+**Rule of thumb**: If you're using 3+ overrides, consider config.yaml.
+
+## 🔮 Future Enhancements
+
+We're considering additional L1 features:
+
+- `--notification` - Quick notification setup
+- `--rule` - Apply single Falco rule file
+- `--log-level` - Override log level
+- `--output` - Output format (json/text)
+
+Let us know what you need!
+
+## 📦 Installation
+
+### Binary
+
+```bash
+# Download latest release
+wget https://github.com/higakikeita/tfdrift-falco/releases/download/v0.3.1/tfdrift-linux-amd64
+chmod +x tfdrift-linux-amd64
+sudo mv tfdrift-linux-amd64 /usr/local/bin/tfdrift
+```
+
+### Go Install
+
+```bash
+go install github.com/keitahigaki/tfdrift-falco/cmd/tfdrift@v0.3.1
+```
+
+### Docker
+
+```bash
+docker pull ghcr.io/higakikeita/tfdrift-falco:v0.3.1
+```
+
+## 🙏 Feedback
+
+Try v0.3.1 and let us know:
+- Which configuration level do you use most?
+- What other flags would be useful?
+- Any pain points with current options?
+
+Open an issue or discussion on [GitHub](https://github.com/higakikeita/tfdrift-falco)!
+
+## 📊 Summary
+
+**v0.3.1 Highlights**:
+- ✅ L1 Semi-Auto Mode with 4 override flags
+- ✅ Maintains 203 CloudTrail events across 19 AWS services
+- ✅ Zero breaking changes
+- ✅ Improved documentation and examples
+- ✅ User-friendly error messages
+
+**Upgrade today** and enjoy the perfect balance! 🎯
+
+---
+
+**Previous Release**: [v0.3.0 - 203 CloudTrail Events](./v030-release-203-events.mdx)
+**Full Changelog**: [CHANGELOG.md](https://github.com/higakikeita/tfdrift-falco/blob/main/CHANGELOG.md)
