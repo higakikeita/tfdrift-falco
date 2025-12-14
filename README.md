@@ -2,7 +2,7 @@
 
 **Real-time Terraform Drift Detection powered by Falco**
 
-[![Version](https://img.shields.io/badge/version-0.2.0--beta-orange)](https://github.com/higakikeita/tfdrift-falco/releases)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
@@ -16,7 +16,33 @@
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
-> 🎉 **v0.2.0-beta Released!** - Now supports **95 CloudTrail events** (+265%) including VPC/Security Groups, ELB/ALB, KMS, and DynamoDB. [See CHANGELOG](./CHANGELOG.md)
+> 🎉 **v0.3.0 Released!** - Now supports **203 CloudTrail events** across **19 AWS services** including RDS Enhanced, DynamoDB Enhanced, VPC Enhanced, and SageMaker! [See Release Notes](./website/content/blog/v030-release-203-events.mdx)
+
+## 🚀 Quick Start (5 minutes)
+
+**Get started with zero configuration** - TFDrift-Falco automatically detects your Terraform state:
+
+```bash
+# 1. Navigate to your Terraform directory
+cd /path/to/your/terraform/project
+
+# 2. Run with auto-detection (no config file needed!)
+tfdrift --auto
+
+# That's it! 🎉
+```
+
+**What it does:**
+- ✅ Automatically finds your Terraform state (local or S3 backend)
+- ✅ Connects to Falco on localhost:5060 by default
+- ✅ Starts monitoring for drift in real-time
+
+**Requirements:**
+- Terraform initialized directory (`.terraform/` exists)
+- Falco running with CloudTrail plugin
+- AWS credentials configured
+
+> 💡 **Tip**: For advanced configuration (custom Falco endpoint, multiple regions, custom rules), create a `config.yaml` file. See [Configuration Guide](#-configuration) below.
 
 [English](#english) | [日本語](#japanese)
 
