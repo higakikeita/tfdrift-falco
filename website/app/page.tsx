@@ -110,7 +110,7 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <StatCard number="203" label="CloudTrail Events" />
             <StatCard number="19" label="AWS Services" />
-            <StatCard number="100%" label="Test Coverage" />
+            <StatCard number="95%+" label="Core Coverage" />
             <StatCard number="103%" label="v0.3.0 Achievement" />
           </div>
         </div>
