@@ -1,0 +1,30 @@
+---
+title: "v0.4.0: Structured Event Output - From Tool to Platform"
+description: "JSON output, NDJSON format, SIEM/SOAR integration ready - TFDrift-Falco becomes a platform"
+date: "2024-12-14"
+author: "Keita Higaki"
+tags: ["release", "integration", "json", "siem", "soar", "architecture"]
+---
+
+# 🚀 TFDrift-Falco v0.4.0: Structured Event Output
+
+**Release Date**: December 14, 2024
+
+**Major milestone**: TFDrift-Falco evolves from a **monitoring tool** to an **integration platform**.
+
+## 🎯 The Vision: "お手軽" × "つながる"
+
+v0.4.0 brings two critical capabilities:
+
+1. **お手軽 (Easy to use)** - Still zero-config with `--auto`
+2. **つながる (Connect)** - Now integrates with any system
+
+```bash
+# Still easy
+tfdrift --auto
+
+# Now also machine-readable
+tfdrift --auto --output json | jq '.severity'
+
+# And connects everywhere
+tfdrift --auto --output json | fluent-bit ...

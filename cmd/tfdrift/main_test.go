@@ -171,7 +171,7 @@ func TestNewApprovalCleanupCmd_CustomDuration(t *testing.T) {
 
 func TestVersion(t *testing.T) {
 	assert.NotEmpty(t, version)
-	assert.Equal(t, "0.3.1", version)
+	assert.Equal(t, "0.4.0", version)
 }
 
 func TestLoggerOutput(t *testing.T) {

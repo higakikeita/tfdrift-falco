@@ -17,9 +17,10 @@ import (
 )
 
 var (
-	version        = "0.3.1"
+	version        = "0.4.0"
 	cfgFile        string
 	autoDetect     bool
+	outputMode     string
 	dryRun         bool
 	daemon         bool
 	interactive    bool
@@ -43,6 +44,7 @@ and Terraform state comparison.`,
 
 	rootCmd.Flags().StringVar(&cfgFile, "config", "", "config file (default is config.yaml)")
 	rootCmd.Flags().BoolVar(&autoDetect, "auto", false, "auto-detect Terraform state from current directory")
+	rootCmd.Flags().StringVar(&outputMode, "output", "human", "output mode: human, json, or both (e.g., --output json)")
 	rootCmd.Flags().BoolVar(&dryRun, "dry-run", false, "run in dry-run mode (no notifications)")
 	rootCmd.Flags().BoolVar(&daemon, "daemon", false, "run in daemon mode")
 	rootCmd.Flags().BoolVar(&interactive, "interactive", false, "run in interactive mode (for approval prompts)")

@@ -2,7 +2,7 @@
 
 **Real-time Terraform Drift Detection powered by Falco**
 
-[![Version](https://img.shields.io/badge/version-0.3.1-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
@@ -16,7 +16,9 @@
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
-> 🎉 **v0.3.0 Released!** - Now supports **203 CloudTrail events** across **19 AWS services** including RDS Enhanced, DynamoDB Enhanced, VPC Enhanced, and SageMaker! [See Release Notes](./website/content/blog/v030-release-203-events.mdx)
+> 🚀 **v0.4.0 Released!** - **Structured Event Output** for SIEM/SOAR integrations! JSON output (NDJSON), event-driven architecture, machine-readable drift events. [See Release Notes](#)
+>
+> 🎉 **v0.3.0** - **203 CloudTrail events** across **19 AWS services** including RDS Enhanced, DynamoDB Enhanced, VPC Enhanced, and SageMaker!
 
 ## 🚀 Quick Start (5 minutes)
 
@@ -70,6 +72,62 @@ tfdrift --config config.yaml
 ```
 
 See [Configuration Guide](#-configuration) for config.yaml examples.
+
+---
+
+## 🔌 Output Modes (NEW in v0.4.0)
+
+TFDrift-Falco now outputs **structured events** for easy integration with SIEM, SOAR, and monitoring systems.
+
+### JSON Output (NDJSON)
+
+```bash
+# Machine-readable JSON events only
+tfdrift --auto --output json
+
+# Output (newline-delimited JSON):
+{"event_type":"terraform_drift_detected","provider":"aws","resource_type":"aws_security_group","resource_id":"sg-12345",...}
+{"event_type":"terraform_drift_detected","provider":"aws","resource_type":"aws_instance","resource_id":"i-67890",...}
+```
+
+**Perfect for:**
+- `jq` - `tfdrift --auto --output json | jq '.resource_type'`
+- Fluent Bit / Fluentd
+- Vector
+- Datadog Agent
+- Sysdig Agent
+- SIEM platforms
+
+### Both Human + JSON
+
+```bash
+# Both human-readable and JSON (for debugging)
+tfdrift --auto --output both
+```
+
+Outputs to:
+- **stderr**: Human-readable logs
+- **stdout**: JSON events (NDJSON)
+
+### Event Schema
+
+```json
+{
+  "event_type": "terraform_drift_detected",
+  "provider": "aws",
+  "account_id": "123456789012",
+  "resource_type": "aws_security_group",
+  "resource_id": "sg-12345",
+  "change_type": "modified",
+  "detected_at": "2025-01-10T12:34:56Z",
+  "source": "tfdrift-falco",
+  "severity": "critical",
+  "region": "us-west-2",
+  "user": "admin@example.com",
+  "cloudtrail_event": "AuthorizeSecurityGroupIngress",
+  "version": "1.0.0"
+}
+```
 
 ---
 
