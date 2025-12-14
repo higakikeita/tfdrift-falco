@@ -1,0 +1,72 @@
+name: Website Security Scan
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'website/**'
+  schedule:
+    - cron: '0 9 * * 1' # Every Monday at 9 AM UTC
+  workflow_dispatch:
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./website
+        run: npm ci
+
+      - name: Run npm audit
+        working-directory: ./website
+        run: npm audit --audit-level=moderate || true
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --sarif-file-output=snyk.sarif
+          command: test
+          working-directory: website
+
+      - name: Upload Snyk results to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: snyk.sarif
+          category: website-security
+
+      - name: Check for critical vulnerabilities
+        working-directory: ./website
+        run: |
+          echo "Checking React version..."
+          REACT_VERSION=$(node -p "require('./package.json').dependencies.react")
+          echo "Current React version: $REACT_VERSION"
+
+          # Check if React version is vulnerable
+          if [[ "$REACT_VERSION" == "19.2.1" ]] || [[ "$REACT_VERSION" == "19.2.2" ]]; then
+            echo "⚠️  WARNING: Vulnerable React version detected!"
+            echo "Please update to React 19.2.3 or higher"
+            echo "Run: npm install react@19.2.3 react-dom@19.2.3"
+            exit 1
+          fi

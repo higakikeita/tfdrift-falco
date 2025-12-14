@@ -17,8 +17,8 @@
     "gray-matter": "^4.0.3",
     "next": "16.0.10",
     "next-mdx-remote": "^5.0.0",
-    "react": "19.2.1",
-    "react-dom": "19.2.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "reading-time": "^1.5.0",
     "rehype-prism-plus": "^2.0.1",
     "remark-gfm": "^4.0.1"
