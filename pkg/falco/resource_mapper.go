@@ -214,6 +214,24 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		// Note: CreateAlias, DeleteAlias, UpdateAlias are mapped to aws_kms_alias (line 80-82)
 		// Lambda aliases cannot be distinguished from KMS aliases without eventSource field
 
+		// Auto Scaling - Auto Scaling Groups
+		"CreateAutoScalingGroup": "aws_autoscaling_group",
+		"DeleteAutoScalingGroup": "aws_autoscaling_group",
+		"UpdateAutoScalingGroup": "aws_autoscaling_group",
+		"SetDesiredCapacity":     "aws_autoscaling_group",
+
+		// Auto Scaling - Launch Configurations
+		"CreateLaunchConfiguration": "aws_launch_configuration",
+		"DeleteLaunchConfiguration": "aws_launch_configuration",
+
+		// Auto Scaling - Scaling Policies
+		"PutScalingPolicy": "aws_autoscaling_policy",
+		"DeletePolicy":     "aws_autoscaling_policy",
+
+		// Auto Scaling - Scheduled Actions
+		"PutScheduledUpdateGroupAction": "aws_autoscaling_schedule",
+		"DeleteScheduledAction":         "aws_autoscaling_schedule",
+
 		// API Gateway - REST API
 		"CreateRestApi":    "aws_api_gateway_rest_api",
 		"DeleteRestApi":    "aws_api_gateway_rest_api",

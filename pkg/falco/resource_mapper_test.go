@@ -90,6 +90,24 @@ func TestMapEventToResourceType(t *testing.T) {
 		// Note: Lambda alias events (CreateAlias, DeleteAlias, UpdateAlias) are tested under KMS
 		// as they share the same event names and cannot be distinguished without eventSource
 
+		// Auto Scaling - Auto Scaling Groups
+		{"Auto Scaling Group Create", "CreateAutoScalingGroup", "aws_autoscaling_group"},
+		{"Auto Scaling Group Delete", "DeleteAutoScalingGroup", "aws_autoscaling_group"},
+		{"Auto Scaling Group Update", "UpdateAutoScalingGroup", "aws_autoscaling_group"},
+		{"Auto Scaling Set Desired Capacity", "SetDesiredCapacity", "aws_autoscaling_group"},
+
+		// Auto Scaling - Launch Configurations
+		{"Launch Configuration Create", "CreateLaunchConfiguration", "aws_launch_configuration"},
+		{"Launch Configuration Delete", "DeleteLaunchConfiguration", "aws_launch_configuration"},
+
+		// Auto Scaling - Scaling Policies
+		{"Auto Scaling Policy Put", "PutScalingPolicy", "aws_autoscaling_policy"},
+		{"Auto Scaling Policy Delete", "DeletePolicy", "aws_autoscaling_policy"},
+
+		// Auto Scaling - Scheduled Actions
+		{"Auto Scaling Scheduled Action Put", "PutScheduledUpdateGroupAction", "aws_autoscaling_schedule"},
+		{"Auto Scaling Scheduled Action Delete", "DeleteScheduledAction", "aws_autoscaling_schedule"},
+
 		// ECS - Services
 		{"ECS Service Create", "CreateService", "aws_ecs_service"},
 		{"ECS Service Update", "UpdateService", "aws_ecs_service"},
