@@ -40,9 +40,9 @@ export default function Home() {
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center space-y-8">
-            <div className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-300 text-sm">
+            <div className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-300 text-sm animate-pulse">
               <RocketIcon className="w-4 h-4" />
-              <span>v0.3.0 - 203 CloudTrail Events Across 19 AWS Services</span>
+              <span>🎉 Now Releasing v0.4.1 - Zero-Config Mode + Webhook Integration!</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
@@ -54,7 +54,7 @@ export default function Home() {
 
             <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
               Detect manual infrastructure changes instantly using Falco&apos;s CloudTrail plugin.
-              No more periodic scans - get alerts the moment someone modifies your AWS resources.
+              Zero-config mode with <code className="px-2 py-1 bg-slate-800 rounded text-indigo-300">--auto</code> flag, structured event output, and webhook integration for Slack/Teams.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -87,18 +87,18 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             <FeatureCard
               icon={<BoltIcon className="w-8 h-8 text-indigo-400" />}
-              title="Real-time Detection"
-              description="Get instant alerts when infrastructure changes occur, powered by Falco's CloudTrail plugin."
+              title="Zero-Config Mode"
+              description="Just run 'tfdrift --auto' and start monitoring. Auto-detects Terraform state from local files or S3 backend."
             />
             <FeatureCard
               icon={<ShieldIcon className="w-8 h-8 text-indigo-400" />}
-              title="Security Context"
-              description="Track who made what changes with full IAM user identity and CloudTrail event correlation."
+              title="Webhook Integration"
+              description="Send drift alerts to Slack, Teams, or custom APIs with automatic retry and exponential backoff."
             />
             <FeatureCard
               icon={<RocketIcon className="w-8 h-8 text-indigo-400" />}
-              title="203 CloudTrail Events"
-              description="Monitor VPC, RDS, SageMaker, DynamoDB, Lambda, EC2, ElastiCache, Auto Scaling, ECS, EKS, IAM, S3, and more across 19 AWS services."
+              title="Structured Events"
+              description="NDJSON output for SIEM integration. Human-readable logs to stderr, JSON events to stdout."
             />
           </div>
         </div>
@@ -111,7 +111,7 @@ export default function Home() {
             <StatCard number="203" label="CloudTrail Events" />
             <StatCard number="19" label="AWS Services" />
             <StatCard number="95%+" label="Core Coverage" />
-            <StatCard number="103%" label="v0.3.0 Achievement" />
+            <StatCard number="v0.4.1" label="Latest Release" />
           </div>
         </div>
       </section>

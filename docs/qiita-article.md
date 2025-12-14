@@ -1,513 +1,1000 @@
 ---
-title: Go言語プロジェクトのテストカバレッジを0%から60%に向上させた話
-tags: Go, Testing, CI/CD, DevOps, テスト
-author: [Your Name]
+title: TFDrift-Falcoを「使いやすく」「つながる」ツールに進化させた話 - v0.3.1→v0.4.1の実装
+tags: Terraform, Go, Falco, DevOps, AWS
+author: Keita Higaki
 slide: false
 ---
 
-# Go言語プロジェクトのテストカバレッジを0%から60%に向上させた話
+# TFDrift-Falcoを「使いやすく」「つながる」ツールに進化させた話 - v0.3.1→v0.4.1の実装
 
 ## はじめに
 
-この記事では、オープンソースプロジェクト「TFDrift-Falco」において、テストカバレッジを**0%から59.8%**まで向上させた取り組みを紹介します。
+オープンソースプロジェクト「TFDrift-Falco」を、**"お手軽に使える"** × **"他システムとつながる"** ツールに進化させた取り組みを紹介します。
 
-4週間で250以上のテストケースを追加し、CI/CDパイプラインを構築した実践的なアプローチをお伝えします。
+3週間で以下の機能を実装しました：
+
+- **v0.3.1**: L1 Semi-Auto Mode（選択的カスタマイズ）
+- **v0.4.0**: 構造化イベント出力（NDJSON対応）
+- **v0.4.1**: Webhook統合（Slack/Teams対応）
+
+この記事では、設計思想から実装の詳細まで、実際のコードを交えて解説します。
 
 ## TL;DR
 
-- 🎯 **成果**: テストカバレッジ 0% → 59.8% (4週間)
-- 📝 **テスト数**: 250+テストケース、13ファイル、~3,900行
-- 🚀 **CI/CD**: GitHub Actions + golangci-lint (17 linters)
-- 🛠️ **ツール**: testify, httptest, カスタムモック
+- 🎯 **設計思想**: "考えなくていいけど、逃げ道はある"
+- 🚀 **v0.3.1**: `--auto --region us-west-2` で部分カスタマイズ
+- 📊 **v0.4.0**: NDJSON形式でSIEM/SOAR連携可能に
+- 🔔 **v0.4.1**: Slack/Teamsへの自動通知（リトライ付き）
+- ✅ **テスト**: 全バージョンで包括的なテストケース追加
 
-## プロジェクト概要
+## TFDrift-Falcoとは
 
-**TFDrift-Falco**は、Falcoを使ってTerraformのドリフト（設定の差異）をリアルタイムで検出するツールです。
+**TFDrift-Falco**は、Falcoを使ってTerraformのドリフト（手動変更による設定差異）をリアルタイムで検出するツールです。
 
-```
-開始時:
-├── 実装コード: 2,624行
-├── テストコード: 0行
-└── カバレッジ: 0%
+```bash
+# 従来のTerraform drift検出
+terraform plan  # 定期的に実行する必要がある
 
-完了時:
-├── 実装コード: 2,624行
-├── テストコード: ~3,900行
-└── カバレッジ: 59.8% ✅
+# TFDrift-Falcoの場合
+tfdrift --config config.yaml  # リアルタイムで検出
 ```
 
-## 戦略: 4フェーズアプローチ
+CloudTrailイベントをFalcoで監視し、Terraform stateと比較することで、**誰が・いつ・何を変更したか**を即座に検知します。
 
-依存関係と難易度を考慮し、4フェーズに分けて実装しました。
+## 課題：「使いづらい」「つながらない」
 
-### Phase 1: 基盤（Week 1）- 目標15%
+v0.3.0リリース後、2つの大きな課題が見えてきました。
 
-**対象**: `pkg/types`, `pkg/config`
+### 課題1: 設定ファイルが複雑
 
-まず、依存関係のない基盤パッケージから着手。設定ファイルの読み込みとバリデーションをテスト：
+```yaml
+# config.yaml（50行以上の設定が必要）
+providers:
+  aws:
+    enabled: true
+    regions:
+      - us-east-1
+    state:
+      backend: s3
+      bucket: my-terraform-state
+      key: terraform.tfstate
+      region: us-east-1
+
+falco:
+  hostname: localhost
+  port: 5060
+
+notifications:
+  slack:
+    enabled: true
+    webhook_url: https://hooks.slack.com/...
+# ... さらに続く
+```
+
+**問題点**:
+- 初回セットアップのハードルが高い
+- ちょっと試したいだけなのに大変
+- リージョンだけ変えたい時も全部書く必要がある
+
+### 課題2: 他システムとの連携が困難
+
+```
+TFDrift-Falco (v0.3.0)
+    ↓
+  ログ出力（人間向けテキスト）
+    ↓
+  ？？？ ← SIEM/SOARに送りたいけど...
+```
+
+**問題点**:
+- ログは人間向けで構造化されていない
+- Slack/Teamsに通知したいけど自分で実装が必要
+- SIEM/SOARへの連携にパーサーが必要
+
+## 解決策：「お手軽」×「つながる」
+
+設計の核となる思想：
+
+> **"考えなくていいけど、逃げ道はある"**
+
+### アプローチ1: 3段階の設定レベル
+
+```
+L0（Zero-Config）：考えなくていい
+    ↓
+L1（Semi-Auto）：一部だけカスタマイズ
+    ↓
+L2（Full-Config）：完全にコントロール
+```
+
+### アプローチ2: イベント駆動アーキテクチャ
+
+```
+TFDrift-Falco
+    ↓
+構造化イベント（JSON）
+    ↓ ↓ ↓
+  Slack Teams SIEM/SOAR
+```
+
+## v0.3.1: L1 Semi-Auto Mode
+
+**目標**: ゼロコンフィグを保ちつつ、必要な部分だけカスタマイズできるように。
+
+### 実装した機能
+
+```bash
+# L0: ゼロコンフィグ
+tfdrift --auto
+
+# L1: リージョンだけ変更
+tfdrift --auto --region us-west-2,ap-northeast-1
+
+# L1: Falcoエンドポイントを指定
+tfdrift --auto --falco-endpoint prod-falco:5061
+
+# L1: ローカルstateファイルを指定
+tfdrift --auto --state-path ./terraform.tfstate
+
+# L1: バックエンドタイプを強制
+tfdrift --auto --backend local
+
+# L1: 複数のオプションを組み合わせ
+tfdrift --auto \
+  --region us-west-2 \
+  --falco-endpoint localhost:5060 \
+  --state-path ./terraform.tfstate
+```
+
+### コア実装：applyConfigOverrides()
+
+**cmd/tfdrift/main.go**:
 
 ```go
-func TestLoad_ValidConfig(t *testing.T) {
-    cfg, err := Load("testdata/valid_config.yaml")
-    require.NoError(t, err)
-
-    assert.True(t, cfg.Providers.AWS.Enabled)
-    assert.Equal(t, []string{"us-east-1"}, cfg.Providers.AWS.Regions)
-}
-```
-
-**成果**:
-- 17テストケース作成
-- **90.9%カバレッジ達成** ✅
-- Phase 1完了時: ~15%
-
-### Phase 2: コアロジック（Week 2）- 目標31%
-
-**対象**: `pkg/terraform/state`, `pkg/detector`
-
-Terraform stateの管理とドリフト検出のコアロジックをテスト。スレッドセーフティも検証：
-
-```go
-func TestStateManager_ThreadSafety(t *testing.T) {
-    sm, err := NewStateManager(cfg)
-    require.NoError(t, err)
-
-    err = sm.Load(context.Background())
-    require.NoError(t, err)
-
-    // 10 goroutines で同時アクセス
-    done := make(chan bool)
-    for i := 0; i < 10; i++ {
-        go func() {
-            resource, exists := sm.GetResource("i-1234567890abcdef0")
-            assert.True(t, exists)
-            done <- true
-        }()
+// applyConfigOverrides applies L1 semi-auto mode flag overrides to the config
+func applyConfigOverrides(cfg *config.Config) error {
+    // Override AWS regions if specified
+    if len(regionOverride) > 0 {
+        cfg.Providers.AWS.Regions = regionOverride
+        log.Infof("✓ Using custom region(s): %v", regionOverride)
     }
 
-    for i := 0; i < 10; i++ {
-        <-done
+    // Override Falco endpoint if specified
+    if falcoEndpoint != "" {
+        parts := strings.Split(falcoEndpoint, ":")
+        if len(parts) != 2 {
+            return fmt.Errorf("invalid Falco endpoint format (expected host:port): %s", falcoEndpoint)
+        }
+
+        port, err := strconv.Atoi(parts[1])
+        if err != nil {
+            return fmt.Errorf("invalid port in Falco endpoint: %s", parts[1])
+        }
+
+        cfg.Falco.Hostname = parts[0]
+        cfg.Falco.Port = uint16(port)
+        log.Infof("✓ Using custom Falco endpoint: %s", falcoEndpoint)
     }
+
+    // Override state path if specified
+    if statePathOverride != "" {
+        cfg.Providers.AWS.State.LocalPath = statePathOverride
+        cfg.Providers.AWS.State.Backend = "local"
+        log.Infof("✓ Using custom state path: %s", statePathOverride)
+    }
+
+    // Override backend type if specified
+    if backendTypeOverride != "" {
+        if backendTypeOverride != "local" && backendTypeOverride != "s3" {
+            return fmt.Errorf("invalid backend type (must be 'local' or 's3'): %s", backendTypeOverride)
+        }
+        cfg.Providers.AWS.State.Backend = backendTypeOverride
+        log.Infof("✓ Using backend type: %s", backendTypeOverride)
+    }
+
+    return nil
 }
 ```
 
-**成果**:
-- 37テストケース作成
-- state.goは**100%カバレッジ** ✅
-- Phase 2完了時: 31.2%
+### 実行フロー
 
-### Phase 3: 統合機能（Week 3）- 目標37%
-
-**対象**: `pkg/diff`, `pkg/metrics`
-
-5種類のdiffフォーマッター（Console, UnifiedDiff, Markdown, JSON, SideBySide）を包括的にテスト：
-
-```go
-func TestFormatMarkdown(t *testing.T) {
-    formatter := NewFormatter(false)
-
-    alert := &types.DriftAlert{
-        Severity:     "high",
-        ResourceType: "aws_instance",
-        ResourceName: "web",
-        Attribute:    "instance_type",
-        OldValue:     "t3.micro",
-        NewValue:     "t3.large",
-    }
-
-    result := formatter.FormatMarkdown(alert)
-
-    assert.Contains(t, result, "## 🚨 Drift Alert")
-    assert.Contains(t, result, "**Severity:** high")
-    assert.Contains(t, result, "`aws_instance.web`")
-}
+```
+1. --autoフラグ検出
+    ↓
+2. Terraform stateを自動検出
+    ↓
+3. デフォルト設定を生成
+    ↓
+4. applyConfigOverrides()で上書き  ← NEW!
+    ↓
+5. 検出開始
 ```
 
-**成果**:
-- 42テストケース作成
-- pkg/diff: **96.0%カバレッジ** ✅
-- Phase 3完了時: 36.9%
+### テスト戦略
 
-### Phase 4: 外部依存（Week 4）- 目標52%
-
-**対象**: `pkg/falco`, `pkg/notifier`, `pkg/terraform/importer`, `pkg/terraform/approval`
-
-MockHTTPServerを活用してWebhook送信をテスト：
+**cmd/tfdrift/main_test.go**に7つのテストケースを追加：
 
 ```go
-func TestSend_Slack(t *testing.T) {
-    mockServer := testutil.NewMockHTTPServer()
-    defer mockServer.Close()
+func TestApplyConfigOverrides_RegionOverride(t *testing.T) {
+    // Set region override
+    regionOverride = []string{"us-west-2", "ap-northeast-1"}
+    defer func() { regionOverride = nil }()
 
-    cfg := config.NotificationsConfig{
-        Slack: config.SlackConfig{
-            Enabled:    true,
-            WebhookURL: mockServer.URL(),
-            Channel:    "#alerts",
-        },
-    }
-
-    manager, err := NewManager(cfg)
-    require.NoError(t, err)
-
-    alert := testutil.CreateTestDriftAlert()
-    err = manager.Send(alert)
-    assert.NoError(t, err)
-
-    // Verify request was sent
-    assert.Equal(t, 1, mockServer.GetRequestCount())
-
-    // Verify payload
-    body := mockServer.GetLastRequestBody()
-    var payload map[string]interface{}
-    json.Unmarshal([]byte(body), &payload)
-
-    assert.Equal(t, "#alerts", payload["channel"])
-    assert.Contains(t, payload, "blocks")
-}
-```
-
-**成果**:
-- 104テストケース作成
-- pkg/notifier: **95.5%カバレッジ** ✅
-- Phase 4完了時: **52.2%** 🎉
-
-### Phase 5: コマンドラインテスト（Week 5）- 目標60%
-
-**対象**: `cmd/tfdrift`, `cmd/test-drift`, `pkg/detector`追加テスト
-
-コマンドラインツールとDetectorの残りの関数をテスト：
-
-```go
-func TestNewApprovalCmd(t *testing.T) {
-    cmd := newApprovalCmd()
-
-    assert.NotNil(t, cmd)
-    assert.Equal(t, "approval", cmd.Use)
-    assert.True(t, cmd.HasSubCommands())
-
-    // Verify all subcommands are present
-    subcommands := cmd.Commands()
-    assert.Len(t, subcommands, 4)
-}
-
-func TestNew_WithAutoImport(t *testing.T) {
     cfg := &config.Config{
-        AutoImport: config.AutoImportConfig{
-            Enabled:         true,
-            TerraformDir:    ".",
-            RequireApproval: true,
+        Providers: config.ProvidersConfig{
+            AWS: config.AWSConfig{
+                Regions: []string{"us-east-1"},
+            },
+        },
+        Falco: config.FalcoConfig{
+            Hostname: "localhost",
+            Port:     5060,
         },
     }
 
-    detector, err := New(cfg)
+    err := applyConfigOverrides(cfg)
+    require.NoError(t, err)
 
-    assert.NoError(t, err)
-    assert.NotNil(t, detector.importer)
-    assert.NotNil(t, detector.approvalManager)
+    assert.Equal(t, []string{"us-west-2", "ap-northeast-1"}, cfg.Providers.AWS.Regions)
+}
+
+func TestApplyConfigOverrides_FalcoEndpoint(t *testing.T) {
+    // Set Falco endpoint override
+    falcoEndpoint = "prod-falco:5061"
+    defer func() { falcoEndpoint = "" }()
+
+    cfg := &config.Config{
+        Providers: config.ProvidersConfig{
+            AWS: config.AWSConfig{
+                Regions: []string{"us-east-1"},
+            },
+        },
+        Falco: config.FalcoConfig{
+            Hostname: "localhost",
+            Port:     5060,
+        },
+    }
+
+    err := applyConfigOverrides(cfg)
+    require.NoError(t, err)
+
+    assert.Equal(t, "prod-falco", cfg.Falco.Hostname)
+    assert.Equal(t, uint16(5061), cfg.Falco.Port)
 }
 ```
 
-**成果**:
-- cmd/tfdrift: **47.2%カバレッジ** ✅
-- pkg/detector追加テスト: **51.8%カバレッジ** ✅
-- Phase 5完了時: **59.8%** 🎉
+**成果**: テストカバレッジが32.3% → 50.8%に向上 ✅
 
-## CI/CD環境の構築
+## v0.4.0: Structured Event Output
 
-### GitHub Actions ワークフロー
+**目標**: ツールから「プラットフォーム」へ。他システムと連携可能な構造化イベント出力を実装。
 
-マトリックステストとカバレッジチェックを自動化：
+### イベントモデルの設計
+
+**pkg/types/drift_event.go**:
+
+```go
+// DriftEvent represents a structured drift detection event
+type DriftEvent struct {
+    EventType    string    `json:"event_type"`    // "terraform_drift"
+    Provider     string    `json:"provider"`      // "aws"
+    ResourceType string    `json:"resource_type"` // "aws_security_group"
+    ResourceID   string    `json:"resource_id"`   // "sg-12345"
+    ChangeType   string    `json:"change_type"`   // "created", "modified", "deleted"
+    DetectedAt   time.Time `json:"detected_at"`   // RFC3339 timestamp
+    Source       string    `json:"source"`        // "falco"
+    Severity     string    `json:"severity"`      // "critical", "high", "medium", "low"
+
+    // Optional fields
+    Region          string `json:"region,omitempty"`
+    User            string `json:"user,omitempty"`
+    CloudTrailEvent string `json:"cloudtrail_event,omitempty"`
+    RequestID       string `json:"request_id,omitempty"`
+
+    // Metadata
+    Version string `json:"version"` // Schema version: "1.0.0"
+}
+```
+
+**設計のポイント**:
+- 不変なスキーマバージョン（`version: "1.0.0"`）
+- オプショナルフィールドは`omitempty`
+- RFC3339形式のタイムスタンプ
+- 自動的な重要度判定
+
+### Builder Pattern実装
+
+```go
+// NewDriftEvent creates a new drift event
+func NewDriftEvent(provider, resourceType, resourceID, changeType string) *DriftEvent {
+    event := &DriftEvent{
+        EventType:    "terraform_drift",
+        Provider:     provider,
+        ResourceType: resourceType,
+        ResourceID:   resourceID,
+        ChangeType:   changeType,
+        DetectedAt:   time.Now(),
+        Source:       "falco",
+        Version:      "1.0.0",
+    }
+
+    // Auto-determine severity
+    event.Severity = DetermineSeverity(resourceType, changeType)
+
+    return event
+}
+
+// Chainable builder methods
+func (e *DriftEvent) WithSeverity(severity string) *DriftEvent {
+    e.Severity = severity
+    return e
+}
+
+func (e *DriftEvent) WithRegion(region string) *DriftEvent {
+    e.Region = region
+    return e
+}
+
+func (e *DriftEvent) WithUser(user string) *DriftEvent {
+    e.User = user
+    return e
+}
+
+func (e *DriftEvent) WithCloudTrailEvent(eventName, requestID string) *DriftEvent {
+    e.CloudTrailEvent = eventName
+    e.RequestID = requestID
+    return e
+}
+```
+
+### 自動重要度判定
+
+```go
+// DetermineSeverity automatically determines event severity
+func DetermineSeverity(resourceType, changeType string) string {
+    // Critical resources
+    criticalResources := map[string]bool{
+        "aws_iam_role":             true,
+        "aws_iam_policy":           true,
+        "aws_security_group":       true,
+        "aws_security_group_rule":  true,
+        "aws_kms_key":              true,
+    }
+
+    if criticalResources[resourceType] {
+        return SeverityCritical
+    }
+
+    // Deletions are high severity
+    if changeType == ChangeTypeDeleted {
+        return SeverityHigh
+    }
+
+    // Default to medium
+    return SeverityMedium
+}
+```
+
+### NDJSON出力の実装
+
+**pkg/output/json.go**:
+
+```go
+// JSONOutput writes drift events as newline-delimited JSON
+type JSONOutput struct {
+    writer io.Writer
+    mu     sync.Mutex
+}
+
+func NewJSONOutput(writer io.Writer) *JSONOutput {
+    return &JSONOutput{
+        writer: writer,
+    }
+}
+
+func (j *JSONOutput) Write(event *types.DriftEvent) error {
+    j.mu.Lock()
+    defer j.mu.Unlock()
+
+    jsonStr, err := event.ToJSONString()
+    if err != nil {
+        return fmt.Errorf("failed to serialize event: %w", err)
+    }
+
+    _, err = fmt.Fprintln(j.writer, jsonStr)
+    return err
+}
+```
+
+**NDJSON形式の利点**:
+- 1行1イベント = ストリーミング処理に最適
+- jqで簡単にフィルタリング可能
+- Fluent Bit/Fluentdで直接取り込み可能
+
+### 出力モード管理
+
+**pkg/output/manager.go**:
+
+```go
+type OutputMode string
+
+const (
+    OutputModeHuman OutputMode = "human" // 人間向け（stderr）
+    OutputModeJSON  OutputMode = "json"  // JSON（stdout）
+    OutputModeBoth  OutputMode = "both"  // 両方
+)
+
+type Manager struct {
+    mode       OutputMode
+    jsonOutput *JSONOutput
+    humanOut   io.Writer
+}
+
+func (m *Manager) EmitDriftEvent(event *types.DriftEvent) error {
+    // JSON to stdout
+    if m.mode == OutputModeJSON || m.mode == OutputModeBoth {
+        if err := m.jsonOutput.Write(event); err != nil {
+            return err
+        }
+    }
+
+    // Human to stderr
+    if m.mode == OutputModeHuman || m.mode == OutputModeBoth {
+        humanMsg := m.formatHumanMessage(event)
+        fmt.Fprintln(m.humanOut, humanMsg)
+    }
+
+    return nil
+}
+
+func (m *Manager) formatHumanMessage(event *types.DriftEvent) string {
+    emoji := getSeverityEmoji(event.Severity)
+
+    msg := fmt.Sprintf("%s [%s] %s: %s (%s)",
+        emoji,
+        event.Severity,
+        event.ChangeType,
+        event.ResourceType,
+        event.ResourceID,
+    )
+
+    if event.User != "" {
+        msg += fmt.Sprintf(" by %s", event.User)
+    }
+
+    if event.Region != "" {
+        msg += fmt.Sprintf(" in %s", event.Region)
+    }
+
+    return msg
+}
+```
+
+### 使用例
+
+```bash
+# Human-readable output (default)
+tfdrift --auto
+# Output to stderr:
+# 🚨 [critical] modified: aws_security_group (sg-12345) by admin in us-west-2
+
+# JSON output only
+tfdrift --auto --output json
+# Output to stdout (NDJSON):
+# {"event_type":"terraform_drift","provider":"aws","resource_type":"aws_security_group",...}
+
+# Both outputs
+tfdrift --auto --output both
+# stderr: 🚨 [critical] modified: aws_security_group (sg-12345)
+# stdout: {"event_type":"terraform_drift",...}
+
+# Pipeline to jq
+tfdrift --auto --output json | jq 'select(.severity == "critical")'
+
+# Pipeline to Fluent Bit
+tfdrift --auto --output json | fluent-bit -c fluent-bit.conf
+```
+
+### テスト戦略
+
+**pkg/types/drift_event_test.go**（25+テストケース）:
+
+```go
+func TestNewDriftEvent(t *testing.T) {
+    event := types.NewDriftEvent("aws", "aws_security_group", "sg-12345", types.ChangeTypeModified)
+
+    assert.Equal(t, "terraform_drift", event.EventType)
+    assert.Equal(t, "aws", event.Provider)
+    assert.Equal(t, "aws_security_group", event.ResourceType)
+    assert.Equal(t, "sg-12345", event.ResourceID)
+    assert.Equal(t, types.ChangeTypeModified, event.ChangeType)
+    assert.Equal(t, "falco", event.Source)
+    assert.Equal(t, "1.0.0", event.Version)
+    assert.Equal(t, types.SeverityCritical, event.Severity) // Auto-determined
+}
+
+func TestDriftEvent_BuilderPattern(t *testing.T) {
+    event := types.NewDriftEvent("aws", "aws_instance", "i-12345", types.ChangeTypeCreated).
+        WithRegion("us-west-2").
+        WithUser("admin@example.com").
+        WithCloudTrailEvent("RunInstances", "req-123").
+        WithSeverity(types.SeverityHigh)
+
+    assert.Equal(t, "us-west-2", event.Region)
+    assert.Equal(t, "admin@example.com", event.User)
+    assert.Equal(t, "RunInstances", event.CloudTrailEvent)
+    assert.Equal(t, "req-123", event.RequestID)
+    assert.Equal(t, types.SeverityHigh, event.Severity)
+}
+
+func TestDriftEvent_ToJSON(t *testing.T) {
+    event := types.NewDriftEvent("aws", "aws_instance", "i-12345", types.ChangeTypeModified)
+
+    jsonBytes, err := event.ToJSON()
+    require.NoError(t, err)
+
+    // Unmarshal and verify
+    var decoded types.DriftEvent
+    err = json.Unmarshal(jsonBytes, &decoded)
+    require.NoError(t, err)
+
+    assert.Equal(t, event.ResourceType, decoded.ResourceType)
+    assert.Equal(t, event.Version, decoded.Version)
+}
+```
+
+**成果**: pkg/types で100%カバレッジ達成 ✅
+
+## v0.4.1: Webhook Integration
+
+**目標**: Slack/Teamsへの即座通知と、カスタムWebhook統合。
+
+### Webhook設定
+
+**pkg/output/webhook.go**:
+
+```go
+// WebhookConfig contains webhook configuration
+type WebhookConfig struct {
+    URL         string            `yaml:"url" json:"url"`
+    Method      string            `yaml:"method" json:"method"`           // POST, PUT (default: POST)
+    Headers     map[string]string `yaml:"headers" json:"headers"`         // Custom headers
+    Timeout     time.Duration     `yaml:"timeout" json:"timeout"`         // Request timeout (default: 10s)
+    MaxRetries  int               `yaml:"max_retries" json:"max_retries"` // Max retry attempts (default: 3)
+    RetryDelay  time.Duration     `yaml:"retry_delay" json:"-"`           // Initial retry delay (default: 1s)
+    ContentType string            `yaml:"content_type" json:"content_type"` // Content-Type header
+}
+```
+
+### Exponential Backoff リトライ
+
+```go
+// sendWithRetry sends the request with exponential backoff retry
+func (w *WebhookOutput) sendWithRetry(jsonData []byte) error {
+    var lastErr error
+
+    for attempt := 0; attempt <= w.config.MaxRetries; attempt++ {
+        if attempt > 0 {
+            // Exponential backoff: delay * 2^(attempt-1)
+            // Attempt 1: 1s, 2: 2s, 3: 4s, 4: 8s
+            delay := w.config.RetryDelay * time.Duration(1<<uint(attempt-1))
+            log.Debugf("Webhook retry attempt %d/%d after %v", attempt, w.config.MaxRetries, delay)
+            time.Sleep(delay)
+        }
+
+        err := w.send(jsonData)
+        if err == nil {
+            if attempt > 0 {
+                log.Infof("Webhook succeeded after %d retries", attempt)
+            }
+            return nil
+        }
+
+        lastErr = err
+        log.Warnf("Webhook attempt %d failed: %v", attempt+1, err)
+    }
+
+    return fmt.Errorf("webhook failed after %d attempts: %w", w.config.MaxRetries+1, lastErr)
+}
+```
+
+### Slackフォーマッター
+
+```go
+// FormatSlackPayload formats a drift event as a Slack message
+func FormatSlackPayload(event *types.DriftEvent) map[string]interface{} {
+    severity := getSeverityColor(event.Severity)
+
+    text := fmt.Sprintf("*Terraform Drift Detected*\n"+
+        "Resource: `%s` (%s)\n"+
+        "Change: %s\n"+
+        "Severity: %s",
+        event.ResourceType,
+        event.ResourceID,
+        event.ChangeType,
+        event.Severity)
+
+    if event.Region != "" {
+        text += fmt.Sprintf("\nRegion: %s", event.Region)
+    }
+    if event.User != "" {
+        text += fmt.Sprintf("\nUser: %s", event.User)
+    }
+    if event.CloudTrailEvent != "" {
+        text += fmt.Sprintf("\nCloudTrail: %s", event.CloudTrailEvent)
+    }
+
+    return map[string]interface{}{
+        "attachments": []map[string]interface{}{
+            {
+                "color":       severity,
+                "text":        text,
+                "footer":      "TFDrift-Falco",
+                "footer_icon": "https://falco.org/img/brand/falco-logo.png",
+                "ts":          event.DetectedAt.Unix(),
+            },
+        },
+    }
+}
+
+// getSeverityColor returns a color code for Slack attachments
+func getSeverityColor(severity string) string {
+    switch severity {
+    case types.SeverityCritical:
+        return "danger" // Red
+    case types.SeverityHigh:
+        return "warning" // Orange
+    case types.SeverityMedium:
+        return "#439FE0" // Blue
+    case types.SeverityLow:
+        return "good" // Green
+    default:
+        return "#808080" // Gray
+    }
+}
+```
+
+### Microsoft Teamsフォーマッター
+
+```go
+// FormatTeamsPayload formats a drift event as a Microsoft Teams message
+func FormatTeamsPayload(event *types.DriftEvent) map[string]interface{} {
+    title := fmt.Sprintf("Terraform Drift Detected: %s", event.ResourceType)
+
+    text := fmt.Sprintf("**Resource ID**: %s\n\n"+
+        "**Change Type**: %s\n\n"+
+        "**Severity**: %s",
+        event.ResourceID,
+        event.ChangeType,
+        event.Severity)
+
+    if event.Region != "" {
+        text += fmt.Sprintf("\n\n**Region**: %s", event.Region)
+    }
+    if event.User != "" {
+        text += fmt.Sprintf("\n\n**User**: %s", event.User)
+    }
+
+    return map[string]interface{}{
+        "@type":      "MessageCard",
+        "@context":   "https://schema.org/extensions",
+        "summary":    title,
+        "title":      title,
+        "text":       text,
+        "themeColor": getTeamsColor(event.Severity),
+    }
+}
+
+// getTeamsColor returns a color code for Microsoft Teams
+func getTeamsColor(severity string) string {
+    switch severity {
+    case types.SeverityCritical:
+        return "FF0000" // Red
+    case types.SeverityHigh:
+        return "FFA500" // Orange
+    case types.SeverityMedium:
+        return "0078D7" // Blue
+    case types.SeverityLow:
+        return "28A745" // Green
+    default:
+        return "808080" // Gray
+    }
+}
+```
+
+### 設定例
+
+**config.yaml**:
 
 ```yaml
-# .github/workflows/test.yml
-name: Test
+# Slack通知
+notifications:
+  webhooks:
+    - url: https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+      method: POST
+      timeout: 10s
+      max_retries: 3
+      retry_delay: 1s
 
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+# Microsoft Teams通知
+notifications:
+  webhooks:
+    - url: https://outlook.office.com/webhook/YOUR_TEAMS_WEBHOOK
+      method: POST
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: ['1.21', '1.22', '1.23']
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ matrix.go-version }}
-
-      - name: Run tests
-        run: go test -v -race -coverprofile=coverage.out ./...
-
-      - name: Check coverage threshold
-        run: |
-          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
-          THRESHOLD=30.0
-          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
-            echo "❌ Coverage ${COVERAGE}% is below threshold"
-            exit 1
-          fi
+# カスタムAPI
+notifications:
+  webhooks:
+    - url: https://api.example.com/drift-events
+      method: POST
+      headers:
+        Authorization: "Bearer YOUR_TOKEN"
+        X-Custom-Header: "custom-value"
+      timeout: 5s
+      max_retries: 5
 ```
 
-### golangci-lint設定
+### 使用例
 
-17個のlinterを有効化：
+```bash
+# Slackに通知
+tfdrift --config config-slack.yaml
 
-```yaml
-# .golangci.yml
-linters:
-  enable:
-    - errcheck      # Unchecked errors
-    - gosimple      # Simplify code
-    - govet         # Go vet
-    - staticcheck   # Static analysis
-    - unused        # Unused code
-    - gofmt         # Formatting
-    - goimports     # Import formatting
-    - misspell      # Spelling
-    - revive        # Fast linter
-    - gosec         # Security
-    - gocritic      # Extensible linter
-    - unparam       # Unused parameters
+# Microsoft Teamsに通知
+tfdrift --config config-teams.yaml
+
+# カスタムWebhook + JSON出力
+tfdrift --config config-custom.yaml --output both
 ```
 
-### Makefile
+### テスト戦略
 
-ローカルでCIチェックを実行できるように：
-
-```makefile
-# Run all CI checks locally
-ci: deps fmt lint test-coverage-threshold test-race
-	@echo "✅ All CI checks passed!"
-
-# Quick CI checks without race detector
-ci-local: fmt lint test-coverage
-	@echo "✅ Local CI checks passed!"
-```
-
-## テストユーティリティの整備
-
-### pkg/testutil パッケージ
-
-再利用可能なヘルパーを作成：
+**pkg/output/webhook_test.go**（15テストケース）:
 
 ```go
-// fixtures.go - テストデータ生成
-func CreateTestDriftAlert() *types.DriftAlert {
-    return &types.DriftAlert{
-        Severity:     "high",
-        ResourceType: "aws_instance",
-        ResourceName: "web",
-        ResourceID:   "i-1234567890abcdef0",
-        Attribute:    "instance_type",
-        OldValue:     "t3.micro",
-        NewValue:     "t3.small",
-        UserIdentity: types.UserIdentity{
-            Type:     "IAMUser",
-            UserName: "admin",
-        },
-        MatchedRules: []string{"instance_type_change"},
+func TestWebhookOutput_Write_Success(t *testing.T) {
+    // Create test server
+    var receivedEvent types.DriftEvent
+    server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // Verify request
+        assert.Equal(t, "POST", r.Method)
+        assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+
+        // Decode event
+        err := json.NewDecoder(r.Body).Decode(&receivedEvent)
+        require.NoError(t, err)
+
+        w.WriteHeader(http.StatusOK)
+    }))
+    defer server.Close()
+
+    // Create webhook
+    config := WebhookConfig{
+        URL: server.URL,
     }
+    webhook := NewWebhookOutput(config)
+    defer webhook.Close()
+
+    // Send event
+    event := types.NewDriftEvent("aws", "aws_security_group", "sg-12345", types.ChangeTypeModified)
+    err := webhook.Write(event)
+    require.NoError(t, err)
+
+    // Verify received event
+    assert.Equal(t, "aws_security_group", receivedEvent.ResourceType)
+    assert.Equal(t, "sg-12345", receivedEvent.ResourceID)
 }
 
-// mock_http.go - HTTPサーバーモック
-type MockHTTPServer struct {
-    Server        *httptest.Server
-    requests      []*http.Request
-    requestBodies []string
-    statusCode    int
-}
+func TestWebhookOutput_Write_Retry(t *testing.T) {
+    attempts := 0
 
-func NewMockHTTPServer() *MockHTTPServer {
-    mock := &MockHTTPServer{
-        statusCode: http.StatusOK,
+    // Create test server that fails first 2 attempts
+    server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        attempts++
+        if attempts < 3 {
+            w.WriteHeader(http.StatusInternalServerError)
+            return
+        }
+        w.WriteHeader(http.StatusOK)
+    }))
+    defer server.Close()
+
+    // Create webhook with fast retries for testing
+    config := WebhookConfig{
+        URL:        server.URL,
+        MaxRetries: 3,
+        RetryDelay: 10 * time.Millisecond,
     }
-    mock.Server = httptest.NewServer(http.HandlerFunc(mock.handleRequest))
-    return mock
-}
-```
+    webhook := NewWebhookOutput(config)
+    defer webhook.Close()
 
-## 遭遇した課題と解決策
+    // Send event
+    event := types.NewDriftEvent("aws", "aws_db_instance", "db-12345", types.ChangeTypeDeleted)
+    err := webhook.Write(event)
+    require.NoError(t, err)
 
-### 1. Prometheus メトリクス重複登録エラー
-
-**問題**:
-```
-panic: duplicate metrics collector registration attempted
-```
-
-テスト実行時に同じメトリクスを複数回登録しようとしてpanicが発生。
-
-**解決策**: Singleton patternを採用
-
-```go
-var testMetrics *Metrics
-
-func init() {
-    testMetrics = NewMetrics("tfdrift_test")
+    // Should have retried twice before success
+    assert.Equal(t, 3, attempts)
 }
 
-func TestRecordDriftAlert(t *testing.T) {
-    m := testMetrics  // 全テストで同じインスタンスを使用
-    assert.NotPanics(t, func() {
-        m.RecordDriftAlert("critical", "aws_instance", "aws")
-    })
-}
-```
+func TestWebhookOutput_Write_CustomHeaders(t *testing.T) {
+    // Create test server
+    server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // Verify custom headers
+        assert.Equal(t, "Bearer secret-token", r.Header.Get("Authorization"))
+        assert.Equal(t, "custom-value", r.Header.Get("X-Custom-Header"))
 
-### 2. JSON unmarshalの型変換
+        w.WriteHeader(http.StatusOK)
+    }))
+    defer server.Close()
 
-**問題**: Goの`json.Unmarshal`はすべての数値を`float64`に変換
-
-```go
-// Before (失敗):
-assert.Equal(t, 0xFF0000, embed["color"])
-
-// After (成功):
-assert.Equal(t, float64(0xFF0000), embed["color"])
-```
-
-### 3. nil vs 空スライス
-
-**問題**: Goでは`[]string{}`と`[]string(nil)`は異なる
-
-```go
-// Before (失敗):
-expected: []string{},
-
-// After (成功):
-expected: nil,  // Go では nil == empty slice
-```
-
-## 最終結果
-
-| パッケージ | カバレッジ | 評価 |
-|-----------|-----------|------|
-| pkg/diff | 96.0% | ⭐⭐⭐ |
-| pkg/notifier | 95.5% | ⭐⭐⭐ |
-| pkg/config | 90.9% | ⭐⭐⭐ |
-| pkg/metrics | 81.2% | ⭐⭐ |
-| pkg/terraform | 77.2% | ⭐⭐ |
-| pkg/falco | 63.0% | ⭐ |
-| pkg/detector | 51.8% | ⭐ |
-| cmd/tfdrift | 47.2% | ⭐ |
-| **全体** | **59.8%** | **✅** |
-
-## ベストプラクティス
-
-### 1. Table-Driven Tests
-
-複数のテストケースを効率的に管理：
-
-```go
-func TestGenerateResourceName(t *testing.T) {
-    tests := []struct {
-        name       string
-        resourceID string
-        want       string
-    }{
-        {
-            name:       "EC2 Instance ID",
-            resourceID: "i-123",
-            want:       "i_123",
-        },
-        {
-            name:       "IAM Role ARN",
-            resourceID: "arn:aws:iam::123:role/MyRole",
-            want:       "arn_aws_iam__123_role_MyRole",
+    // Create webhook with custom headers
+    config := WebhookConfig{
+        URL: server.URL,
+        Headers: map[string]string{
+            "Authorization":   "Bearer secret-token",
+            "X-Custom-Header": "custom-value",
         },
     }
+    webhook := NewWebhookOutput(config)
+    defer webhook.Close()
 
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            got := generateResourceName(tt.resourceID)
-            assert.Equal(t, tt.want, got)
-        })
-    }
+    // Send event
+    event := types.NewDriftEvent("aws", "aws_instance", "i-12345", types.ChangeTypeCreated)
+    err := webhook.Write(event)
+    require.NoError(t, err)
 }
 ```
 
-### 2. t.Helper() の活用
+**成果**: pkg/output で95%+カバレッジ達成 ✅
 
-スタックトレースをクリーンに保つ：
+## アーキテクチャの進化
+
+### Before（v0.3.0）: ツール
+
+```
+┌─────────────────┐
+│  TFDrift-Falco  │
+└────────┬────────┘
+         │
+         ↓
+   Human Logs
+```
+
+### After（v0.4.1）: プラットフォーム
+
+```
+┌─────────────────┐
+│  TFDrift-Falco  │
+└────────┬────────┘
+         │
+         ↓
+  DriftEvent (JSON)
+         │
+    ┌────┴────┐
+    ↓         ↓
+  Stdout    Stderr
+    │         │
+    ↓         ↓
+  NDJSON    Human
+    │
+┌───┴────┐
+│Webhook │
+└───┬────┘
+    │
+  ┌─┴──┬──┬───┐
+  ↓    ↓  ↓   ↓
+Slack Teams Custom SIEM
+```
+
+## パフォーマンスと信頼性
+
+### リトライロジックの動作
+
+```
+Attempt 0: Immediate
+    ↓ ❌ (500 error)
+Wait 1s
+    ↓
+Attempt 1: After 1s
+    ↓ ❌ (timeout)
+Wait 2s
+    ↓
+Attempt 2: After 2s
+    ↓ ❌ (connection refused)
+Wait 4s
+    ↓
+Attempt 3: After 4s
+    ↓ ✅ Success!
+
+Total time: ~7s
+Total attempts: 4
+```
+
+### スレッドセーフティ
 
 ```go
-func setupTest(t *testing.T) (*Config, func()) {
-    t.Helper()  // この関数をスタックトレースから除外
+// JSONOutput and WebhookOutput are thread-safe
+type JSONOutput struct {
+    writer io.Writer
+    mu     sync.Mutex  // Protects concurrent writes
+}
 
-    config := &Config{...}
-    cleanup := func() {
-        // cleanup logic
+func (j *JSONOutput) Write(event *types.DriftEvent) error {
+    j.mu.Lock()
+    defer j.mu.Unlock()
+
+    // Safe concurrent access
+    jsonStr, err := event.ToJSONString()
+    if err != nil {
+        return fmt.Errorf("failed to serialize event: %w", err)
     }
 
-    return config, cleanup
+    _, err = fmt.Fprintln(j.writer, jsonStr)
+    return err
 }
 ```
-
-### 3. 段階的アプローチ
-
-```
-Week 1: 基盤（簡単）     → 15%
-Week 2: コア（中程度）   → 31%
-Week 3: 統合（やや難）   → 37%
-Week 4: 外部依存（難）   → 52%
-Week 5: CLI + 追加（仕上げ） → 60%
-```
-
-一度に全てをテストしようとせず、優先度をつけて段階的に進める。
 
 ## 学んだこと
 
-### ✅ Do's
+### 設計面
 
-- **依存関係の少ないパッケージから始める**
-  - types → config → state → detector の順で
-- **テストユーティリティを早めに整備**
-  - 再利用可能なモックやヘルパーを作成
-- **CI/CDを同時に構築**
-  - テストが書けたらすぐCI化
-- **モックは必要最小限に**
-  - 複雑なモックより単純なロジックテスト
+**✅ Do's**:
+- **段階的な設定レベル（L0/L1/L2）**: ユーザーが選べる自由度
+- **stdout/stderrの分離**: パイプライン処理を容易に
+- **不変なスキーマバージョン**: 互換性を保証
+- **Builder Pattern**: 柔軟なイベント構築
 
-### ❌ Don'ts
+**❌ Don'ts**:
+- **完璧主義を追わない**: まずMVPをリリース
+- **複雑な設定を強要しない**: デフォルトで動くように
+- **ログと構造化データを混ぜない**: 明確に分離
 
-- **全てを一度にテストしようとしない**
-  - 完璧主義は進捗を妨げる
-- **複雑なモックを作りすぎない**
-  - テストがメンテナンス不能になる
-- **カバレッジだけを追わない**
-  - 質の高いテストを書く
-- **テストのメンテナンスを怠らない**
-  - リファクタ時は必ずテストも更新
+### 実装面
+
+**✅ Do's**:
+- **HTTPモックサーバー**: 外部依存のテストに最適
+- **Table-Driven Tests**: 複数シナリオを効率的にカバー
+- **Exponential Backoff**: ネットワークエラーに対する標準的手法
+- **Concurrent-Safe設計**: sync.Mutexで保護
+
+**❌ Don'ts**:
+- **テストなしで実装しない**: TDD的アプローチが安全
+- **エラーハンドリングを省略しない**: リトライやタイムアウトは必須
+- **ハードコードを避ける**: 設定可能にする
 
 ## まとめ
 
-テストカバレッジ向上は単なる数値目標ではなく、**開発文化の変革**です：
+3週間で実装した機能：
 
-- 🎯 コードの信頼性向上
-- 🚀 安心してリファクタリング
-- 🐛 バグの早期発見
-- 📚 実行可能なドキュメント
-- 🤝 チーム開発の基盤
+| バージョン | 機能 | 成果 |
+|-----------|------|------|
+| v0.3.1 | L1 Semi-Auto Mode | 選択的カスタマイズ対応 |
+| v0.4.0 | Structured Events | NDJSON出力、SIEM連携 |
+| v0.4.1 | Webhook Integration | Slack/Teams通知 |
 
-重要なのは、**完璧を目指さず、段階的に改善し続けること**です。
+**設計思想の実現**:
+```
+"考えなくていいけど、逃げ道はある"
+    ↓
+tfdrift --auto                    ← L0: 考えない
+tfdrift --auto --region us-west-2 ← L1: 一部カスタマイズ
+tfdrift --config config.yaml      ← L2: 完全コントロール
+```
 
-この記事が、テストカバレッジ向上に取り組む方の参考になれば幸いです！
+**プラットフォーム化の達成**:
+```
+ツール（v0.3.0） → プラットフォーム（v0.4.1）
+    単体で動く          他システムと連携
+```
+
+この記事が、オープンソースツールを「使いやすく」「つながる」ものに進化させる参考になれば幸いです！
 
 ## 参考リンク
 
 - [GitHubリポジトリ](https://github.com/higakikeita/tfdrift-falco)
-- [詳細記事（英語版）](https://github.com/higakikeita/tfdrift-falco/blob/main/docs/test-coverage-improvement-journey.md)
-- [Go Testing Documentation](https://golang.org/doc/tutorial/add-a-test)
-- [Table-Driven Tests in Go](https://dave.cheney.net/2019/05/07/prefer-table-driven-tests)
+- [ホームページ](https://tfdrift-falco.vercel.app/)
+- [README](https://github.com/higakikeita/tfdrift-falco/blob/main/README.md)
 
 ---
 
