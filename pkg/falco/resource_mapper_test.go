@@ -46,8 +46,26 @@ func TestMapEventToResourceType(t *testing.T) {
 		// RDS
 		{"RDS Instance", "ModifyDBInstance", "aws_db_instance"},
 
-		// Lambda
-		{"Lambda Function", "UpdateFunctionConfiguration", "aws_lambda_function"},
+		// Lambda - Function Management
+		{"Lambda Function Create", "CreateFunction", "aws_lambda_function"},
+		{"Lambda Function Delete", "DeleteFunction", "aws_lambda_function"},
+		{"Lambda Function Code Update", "UpdateFunctionCode", "aws_lambda_function"},
+		{"Lambda Function Config", "UpdateFunctionConfiguration", "aws_lambda_function"},
+
+		// Lambda - Permissions
+		{"Lambda Permission Add", "AddPermission", "aws_lambda_permission"},
+		{"Lambda Permission Remove", "RemovePermission", "aws_lambda_permission"},
+
+		// Lambda - Event Source Mappings
+		{"Lambda Event Source Create", "CreateEventSourceMapping", "aws_lambda_event_source_mapping"},
+		{"Lambda Event Source Delete", "DeleteEventSourceMapping", "aws_lambda_event_source_mapping"},
+		{"Lambda Event Source Update", "UpdateEventSourceMapping", "aws_lambda_event_source_mapping"},
+
+		// Lambda - Concurrency
+		{"Lambda Concurrency Put", "PutFunctionConcurrency", "aws_lambda_function"},
+
+		// Note: Lambda alias events (CreateAlias, DeleteAlias, UpdateAlias) are tested under KMS
+		// as they share the same event names and cannot be distinguished without eventSource
 
 		// ECS - Services
 		{"ECS Service Create", "CreateService", "aws_ecs_service"},

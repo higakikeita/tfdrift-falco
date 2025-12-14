@@ -170,10 +170,26 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"RestoreDBInstanceFromDBSnapshot": "aws_db_instance",
 		"RestoreDBClusterFromSnapshot":    "aws_rds_cluster",
 
-		// Lambda
+		// Lambda - Function Management
+		"CreateFunction":              "aws_lambda_function",
+		"DeleteFunction":              "aws_lambda_function",
+		"UpdateFunctionCode":          "aws_lambda_function",
 		"UpdateFunctionConfiguration": "aws_lambda_function",
-		"AddPermission":               "aws_lambda_permission",
-		"RemovePermission":            "aws_lambda_permission",
+
+		// Lambda - Permissions
+		"AddPermission":    "aws_lambda_permission",
+		"RemovePermission": "aws_lambda_permission",
+
+		// Lambda - Event Source Mappings
+		"CreateEventSourceMapping": "aws_lambda_event_source_mapping",
+		"DeleteEventSourceMapping": "aws_lambda_event_source_mapping",
+		"UpdateEventSourceMapping": "aws_lambda_event_source_mapping",
+
+		// Lambda - Concurrency
+		"PutFunctionConcurrency": "aws_lambda_function",
+
+		// Note: CreateAlias, DeleteAlias, UpdateAlias are mapped to aws_kms_alias (line 80-82)
+		// Lambda aliases cannot be distinguished from KMS aliases without eventSource field
 
 		// API Gateway - REST API
 		"CreateRestApi":    "aws_api_gateway_rest_api",
