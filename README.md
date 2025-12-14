@@ -2,7 +2,7 @@
 
 **Real-time Terraform Drift Detection powered by Falco**
 
-[![Version](https://img.shields.io/badge/version-0.4.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
+[![Version](https://img.shields.io/badge/version-0.4.1-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
@@ -16,9 +16,11 @@
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
-> 🚀 **v0.4.0 Released!** - **Structured Event Output** for SIEM/SOAR integrations! JSON output (NDJSON), event-driven architecture, machine-readable drift events. [See Release Notes](#)
+> 🎯 **v0.4.1 Released!** - **Webhook Integration**! Send drift events to Slack, Teams, PagerDuty, or any custom API. Automatic retries, timeout handling. [See Release Notes](#)
 >
-> 🎉 **v0.3.0** - **203 CloudTrail events** across **19 AWS services** including RDS Enhanced, DynamoDB Enhanced, VPC Enhanced, and SageMaker!
+> 🚀 **v0.4.0** - **Structured Event Output** for SIEM/SOAR integrations! JSON output (NDJSON), event-driven architecture.
+>
+> 🎉 **v0.3.0** - **203 CloudTrail events** across **19 AWS services**!
 
 ## 🚀 Quick Start (5 minutes)
 
@@ -126,6 +128,74 @@ Outputs to:
   "user": "admin@example.com",
   "cloudtrail_event": "AuthorizeSecurityGroupIngress",
   "version": "1.0.0"
+}
+```
+
+---
+
+## 🔗 Webhook Integration (NEW in v0.4.1)
+
+Send drift events to **any webhook endpoint** - Slack, Teams, PagerDuty, or custom APIs.
+
+### Quick Examples
+
+#### Slack Integration
+```yaml
+# config.yaml
+output:
+  webhook:
+    url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+    method: POST
+```
+
+Drift events appear as formatted Slack messages with:
+- Color-coded by severity (🚨 Critical = Red, ⚠️  High = Orange)
+- Resource details
+- User and region information
+- CloudTrail event correlation
+
+#### Microsoft Teams
+```yaml
+output:
+  webhook:
+    url: "https://outlook.office.com/webhook/YOUR/WEBHOOK/URL"
+    method: POST
+```
+
+#### Custom API with Auth
+```yaml
+output:
+  webhook:
+    url: "https://your-api.com/drift-events"
+    method: POST
+    headers:
+      Authorization: "Bearer YOUR_TOKEN"
+      X-Custom-Header: "custom-value"
+    timeout: 30s
+    max_retries: 5
+    retry_delay: 2s
+```
+
+### Features
+
+✅ **Automatic Retries** - Exponential backoff (1s → 2s → 4s → 8s...)
+✅ **Timeout Handling** - Configurable timeouts (default: 10s)
+✅ **Custom Headers** - Add auth tokens, custom headers
+✅ **Multiple Methods** - POST, PUT, PATCH
+✅ **Format Helpers** - Built-in Slack & Teams formatters
+
+### Webhook Payload
+
+Raw JSON payload sent to your endpoint:
+```json
+{
+  "event_type": "terraform_drift_detected",
+  "provider": "aws",
+  "resource_type": "aws_security_group",
+  "resource_id": "sg-12345",
+  "change_type": "modified",
+  "severity": "critical",
+  ...
 }
 ```
 
