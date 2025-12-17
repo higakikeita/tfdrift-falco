@@ -7,6 +7,7 @@ import (
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
 	"github.com/falcosecurity/client-go/pkg/client"
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
+	"github.com/keitahigaki/tfdrift-falco/pkg/gcp"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -19,12 +20,14 @@ type Subscriber struct {
 	client     *client.Client
 	grpcConn   *grpc.ClientConn
 	isInsecure bool
+	gcpParser  *gcp.AuditParser // GCP Audit Log parser
 }
 
 // NewSubscriber creates a new Falco subscriber
 func NewSubscriber(cfg config.FalcoConfig) (*Subscriber, error) {
 	return &Subscriber{
-		cfg: cfg,
+		cfg:       cfg,
+		gcpParser: gcp.NewAuditParser(),
 	}, nil
 }
 
