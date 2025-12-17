@@ -42,7 +42,7 @@ export default function Home() {
           <div className="text-center space-y-8">
             <div className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-300 text-sm animate-pulse">
               <RocketIcon className="w-4 h-4" />
-              <span>🎉 Now Releasing v0.4.1 - Zero-Config Mode + Webhook Integration!</span>
+              <span>🎉 Now Releasing v0.5.0 - Multi-Cloud Support (GCP)!</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
@@ -53,8 +53,8 @@ export default function Home() {
             </h1>
 
             <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-              Detect manual infrastructure changes instantly using Falco&apos;s CloudTrail plugin.
-              Zero-config mode with <code className="px-2 py-1 bg-slate-800 rounded text-indigo-300">--auto</code> flag, structured event output, and webhook integration for Slack/Teams.
+              Detect manual infrastructure changes instantly across <strong className="text-white">AWS and GCP</strong> using Falco&apos;s CloudTrail and gcpaudit plugins.
+              Zero-config mode with <code className="px-2 py-1 bg-slate-800 rounded text-indigo-300">--auto</code> flag, multi-cloud support, and webhook integration for Slack/Teams.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -88,7 +88,7 @@ export default function Home() {
             <FeatureCard
               icon={<BoltIcon className="w-8 h-8 text-indigo-400" />}
               title="Zero-Config Mode"
-              description="Just run 'tfdrift --auto' and start monitoring. Auto-detects Terraform state from local files or S3 backend."
+              description="Just run 'tfdrift --auto' and start monitoring. Auto-detects Terraform state from local files, S3, or GCS backend."
             />
             <FeatureCard
               icon={<ShieldIcon className="w-8 h-8 text-indigo-400" />}
@@ -108,10 +108,10 @@ export default function Home() {
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 text-center">
-            <StatCard number="203" label="CloudTrail Events" />
-            <StatCard number="19" label="AWS Services" />
-            <StatCard number="95%+" label="Core Coverage" />
-            <StatCard number="v0.4.1" label="Latest Release" />
+            <StatCard number="203" label="AWS Events" />
+            <StatCard number="100+" label="GCP Events" />
+            <StatCard number="31+" label="Total Services" />
+            <StatCard number="v0.5.0" label="Latest Release" />
           </div>
         </div>
       </section>

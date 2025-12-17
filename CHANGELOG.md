@@ -7,6 +7,148 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-12-17
+
+### 🎉 Major Release - Multi-Cloud Support (GCP)
+
+This release brings comprehensive Google Cloud Platform (GCP) support to TFDrift-Falco, enabling real-time drift detection across both AWS and GCP environments simultaneously.
+
+### Added
+
+#### GCP Audit Logs Integration
+- **GCP Audit Parser** (`pkg/gcp/audit_parser.go`)
+  - Full parsing of GCP Audit Log events from Falco gcpaudit plugin
+  - Extraction of resource details (project ID, zone, region)
+  - User identity correlation (principal email, service accounts)
+  - Change tracking with request/response capture
+  - Comprehensive validation and error handling
+
+- **GCP Resource Mapper** (`pkg/gcp/resource_mapper.go`)
+  - 100+ event-to-Terraform-resource mappings
+  - Coverage across 12+ GCP services:
+    - Compute Engine (30+ events): Instances, Disks, Machine Types, Metadata, Networks, Firewalls
+    - Cloud Storage (15+ events): Buckets, Objects, IAM Bindings, ACLs, Lifecycle
+    - Cloud SQL (10+ events): Instances, Databases, Users, Backups
+    - GKE (10+ events): Clusters, Node Pools, Workloads
+    - Cloud Run (8+ events): Services, Revisions, IAM Policies
+    - IAM (8+ events): Service Accounts, Roles, Bindings, Keys
+    - VPC/Networking (10+ events): Firewalls, Routes, Subnets, Peering
+    - Cloud Functions (5+ events): Functions, Triggers, IAM Policies
+    - BigQuery (5+ events): Datasets, Tables, IAM Policies
+    - Pub/Sub (5+ events): Topics, Subscriptions, IAM Policies
+    - KMS (5+ events): Keys, KeyRings, IAM Policies
+    - Secret Manager (3+ events): Secrets, Versions, IAM Policies
+  - Intelligent action detection (create, update, delete, setIamPolicy)
+  - Service-based resource type inference
+
+#### GCS Backend Support
+- **Google Cloud Storage Backend** (`pkg/terraform/backend/gcs.go`)
+  - Load Terraform state from GCS buckets
+  - Application Default Credentials (ADC) support
+  - Custom credentials file support
+  - Bucket and prefix configuration
+  - Comprehensive error handling
+
+#### Multi-Provider Architecture
+- **Event Router** - Source-based routing in `parseFalcoOutput()`
+  - `aws_cloudtrail` → AWS parser
+  - `gcpaudit` → GCP parser
+  - Extensible design for future providers (Azure, etc.)
+
+- **Extended Event Type** (`pkg/types/types.go`)
+  - GCP-specific fields: `ProjectID`, `ServiceName`
+  - Preserved AWS-specific fields: `Region`, `AccountID`
+  - Provider-agnostic core fields
+
+#### Testing & Documentation
+- **Comprehensive Test Coverage**
+  - 34 GCP parser tests covering all functionality
+  - Integration tests for multi-provider scenarios
+  - Resource type mapping validation
+  - All tests passing (100% pass rate)
+
+- **GCP Setup Guide** (`docs/gcp-setup.md`)
+  - Step-by-step Falco gcpaudit plugin configuration
+  - GCP Audit Logs and Pub/Sub setup
+  - TFDrift-Falco configuration examples
+  - Troubleshooting guide with 5 common issues
+  - Advanced configuration (multi-project, custom rules, regional deployment)
+  - Security best practices
+
+- **Example Configuration** (`examples/config-gcp.yaml`)
+  - Complete GCP configuration with drift rules
+  - Multi-project setup examples
+  - GCS backend configuration
+
+### Changed
+
+#### Configuration Updates
+- **Extended Provider Config** (`pkg/config/config.go`)
+  - New `GCPConfig` structure with projects and state configuration
+  - GCS backend fields: `GCSBucket`, `GCSPrefix`
+  - Backward compatible with existing AWS configurations
+
+- **Backend Factory** (`pkg/terraform/backend/factory.go`)
+  - Added GCS backend case to factory method
+  - Supports `backend: "gcs"` in configuration
+  - Context propagation for GCS client initialization
+
+#### Falco Integration
+- **Subscriber Enhancement** (`pkg/falco/subscriber.go`)
+  - Initialized GCP parser in `NewSubscriber()`
+  - Multi-provider event processing
+
+- **Event Parser Refactoring** (`pkg/falco/event_parser.go`)
+  - Extracted AWS parsing into `parseAWSEvent()` method
+  - Added GCP parsing via `gcpParser.Parse()`
+  - Clean separation of provider-specific logic
+
+### Dependencies
+- Added `cloud.google.com/go/storage` v1.58.0
+- Added GCP SDK dependencies for authentication and storage access
+
+### Architecture Improvements
+- Multi-provider support without breaking changes
+- Interface-based design for future cloud providers
+- Comprehensive logging and error handling
+- Production-ready GCP integration
+
+### Migration Guide
+
+No breaking changes in this release. To enable GCP support:
+
+1. **Update Configuration**:
+   ```yaml
+   providers:
+     gcp:
+       enabled: true
+       projects:
+         - my-project-123
+       state:
+         backend: "gcs"
+         gcs_bucket: "my-terraform-state"
+         gcs_prefix: "prod"
+   ```
+
+2. **Setup Falco gcpaudit Plugin**: Follow [GCP Setup Guide](./docs/gcp-setup.md)
+
+3. **Configure GCP Credentials**: Use Application Default Credentials or specify credentials file
+
+### Known Limitations
+
+- GCP support is new - production validation recommended
+- Multi-project environments require additional configuration
+- GCP Audit Log delivery latency: 30 seconds to 5 minutes (via Pub/Sub)
+- Some advanced GCP features may not be fully covered yet
+
+### Contributors
+
+This release brings comprehensive GCP support enabling true multi-cloud drift detection. Special thanks to the community for feature requests and feedback.
+
+---
+
+## [Unreleased]
+
 ### Added
 - **MkDocs Documentation Site** (PR #3) - Professional project documentation
   - Material for MkDocs theme with dark/light mode toggle

@@ -2,7 +2,7 @@
 
 **Real-time Terraform Drift Detection powered by Falco**
 
-[![Version](https://img.shields.io/badge/version-0.4.1-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
+[![Version](https://img.shields.io/badge/version-0.5.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
@@ -16,11 +16,11 @@
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
-> 🎯 **v0.4.1 Released!** - **Webhook Integration**! Send drift events to Slack, Teams, PagerDuty, or any custom API. Automatic retries, timeout handling. [See Release Notes](#)
+> 🎉 **v0.5.0 Released!** - **Multi-Cloud Support**! GCP Audit Logs integration with 100+ event mappings across 12+ services. GCS backend support for Terraform state. [See Release Notes](#)
+>
+> 🎯 **v0.4.1** - **Webhook Integration**! Send drift events to Slack, Teams, PagerDuty, or any custom API. Automatic retries, timeout handling.
 >
 > 🚀 **v0.4.0** - **Structured Event Output** for SIEM/SOAR integrations! JSON output (NDJSON), event-driven architecture.
->
-> 🎉 **v0.3.0** - **203 CloudTrail events** across **19 AWS services**!
 
 ## 🚀 Quick Start (5 minutes)
 
@@ -203,8 +203,8 @@ Raw JSON payload sent to your endpoint:
 
 **Requirements:**
 - Terraform initialized directory (`.terraform/` exists)
-- Falco running with CloudTrail plugin
-- AWS credentials configured
+- Falco running with CloudTrail plugin (AWS) or gcpaudit plugin (GCP)
+- AWS credentials configured (for AWS) or GCP credentials configured (for GCP)
 
 [English](#english) | [日本語](#japanese)
 
@@ -216,11 +216,11 @@ Raw JSON payload sent to your endpoint:
 
 **TFDrift-Falco** detects manual (non-IaC) changes in your cloud environment in **real-time** by combining:
 
-- **Falco** runtime security monitoring with CloudTrail plugin
+- **Falco** runtime security monitoring with CloudTrail plugin (AWS) or gcpaudit plugin (GCP)
 - **Falco gRPC API** for real-time event streaming
 - **Terraform State** comparison
 
-Unlike traditional drift detection tools (like `driftctl` or `tfsec`) that perform periodic static scans, TFDrift-Falco provides **continuous, event-driven drift detection** powered by Falco's CloudTrail plugin.
+Unlike traditional drift detection tools (like `driftctl` or `tfsec`) that perform periodic static scans, TFDrift-Falco provides **continuous, event-driven drift detection** powered by Falco's cloud audit log plugins.
 
 ### 🚨 Example Use Case
 
@@ -239,11 +239,11 @@ Instant Slack alert with user identity and change details
 ## 🎯 Key Features
 
 - ⚡ **Real-time Detection** - Subscribes to Falco gRPC outputs for instant event processing
-- 🦅 **Falco-Powered** - Uses Falco's CloudTrail plugin for AWS event monitoring
+- 🦅 **Falco-Powered** - Uses Falco's CloudTrail plugin (AWS) and gcpaudit plugin (GCP) for event monitoring
 - 🧩 **Terraform State Comparison** - Detect deviations from IaC definitions
 - 🔒 **Security Context** - Correlate user identity (IAM user, API key, service account)
 - 🔔 **Multiple Notification Channels** - Slack, Discord, Falco output, Webhook
-- 🌐 **Multi-Cloud Support** - AWS (95 events), GCP and Azure (planned)
+- 🌐 **Multi-Cloud Support** - AWS (203 events, 19 services), GCP (100+ events, 12+ services), Azure (planned)
 - 🎨 **Extensible Rules** - Define custom Falco rules in YAML
 - 🐳 **Container-Ready** - Run as a sidecar or standalone container
 - 📊 **Production-Ready** - Comprehensive load testing and monitoring framework
@@ -272,16 +272,39 @@ TFDrift-Falco v0.3.0 monitors **203 CloudTrail events** across 19 AWS services:
 
 **Total**: 203 events | See [AWS Resource Coverage Analysis](./docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for details
 
+## 📋 Supported GCP Services
+
+TFDrift-Falco v0.5.0 monitors **100+ GCP Audit Log events** across 12+ services:
+
+| Service | Events | Coverage | Priority |
+|---------|--------|----------|----------|
+| **Compute Engine** 💻 | 30+ | Instances, Disks, Machine Types, Metadata, Networks, Firewalls | Critical |
+| **Cloud Storage** 🗄️ | 15+ | Buckets, Objects, IAM Bindings, ACLs, Lifecycle | High |
+| **Cloud SQL** 🗃️ | 10+ | Instances, Databases, Users, Backups | High |
+| **GKE** ☸️ | 10+ | Clusters, Node Pools, Workloads | High |
+| **Cloud Run** 🏃 | 8+ | Services, Revisions, IAM Policies | High |
+| **IAM** ✅ | 8+ | Service Accounts, Roles, Bindings, Keys | Critical |
+| **VPC/Networking** 🔒 | 10+ | Firewalls, Routes, Subnets, Peering | Critical |
+| **Cloud Functions** ⚡ | 5+ | Functions, Triggers, IAM Policies | Medium |
+| **BigQuery** 📊 | 5+ | Datasets, Tables, IAM Policies | Medium |
+| **Pub/Sub** 📨 | 5+ | Topics, Subscriptions, IAM Policies | Medium |
+| **KMS** 🔐 | 5+ | Keys, KeyRings, IAM Policies | Critical |
+| **Secret Manager** 🔒 | 3+ | Secrets, Versions, IAM Policies | High |
+
+**Total**: 100+ events across 12+ services | See [GCP Setup Guide](./docs/gcp-setup.md) for configuration details
+
 ## 🏗️ Architecture
 
 ```mermaid
 graph TB
     A[AWS CloudTrail] --> B[Falco<br/>CloudTrail Plugin]
+    A2[GCP Audit Logs] --> B2[Falco<br/>gcpaudit Plugin]
     B --> C[Falco Rules<br/>Engine]
+    B2 --> C
     C --> D[Falco gRPC<br/>Output Stream]
     D --> E[TFDrift-Falco<br/>Subscriber]
 
-    F[Terraform State<br/>Local/Remote] --> E
+    F[Terraform State<br/>Local/S3/GCS] --> E
 
     E --> G[Drift Engine]
     G --> H{Drift Detected?}
@@ -298,6 +321,7 @@ graph TB
     style G fill:#FFA500
     style I fill:#50C878
     style B fill:#00B4AB
+    style B2 fill:#00B4AB
 ```
 
 ### Components
@@ -379,12 +403,14 @@ docker logs -f tfdrift-falco
 ### Prerequisites
 
 - Go 1.21 or later (for building from source)
-- **Falco 0.35+** with CloudTrail plugin (required) - [Setup Guide](docs/falco-setup.md)
+- **Falco 0.35+** with CloudTrail plugin (AWS) or gcpaudit plugin (GCP) - [AWS Setup](docs/falco-setup.md) | [GCP Setup](docs/gcp-setup.md)
 - Terraform 1.0+
-- AWS CLI configured (for AWS support)
+- AWS CLI configured (for AWS support) or gcloud CLI configured (for GCP support)
 - **Docker** (recommended for easiest setup)
 
-> **Important**: TFDrift-Falco requires a running Falco instance with gRPC enabled and the CloudTrail plugin configured. See the [Falco Setup Guide](docs/falco-setup.md) for detailed installation instructions.
+> **Important**: TFDrift-Falco requires a running Falco instance with gRPC enabled and the appropriate cloud plugin configured:
+> - AWS: CloudTrail plugin - [Setup Guide](docs/falco-setup.md)
+> - GCP: gcpaudit plugin - [Setup Guide](docs/gcp-setup.md)
 
 ### Installation
 
@@ -485,9 +511,19 @@ providers:
       - us-east-1
       - us-west-2
     state:
-      backend: "s3"  # local, s3, remote
+      backend: "s3"  # local, s3, gcs
       s3_bucket: "my-terraform-state"
       s3_key: "prod/terraform.tfstate"
+
+  gcp:
+    enabled: true
+    projects:
+      - my-project-123
+      - my-project-456
+    state:
+      backend: "gcs"  # local, s3, gcs
+      gcs_bucket: "my-terraform-state"
+      gcs_prefix: "prod"
 
 # Falco Integration (Required)
 falco:
@@ -516,6 +552,24 @@ drift_rules:
     watched_attributes:
       - "policy"
       - "assume_role_policy"
+    severity: "critical"
+
+  - name: "GCP Compute Instance Modification"
+    resource_types:
+      - "google_compute_instance"
+    watched_attributes:
+      - "metadata"
+      - "labels"
+      - "deletion_protection"
+    severity: "high"
+
+  - name: "GCP Firewall Rule Change"
+    resource_types:
+      - "google_compute_firewall"
+    watched_attributes:
+      - "allowed"
+      - "denied"
+      - "source_ranges"
     severity: "critical"
 
 # Notification Channels
@@ -787,11 +841,12 @@ See the **[AWS Coverage Roadmap](./docs/AWS_COVERAGE_ROADMAP.md)** for detailed 
 
 **v0.3.0 Achievement**: 203 CloudTrail events (203/198 complete - **103%** 🎉)
 
-### Phase 2: Enhanced Detection
-- [ ] GCP Audit Logs support
+### Phase 2: Enhanced Detection (✅ GCP Support Complete - v0.5.0)
+- [x] **GCP Audit Logs support** - 100+ events across 12+ services
+- [x] **GCS backend support** - Terraform state from Google Cloud Storage
 - [ ] Azure Activity Logs support
 - [ ] Terraform Cloud/Enterprise integration
-- [ ] Remote state backend support (S3, GCS, Azure Blob)
+- [ ] Azure Blob backend support
 - [ ] Custom rule DSL
 
 ### Phase 3: Advanced Features
@@ -876,7 +931,8 @@ tfdrift-falco/
 ## 📚 Documentation
 
 - [Architecture Overview](docs/architecture.md)
-- [Falco Setup Guide](docs/falco-setup.md) - **Start here for Falco installation**
+- [Falco Setup Guide - AWS](docs/falco-setup.md) - **AWS CloudTrail plugin setup**
+- [Falco Setup Guide - GCP](docs/gcp-setup.md) - **GCP gcpaudit plugin setup**
 - [Deployment Guide](docs/deployment.md) - **Docker, Kubernetes, Systemd deployments**
 - [Usage Guide](docs/USAGE.md)
 - [Auto-Import Guide](docs/auto-import-guide.md)
@@ -914,8 +970,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 以下を組み合わせた、次世代のドリフト検知ソリューション：
 
-- **Falco** ランタイムセキュリティ監視
-- **CloudTrail / Cloud Audit Logs** イベントストリーム
+- **Falco** ランタイムセキュリティ監視 (CloudTrailプラグイン/gcpauditプラグイン)
+- **AWS CloudTrail / GCP Audit Logs** イベントストリーム
 - **Terraform State** 比較
 
 従来のドリフト検知ツール（`driftctl`や`tfsec`など）は定期的な静的スキャンを行いますが、TFDrift-Falcoは**継続的なイベント駆動型のドリフト検知**を、セキュリティコンテキスト付きで提供します。
@@ -937,10 +993,11 @@ TFDrift-FalcoがTerraform Stateと比較
 - ⚡ **リアルタイム検知** - AWS CloudTrail、GCP Audit Logs、Falcoイベントを監視
 - 🧩 **Terraform State比較** - IaC定義からの逸脱を検出
 - 🔒 **セキュリティコンテキスト** - ユーザーID（IAMユーザー、APIキー、サービスアカウント）と相関
-- 🔔 **複数の通知チャネル** - Slack、Discord、Falco出力、Syslog、Webhook
-- 🌐 **マルチクラウド対応** - AWS（初期）、GCPとAzure（計画中）
+- 🔔 **複数の通知チャネル** - Slack、Discord、Falco出力、Webhook
+- 🌐 **マルチクラウド対応** - AWS（203イベント、19サービス）、GCP（100+イベント、12+サービス）、Azure（計画中）
 - 🎨 **拡張可能なルール** - YAMLでカスタムドリフト検知ルールを定義
 - 🐳 **コンテナ対応** - サイドカーまたはスタンドアロンコンテナとして実行
+- 📊 **本番環境対応** - 包括的な負荷テストと監視フレームワーク
 
 ## 🐳 Dockerで30秒クイックスタート
 
@@ -975,12 +1032,14 @@ docker logs -f tfdrift-falco
 ### 前提条件
 
 - Go 1.21以降（ソースからビルドする場合）
-- **Falco 0.35+** CloudTrailプラグイン必須 - [セットアップガイド](docs/falco-setup.md)
+- **Falco 0.35+** CloudTrailプラグイン（AWS）またはgcpauditプラグイン（GCP）必須 - [AWSセットアップ](docs/falco-setup.md) | [GCPセットアップ](docs/gcp-setup.md)
 - Terraform 1.0+
-- AWS CLI設定済み（AWSサポート用）
+- AWS CLI設定済み（AWSサポート用）またはgcloud CLI設定済み（GCPサポート用）
 - **Docker**（最も簡単なセットアップ方法として推奨）
 
-> **重要**: TFDrift-Falcoは、gRPCが有効でCloudTrailプラグインが設定されたFalcoインスタンスが必要です。詳細なインストール手順は[Falcoセットアップガイド](docs/falco-setup.md)を参照してください。
+> **重要**: TFDrift-Falcoは、gRPCが有効で適切なクラウドプラグインが設定されたFalcoインスタンスが必要です：
+> - AWS: CloudTrailプラグイン - [セットアップガイド](docs/falco-setup.md)
+> - GCP: gcpauditプラグイン - [セットアップガイド](docs/gcp-setup.md)
 
 ### インストール
 
@@ -1161,11 +1220,12 @@ IaCワークフローをバイパスした不正なインフラ変更を検知�
 - [x] Falcoイベント統合（gRPC）
 - [x] Dockerコンテナサポート
 
-### フェーズ2: 検知強化
-- [ ] GCP Audit Logsサポート
+### フェーズ2: 検知強化（✅ GCPサポート完了 - v0.5.0）
+- [x] **GCP Audit Logsサポート** - 12+サービスで100+イベント
+- [x] **GCSバックエンドサポート** - Google Cloud StorageからのTerraform State
 - [ ] Azure Activity Logsサポート
 - [ ] Terraform Cloud/Enterprise統合
-- [ ] リモートStateバックエンドサポート
+- [ ] Azure Blobバックエンドサポート
 
 ### フェーズ3: 高度な機能
 - [ ] Webダッシュボード UI
