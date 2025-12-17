@@ -42,12 +42,17 @@ type TerraformStateConfig struct {
 	S3Bucket string `yaml:"s3_bucket" mapstructure:"s3_bucket"`
 	S3Key    string `yaml:"s3_key" mapstructure:"s3_key"`
 	S3Region string `yaml:"s3_region" mapstructure:"s3_region"`
+
+	// GCS backend settings
+	GCSBucket string `yaml:"gcs_bucket" mapstructure:"gcs_bucket"`
+	GCSPrefix string `yaml:"gcs_prefix" mapstructure:"gcs_prefix"`
 }
 
 // GCPConfig contains GCP-specific settings
 type GCPConfig struct {
-	Enabled  bool     `yaml:"enabled"`
-	Projects []string `yaml:"projects"`
+	Enabled  bool                 `yaml:"enabled"`
+	Projects []string             `yaml:"projects"`
+	State    TerraformStateConfig `yaml:"state"`
 }
 
 // FalcoConfig contains Falco integration settings

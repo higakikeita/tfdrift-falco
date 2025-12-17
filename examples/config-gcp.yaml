@@ -1,0 +1,150 @@
+# TFDrift-Falco Configuration for GCP
+# This is an example configuration for Google Cloud Platform monitoring
+
+# Cloud Provider Configuration
+providers:
+  # AWS Configuration (optional - can disable if only using GCP)
+  aws:
+    enabled: false
+    regions: []
+    state:
+      backend: ""
+
+  # GCP Configuration
+  gcp:
+    enabled: true
+    projects:
+      - "my-gcp-project-123"
+      - "my-gcp-project-456"
+    state:
+      backend: "gcs"
+      gcs_bucket: "my-terraform-state-bucket"
+      gcs_prefix: "prod/terraform.tfstate"
+      # Optional: explicit credentials file
+      # If not specified, uses Application Default Credentials (ADC)
+      # credentials_file: "/path/to/service-account-key.json"
+
+# Falco Integration (Required)
+falco:
+  enabled: true
+  hostname: "localhost"
+  port: 5060
+  # Optional: TLS configuration
+  # cert_file: "/path/to/client-cert.pem"
+  # key_file: "/path/to/client-key.pem"
+  # ca_root_file: "/path/to/ca-root.pem"
+
+# Drift Detection Rules
+drift_rules:
+  # Compute Engine Instance Rules
+  - name: "GCE Instance Metadata Change"
+    resource_types:
+      - "google_compute_instance"
+    watched_attributes:
+      - "metadata"
+      - "labels"
+      - "tags"
+    severity: "high"
+
+  - name: "GCE Instance Critical Settings"
+    resource_types:
+      - "google_compute_instance"
+    watched_attributes:
+      - "deletion_protection"
+      - "machine_type"
+      - "service_account"
+    severity: "critical"
+
+  # VPC Firewall Rules
+  - name: "Firewall Rule Modification"
+    resource_types:
+      - "google_compute_firewall"
+    watched_attributes:
+      - "allow"
+      - "deny"
+      - "source_ranges"
+      - "target_tags"
+    severity: "critical"
+
+  # VPC Network Rules
+  - name: "VPC Network Change"
+    resource_types:
+      - "google_compute_network"
+      - "google_compute_subnetwork"
+    watched_attributes:
+      - "auto_create_subnetworks"
+      - "routing_mode"
+      - "ip_cidr_range"
+    severity: "high"
+
+  # IAM Rules
+  - name: "IAM Policy Change"
+    resource_types:
+      - "google_project_iam_binding"
+      - "google_project_iam_member"
+    watched_attributes:
+      - "role"
+      - "members"
+    severity: "critical"
+
+  # Cloud Storage Rules
+  - name: "Storage Bucket Security"
+    resource_types:
+      - "google_storage_bucket"
+    watched_attributes:
+      - "encryption"
+      - "public_access_prevention"
+      - "uniform_bucket_level_access"
+    severity: "critical"
+
+  # Cloud SQL Rules
+  - name: "Cloud SQL Instance Change"
+    resource_types:
+      - "google_sql_database_instance"
+    watched_attributes:
+      - "settings"
+      - "database_version"
+      - "deletion_protection"
+    severity: "high"
+
+# Notification Channels
+notifications:
+  # Slack
+  slack:
+    enabled: true
+    webhook_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+    channel: "#gcp-security-alerts"
+
+  # Discord
+  discord:
+    enabled: false
+    webhook_url: "https://discord.com/api/webhooks/..."
+
+  # Falco Output
+  falco_output:
+    enabled: true
+    priority: "warning"
+
+  # Generic Webhook (for SIEM integration)
+  webhook:
+    enabled: false
+    url: "https://your-siem.example.com/webhook"
+    headers:
+      Authorization: "Bearer YOUR_TOKEN"
+      X-Source: "tfdrift-falco-gcp"
+
+# Logging
+logging:
+  level: "info"  # debug, info, warning, error
+  format: "json"  # json, text
+
+# Auto Import (Optional)
+auto_import:
+  enabled: false
+  terraform_dir: "/path/to/terraform"
+  output_dir: "/path/to/output"
+  allowed_resources:
+    - "google_compute_instance"
+    - "google_compute_firewall"
+    - "google_storage_bucket"
+  require_approval: true

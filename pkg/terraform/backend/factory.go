@@ -8,7 +8,7 @@ import (
 )
 
 // NewBackend creates a backend based on configuration
-func NewBackend(_ context.Context, cfg config.TerraformStateConfig) (Backend, error) {
+func NewBackend(ctx context.Context, cfg config.TerraformStateConfig) (Backend, error) {
 	switch cfg.Backend {
 	case "local", "":
 		path := cfg.LocalPath
@@ -24,7 +24,13 @@ func NewBackend(_ context.Context, cfg config.TerraformStateConfig) (Backend, er
 			Region: cfg.S3Region,
 		})
 
+	case "gcs":
+		return NewGCSBackend(ctx, GCSBackendConfig{
+			Bucket: cfg.GCSBucket,
+			Prefix: cfg.GCSPrefix,
+		})
+
 	default:
-		return nil, fmt.Errorf("unsupported backend: %s (supported: local, s3)", cfg.Backend)
+		return nil, fmt.Errorf("unsupported backend: %s (supported: local, s3, gcs)", cfg.Backend)
 	}
 }
