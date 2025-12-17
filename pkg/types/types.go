@@ -10,6 +10,13 @@ type Event struct {
 	UserIdentity UserIdentity
 	Changes      map[string]interface{}
 	RawEvent     interface{}
+
+	// AWS-specific fields
+	Region string // AWS Region (optional)
+
+	// GCP-specific fields
+	ProjectID   string // GCP Project ID (optional)
+	ServiceName string // GCP Service Name (e.g., compute.googleapis.com) (optional)
 }
 
 // UserIdentity represents the identity of the user who made the change
