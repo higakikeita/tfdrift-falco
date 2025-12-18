@@ -543,6 +543,19 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"AssociateWebACL":    "aws_wafv2_web_acl_association",
 		"DisassociateWebACL": "aws_wafv2_web_acl_association",
 
+		// AWS Backup - Backup Plans
+		"CreateBackupPlan": "aws_backup_plan",
+		"DeleteBackupPlan": "aws_backup_plan",
+		"UpdateBackupPlan": "aws_backup_plan",
+
+		// AWS Backup - Backup Vaults
+		"CreateBackupVault": "aws_backup_vault",
+		"DeleteBackupVault": "aws_backup_vault",
+
+		// AWS Backup - Backup Jobs
+		"StartBackupJob": "aws_backup_selection",
+		"StopBackupJob":  "aws_backup_selection",
+
 		// ECS - Services
 		"CreateService": "aws_ecs_service",
 		"UpdateService": "aws_ecs_service",
