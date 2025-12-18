@@ -71,14 +71,41 @@ This release brings comprehensive Google Cloud Platform (GCP) support to TFDrift
   - Step-by-step Falco gcpaudit plugin configuration
   - GCP Audit Logs and Pub/Sub setup
   - TFDrift-Falco configuration examples
-  - Troubleshooting guide with 5 common issues
-  - Advanced configuration (multi-project, custom rules, regional deployment)
-  - Security best practices
+  - Troubleshooting guide with 12 common scenarios
+  - 4 complete production examples (single-project, multi-project, hybrid AWS+GCP, secure)
+  - Security best practices and compliance considerations
 
-- **Example Configuration** (`examples/config-gcp.yaml`)
-  - Complete GCP configuration with drift rules
+- **Quick Start Script** (`scripts/gcp-quick-start.sh`)
+  - One-command GCP setup automation
+  - Prerequisites validation (gcloud, Docker, Terraform)
+  - Automated Pub/Sub, service accounts, and Falco configuration
+  - Resource existence checks to prevent conflicts
+  - Color-coded output and detailed next steps
+
+- **Architecture Documentation** (`docs/architecture.md`)
+  - Updated to v1.1 with multi-cloud architecture diagrams
+  - GCP Audit Collector implementation patterns
+  - Falco gcpaudit plugin integration details
+  - GCP-specific drift rules and examples
+  - Multi-cloud deployment models
+
+- **AWS Setup Guide Updates** (`docs/falco-setup.md`)
+  - Clarified AWS-specific focus
+  - Added multi-cloud configuration section
+  - Cross-references to GCP setup guide
+  - v0.5.0 feature highlights
+
+- **API Documentation**
+  - Comprehensive GoDoc comments for all GCP packages
+  - Package-level documentation with usage examples
+  - Thread-safety guarantees documented
+  - Detailed error scenarios and best practices
+
+- **Example Configurations**
+  - `examples/config-gcp.yaml` - Complete GCP configuration with drift rules
+  - `examples/config-with-autoimport.yaml` - Updated with GCP support
   - Multi-project setup examples
-  - GCS backend configuration
+  - GCS backend configuration patterns
 
 ### Changed
 
