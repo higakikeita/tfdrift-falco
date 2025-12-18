@@ -448,6 +448,20 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"PutEventSelectors":   "aws_cloudtrail_event_data_store",
 		"PutInsightSelectors": "aws_cloudtrail",
 
+		// CloudFormation - Stacks
+		"CreateStack":                  "aws_cloudformation_stack",
+		"DeleteStack":                  "aws_cloudformation_stack",
+		"UpdateStack":                  "aws_cloudformation_stack",
+		"CancelUpdateStack":            "aws_cloudformation_stack",
+		"ContinueUpdateRollback":       "aws_cloudformation_stack",
+		"SetStackPolicy":               "aws_cloudformation_stack",
+		"UpdateTerminationProtection":  "aws_cloudformation_stack",
+
+		// CloudFormation - Change Sets
+		"CreateChangeSet":   "aws_cloudformation_change_set",
+		"DeleteChangeSet":   "aws_cloudformation_change_set",
+		"ExecuteChangeSet":  "aws_cloudformation_change_set",
+
 		// ECS - Services
 		"CreateService": "aws_ecs_service",
 		"UpdateService": "aws_ecs_service",
