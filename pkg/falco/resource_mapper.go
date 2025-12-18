@@ -521,6 +521,14 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"RegisterStreamConsumer":   "aws_kinesis_stream_consumer",
 		"DeregisterStreamConsumer": "aws_kinesis_stream_consumer",
 
+		// ACM (Certificate Manager)
+		"RequestCertificate":        "aws_acm_certificate",
+		"DeleteCertificate":         "aws_acm_certificate",
+		"ImportCertificate":         "aws_acm_certificate",
+		"ExportCertificate":         "aws_acm_certificate",
+		"AddTagsToCertificate":      "aws_acm_certificate",
+		"RemoveTagsFromCertificate": "aws_acm_certificate",
+
 		// ECS - Services
 		"CreateService": "aws_ecs_service",
 		"UpdateService": "aws_ecs_service",
