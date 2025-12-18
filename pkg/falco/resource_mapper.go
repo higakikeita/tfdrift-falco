@@ -117,11 +117,10 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"EnableKey":           "aws_kms_key",
 		"PutKeyPolicy":        "aws_kms_key",
 		"CreateKey":           "aws_kms_key",
-		"CreateAlias":         "aws_kms_alias",
-		"DeleteAlias":         "aws_kms_alias",
-		"UpdateAlias":         "aws_kms_alias",
 		"EnableKeyRotation":   "aws_kms_key",
 		"DisableKeyRotation":  "aws_kms_key",
+		// Note: CreateAlias, DeleteAlias, UpdateAlias are mapped to Lambda aliases
+		// KMS aliases currently not supported - requires eventSource field to distinguish
 
 		// DynamoDB - Tables
 		"CreateTable":  "aws_dynamodb_table",
@@ -271,6 +270,7 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"DeleteFunction":              "aws_lambda_function",
 		"UpdateFunctionCode":          "aws_lambda_function",
 		"UpdateFunctionConfiguration": "aws_lambda_function",
+		"PublishVersion":              "aws_lambda_function",
 
 		// Lambda - Permissions
 		"AddPermission":    "aws_lambda_permission",
@@ -281,11 +281,17 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"DeleteEventSourceMapping": "aws_lambda_event_source_mapping",
 		"UpdateEventSourceMapping": "aws_lambda_event_source_mapping",
 
-		// Lambda - Concurrency
-		"PutFunctionConcurrency": "aws_lambda_function",
+		// Lambda - Concurrency & Invoke Config
+		"PutFunctionConcurrency":         "aws_lambda_function",
+		"PutProvisionedConcurrencyConfig": "aws_lambda_provisioned_concurrency_config",
+		"PutFunctionEventInvokeConfig":   "aws_lambda_function_event_invoke_config",
 
-		// Note: CreateAlias, DeleteAlias, UpdateAlias are mapped to aws_kms_alias (line 80-82)
-		// Lambda aliases cannot be distinguished from KMS aliases without eventSource field
+		// Lambda - Aliases
+		// Note: CreateAlias, DeleteAlias, UpdateAlias conflict with KMS aliases
+		// In production, distinguish using eventSource field (lambda.amazonaws.com vs kms.amazonaws.com)
+		"CreateAlias": "aws_lambda_alias",
+		"DeleteAlias": "aws_lambda_alias",
+		"UpdateAlias": "aws_lambda_alias",
 
 		// Auto Scaling - Auto Scaling Groups
 		"CreateAutoScalingGroup": "aws_autoscaling_group",
