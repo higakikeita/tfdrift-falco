@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	// TODO: Migrate to aws-sdk-go-v2 (aws-sdk-go-v1 deprecated, EOL July 31, 2025)
 	// See: https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-go-v1-on-july-31-2025/
@@ -38,7 +39,7 @@ func NewS3Backend(cfg S3BackendConfig) (*S3Backend, error) {
 	}
 
 	// Default region if not specified
-	region := cfg.Region
+	region := strings.TrimSpace(cfg.Region)
 	if region == "" {
 		region = "us-east-1"
 	}
