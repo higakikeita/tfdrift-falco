@@ -1,6 +1,10 @@
-# Falco Setup Guide for TFDrift-Falco
+# Falco Setup Guide for TFDrift-Falco (AWS)
 
-This guide explains how to set up Falco with the CloudTrail plugin to work with TFDrift-Falco.
+This guide explains how to set up Falco with the CloudTrail plugin to work with TFDrift-Falco for **AWS drift detection**.
+
+> **📝 Note**: This guide is for AWS. If you're using Google Cloud Platform (GCP), see the [GCP Setup Guide](./gcp-setup.md) instead.
+>
+> **🎉 New in v0.5.0**: TFDrift-Falco now supports multi-cloud environments! You can monitor both AWS and GCP resources simultaneously. See the [Multi-Cloud Configuration](#multi-cloud-configuration) section below.
 
 ## Prerequisites
 
@@ -367,14 +371,82 @@ plugins:
 
 After Falco is set up and running:
 
-1. Configure TFDrift-Falco: Edit `config.yaml` with your Falco gRPC endpoint
-2. Run TFDrift-Falco: `tfdrift --config config.yaml`
-3. Test drift detection: Make a manual change to a Terraform-managed resource
-4. Check alerts: Verify you receive notifications (Slack, Discord, etc.)
+1. **Configure TFDrift-Falco**: Edit `config.yaml` with your Falco gRPC endpoint
+2. **Run TFDrift-Falco**: `tfdrift --config config.yaml`
+3. **Test drift detection**: Make a manual change to a Terraform-managed resource
+4. **Check alerts**: Verify you receive notifications (Slack, Discord, etc.)
+5. **(Optional) Add GCP monitoring**: See the [Multi-Cloud Configuration](#multi-cloud-configuration) section to monitor both AWS and GCP
+
+## Multi-Cloud Configuration
+
+**New in v0.5.0**: You can now monitor both AWS and GCP resources in a single TFDrift-Falco instance.
+
+### Running Both AWS and GCP Monitoring
+
+1. Set up Falco for AWS (this guide)
+2. Set up Falco for GCP with gcpaudit plugin (see [GCP Setup Guide](./gcp-setup.md))
+3. Configure TFDrift-Falco to monitor both providers:
+
+```yaml
+# config.yaml
+providers:
+  aws:
+    enabled: true
+    regions:
+      - "us-east-1"
+      - "us-west-2"
+    state:
+      backend: "s3"
+      s3_bucket: "my-terraform-state"
+      s3_key: "aws/terraform.tfstate"
+
+  gcp:
+    enabled: true
+    projects:
+      - "my-gcp-project-123"
+    state:
+      backend: "gcs"
+      gcs_bucket: "my-terraform-state"
+      gcs_prefix: "gcp/terraform.tfstate"
+
+falco:
+  enabled: true
+  hostname: "localhost"
+  port: 5060
+
+drift_rules:
+  # AWS resources
+  - name: "AWS EC2 Instance Changes"
+    resource_types:
+      - "aws_instance"
+    watched_attributes:
+      - "tags"
+      - "instance_type"
+    severity: "high"
+
+  # GCP resources
+  - name: "GCP Compute Instance Changes"
+    resource_types:
+      - "google_compute_instance"
+    watched_attributes:
+      - "labels"
+      - "metadata"
+    severity: "high"
+
+notifications:
+  slack:
+    enabled: true
+    webhook_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+```
+
+**Note**: When running both AWS and GCP monitoring, you'll need either:
+- Two separate Falco instances (one for CloudTrail, one for GCP Audit Logs), or
+- A single Falco instance with both plugins loaded (if supported by your Falco version)
 
 ## References
 
 - [Falco Official Documentation](https://falco.org/docs/)
 - [Falco CloudTrail Plugin](https://github.com/falcosecurity/plugins/tree/master/plugins/cloudtrail)
 - [AWS CloudTrail Documentation](https://docs.aws.amazon.com/cloudtrail/)
-- [TFDrift-Falco Repository](https://github.com/keitahigaki/tfdrift-falco)
+- [TFDrift-Falco Repository](https://github.com/higakikeita/tfdrift-falco)
+- [GCP Setup Guide](./gcp-setup.md) - For Google Cloud Platform setup
