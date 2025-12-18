@@ -9,6 +9,12 @@ import (
 // parseFalcoOutput parses a Falco output response into a TFDrift event
 // Supports both AWS CloudTrail and GCP Audit Log events
 func (s *Subscriber) parseFalcoOutput(res *outputs.Response) *types.Event {
+	// Handle nil response
+	if res == nil {
+		log.Warn("Received nil response")
+		return nil
+	}
+
 	switch res.Source {
 	case "aws_cloudtrail":
 		return s.parseAWSEvent(res)
