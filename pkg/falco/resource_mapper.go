@@ -462,6 +462,20 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"DeleteChangeSet":   "aws_cloudformation_change_set",
 		"ExecuteChangeSet":  "aws_cloudformation_change_set",
 
+		// EventBridge (CloudWatch Events) - Rules
+		"PutRule":     "aws_cloudwatch_event_rule",
+		"DeleteRule":  "aws_cloudwatch_event_rule",
+		"EnableRule":  "aws_cloudwatch_event_rule",
+		"DisableRule": "aws_cloudwatch_event_rule",
+
+		// EventBridge - Targets
+		"PutTargets":    "aws_cloudwatch_event_target",
+		"RemoveTargets": "aws_cloudwatch_event_target",
+
+		// EventBridge - Events
+		"PutEvents":        "aws_cloudwatch_event_bus",
+		"PutPartnerEvents": "aws_cloudwatch_event_bus",
+
 		// ECS - Services
 		"CreateService": "aws_ecs_service",
 		"UpdateService": "aws_ecs_service",
