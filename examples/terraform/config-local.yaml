@@ -1,0 +1,54 @@
+# TFDrift-Falco Local Configuration
+providers:
+  aws:
+    enabled: true
+    regions:
+      - us-east-1
+
+    state:
+      backend: "local"
+      local_path: "./terraform.tfstate"
+
+# Disable Falco for now (we'll use direct detection)
+falco:
+  enabled: false
+
+# Drift Detection Rules
+drift_rules:
+  - name: "EC2 Instance Changes"
+    resource_types:
+      - "aws_instance"
+    watched_attributes:
+      - "instance_type"
+      - "disable_api_termination"
+      - "monitoring"
+      - "tags"
+    severity: "high"
+
+  - name: "S3 Bucket Changes"
+    resource_types:
+      - "aws_s3_bucket"
+    watched_attributes:
+      - "versioning"
+      - "server_side_encryption_configuration"
+    severity: "high"
+
+  - name: "VPC Changes"
+    resource_types:
+      - "aws_vpc"
+    watched_attributes:
+      - "cidr_block"
+      - "tags"
+    severity: "medium"
+
+  - name: "Security Group Changes"
+    resource_types:
+      - "aws_security_group"
+    watched_attributes:
+      - "ingress"
+      - "egress"
+    severity: "critical"
+
+# Notification settings (optional)
+notifications:
+  enabled: false
