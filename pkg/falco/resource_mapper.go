@@ -476,6 +476,21 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"PutEvents":        "aws_cloudwatch_event_bus",
 		"PutPartnerEvents": "aws_cloudwatch_event_bus",
 
+		// Step Functions - State Machines
+		"CreateStateMachine": "aws_sfn_state_machine",
+		"DeleteStateMachine": "aws_sfn_state_machine",
+		"UpdateStateMachine": "aws_sfn_state_machine",
+
+		// Step Functions - Executions
+		"StartExecution": "aws_sfn_state_machine",
+		"StopExecution":  "aws_sfn_state_machine",
+
+		// Step Functions - Tags
+		// Note: TagResource, UntagResource are generic AWS API operations
+		// For Step Functions: maps to aws_sfn_state_machine
+		"TagResource":   "aws_sfn_state_machine",
+		"UntagResource": "aws_sfn_state_machine",
+
 		// ECS - Services
 		"CreateService": "aws_ecs_service",
 		"UpdateService": "aws_ecs_service",
