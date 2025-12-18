@@ -1,6 +1,13 @@
 # AWS Service Coverage
 
-TFDrift-Falco monitors **150+ CloudTrail events** across **12 AWS services**. This page provides an overview of service coverage.
+> **Version:** v0.2.0+ (v0.5.0 adds GCP support)
+> **Events:** 203+ CloudTrail events
+> **Services:** 19 AWS services
+> **Status:** Production Ready
+
+TFDrift-Falco monitors **203+ CloudTrail events** across **19 AWS services**. This page provides an overview of AWS service coverage.
+
+For GCP service coverage, see [GCP Services →](gcp/index.md).
 
 ---
 

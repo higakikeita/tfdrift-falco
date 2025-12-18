@@ -1,6 +1,8 @@
 # Overview
 
-TFDrift-Falco is a **real-time Terraform drift detection system** that monitors AWS infrastructure changes and alerts when resources drift from their Terraform-defined state.
+TFDrift-Falco is a **real-time multi-cloud Terraform drift detection system** that monitors cloud infrastructure changes (AWS, GCP) and alerts when resources drift from their Terraform-defined state.
+
+> **Version:** v0.5.0+ | **Providers:** AWS + GCP | **Status:** Production Ready
 
 ---
 
@@ -44,14 +46,16 @@ Common causes:
 
 ### How It Works
 
-TFDrift-Falco solves drift detection by combining three powerful technologies:
+TFDrift-Falco solves drift detection by combining cloud audit logs, Terraform state, and Falco:
 
-1. **AWS CloudTrail**: Real-time event stream of all AWS API calls
-2. **Terraform State**: Source of truth for intended infrastructure
+1. **Cloud Audit Logs**: Real-time event stream of all cloud API calls
+   - AWS: CloudTrail
+   - GCP: Audit Logs via Pub/Sub (v0.5.0+)
+2. **Terraform State**: Source of truth for intended infrastructure (S3, GCS, local)
 3. **Falco**: Runtime security engine for alerting
 
 ```
-AWS Change → CloudTrail Event → TFDrift Detection → Falco Alert → Action
+Cloud Change → Audit Log Event → TFDrift Detection → Falco Alert → Action
 ```
 
 ### Key Capabilities
@@ -70,17 +74,30 @@ Change happens → Wait 1 hour → Terraform plan runs → Drift found
 Change happens → CloudTrail event → Drift detected (< 30s)
 ```
 
-#### 2. Comprehensive Service Coverage
+#### 2. Comprehensive Multi-Cloud Service Coverage
 
-Monitors 150+ AWS CloudTrail events across 12 services:
-- Compute: EC2
-- Networking: VPC, Route53, CloudFront
-- Storage: S3, EBS
-- Databases: RDS, Aurora
-- Security: IAM, KMS
-- Application: API Gateway, SNS, SQS, ECR
+**AWS (203+ events across 19 services):**
+- **Compute:** EC2, Lambda, Auto Scaling
+- **Networking:** VPC, Security Groups, ELB/ALB, Route53, CloudFront
+- **Storage:** S3, EBS
+- **Databases:** RDS, Aurora, DynamoDB
+- **Security:** IAM, KMS
+- **Containers:** ECS, EKS, ECR
+- **Application:** API Gateway, SNS, SQS
 
-[View Full Service Coverage →](services/ec2.md)
+[View Full AWS Coverage →](services/index.md)
+
+**GCP (100+ events across 12+ services) - v0.5.0+:**
+- **Compute:** Compute Engine, Disks
+- **Networking:** VPC, Firewall, Routes, Routers
+- **Storage:** Cloud Storage
+- **Databases:** Cloud SQL
+- **Security:** IAM, KMS, Secret Manager
+- **Containers:** GKE, Cloud Run
+- **Serverless:** Cloud Functions
+- **Data & Analytics:** BigQuery, Pub/Sub
+
+[View Full GCP Coverage →](services/gcp/index.md)
 
 #### 3. Intelligent Change Detection
 
@@ -229,17 +246,19 @@ Monitor resources across multiple AWS regions.
 
 ### ✅ Good Fit
 
-- You manage AWS infrastructure with Terraform
-- You need **real-time** drift detection
-- You have **multi-account** or **multi-region** setups
-- You need **user attribution** for compliance
+- You manage cloud infrastructure with Terraform (AWS, GCP, or both)
+- You need **real-time** drift detection (sub-minute latency)
+- You have **multi-cloud**, **multi-account**, or **multi-region** setups
+- You need **user attribution** for compliance and auditing
 - You want **low-cost** solution (no per-resource charges)
+- You want **unified monitoring** across multiple cloud providers
 
 ### ⚠️ Consider Alternatives
 
-- You don't use Terraform (use AWS Config instead)
-- You need automatic remediation (use Cloud Custodian)
+- You don't use Terraform (use AWS Config or GCP Asset Inventory instead)
+- You need automatic remediation (use Cloud Custodian or custom automation)
 - You're okay with hourly drift checks (use scheduled Terraform plan)
+- You only need configuration compliance (not Terraform drift)
 
 ---
 
