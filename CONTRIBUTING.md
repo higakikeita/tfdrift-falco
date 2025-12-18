@@ -30,11 +30,13 @@ This project and everyone participating in it is governed by our Code of Conduct
 
 ### Prerequisites
 
-- Go 1.21 or later
+- Go 1.24 or later
 - Git
 - Docker (for testing)
 - AWS CLI (for AWS integration testing)
+- gcloud CLI (for GCP integration testing - v0.5.0+)
 - Basic knowledge of Terraform and Falco
+- Basic knowledge of cloud platforms (AWS, GCP)
 
 ### Types of Contributions
 
@@ -57,7 +59,7 @@ git clone https://github.com/YOUR_USERNAME/tfdrift-falco.git
 cd tfdrift-falco
 
 # Add upstream remote
-git remote add upstream https://github.com/keitahigaki/tfdrift-falco.git
+git remote add upstream https://github.com/higakikeita/tfdrift-falco.git
 ```
 
 ### 2. Install Dependencies
@@ -133,9 +135,9 @@ What actually happened.
 
 **Environment**
 - OS: [e.g. Ubuntu 22.04]
-- Go Version: [e.g. 1.21]
-- TFDrift-Falco Version: [e.g. 0.1.0]
-- Cloud Provider: [e.g. AWS]
+- Go Version: [e.g. 1.24]
+- TFDrift-Falco Version: [e.g. 0.5.0]
+- Cloud Provider: [e.g. AWS, GCP, or both]
 - Terraform Version: [e.g. 1.6.0]
 
 **Logs**
@@ -194,12 +196,16 @@ We follow the standard Go coding conventions:
 
 ```
 pkg/
+├── aws/             # AWS-specific parsers and logic
+├── gcp/             # GCP-specific parsers and logic (v0.5.0+)
 ├── cloudtrail/      # CloudTrail event collection
 ├── config/          # Configuration management
 ├── detector/        # Core drift detection logic
 ├── falco/           # Falco integration
 ├── notifier/        # Notification handling
-└── terraform/       # Terraform state management
+├── terraform/       # Terraform state management
+│   └── backend/     # State backend implementations (S3, GCS, local)
+└── types/           # Common types and interfaces
 ```
 
 ### Error Handling
@@ -281,6 +287,38 @@ func TestDetectDrift(t *testing.T) {
 - Use Docker containers for external dependencies
 - Keep tests isolated and repeatable
 
+### Multi-Cloud Testing (v0.5.0+)
+
+When contributing multi-cloud features:
+
+```go
+// Test both AWS and GCP parsers
+func TestMultiCloudParsing(t *testing.T) {
+    // AWS test
+    awsEvent := &outputs.Response{
+        Source: "aws_cloudtrail",
+        OutputFields: map[string]string{
+            "aws.eventName": "ModifyInstanceAttribute",
+        },
+    }
+
+    // GCP test
+    gcpEvent := &outputs.Response{
+        Source: "gcpaudit",
+        OutputFields: map[string]string{
+            "gcp.methodName": "compute.instances.setMetadata",
+        },
+    }
+
+    // Test both parsers work correctly
+}
+```
+
+- Test provider-specific functionality separately
+- Test multi-provider scenarios (e.g., hybrid AWS+GCP deployments)
+- Ensure configuration validation works for all providers
+- Verify state backend selection (S3 for AWS, GCS for GCP)
+
 ## Commit Messages
 
 We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
@@ -313,6 +351,17 @@ feat(cloudtrail): add support for S3 event source
 - Update documentation
 
 Closes #123
+```
+
+```
+feat(gcp): add GCP Audit Logs support
+
+- Implement GCP audit parser for Falco gcpaudit plugin
+- Add GCS backend for Terraform state
+- Support 100+ GCP events across 12 services
+- Add comprehensive tests and documentation
+
+Closes #150
 ```
 
 ```
