@@ -23,6 +23,12 @@ func NewAuditParser() *AuditParser {
 
 // Parse parses a Falco output response into a TFDrift event
 func (p *AuditParser) Parse(res *outputs.Response) *types.Event {
+	// Handle nil response
+	if res == nil {
+		log.Warn("Received nil response")
+		return nil
+	}
+
 	// Check if this is a GCP Audit Log event
 	if res.Source != "gcpaudit" {
 		return nil

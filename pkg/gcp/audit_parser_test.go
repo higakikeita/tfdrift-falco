@@ -386,3 +386,422 @@ func Test_getStringField(t *testing.T) {
 		})
 	}
 }
+
+// ============================================================================
+// Edge Case Tests - Added for comprehensive coverage
+// ============================================================================
+
+func TestAuditParser_Parse_MalformedJSON(t *testing.T) {
+	parser := NewAuditParser()
+
+	res := &outputs.Response{
+		Source: "gcpaudit",
+		OutputFields: map[string]string{
+			"gcp.methodName":    "compute.instances.setMetadata",
+			"gcp.resource.name": "projects/my-project/zones/us-central1-a/instances/vm-1",
+			"gcp.serviceName":   "compute.googleapis.com",
+			"gcp.request":       `{"metadata": INVALID_JSON}`, // Malformed JSON
+		},
+	}
+
+	event := parser.Parse(res)
+	// Should still parse but changes might be limited
+	assert.NotNil(t, event)
+	assert.Equal(t, "gcp", event.Provider)
+}
+
+func TestAuditParser_Parse_VeryLongResourceName(t *testing.T) {
+	parser := NewAuditParser()
+
+	// Create a very long resource name
+	longName := "projects/my-project/zones/us-central1-a/instances/"
+	for i := 0; i < 100; i++ {
+		longName += "very-long-name-"
+	}
+
+	res := &outputs.Response{
+		Source: "gcpaudit",
+		OutputFields: map[string]string{
+			"gcp.methodName":    "compute.instances.setMetadata",
+			"gcp.resource.name": longName,
+			"gcp.serviceName":   "compute.googleapis.com",
+		},
+	}
+
+	event := parser.Parse(res)
+	assert.NotNil(t, event)
+	assert.NotEmpty(t, event.ResourceID)
+}
+
+func TestAuditParser_Parse_SpecialCharactersInResourceID(t *testing.T) {
+	parser := NewAuditParser()
+
+	tests := []struct {
+		name         string
+		resourceName string
+	}{
+		{
+			"Hyphens and underscores",
+			"projects/my-project/zones/us-central1-a/instances/vm-test_123-prod",
+		},
+		{
+			"Dots",
+			"projects/my-project/zones/us-central1-a/instances/vm.test.123",
+		},
+		{
+			"Mixed special chars",
+			"projects/my-project/zones/us-central1-a/instances/vm-test_123.prod",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res := &outputs.Response{
+				Source: "gcpaudit",
+				OutputFields: map[string]string{
+					"gcp.methodName":    "compute.instances.setMetadata",
+					"gcp.resource.name": tt.resourceName,
+					"gcp.serviceName":   "compute.googleapis.com",
+				},
+			}
+
+			event := parser.Parse(res)
+			assert.NotNil(t, event)
+			assert.NotEmpty(t, event.ResourceID)
+		})
+	}
+}
+
+func TestAuditParser_Parse_UnicodeCharacters(t *testing.T) {
+	parser := NewAuditParser()
+
+	res := &outputs.Response{
+		Source: "gcpaudit",
+		OutputFields: map[string]string{
+			"gcp.methodName":                        "compute.instances.setLabels",
+			"gcp.resource.name":                     "projects/my-project/zones/us-central1-a/instances/vm-1",
+			"gcp.serviceName":                       "compute.googleapis.com",
+			"gcp.authenticationInfo.principalEmail": "ユーザー@example.com", // Japanese characters
+			"gcp.request":                           `{"labels": {"name": "テスト"}}`,
+		},
+	}
+
+	event := parser.Parse(res)
+	assert.NotNil(t, event)
+	assert.Contains(t, event.UserIdentity.UserName, "ユーザー")
+}
+
+func TestAuditParser_Parse_EmptyOutputFields(t *testing.T) {
+	parser := NewAuditParser()
+
+	res := &outputs.Response{
+		Source:       "gcpaudit",
+		OutputFields: map[string]string{},
+	}
+
+	event := parser.Parse(res)
+	assert.Nil(t, event, "Should return nil for empty output fields")
+}
+
+func TestAuditParser_Parse_NilResponse(t *testing.T) {
+	parser := NewAuditParser()
+
+	event := parser.Parse(nil)
+	assert.Nil(t, event, "Should handle nil response gracefully")
+}
+
+func TestAuditParser_extractResourceID_MultipleSlashes(t *testing.T) {
+	parser := NewAuditParser()
+
+	tests := []struct {
+		name         string
+		resourceName string
+		want         string
+	}{
+		{
+			"Multiple consecutive slashes",
+			"projects/my-project///zones//us-central1-a///instances///vm-1",
+			"vm-1",
+		},
+		{
+			"Trailing slash",
+			"projects/my-project/zones/us-central1-a/instances/vm-1/",
+			"",
+		},
+		{
+			"Leading slash",
+			"/projects/my-project/zones/us-central1-a/instances/vm-1",
+			"vm-1",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := parser.extractResourceID(tt.resourceName)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestAuditParser_extractProjectID_EdgeCases(t *testing.T) {
+	parser := NewAuditParser()
+
+	tests := []struct {
+		name         string
+		resourceName string
+		fields       map[string]string
+		want         string
+	}{
+		{
+			"Project ID with numbers",
+			"projects/my-project-12345/zones/us-central1-a/instances/vm-1",
+			map[string]string{},
+			"my-project-12345",
+		},
+		{
+			"Very short project ID",
+			"projects/p1/zones/us-central1-a/instances/vm-1",
+			map[string]string{},
+			"p1",
+		},
+		{
+			"Project ID with underscores",
+			"projects/my_project_123/zones/us-central1-a/instances/vm-1",
+			map[string]string{},
+			"my_project_123",
+		},
+		{
+			"Multiple projects keyword",
+			"projects/projects/my-project/zones/us-central1-a/instances/vm-1",
+			map[string]string{},
+			"projects",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := parser.extractProjectID(tt.resourceName, tt.fields)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestAuditParser_extractRegion_EdgeCases(t *testing.T) {
+	parser := NewAuditParser()
+
+	tests := []struct {
+		name string
+		zone string
+		want string
+	}{
+		{"Single letter zone", "us-central1-z", "us-central1"},
+		{"Multi-digit zone", "us-central1-123", "us-central1"},
+		{"Zone with only region", "us-central1", "us-central1"},
+		{"Very long region name", "australia-southeast1-a", "australia-southeast1"},
+		{"Special format", "us-east4-c", "us-east4"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := parser.extractRegion(tt.zone)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestAuditParser_extractChanges_LargePayload(t *testing.T) {
+	parser := NewAuditParser()
+
+	// Create a large JSON payload
+	largePayload := `{"metadata": {"items": [`
+	for i := 0; i < 100; i++ {
+		if i > 0 {
+			largePayload += ","
+		}
+		largePayload += `{"key": "key` + string(rune(i)) + `", "value": "value` + string(rune(i)) + `"}`
+	}
+	largePayload += `]}}`
+
+	res := &outputs.Response{
+		Source: "gcpaudit",
+		OutputFields: map[string]string{
+			"gcp.methodName": "compute.instances.setMetadata",
+			"gcp.request":    largePayload,
+		},
+	}
+
+	changes := parser.extractChanges("compute.instances.setMetadata", res.OutputFields)
+	assert.NotNil(t, changes)
+	assert.NotEmpty(t, changes)
+}
+
+func TestAuditParser_isRelevantEvent_EdgeCases(t *testing.T) {
+	parser := NewAuditParser()
+
+	tests := []struct {
+		name       string
+		methodName string
+		want       bool
+	}{
+		{"Empty method name", "", false},
+		{"Very long method name", "compute.instances.setMetadata.with.many.dots.and.long.name.that.exceeds.normal.length", false},
+		{"Method with spaces", "compute instances setMetadata", false},
+		{"Method with special chars", "compute.instances.set@Metadata", false},
+		{"Case sensitivity", "COMPUTE.INSTANCES.SETMETADATA", false},
+		{"Partial match", "compute.instances", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := parser.isRelevantEvent(tt.methodName)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestAuditParser_Parse_MissingOptionalFields(t *testing.T) {
+	parser := NewAuditParser()
+
+	res := &outputs.Response{
+		Source: "gcpaudit",
+		OutputFields: map[string]string{
+			"gcp.methodName":    "compute.instances.setMetadata",
+			"gcp.resource.name": "projects/my-project/zones/us-central1-a/instances/vm-1",
+			// Missing: serviceName, principalEmail, request, etc.
+		},
+	}
+
+	event := parser.Parse(res)
+	assert.NotNil(t, event)
+	assert.Equal(t, "gcp", event.Provider)
+	assert.Equal(t, "google_compute_instance", event.ResourceType)
+	// Optional fields should have default/empty values
+	assert.Empty(t, event.UserIdentity.UserName)
+}
+
+func TestAuditParser_Parse_AllServiceTypes(t *testing.T) {
+	parser := NewAuditParser()
+
+	services := []struct {
+		service      string
+		methodName   string
+		resourceName string
+		wantType     string
+	}{
+		{"compute.googleapis.com", "compute.instances.insert", "projects/p/zones/z/instances/i", "google_compute_instance"},
+		{"compute.googleapis.com", "compute.firewalls.update", "projects/p/global/firewalls/f", "google_compute_firewall"},
+		{"sqladmin.googleapis.com", "cloudsql.instances.create", "projects/p/instances/db", "google_sql_database_instance"},
+		{"container.googleapis.com", "container.clusters.create", "projects/p/locations/l/clusters/c", "google_container_cluster"},
+		{"storage.googleapis.com", "storage.buckets.create", "projects/_/buckets/b", "google_storage_bucket"},
+	}
+
+	for _, s := range services {
+		t.Run(s.service, func(t *testing.T) {
+			res := &outputs.Response{
+				Source: "gcpaudit",
+				OutputFields: map[string]string{
+					"gcp.methodName":    s.methodName,
+					"gcp.resource.name": s.resourceName,
+					"gcp.serviceName":   s.service,
+				},
+			}
+
+			event := parser.Parse(res)
+			assert.NotNil(t, event)
+			assert.Equal(t, s.wantType, event.ResourceType)
+		})
+	}
+}
+
+// ============================================================================
+// Error Handling Tests
+// ============================================================================
+
+func TestAuditParser_Parse_ConcurrentAccess(t *testing.T) {
+	parser := NewAuditParser()
+
+	// Test concurrent parsing
+	done := make(chan bool)
+	for i := 0; i < 10; i++ {
+		go func(id int) {
+			res := &outputs.Response{
+				Source: "gcpaudit",
+				OutputFields: map[string]string{
+					"gcp.methodName":    "compute.instances.setMetadata",
+					"gcp.resource.name": "projects/my-project/zones/us-central1-a/instances/vm-" + string(rune(id)),
+					"gcp.serviceName":   "compute.googleapis.com",
+				},
+			}
+			event := parser.Parse(res)
+			assert.NotNil(t, event)
+			done <- true
+		}(i)
+	}
+
+	// Wait for all goroutines
+	for i := 0; i < 10; i++ {
+		<-done
+	}
+}
+
+func TestAuditParser_ValidateEvent_ExtensiveCases(t *testing.T) {
+	parser := NewAuditParser()
+
+	tests := []struct {
+		name      string
+		event     *types.Event
+		wantError bool
+		errorMsg  string
+	}{
+		{
+			"All fields populated",
+			&types.Event{
+				Provider:     "gcp",
+				EventName:    "compute.instances.setMetadata",
+				ResourceType: "google_compute_instance",
+				ResourceID:   "vm-1",
+				ProjectID:    "my-project",
+				Region:       "us-central1",
+				ServiceName:  "compute.googleapis.com",
+			},
+			false,
+			"",
+		},
+		{
+			"Empty provider",
+			&types.Event{
+				Provider:     "",
+				EventName:    "compute.instances.setMetadata",
+				ResourceType: "google_compute_instance",
+				ResourceID:   "vm-1",
+			},
+			true,
+			"invalid provider",
+		},
+		{
+			"Wrong provider",
+			&types.Event{
+				Provider:     "azure",
+				EventName:    "compute.instances.setMetadata",
+				ResourceType: "google_compute_instance",
+				ResourceID:   "vm-1",
+			},
+			true,
+			"invalid provider",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := parser.ValidateEvent(tt.event)
+			if tt.wantError {
+				assert.Error(t, err)
+				if tt.errorMsg != "" {
+					assert.Contains(t, err.Error(), tt.errorMsg)
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
