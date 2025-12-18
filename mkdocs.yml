@@ -1,5 +1,5 @@
 site_name: TFDrift-Falco Documentation
-site_description: Real-time Terraform Drift Detection using CloudTrail + Falco
+site_description: Real-time Multi-Cloud Terraform Drift Detection (AWS + GCP) using Falco
 site_url: https://higakikeita.github.io/tfdrift-falco/
 repo_url: https://github.com/higakikeita/tfdrift-falco
 repo_name: higakikeita/tfdrift-falco
@@ -52,7 +52,8 @@ nav:
       - Architecture: architecture.md
       - Quickstart: quickstart.md
       - Deployment: deployment.md
-      - Falco Setup: falco-setup.md
+      - Falco Setup (AWS): falco-setup.md
+      - GCP Setup: gcp-setup.md
   - AWS Services:
       - services/index.md
       - Compute:
@@ -77,7 +78,32 @@ nav:
           - ECS: services/ecs.md
           - EKS: services/eks.md
           - ECR: services/ecr.md
+  - GCP Services:
+      - services/gcp/index.md
+      - Compute:
+          - Compute Engine: services/gcp/compute-engine.md
+          - Disks: services/gcp/disks.md
+      - Networking:
+          - VPC & Firewall: services/gcp/vpc.md
+          - Routes & Routers: services/gcp/routes.md
+      - Storage:
+          - Cloud Storage: services/gcp/cloud-storage.md
+      - Databases:
+          - Cloud SQL: services/gcp/cloud-sql.md
+      - Security:
+          - IAM: services/gcp/iam.md
+          - KMS: services/gcp/kms.md
+          - Secret Manager: services/gcp/secret-manager.md
+      - Containers:
+          - GKE: services/gcp/gke.md
+          - Cloud Run: services/gcp/cloud-run.md
+      - Serverless:
+          - Cloud Functions: services/gcp/cloud-functions.md
+      - Data & Analytics:
+          - BigQuery: services/gcp/bigquery.md
+          - Pub/Sub: services/gcp/pubsub.md
   - Release Notes:
+      - v0.5.0 (Multi-Cloud): release-notes/v0.5.0.md
       - v0.2.0-beta: release-notes/v0.2.0-beta.md
       - v0.3.0 (planned): release-notes/v0.3.0.md
       - Architecture Changes: release-notes/architecture-changes.md
