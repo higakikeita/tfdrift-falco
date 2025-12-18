@@ -491,6 +491,23 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"TagResource":   "aws_sfn_state_machine",
 		"UntagResource": "aws_sfn_state_machine",
 
+		// AWS Glue - Databases
+		"CreateDatabase": "aws_glue_catalog_database",
+		"DeleteDatabase": "aws_glue_catalog_database",
+		"UpdateDatabase": "aws_glue_catalog_database",
+
+		// AWS Glue - Tables
+		"CreateTable": "aws_glue_catalog_table",
+		"DeleteTable": "aws_glue_catalog_table",
+		"UpdateTable": "aws_glue_catalog_table",
+
+		// AWS Glue - Jobs
+		"CreateJob":   "aws_glue_job",
+		"DeleteJob":   "aws_glue_job",
+		"UpdateJob":   "aws_glue_job",
+		"StartJobRun": "aws_glue_job",
+		"StopJobRun":  "aws_glue_job",
+
 		// ECS - Services
 		"CreateService": "aws_ecs_service",
 		"UpdateService": "aws_ecs_service",
