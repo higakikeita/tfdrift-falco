@@ -176,7 +176,11 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		// IAM - Account
 		"UpdateAccountPasswordPolicy": "aws_iam_account_password_policy",
 
-		// S3
+		// S3 - Bucket Management
+		"CreateBucket": "aws_s3_bucket",
+		"DeleteBucket": "aws_s3_bucket",
+
+		// S3 - Bucket Configuration
 		"PutBucketPolicy":               "aws_s3_bucket_policy",
 		"PutBucketVersioning":           "aws_s3_bucket",
 		"PutBucketEncryption":           "aws_s3_bucket",
@@ -184,6 +188,30 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"PutBucketPublicAccessBlock":    "aws_s3_bucket_public_access_block",
 		"DeleteBucketPublicAccessBlock": "aws_s3_bucket_public_access_block",
 		"PutBucketAcl":                  "aws_s3_bucket_acl",
+		"PutBucketTagging":              "aws_s3_bucket",
+
+		// S3 - Lifecycle Management
+		"PutBucketLifecycle":    "aws_s3_bucket_lifecycle_configuration",
+		"DeleteBucketLifecycle": "aws_s3_bucket_lifecycle_configuration",
+
+		// S3 - Replication
+		"PutBucketReplication":    "aws_s3_bucket_replication_configuration",
+		"DeleteBucketReplication": "aws_s3_bucket_replication_configuration",
+
+		// S3 - Logging & Notifications
+		"PutBucketLogging":       "aws_s3_bucket_logging",
+		"PutBucketNotification":  "aws_s3_bucket_notification",
+
+		// S3 - Website Configuration
+		"PutBucketWebsite":    "aws_s3_bucket_website_configuration",
+		"DeleteBucketWebsite": "aws_s3_bucket_website_configuration",
+
+		// S3 - CORS Configuration
+		"PutBucketCors":    "aws_s3_bucket_cors_configuration",
+		"DeleteBucketCors": "aws_s3_bucket_cors_configuration",
+
+		// S3 - Object Management
+		"PutObjectAcl": "aws_s3_object",
 
 		// RDS - DB Instances
 		"CreateDBInstance":          "aws_db_instance",
