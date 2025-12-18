@@ -529,6 +529,20 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"AddTagsToCertificate":      "aws_acm_certificate",
 		"RemoveTagsFromCertificate": "aws_acm_certificate",
 
+		// WAF / WAFv2 - Web ACLs
+		"CreateWebACL": "aws_wafv2_web_acl",
+		"DeleteWebACL": "aws_wafv2_web_acl",
+		"UpdateWebACL": "aws_wafv2_web_acl",
+
+		// WAF / WAFv2 - Rule Groups
+		"CreateRuleGroup": "aws_wafv2_rule_group",
+		"DeleteRuleGroup": "aws_wafv2_rule_group",
+		"UpdateRuleGroup": "aws_wafv2_rule_group",
+
+		// WAF / WAFv2 - Associations
+		"AssociateWebACL":    "aws_wafv2_web_acl_association",
+		"DisassociateWebACL": "aws_wafv2_web_acl_association",
+
 		// ECS - Services
 		"CreateService": "aws_ecs_service",
 		"UpdateService": "aws_ecs_service",
