@@ -11,8 +11,15 @@ providers:
       s3_bucket: "my-terraform-state"
       s3_key: "prod/terraform.tfstate"
 
+  # GCP Configuration (v0.5.0+)
   gcp:
     enabled: false
+    projects:
+      - "my-gcp-project"
+    state:
+      backend: "gcs"
+      gcs_bucket: "my-terraform-state"
+      gcs_prefix: "prod/terraform.tfstate"
 
 falco:
   enabled: true
