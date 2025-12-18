@@ -1,18 +1,61 @@
 package gcp
 
-// ResourceMapper maps GCP Audit Log method names to Terraform resource types
+// ResourceMapper maps GCP Audit Log method names to Terraform resource types.
+//
+// The mapper maintains a comprehensive mapping of 100+ GCP Audit Log method names
+// (e.g., "compute.instances.setMetadata") to their corresponding Terraform resource
+// types (e.g., "google_compute_instance").
+//
+// This enables TFDrift-Falco to correlate infrastructure changes detected in GCP
+// Audit Logs with resources defined in Terraform state files.
+//
+// Supported services:
+//   - Compute Engine: instances, firewalls, networks, disks, VPN, load balancers
+//   - Cloud Storage: buckets and bucket IAM
+//   - Cloud SQL: database instances
+//   - IAM: project policies and service accounts
+//   - GKE: clusters and node pools
+//   - Cloud Functions, Cloud Run, Pub/Sub, Cloud KMS, Secret Manager, and more
+//
+// Thread-safe: Multiple goroutines can safely call MapEventToResource concurrently.
 type ResourceMapper struct {
 	eventToResource map[string]string
 }
 
-// NewResourceMapper creates a new resource mapper
+// NewResourceMapper creates a new resource mapper with pre-initialized mappings.
+//
+// The mapper is initialized with 100+ event-to-resource mappings covering
+// all major GCP services supported by TFDrift-Falco v0.5.0+.
+//
+// Returns a ready-to-use mapper instance for event translation.
 func NewResourceMapper() *ResourceMapper {
 	return &ResourceMapper{
 		eventToResource: initializeEventMapping(),
 	}
 }
 
-// MapEventToResource maps a GCP Audit Log method name to a Terraform resource type
+// MapEventToResource maps a GCP Audit Log method name to its Terraform resource type.
+//
+// The method performs case-sensitive lookup of the GCP method name in the
+// pre-initialized mapping table and returns the corresponding Terraform resource type.
+//
+// Parameters:
+//   - methodName: GCP Audit Log method name (e.g., "compute.instances.setMetadata",
+//     "storage.buckets.update", "SetIamPolicy")
+//
+// Returns:
+//   - string: Terraform resource type (e.g., "google_compute_instance",
+//     "google_storage_bucket", "google_project_iam_binding"), or empty string
+//     if no mapping exists for the given method name
+//
+// Example:
+//
+//	mapper := NewResourceMapper()
+//	resourceType := mapper.MapEventToResource("compute.instances.setMetadata")
+//	// Returns: "google_compute_instance"
+//
+//	resourceType = mapper.MapEventToResource("unknown.method.name")
+//	// Returns: ""
 func (m *ResourceMapper) MapEventToResource(methodName string) string {
 	if resourceType, ok := m.eventToResource[methodName]; ok {
 		return resourceType
@@ -20,7 +63,15 @@ func (m *ResourceMapper) MapEventToResource(methodName string) string {
 	return ""
 }
 
-// initializeEventMapping initializes the mapping table
+// initializeEventMapping initializes the GCP method name to Terraform resource type mapping table.
+//
+// This function creates a comprehensive map of 100+ GCP Audit Log method names
+// to their corresponding Terraform resource types. The mappings cover:
+//   - 12+ GCP services
+//   - Infrastructure mutation operations (create, update, delete, patch, set*)
+//   - Resource-specific operations (e.g., setMetadata, setLabels, setTags)
+//
+// Returns a map[string]string with methodName -> terraformResourceType mappings.
 func initializeEventMapping() map[string]string {
 	return map[string]string{
 		// Compute Engine - Instances

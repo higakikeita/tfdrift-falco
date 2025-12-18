@@ -1,3 +1,22 @@
+// Package gcp provides Google Cloud Platform audit log parsing and resource mapping
+// for TFDrift-Falco. It processes GCP Audit Logs received via Falco's gcpaudit plugin
+// and maps them to Terraform resource types for drift detection.
+//
+// The package supports 100+ GCP event types across 12+ services including:
+//   - Compute Engine (instances, firewalls, networks, disks, VPN, load balancers)
+//   - Cloud Storage (buckets, bucket IAM)
+//   - Cloud SQL (database instances)
+//   - IAM (project-level policies, service accounts)
+//   - GKE (clusters, node pools)
+//   - Cloud Functions, Cloud Run, Cloud Pub/Sub, and more
+//
+// Example usage:
+//
+//	parser := gcp.NewAuditParser()
+//	event := parser.Parse(falcoResponse)
+//	if event != nil {
+//	    // Process drift detection event
+//	}
 package gcp
 
 import (
@@ -9,19 +28,56 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// AuditParser parses GCP Audit Log events from Falco
+// AuditParser parses GCP Audit Log events from Falco into TFDrift events.
+//
+// The parser extracts relevant information from Falco's gcpaudit plugin output,
+// including resource identifiers, user identity, project/zone/region information,
+// and maps GCP method names to corresponding Terraform resource types.
+//
+// Thread-safe: Multiple goroutines can safely call Parse concurrently.
 type AuditParser struct {
 	mapper *ResourceMapper
 }
 
-// NewAuditParser creates a new GCP Audit Log parser
+// NewAuditParser creates a new GCP Audit Log parser with pre-initialized resource mappings.
+//
+// The parser is configured with 100+ event-to-resource mappings covering major GCP services.
+// Returns a ready-to-use parser instance that can process Falco gcpaudit events.
 func NewAuditParser() *AuditParser {
 	return &AuditParser{
 		mapper: NewResourceMapper(),
 	}
 }
 
-// Parse parses a Falco output response into a TFDrift event
+// Parse converts a Falco output response into a TFDrift event for drift detection.
+//
+// The method performs the following operations:
+//   - Validates the response is from the gcpaudit source
+//   - Extracts GCP method name (e.g., "compute.instances.setMetadata")
+//   - Filters irrelevant events (read-only operations, non-infrastructure changes)
+//   - Maps the method to a Terraform resource type (e.g., "google_compute_instance")
+//   - Extracts resource identifiers, project/zone/region, and user identity
+//   - Parses event-specific changes from the audit log
+//
+// Parameters:
+//   - res: Falco output response containing GCP audit log data
+//
+// Returns:
+//   - *types.Event: Parsed drift detection event, or nil if:
+//     • Response is nil
+//     • Source is not "gcpaudit"
+//     • Event is not relevant for drift detection
+//     • Required fields are missing
+//     • No resource mapping exists for the event type
+//
+// Example:
+//
+//	parser := NewAuditParser()
+//	event := parser.Parse(falcoResponse)
+//	if event != nil {
+//	    fmt.Printf("Drift detected: %s on %s.%s\n",
+//	        event.EventName, event.ResourceType, event.ResourceID)
+//	}
 func (p *AuditParser) Parse(res *outputs.Response) *types.Event {
 	// Handle nil response
 	if res == nil {
