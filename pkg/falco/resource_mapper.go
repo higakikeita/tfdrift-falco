@@ -508,6 +508,19 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"StartJobRun": "aws_glue_job",
 		"StopJobRun":  "aws_glue_job",
 
+		// Kinesis - Streams
+		"CreateStream":     "aws_kinesis_stream",
+		"DeleteStream":     "aws_kinesis_stream",
+		"UpdateShardCount": "aws_kinesis_stream",
+
+		// Kinesis - Data Operations
+		"PutRecords": "aws_kinesis_stream",
+		"PutRecord":  "aws_kinesis_stream",
+
+		// Kinesis - Consumers
+		"RegisterStreamConsumer":   "aws_kinesis_stream_consumer",
+		"DeregisterStreamConsumer": "aws_kinesis_stream_consumer",
+
 		// ECS - Services
 		"CreateService": "aws_ecs_service",
 		"UpdateService": "aws_ecs_service",
