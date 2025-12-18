@@ -1,5 +1,9 @@
 # TFDrift-Falco Architecture
 
+> **Version:** v0.5.0+ (Multi-Cloud Support)
+> **Supported Providers:** AWS, Google Cloud Platform
+> **Status:** Production Ready
+
 ## Table of Contents
 
 1. [System Overview](#system-overview)
@@ -14,7 +18,12 @@
 
 ## System Overview
 
-TFDrift-Falco is designed as a **real-time, event-driven drift detection system** that bridges the gap between Infrastructure-as-Code (IaC) and runtime security monitoring.
+TFDrift-Falco is designed as a **real-time, event-driven, multi-cloud drift detection system** that bridges the gap between Infrastructure-as-Code (IaC) and runtime security monitoring.
+
+**v0.5.0 Multi-Cloud Support:**
+- ✅ **AWS** - CloudTrail events, S3 state backend (203 events, 19 services)
+- ✅ **GCP** - Audit Logs via Falco gcpaudit plugin, GCS state backend (100+ events, 12+ services)
+- 🔄 **Azure** - Planned for future release
 
 ### Design Principles
 
@@ -124,6 +133,37 @@ func (c *CloudTrailCollector) Start(ctx context.Context) error {
         for _, msg := range messages.Messages {
             event := c.parseCloudTrailEvent(msg.Body)
             c.eventChannel <- event
+        }
+    }
+}
+```
+
+#### GCP Audit Collector (v0.5.0+)
+
+```go
+type GCPAuditCollector struct {
+    parser       *gcp.AuditParser
+    grpcClient   *client.Client
+    eventChannel chan<- CloudEvent
+}
+
+func (g *GCPAuditCollector) Start(ctx context.Context) error {
+    // Connect to Falco gRPC output with gcpaudit plugin
+    fcs, err := g.grpcClient.OutputsWatch(ctx, &outputs.Request{})
+    if err != nil {
+        return fmt.Errorf("failed to connect to Falco gRPC: %w", err)
+    }
+
+    for {
+        res, err := fcs.Recv()
+        if err != nil {
+            return fmt.Errorf("error receiving event: %w", err)
+        }
+
+        // Parse GCP Audit Log event from Falco
+        event := g.parser.Parse(res)
+        if event != nil {
+            g.eventChannel <- event
         }
     }
 }
@@ -468,6 +508,46 @@ rules:
       - type: "alert"
         channels: ["slack"]
       - type: "audit_log"
+
+# rules/gcp-security-critical.yaml (v0.5.0+)
+rules:
+  - id: "gcp-001"
+    name: "GCP Firewall Rule Modification"
+    description: "Detects modifications to GCP firewall rules"
+    resource_types:
+      - "google_compute_firewall"
+    conditions:
+      - attribute: "allowed"
+        operator: "changed"
+      - attribute: "source_ranges"
+        operator: "changed"
+    severity: "critical"
+    actions:
+      - type: "alert"
+        channels: ["slack", "pagerduty"]
+    remediation:
+      - "Review change with user who made the modification"
+      - "Verify the firewall rule change is authorized"
+      - "Revert with: terraform apply to restore state"
+    runbook: "https://wiki.example.com/runbooks/gcp-firewall-rules"
+
+  - id: "gcp-002"
+    name: "GCS Bucket IAM Policy Change"
+    description: "Detects IAM policy changes on GCS buckets"
+    resource_types:
+      - "google_storage_bucket_iam_binding"
+    conditions:
+      - attribute: "members"
+        operator: "changed"
+    severity: "high"
+    filters:
+      # Ignore changes by Terraform service account
+      - user_identity:
+          principal_email: "*@*-terraform.iam.gserviceaccount.com"
+        action: "skip"
+    actions:
+      - type: "alert"
+        channels: ["slack"]
 ```
 
 #### Rule Evaluation Engine
@@ -583,31 +663,33 @@ func (n *NotificationManager) Send(alert *EnrichedDriftAlert) error {
 
 ### End-to-End Drift Detection Flow
 
+This example shows AWS CloudTrail flow. For GCP (v0.5.0+), the flow is similar but uses GCP Audit Logs via Falco's gcpaudit plugin instead of CloudTrail.
+
 ```mermaid
 sequenceDiagram
     participant U as User/Console
     participant C as Cloud API
-    participant CT as CloudTrail
+    participant CT as CloudTrail/GCP Audit
     participant TF as TFDrift-Falco
     participant TS as Terraform State
     participant S as Slack
 
-    U->>C: Modify EC2 Instance<br/>(disable_api_termination=false)
+    U->>C: Modify Resource<br/>(AWS: EC2, GCP: Compute Instance)
     C->>CT: Log API Call
-    CT->>TF: CloudTrail Event
+    CT->>TF: Cloud Event
 
     Note over TF: Event Collector<br/>receives event
 
-    TF->>TS: Fetch Current State
+    TF->>TS: Fetch Current State<br/>(S3/GCS/Local)
     TS-->>TF: Resource Attributes
 
     Note over TF: Drift Detector<br/>compares state
 
-    TF->>TF: Calculate Diff:<br/>true → false
+    TF->>TF: Calculate Diff:<br/>old value → new value
 
     Note over TF: Rule Engine<br/>evaluates rules
 
-    TF->>TF: Match Rule:<br/>Critical Severity
+    TF->>TF: Match Rule:<br/>Determine Severity
 
     Note over TF: Context Enricher<br/>adds metadata
 
@@ -697,6 +779,12 @@ sequenceDiagram
 
 ### Falco Integration
 
+TFDrift-Falco integrates with Falco for both AWS CloudTrail events and GCP Audit Logs (v0.5.0+).
+
+**Supported Falco Plugins:**
+- **cloudtrail** - AWS CloudTrail events for AWS infrastructure monitoring
+- **gcpaudit** (v0.5.0+) - GCP Audit Logs via Pub/Sub for GCP infrastructure monitoring
+
 ```mermaid
 graph LR
     A[Falco Agent] --> B[Unix Socket<br/>/var/run/falco.sock]
@@ -739,6 +827,17 @@ graph LR
     (user=%cloud.user operation=%cloud.operation resource=%cloud.resource)
   priority: NOTICE
   tags: [aws, terraform, drift]
+
+- rule: GCP Resource Modification Without Terraform
+  desc: Detect GCP Audit Log events not made by Terraform (v0.5.0+)
+  condition: >
+    gcp.methodName in (compute.instances.setMetadata, compute.firewalls.update, storage.buckets.update) and
+    not gcp.authenticationInfo.principalEmail contains "terraform"
+  output: >
+    GCP resource modified outside Terraform workflow
+    (user=%gcp.authenticationInfo.principalEmail method=%gcp.methodName resource=%gcp.resource.name)
+  priority: NOTICE
+  tags: [gcp, terraform, drift]
 ```
 
 ### Sysdig Secure Integration
@@ -780,8 +879,8 @@ policies:
 ```mermaid
 graph TB
     A[TFDrift-Falco<br/>Binary] --> B[Config File<br/>config.yaml]
-    A --> C[CloudTrail SQS]
-    A --> D[Terraform State<br/>S3/Local]
+    A --> C[CloudTrail SQS<br/>or Falco gRPC]
+    A --> D[Terraform State<br/>S3/GCS/Local]
     A --> E[Slack Webhook]
 
     style A fill:#4A90E2
@@ -790,6 +889,11 @@ graph TB
 ```bash
 # Run as standalone daemon
 tfdrift --config /etc/tfdrift/config.yaml --daemon
+
+# Multi-cloud example: Monitor both AWS and GCP (v0.5.0+)
+# - AWS: CloudTrail events via SQS
+# - GCP: Audit Logs via Falco gcpaudit plugin
+# - Terraform state: S3 (AWS), GCS (GCP), or unified backend
 ```
 
 ### 2. Kubernetes Sidecar Deployment
@@ -992,6 +1096,6 @@ graph TB
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** 2025-01-15
+**Document Version:** 1.1 (v0.5.0 Multi-Cloud Update)
+**Last Updated:** 2025-01-18
 **Maintainer:** Keita Higaki
