@@ -154,12 +154,16 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"AttachRolePolicy":       "aws_iam_role_policy_attachment",
 		"CreateRole":             "aws_iam_role",
 		"DeleteRole":             "aws_iam_role",
+		"UpdateRole":             "aws_iam_role",
+		"TagRole":                "aws_iam_role",
+		"UntagRole":              "aws_iam_role",
 
 		// IAM - Users
 		"PutUserPolicy":       "aws_iam_user_policy",
 		"AttachUserPolicy":    "aws_iam_user_policy_attachment",
 		"CreateUser":          "aws_iam_user",
 		"DeleteUser":          "aws_iam_user",
+		"UpdateUser":          "aws_iam_user",
 		"CreateAccessKey":     "aws_iam_access_key",
 		"AddUserToGroup":      "aws_iam_user_group_membership",
 		"RemoveUserFromGroup": "aws_iam_user_group_membership",
@@ -167,6 +171,12 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		// IAM - Groups
 		"PutGroupPolicy":    "aws_iam_group_policy",
 		"AttachGroupPolicy": "aws_iam_group_policy_attachment",
+		"UpdateGroup":       "aws_iam_group",
+
+		// IAM - Instance Profiles
+		"CreateInstanceProfile":    "aws_iam_instance_profile",
+		"DeleteInstanceProfile":    "aws_iam_instance_profile",
+		"AddRoleToInstanceProfile": "aws_iam_instance_profile",
 
 		// IAM - Policies
 		"CreatePolicy":        "aws_iam_policy",
