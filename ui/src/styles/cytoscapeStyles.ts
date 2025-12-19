@@ -7,44 +7,56 @@
 export const cytoscapeStylesheet: any[] = [
   // ==================== ノードスタイル ====================
 
-  // Terraform Change nodes - 起点（赤い六角形）
+  // Terraform Change nodes - 起点（紫のアイコン）
   {
     selector: 'node[type="terraform_change"]',
     style: {
-      'background-color': '#ff6b6b',
+      'background-color': '#ffffff',
+      'background-image': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHJ4PSI0IiBmaWxsPSIjNjIzQ0U0Ii8+PHBhdGggZD0iTTE2IDE0TDIwIDE2VjMyTDE2IDMwVjE0WiIgZmlsbD0id2hpdGUiLz48cGF0aCBkPSJNMjIgMTZMMjYgMThWMzRMMjIgMzJWMTZaIiBmaWxsPSJ3aGl0ZSIvPjxwYXRoIGQ9Ik0yOCAxNkwzMiAxOFYzNEwyOCAzMlYxNloiIGZpbGw9IndoaXRlIi8+PC9zdmc+',
+      'background-fit': 'contain',
+      'background-clip': 'none',
       'label': 'data(label)',
-      'shape': 'hexagon',
-      'width': 80,
-      'height': 80,
-      'font-size': '12px',
-      'text-valign': 'center',
+      'shape': 'roundrectangle',
+      'width': 90,
+      'height': 90,
+      'font-size': '11px',
+      'text-valign': 'bottom',
       'text-halign': 'center',
-      'color': '#ffffff',
-      'text-outline-color': '#c92a2a',
-      'text-outline-width': 2,
+      'text-margin-y': 8,
+      'color': '#2d3748',
+      'text-background-color': '#ffffff',
+      'text-background-opacity': 0.9,
+      'text-background-padding': '4px',
+      'text-background-shape': 'roundrectangle',
       'border-width': 3,
-      'border-color': '#c92a2a',
+      'border-color': '#623CE4',
       'z-index': 100
     }
   },
 
-  // IAM Policy nodes（青い角丸四角）
+  // IAM Policy nodes (AWS IAMアイコン)
   {
     selector: 'node[type="iam_policy"]',
     style: {
-      'background-color': '#4dabf7',
+      'background-color': '#ffffff',
+      'background-image': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHJ4PSI0IiBmaWxsPSIjREQzNDRDIi8+PHBhdGggZD0iTTI0IDE2QzI3LjMxMzcgMTYgMzAgMTguNjg2MyAzMCAyMkMzMCAyNS4zMTM3IDI3LjMxMzcgMjggMjQgMjhDMjAuNjg2MyAyOCAxOCAyNS4zMTM3IDE4IDIyQzE4IDE4LjY4NjMgMjAuNjg2MyAxNiAyNCAxNloiIGZpbGw9IndoaXRlIi8+PHBhdGggZD0iTTMxIDMwSDE3QzE1Ljg5NTQgMzAgMTUgMzAuODk1NCAxNSAzMlYzM0MxNSAzMy41NTIzIDE1LjQ0NzcgMzQgMTYgMzRIMzJDMzIuNTUyMyAzNCAzMyAzMy41NTIzIDMzIDMzVjMyQzMzIDMwLjg5NTQgMzIuMTA0NiAzMCAzMSAzMFoiIGZpbGw9IndoaXRlIi8+PC9zdmc+',
+      'background-fit': 'contain',
+      'background-clip': 'none',
       'label': 'data(label)',
-      'shape': 'round-rectangle',
-      'width': 70,
-      'height': 70,
-      'font-size': '11px',
-      'text-valign': 'center',
+      'shape': 'roundrectangle',
+      'width': 80,
+      'height': 80,
+      'font-size': '10px',
+      'text-valign': 'bottom',
       'text-halign': 'center',
-      'color': '#ffffff',
-      'text-outline-color': '#1971c2',
-      'text-outline-width': 2,
+      'text-margin-y': 6,
+      'color': '#2d3748',
+      'text-background-color': '#ffffff',
+      'text-background-opacity': 0.9,
+      'text-background-padding': '3px',
+      'text-background-shape': 'roundrectangle',
       'border-width': 2,
-      'border-color': '#1971c2'
+      'border-color': '#DD344C'
     }
   },
 
