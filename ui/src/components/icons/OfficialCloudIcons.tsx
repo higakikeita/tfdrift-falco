@@ -115,33 +115,33 @@ const GCP_K8S_ICON_MAPPING: Record<string, { src: string; alt: string }> = {
     alt: 'GCP Firewall'
   },
 
-  // Kubernetes
+  // Kubernetes - Official icons from kubernetes/community
   'kubernetes_pod': {
-    src: '/icons/k8s/pod.svg',
+    src: '/icons/k8s/pod-official.svg',
     alt: 'Kubernetes Pod'
   },
   'kubernetes_service': {
-    src: '/icons/k8s/service.svg',
+    src: '/icons/k8s/service-official.svg',
     alt: 'Kubernetes Service'
   },
   'kubernetes_service_account': {
-    src: '/icons/k8s/service-account.svg',
+    src: '/icons/k8s/sa-official.svg',
     alt: 'Kubernetes Service Account'
   },
   'kubernetes_deployment': {
-    src: '/icons/k8s/deployment.svg',
+    src: '/icons/k8s/deploy-official.svg',
     alt: 'Kubernetes Deployment'
   },
   'kubernetes_namespace': {
-    src: '/icons/k8s/namespace.svg',
+    src: '/icons/k8s/ns-official.svg',
     alt: 'Kubernetes Namespace'
   },
   'kubernetes_role': {
-    src: '/icons/k8s/rbac.svg',
+    src: '/icons/k8s/role-official.svg',
     alt: 'Kubernetes Role'
   },
   'kubernetes_cluster_role': {
-    src: '/icons/k8s/rbac.svg',
+    src: '/icons/k8s/role-official.svg',
     alt: 'Kubernetes ClusterRole'
   },
 
@@ -167,7 +167,7 @@ const FALLBACK_ICONS: Record<string, { src: string; alt: string }> = {
     alt: 'Google Cloud'
   },
   'kubernetes': {
-    src: '/icons/k8s/kubernetes.svg',
+    src: '/icons/k8s/kubernetes-official.svg',
     alt: 'Kubernetes'
   },
   'terraform': {

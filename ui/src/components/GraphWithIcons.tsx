@@ -30,6 +30,7 @@ interface IconPosition {
   x: number;
   y: number;
   type: string;
+  resourceType: string;
   visible: boolean;
 }
 
@@ -57,6 +58,7 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
         x: pos.x,
         y: pos.y - bb.h / 2 - 20, // Position above node
         type: node.data('type'),
+        resourceType: node.data('resource_type') || node.data('type'),
         visible: true
       });
     });
@@ -167,8 +169,8 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
                 zIndex: 1000
               }}
             >
-              <div className="bg-white rounded-lg shadow-lg p-1.5 border-2 border-gray-200 hover:border-blue-400 transition-colors">
-                <OfficialCloudIcon type={pos.type} size={36} />
+              <div className="bg-white rounded-xl shadow-xl p-2.5 border border-gray-300 hover:border-blue-500 hover:shadow-2xl transition-all duration-200">
+                <OfficialCloudIcon type={pos.resourceType} size={48} />
               </div>
             </div>
           );
