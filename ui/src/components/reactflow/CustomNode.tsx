@@ -54,10 +54,10 @@ export const CustomNode = memo(({ data, selected }: NodeProps<CustomNodeData>) =
   return (
     <div
       className={`
-        relative px-4 py-3 rounded-xl border-2 shadow-lg
-        transition-all duration-200 min-w-[180px]
+        relative px-5 py-4 rounded-2xl border-2 shadow-xl
+        transition-all duration-300 min-w-[200px]
         ${severityColor}
-        ${selected ? 'ring-4 ring-blue-400 shadow-2xl scale-105' : 'hover:shadow-xl hover:scale-102'}
+        ${selected ? 'ring-4 ring-blue-500 shadow-2xl scale-110 border-blue-500' : 'hover:shadow-2xl hover:scale-105 hover:border-gray-400'}
       `}
     >
       {/* Input Handle */}
@@ -68,22 +68,22 @@ export const CustomNode = memo(({ data, selected }: NodeProps<CustomNodeData>) =
       />
 
       {/* Icon */}
-      <div className="flex justify-center mb-2">
-        <div className="p-2 bg-white rounded-lg shadow-md">
+      <div className="flex justify-center mb-3">
+        <div className="p-3 bg-white rounded-xl shadow-lg ring-1 ring-gray-200 transform transition-transform hover:scale-110">
           <OfficialCloudIcon
             type={data.resource_type || data.type}
-            size={56}
+            size={64}
           />
         </div>
       </div>
 
       {/* Label */}
       <div className="text-center">
-        <div className="font-semibold text-sm text-gray-900 whitespace-pre-line">
+        <div className="font-bold text-sm text-gray-900 whitespace-pre-line leading-tight">
           {data.label}
         </div>
         {data.resource_name && (
-          <div className="text-xs text-gray-600 mt-1 truncate">
+          <div className="text-xs text-gray-500 mt-1.5 truncate font-medium">
             {data.resource_name}
           </div>
         )}

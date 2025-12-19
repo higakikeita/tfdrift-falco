@@ -2,6 +2,7 @@
  * Adapter to convert Cytoscape data format to React Flow format
  */
 
+import dagre from '@dagrejs/dagre';
 import type { Node, Edge } from 'reactflow';
 import type { CytoscapeElements } from '../types/graph';
 
@@ -10,18 +11,57 @@ export interface ReactFlowData {
   edges: Edge[];
 }
 
+const dagreGraph = new dagre.graphlib.Graph();
+dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+const nodeWidth = 200;
+const nodeHeight = 180;
+
 /**
- * Convert Cytoscape elements to React Flow format
+ * Apply Dagre layout to nodes
+ */
+const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
+  dagreGraph.setGraph({
+    rankdir: direction,
+    nodesep: 100,
+    ranksep: 150,
+    marginx: 50,
+    marginy: 50
+  });
+
+  nodes.forEach((node) => {
+    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+  });
+
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  dagre.layout(dagreGraph);
+
+  const layoutedNodes = nodes.map((node) => {
+    const nodeWithPosition = dagreGraph.node(node.id);
+    return {
+      ...node,
+      position: {
+        x: nodeWithPosition.x - nodeWidth / 2,
+        y: nodeWithPosition.y - nodeHeight / 2,
+      },
+    };
+  });
+
+  return { nodes: layoutedNodes, edges };
+};
+
+/**
+ * Convert Cytoscape elements to React Flow format with Dagre layout
  */
 export const convertToReactFlow = (cytoscapeElements: CytoscapeElements): ReactFlowData => {
   // Convert nodes
-  const nodes: Node[] = cytoscapeElements.nodes.map((node, index) => ({
+  const nodes: Node[] = cytoscapeElements.nodes.map((node) => ({
     id: node.data.id,
     type: 'custom',
-    position: {
-      x: index * 250, // Initial positioning, will be auto-laid out
-      y: Math.floor(index / 4) * 200
-    },
+    position: { x: 0, y: 0 }, // Will be set by Dagre
     data: {
       label: node.data.label,
       type: node.data.type,
@@ -39,23 +79,32 @@ export const convertToReactFlow = (cytoscapeElements: CytoscapeElements): ReactF
     target: edge.data.target,
     label: edge.data.label,
     type: 'smoothstep',
-    animated: true,
+    animated: false,
     style: {
       stroke: '#64748b',
-      strokeWidth: 2
+      strokeWidth: 2.5
     },
     labelStyle: {
-      fontSize: 12,
-      fontWeight: 500,
+      fontSize: 13,
+      fontWeight: 600,
       fill: '#475569'
     },
     labelBgStyle: {
       fill: '#ffffff',
-      fillOpacity: 0.9
+      fillOpacity: 0.95,
+      rx: 4,
+      ry: 4
+    },
+    markerEnd: {
+      type: 'arrowclosed',
+      color: '#64748b',
+      width: 20,
+      height: 20
     }
   }));
 
-  return { nodes, edges };
+  // Apply Dagre layout
+  return getLayoutedElements(nodes, edges, 'TB');
 };
 
 /**

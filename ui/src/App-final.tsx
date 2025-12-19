@@ -21,6 +21,11 @@ function AppFinal() {
   const [demoMode, setDemoMode] = useState<DemoMode>('simple');
   const [highlightedPath, setHighlightedPath] = useState<string[]>([]);
 
+  // Filtering state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [severityFilters, setSeverityFilters] = useState<string[]>([]);
+  const [resourceTypeFilters, setResourceTypeFilters] = useState<string[]>([]);
+
   const getGraphData = () => {
     switch (demoMode) {
       case 'simple':
@@ -35,6 +40,73 @@ function AppFinal() {
   };
 
   const graphData = getGraphData();
+
+  // Toggle severity filter
+  const toggleSeverityFilter = (severity: string) => {
+    setSeverityFilters(prev =>
+      prev.includes(severity)
+        ? prev.filter(s => s !== severity)
+        : [...prev, severity]
+    );
+  };
+
+  // Toggle resource type filter
+  const toggleResourceTypeFilter = (type: string) => {
+    setResourceTypeFilters(prev =>
+      prev.includes(type)
+        ? prev.filter(t => t !== type)
+        : [...prev, type]
+    );
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSeverityFilters([]);
+    setResourceTypeFilters([]);
+  };
+
+  // Apply filters to graph data
+  const filteredGraphData = {
+    nodes: graphData.nodes.filter(node => {
+      const data = node.data;
+
+      // Search filter
+      const matchesSearch = !searchTerm ||
+        data.label?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        data.resource_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        data.resource_type?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Severity filter
+      const matchesSeverity = severityFilters.length === 0 ||
+        (data.severity && severityFilters.includes(data.severity));
+
+      // Resource type filter
+      const matchesResourceType = resourceTypeFilters.length === 0 ||
+        (data.resource_type && resourceTypeFilters.includes(data.resource_type));
+
+      return matchesSearch && matchesSeverity && matchesResourceType;
+    }),
+    edges: graphData.edges.filter(edge => {
+      // Only include edges where both source and target nodes are in filtered nodes
+      const filteredNodeIds = new Set(
+        graphData.nodes.filter(node => {
+          const data = node.data;
+          const matchesSearch = !searchTerm ||
+            data.label?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            data.resource_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            data.resource_type?.toLowerCase().includes(searchTerm.toLowerCase());
+          const matchesSeverity = severityFilters.length === 0 ||
+            (data.severity && severityFilters.includes(data.severity));
+          const matchesResourceType = resourceTypeFilters.length === 0 ||
+            (data.resource_type && resourceTypeFilters.includes(data.resource_type));
+          return matchesSearch && matchesSeverity && matchesResourceType;
+        }).map(node => node.data.id)
+      );
+
+      return filteredNodeIds.has(edge.data.source) && filteredNodeIds.has(edge.data.target);
+    })
+  };
 
   const handleNodeClick = (nodeId: string, nodeData: any) => {
     console.log('Node clicked:', nodeId, nodeData);
@@ -124,6 +196,82 @@ function AppFinal() {
               </CardContent>
             </Card>
 
+            {/* Filters */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm">Filters</CardTitle>
+                  {(searchTerm || severityFilters.length > 0 || resourceTypeFilters.length > 0) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs"
+                      onClick={clearFilters}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Search */}
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                    Search
+                  </label>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Node name, type..."
+                    className="w-full px-3 py-1.5 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                  />
+                </div>
+
+                {/* Severity Filter */}
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                    Severity
+                  </label>
+                  <div className="space-y-2">
+                    {['critical', 'high', 'medium', 'low'].map((severity) => (
+                      <label key={severity} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={severityFilters.includes(severity)}
+                          onChange={() => toggleSeverityFilter(severity)}
+                          className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                        <span className="text-sm capitalize">{severity}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Resource Type Filter */}
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                    Resource Type
+                  </label>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {Array.from(new Set(graphData.nodes.map(n => n.data.resource_type)))
+                      .filter(Boolean)
+                      .sort()
+                      .map((type) => (
+                        <label key={type} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={resourceTypeFilters.includes(type)}
+                            onChange={() => toggleResourceTypeFilter(type)}
+                            className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span className="text-xs truncate">{type}</span>
+                        </label>
+                      ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Actions */}
             {demoMode === 'simple' && (
@@ -160,11 +308,21 @@ function AppFinal() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Nodes</span>
-                    <span className="font-mono font-semibold">{graphData.nodes.length}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-semibold">{filteredGraphData.nodes.length}</span>
+                      {filteredGraphData.nodes.length !== graphData.nodes.length && (
+                        <span className="text-xs text-muted-foreground">/ {graphData.nodes.length}</span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Edges</span>
-                    <span className="font-mono font-semibold">{graphData.edges.length}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-semibold">{filteredGraphData.edges.length}</span>
+                      {filteredGraphData.edges.length !== graphData.edges.length && (
+                        <span className="text-xs text-muted-foreground">/ {graphData.edges.length}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -206,7 +364,7 @@ function AppFinal() {
         {/* Main Graph Area */}
         <main className="flex-1 relative bg-gray-50">
           <ReactFlowGraph
-            elements={graphData}
+            elements={filteredGraphData}
             onNodeClick={handleNodeClick}
             highlightedPath={highlightedPath}
           />
