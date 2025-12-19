@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import GraphWithIcons from './components/GraphWithIcons';
+import ReactFlowGraph from './components/reactflow/ReactFlowGraph';
 import { Button } from './components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
 import {
@@ -13,15 +13,12 @@ import {
   generateComplexSampleGraph,
   generateBlastRadiusGraph
 } from './utils/sampleData';
-import { LayoutType } from './types/graph';
-import type { LayoutType as LayoutTypeType } from './types/graph';
 import { OfficialCloudIcon } from './components/icons/OfficialCloudIcons';
 
 type DemoMode = 'simple' | 'complex' | 'blast-radius';
 
 function AppFinal() {
   const [demoMode, setDemoMode] = useState<DemoMode>('simple');
-  const [layout, setLayout] = useState<LayoutTypeType>(LayoutType.HIERARCHICAL);
   const [highlightedPath, setHighlightedPath] = useState<string[]>([]);
 
   const getGraphData = () => {
@@ -127,46 +124,6 @@ function AppFinal() {
               </CardContent>
             </Card>
 
-            {/* Layout */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Layout</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button
-                  variant={layout === LayoutType.HIERARCHICAL ? 'default' : 'outline'}
-                  size="sm"
-                  className="w-full justify-start text-xs"
-                  onClick={() => setLayout(LayoutType.HIERARCHICAL)}
-                >
-                  Hierarchical
-                </Button>
-                <Button
-                  variant={layout === LayoutType.RADIAL ? 'default' : 'outline'}
-                  size="sm"
-                  className="w-full justify-start text-xs"
-                  onClick={() => setLayout(LayoutType.RADIAL)}
-                >
-                  Radial
-                </Button>
-                <Button
-                  variant={layout === LayoutType.FORCE ? 'default' : 'outline'}
-                  size="sm"
-                  className="w-full justify-start text-xs"
-                  onClick={() => setLayout(LayoutType.FORCE)}
-                >
-                  Force-Directed
-                </Button>
-                <Button
-                  variant={layout === LayoutType.GRID ? 'default' : 'outline'}
-                  size="sm"
-                  className="w-full justify-start text-xs"
-                  onClick={() => setLayout(LayoutType.GRID)}
-                >
-                  Grid
-                </Button>
-              </CardContent>
-            </Card>
 
             {/* Actions */}
             {demoMode === 'simple' && (
@@ -209,12 +166,6 @@ function AppFinal() {
                     <span className="text-muted-foreground">Edges</span>
                     <span className="font-mono font-semibold">{graphData.edges.length}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Layout</span>
-                    <span className="text-xs bg-muted px-2 py-1 rounded">
-                      {layout}
-                    </span>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -253,10 +204,9 @@ function AppFinal() {
         </aside>
 
         {/* Main Graph Area */}
-        <main className="flex-1 relative">
-          <GraphWithIcons
+        <main className="flex-1 relative bg-gray-50">
+          <ReactFlowGraph
             elements={graphData}
-            layout={layout}
             onNodeClick={handleNodeClick}
             highlightedPath={highlightedPath}
           />
