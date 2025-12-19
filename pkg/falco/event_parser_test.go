@@ -794,7 +794,7 @@ func TestAWSParser_Parse_AllAWSServiceTypes(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.eventName, func(t *testing.T) {
 			sub := &Subscriber{}
-			resourceType := sub.mapEventToResourceType(tt.eventName)
+			resourceType := sub.mapEventToResourceType(tt.eventName, "")
 			assert.Equal(t, tt.resourceType, resourceType)
 		})
 	}
@@ -1053,7 +1053,7 @@ func TestAWSParser_mapEventToResourceType_UnknownEvent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.eventName, func(t *testing.T) {
-			got := sub.mapEventToResourceType(tt.eventName)
+			got := sub.mapEventToResourceType(tt.eventName, "")
 			assert.Equal(t, tt.expected, got)
 		})
 	}

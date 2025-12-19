@@ -1,7 +1,64 @@
 package falco
 
-// mapEventToResourceType maps a CloudTrail event name to a Terraform resource type
-func (s *Subscriber) mapEventToResourceType(eventName string) string {
+// mapEventToResourceType maps a CloudTrail event name and source to a Terraform resource type
+// eventSource examples: "ec2.amazonaws.com", "lambda.amazonaws.com", "kms.amazonaws.com"
+func (s *Subscriber) mapEventToResourceType(eventName string, eventSource string) string {
+	// For events that conflict across services, use eventSource to disambiguate
+	switch eventName {
+	case "CreateAlias", "DeleteAlias", "UpdateAlias":
+		if eventSource == "lambda.amazonaws.com" {
+			return "aws_lambda_alias"
+		}
+		if eventSource == "kms.amazonaws.com" || eventSource == "" {
+			// Default to KMS for backward compatibility
+			return "aws_kms_alias"
+		}
+
+	case "DeleteRule":
+		if eventSource == "events.amazonaws.com" {
+			return "aws_cloudwatch_event_rule"
+		}
+		if eventSource == "elasticloadbalancing.amazonaws.com" || eventSource == "" {
+			// Default to ALB for backward compatibility
+			return "aws_lb_listener_rule"
+		}
+
+	case "CreateTable", "DeleteTable", "UpdateTable":
+		if eventSource == "glue.amazonaws.com" {
+			switch eventName {
+			case "CreateTable":
+				return "aws_glue_catalog_table"
+			case "DeleteTable":
+				return "aws_glue_catalog_table"
+			case "UpdateTable":
+				return "aws_glue_catalog_table"
+			}
+		}
+		if eventSource == "dynamodb.amazonaws.com" || eventSource == "" {
+			// Default to DynamoDB for backward compatibility
+			return "aws_dynamodb_table"
+		}
+
+	case "CreateDatabase", "DeleteDatabase", "UpdateDatabase":
+		if eventSource == "glue.amazonaws.com" {
+			return "aws_glue_catalog_database"
+		}
+		if eventSource == "rds.amazonaws.com" {
+			// RDS doesn't use CreateDatabase/DeleteDatabase for drift detection
+			// RDS uses CreateDBInstance/DeleteDBInstance instead
+			return "unknown"
+		}
+
+	case "TagResource", "UntagResource":
+		// Generic tagging operations - use eventSource to determine resource type
+		if eventSource == "states.amazonaws.com" {
+			return "aws_sfn_state_machine"
+		}
+		// For other services, return unknown and rely on base event mapping
+		return "unknown"
+	}
+
+	// Standard event name to resource type mapping
 	mapping := map[string]string{
 		// EC2 - Instance Management
 		"RunInstances":            "aws_instance",
@@ -119,10 +176,10 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"CreateKey":           "aws_kms_key",
 		"EnableKeyRotation":   "aws_kms_key",
 		"DisableKeyRotation":  "aws_kms_key",
-		// Note: CreateAlias, DeleteAlias, UpdateAlias are mapped to Lambda aliases
-		// KMS aliases currently not supported - requires eventSource field to distinguish
+		// Note: CreateAlias, DeleteAlias, UpdateAlias handled by eventSource disambiguation
 
 		// DynamoDB - Tables
+		// Note: CreateTable, DeleteTable, UpdateTable handled by eventSource disambiguation (vs Glue)
 		"CreateTable":  "aws_dynamodb_table",
 		"DeleteTable":  "aws_dynamodb_table",
 		"UpdateTable":  "aws_dynamodb_table",
@@ -297,11 +354,7 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"PutFunctionEventInvokeConfig":   "aws_lambda_function_event_invoke_config",
 
 		// Lambda - Aliases
-		// Note: CreateAlias, DeleteAlias, UpdateAlias conflict with KMS aliases
-		// In production, distinguish using eventSource field (lambda.amazonaws.com vs kms.amazonaws.com)
-		"CreateAlias": "aws_lambda_alias",
-		"DeleteAlias": "aws_lambda_alias",
-		"UpdateAlias": "aws_lambda_alias",
+		// Note: CreateAlias, DeleteAlias, UpdateAlias handled by eventSource disambiguation (vs KMS) - see switch statement above
 
 		// Auto Scaling - Auto Scaling Groups
 		"CreateAutoScalingGroup": "aws_autoscaling_group",
@@ -463,8 +516,8 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"ExecuteChangeSet":  "aws_cloudformation_change_set",
 
 		// EventBridge (CloudWatch Events) - Rules
+		// Note: DeleteRule handled by eventSource disambiguation (vs ALB) - see switch statement above
 		"PutRule":     "aws_cloudwatch_event_rule",
-		"DeleteRule":  "aws_cloudwatch_event_rule",
 		"EnableRule":  "aws_cloudwatch_event_rule",
 		"DisableRule": "aws_cloudwatch_event_rule",
 
@@ -486,20 +539,16 @@ func (s *Subscriber) mapEventToResourceType(eventName string) string {
 		"StopExecution":  "aws_sfn_state_machine",
 
 		// Step Functions - Tags
-		// Note: TagResource, UntagResource are generic AWS API operations
-		// For Step Functions: maps to aws_sfn_state_machine
-		"TagResource":   "aws_sfn_state_machine",
-		"UntagResource": "aws_sfn_state_machine",
+		// Note: TagResource, UntagResource handled by eventSource disambiguation - see switch statement above
 
 		// AWS Glue - Databases
+		// Note: CreateDatabase, DeleteDatabase, UpdateDatabase handled by eventSource disambiguation - see switch statement above
 		"CreateDatabase": "aws_glue_catalog_database",
 		"DeleteDatabase": "aws_glue_catalog_database",
 		"UpdateDatabase": "aws_glue_catalog_database",
 
 		// AWS Glue - Tables
-		"CreateTable": "aws_glue_catalog_table",
-		"DeleteTable": "aws_glue_catalog_table",
-		"UpdateTable": "aws_glue_catalog_table",
+		// Note: CreateTable, DeleteTable, UpdateTable handled by eventSource disambiguation (vs DynamoDB) - see switch statement above
 
 		// AWS Glue - Jobs
 		"CreateJob":   "aws_glue_job",

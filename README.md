@@ -12,11 +12,11 @@
 [![Lint](https://github.com/higakikeita/tfdrift-falco/actions/workflows/lint.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/lint.yml)
 [![Security](https://github.com/higakikeita/tfdrift-falco/actions/workflows/security.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/security.yml)
 [![Publish GHCR](https://github.com/higakikeita/tfdrift-falco/actions/workflows/publish-ghcr.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/publish-ghcr.yml)
-[![Coverage](https://img.shields.io/badge/coverage-71.9%25-brightgreen)](https://github.com/higakikeita/tfdrift-falco)
+[![Coverage](https://img.shields.io/badge/coverage-85.0%25-brightgreen)](https://github.com/higakikeita/tfdrift-falco)
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
-> 🎉 **v0.5.0 Released!** - **Multi-Cloud Support**! GCP Audit Logs integration with 100+ event mappings across 12+ services. GCS backend support for Terraform state. [See Release Notes](#)
+> 🎉 **v0.5.0 Released!** - **Multi-Cloud Support**! GCP Audit Logs integration with 100+ event mappings across 12+ services. GCS backend support for Terraform state. [See Release Notes](https://github.com/higakikeita/tfdrift-falco/releases/tag/v0.5.0)
 >
 > 🎯 **v0.4.1** - **Webhook Integration**! Send drift events to Slack, Teams, PagerDuty, or any custom API. Automatic retries, timeout handling.
 >

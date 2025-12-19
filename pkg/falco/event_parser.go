@@ -39,6 +39,9 @@ func (s *Subscriber) parseAWSEvent(res *outputs.Response) *types.Event {
 		return nil
 	}
 
+	// Extract event source (e.g., "ec2.amazonaws.com", "lambda.amazonaws.com")
+	eventSource := getStringField(fields, "ct.src")
+
 	// Check if this is a relevant event for drift detection
 	if !s.isRelevantEvent(eventName) {
 		return nil
@@ -51,8 +54,8 @@ func (s *Subscriber) parseAWSEvent(res *outputs.Response) *types.Event {
 		return nil
 	}
 
-	// Extract resource type
-	resourceType := s.mapEventToResourceType(eventName)
+	// Extract resource type (using eventSource for disambiguation)
+	resourceType := s.mapEventToResourceType(eventName, eventSource)
 
 	// Extract user identity
 	userIdentity := types.UserIdentity{
