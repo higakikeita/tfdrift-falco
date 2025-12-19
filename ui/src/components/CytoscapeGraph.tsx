@@ -9,7 +9,7 @@ import cytoscape from 'cytoscape';
 import type { Core } from 'cytoscape';
 // @ts-ignore
 import dagre from 'cytoscape-dagre';
-import { cytoscapeConfig, layoutConfigs } from '../styles/cytoscapeStyles';
+import { enhancedCytoscapeConfig, enhancedLayoutConfigs } from '../styles/enhanced-cytoscape-styles';
 import type { CytoscapeElements } from '../types/graph';
 
 type LayoutType = 'dagre' | 'concentric' | 'cose' | 'grid';
@@ -60,7 +60,7 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
           nodes: elements.nodes,
           edges: elements.edges
         },
-        ...cytoscapeConfig
+        ...enhancedCytoscapeConfig
       });
 
       cyRef.current = cy;
@@ -68,7 +68,7 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
       console.log('✅ Cytoscape instance created successfully');
 
       // Apply initial layout
-      const layoutConfig = (layoutConfigs as any)[layout];
+      const layoutConfig = (enhancedLayoutConfigs as any)[layout];
       cy.layout(layoutConfig).run();
 
       console.log('✅ Layout applied successfully');
@@ -187,7 +187,7 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
   useEffect(() => {
     if (!cyRef.current) return;
 
-    const layoutConfig = (layoutConfigs as any)[layout];
+    const layoutConfig = (enhancedLayoutConfigs as any)[layout];
     cyRef.current.layout(layoutConfig).run();
   }, [layout]);
 
