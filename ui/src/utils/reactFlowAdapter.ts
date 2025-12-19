@@ -2,7 +2,7 @@
  * Adapter to convert Cytoscape data format to React Flow format
  */
 
-import { Node, Edge } from 'reactflow';
+import type { Node, Edge } from 'reactflow';
 import type { CytoscapeElements } from '../types/graph';
 
 export interface ReactFlowData {

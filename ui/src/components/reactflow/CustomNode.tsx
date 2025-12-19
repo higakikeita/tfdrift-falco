@@ -4,7 +4,8 @@
  */
 
 import { memo } from 'react';
-import { Handle, Position, NodeProps } from 'reactflow';
+import { Handle, Position } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 import { OfficialCloudIcon } from '../icons/OfficialCloudIcons';
 
 interface CustomNodeData {

@@ -11,13 +11,12 @@ import {
   // AWS Compute Icons
   ArchitectureServiceAWSLambda,
   ArchitectureServiceAmazonEC2,
-  ArchitectureServiceAmazonECS,
+  ArchitectureServiceAmazonElasticContainerService,
   ArchitectureServiceAmazonEKSCloud,
 
   // AWS Storage Icons
-  ArchitectureServiceAmazonSimpleStorageService,
   ResourceAmazonSimpleStorageServiceBucket,
-  ArchitectureServiceAmazonEBS,
+  ArchitectureServiceAmazonElasticBlockStore,
 
   // AWS Database Icons
   ArchitectureServiceAmazonRDS,
@@ -26,9 +25,6 @@ import {
   // AWS Networking Icons
   ArchitectureGroupVirtualprivatecloudVPC,
   ArchitectureServiceElasticLoadBalancing,
-
-  // AWS General
-  ArchitectureServiceAWSCloudFormation,
 } from 'aws-react-icons';
 
 interface OfficialIconProps {
@@ -50,13 +46,13 @@ const AWS_ICON_MAPPING: Record<string, React.ComponentType<any>> = {
   'aws_lambda_function': ArchitectureServiceAWSLambda,
   'aws_lambda': ArchitectureServiceAWSLambda,
   'aws_ec2_instance': ArchitectureServiceAmazonEC2,
-  'aws_ecs_service': ArchitectureServiceAmazonECS,
+  'aws_ecs_service': ArchitectureServiceAmazonElasticContainerService,
   'aws_eks_cluster': ArchitectureServiceAmazonEKSCloud,
 
   // AWS Storage
   'aws_s3_bucket': ResourceAmazonSimpleStorageServiceBucket,
   'aws_s3': ResourceAmazonSimpleStorageServiceBucket,
-  'aws_ebs_volume': ArchitectureServiceAmazonEBS,
+  'aws_ebs_volume': ArchitectureServiceAmazonElasticBlockStore,
 
   // AWS Networking
   'aws_vpc': ArchitectureGroupVirtualprivatecloudVPC,

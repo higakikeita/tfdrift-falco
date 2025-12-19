@@ -3,19 +3,18 @@
  * High-quality graph visualization with official cloud provider icons
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import ReactFlow, {
   MiniMap,
   Controls,
   Background,
   useNodesState,
   useEdgesState,
-  Node,
-  Edge,
   Panel,
   BackgroundVariant,
   ConnectionMode
 } from 'reactflow';
+import type { Node } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 import { CustomNode } from './CustomNode';
