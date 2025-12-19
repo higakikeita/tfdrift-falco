@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'react';
+import { ReactFlowProvider } from 'reactflow';
 import ReactFlowGraph from './components/reactflow/ReactFlowGraph';
 import { Button } from './components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
@@ -363,11 +364,13 @@ function AppFinal() {
 
         {/* Main Graph Area */}
         <main className="flex-1 relative bg-gray-50">
-          <ReactFlowGraph
-            elements={filteredGraphData}
-            onNodeClick={handleNodeClick}
-            highlightedPath={highlightedPath}
-          />
+          <ReactFlowProvider>
+            <ReactFlowGraph
+              elements={filteredGraphData}
+              onNodeClick={handleNodeClick}
+              highlightedPath={highlightedPath}
+            />
+          </ReactFlowProvider>
         </main>
       </div>
     </div>

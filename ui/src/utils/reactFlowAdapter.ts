@@ -3,6 +3,7 @@
  */
 
 import dagre from '@dagrejs/dagre';
+import { MarkerType } from 'reactflow';
 import type { Node, Edge } from 'reactflow';
 import type { CytoscapeElements } from '../types/graph';
 
@@ -96,10 +97,8 @@ export const convertToReactFlow = (cytoscapeElements: CytoscapeElements): ReactF
       ry: 4
     },
     markerEnd: {
-      type: 'arrowclosed',
-      color: '#64748b',
-      width: 20,
-      height: 20
+      type: MarkerType.ArrowClosed,
+      color: '#64748b'
     }
   }));
 
