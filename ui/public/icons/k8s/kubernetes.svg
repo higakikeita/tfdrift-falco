@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <!-- Kubernetes Official Logo Icon -->
+  <defs>
+    <linearGradient id="k8s-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#326CE5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2254C9;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect fill="url(#k8s-grad)" width="80" height="80" rx="4"/>
+  <!-- Kubernetes wheel/helm icon -->
+  <g fill="#FFFFFF">
+    <circle cx="40" cy="40" r="6" stroke="#FFFFFF" stroke-width="2"/>
+    <!-- Spokes -->
+    <circle cx="40" cy="20" r="4"/>
+    <circle cx="57" cy="27" r="4"/>
+    <circle cx="60" cy="44" r="4"/>
+    <circle cx="52" cy="58" r="4"/>
+    <circle cx="28" cy="58" r="4"/>
+    <circle cx="20" cy="44" r="4"/>
+    <circle cx="23" cy="27" r="4"/>
+    <!-- Connection lines -->
+    <line x1="40" y1="20" x2="40" y2="34" stroke="#FFFFFF" stroke-width="2.5"/>
+    <line x1="57" y1="27" x2="45" y2="36" stroke="#FFFFFF" stroke-width="2.5"/>
+    <line x1="60" y1="44" x2="46" y2="42" stroke="#FFFFFF" stroke-width="2.5"/>
+    <line x1="52" y1="58" x2="43" y2="46" stroke="#FFFFFF" stroke-width="2.5"/>
+    <line x1="28" y1="58" x2="37" y2="46" stroke="#FFFFFF" stroke-width="2.5"/>
+    <line x1="20" y1="44" x2="34" y2="42" stroke="#FFFFFF" stroke-width="2.5"/>
+    <line x1="23" y1="27" x2="35" y2="36" stroke="#FFFFFF" stroke-width="2.5"/>
+  </g>
+</svg>

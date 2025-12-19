@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <!-- GCP Firewall Official Icon -->
+  <defs>
+    <linearGradient id="gcp-fw-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#EA4335;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D33426;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect fill="url(#gcp-fw-grad)" width="80" height="80" rx="4"/>
+  <!-- Firewall shield -->
+  <g fill="#FFFFFF">
+    <path d="M 40 18 L 54 24 L 54 38 C 54 48 48 55 40 58 C 32 55 26 48 26 38 L 26 24 Z"/>
+    <path d="M 36 36 L 39 39 L 46 32" stroke="#EA4335" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

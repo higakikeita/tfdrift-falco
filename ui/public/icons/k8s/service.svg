@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <!-- Kubernetes Service Official Icon -->
+  <defs>
+    <linearGradient id="svc-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#326CE5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2254C9;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect fill="url(#svc-grad)" width="80" height="80" rx="4"/>
+  <!-- Service icon - load balancer with K8s styling -->
+  <g fill="#FFFFFF">
+    <circle cx="40" cy="25" r="5"/>
+    <circle cx="25" cy="55" r="4"/>
+    <circle cx="40" cy="55" r="4"/>
+    <circle cx="55" cy="55" r="4"/>
+    <line x1="40" y1="30" x2="25" y2="51" stroke="#FFFFFF" stroke-width="2.5"/>
+    <line x1="40" y1="30" x2="40" y2="51" stroke="#FFFFFF" stroke-width="2.5"/>
+    <line x1="40" y1="30" x2="55" y2="51" stroke="#FFFFFF" stroke-width="2.5"/>
+  </g>
+</svg>

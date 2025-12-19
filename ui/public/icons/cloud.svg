@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <!-- Generic Cloud Icon -->
+  <defs>
+    <linearGradient id="cloud-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#64B5F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#42A5F5;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect fill="url(#cloud-grad)" width="80" height="80" rx="4"/>
+  <!-- Cloud icon -->
+  <g fill="#FFFFFF">
+    <path d="M 28 40 C 28 35 32 31 37 31 C 40 31 43 33 44 35 C 46 33 49 32 52 33 C 56 34 59 38 59 42 C 59 43 59 44 58 45 C 62 46 64 49 64 53 C 64 57 61 60 57 60 L 24 60 C 20 60 17 57 17 53 C 17 50 19 47 22 46 C 21 45 21 44 21 43 C 21 40 23 38 26 37 C 27 38 28 39 28 40 Z"/>
+  </g>
+</svg>

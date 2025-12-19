@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <!-- AWS Logo Icon -->
+  <defs>
+    <linearGradient id="aws-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF9900;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EC7211;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect fill="url(#aws-grad)" width="80" height="80" rx="4"/>
+  <!-- AWS smile logo -->
+  <g fill="#FFFFFF">
+    <path d="M 15 50 Q 20 45 28 45 Q 32 45 35 47" stroke="#FFFFFF" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M 45 47 Q 48 45 52 45 Q 60 45 65 50" stroke="#FFFFFF" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M 15 52 Q 25 58 40 58 Q 55 58 65 52" stroke="#FFFFFF" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <text x="40" y="35" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#FFFFFF">AWS</text>
+  </g>
+</svg>

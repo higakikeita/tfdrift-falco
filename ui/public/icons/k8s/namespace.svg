@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <!-- Kubernetes Namespace Official Icon -->
+  <defs>
+    <linearGradient id="ns-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#326CE5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2254C9;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect fill="url(#ns-grad)" width="80" height="80" rx="4"/>
+  <!-- Namespace - container/folder icon -->
+  <g fill="#FFFFFF">
+    <path d="M 20 28 L 30 20 L 60 20 L 60 60 L 20 60 Z" stroke="#FFFFFF" stroke-width="2" fill="none"/>
+    <line x1="20" y1="32" x2="60" y2="32" stroke="#FFFFFF" stroke-width="2"/>
+    <rect x="28" y="38" width="24" height="14" rx="2" opacity="0.6"/>
+  </g>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <!-- AWS EBS Official Icon -->
+  <defs>
+    <linearGradient id="ebs-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#569A31;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3C6E1F;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect fill="url(#ebs-grad)" width="80" height="80" rx="4"/>
+  <!-- Block storage icon -->
+  <g fill="#FFFFFF">
+    <rect x="20" y="25" width="40" height="30" rx="2" stroke="#FFFFFF" stroke-width="2" fill="none"/>
+    <line x1="25" y1="35" x2="55" y2="35" stroke="#FFFFFF" stroke-width="2"/>
+    <line x1="25" y1="45" x2="55" y2="45" stroke="#FFFFFF" stroke-width="2"/>
+    <circle cx="52" cy="30" r="2"/>
+    <circle cx="52" cy="40" r="2"/>
+    <circle cx="52" cy="50" r="2"/>
+  </g>
+</svg>

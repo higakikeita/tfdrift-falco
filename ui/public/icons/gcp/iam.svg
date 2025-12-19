@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <!-- GCP IAM Official Icon -->
+  <defs>
+    <linearGradient id="gcp-iam-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4285F4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3367D6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect fill="url(#gcp-iam-grad)" width="80" height="80" rx="4"/>
+  <g fill="#FFFFFF">
+    <circle cx="40" cy="30" r="8"/>
+    <path d="M 40 42 C 30 42 24 48 24 56 L 24 62 L 56 62 L 56 56 C 56 48 50 42 40 42 Z"/>
+    <path d="M 50 20 L 60 25 L 60 35 C 60 40 56 44 50 46 C 44 44 40 40 40 35 L 40 25 Z" opacity="0.9"/>
+  </g>
+</svg>

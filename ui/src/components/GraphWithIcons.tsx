@@ -11,7 +11,7 @@ import type { Core, NodeSingular } from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 import { cytoscapeConfig, layoutConfigs } from '../styles/cytoscapeStyles';
 import type { CytoscapeElements } from '../types/graph';
-import { getResourceIcon } from '../components/icons';
+import { OfficialCloudIcon } from './icons/OfficialCloudIcons';
 
 cytoscape.use(dagre);
 
@@ -151,12 +151,10 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
         style={{ background: '#f8fafc' }}
       />
 
-      {/* HTML Icon Overlays */}
+      {/* HTML Icon Overlays - Official Cloud Provider Icons */}
       <div className="absolute inset-0 pointer-events-none">
         {iconPositions.map((pos) => {
-          const IconComponent = getResourceIcon(pos.type);
-
-          if (!IconComponent || !pos.visible) return null;
+          if (!pos.visible) return null;
 
           return (
             <div
@@ -169,8 +167,8 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
                 zIndex: 1000
               }}
             >
-              <div className="bg-white rounded-lg shadow-lg p-2 border-2 border-gray-200">
-                <IconComponent size={32} />
+              <div className="bg-white rounded-lg shadow-lg p-1.5 border-2 border-gray-200 hover:border-blue-400 transition-colors">
+                <OfficialCloudIcon type={pos.type} size={36} />
               </div>
             </div>
           );

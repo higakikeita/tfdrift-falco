@@ -15,8 +15,7 @@ import {
 } from './utils/sampleData';
 import { LayoutType } from './types/graph';
 import type { LayoutType as LayoutTypeType } from './types/graph';
-import { SiTerraform, SiAmazon, SiGooglecloud, SiKubernetes } from 'react-icons/si';
-import { FaShieldAlt } from 'react-icons/fa';
+import { OfficialCloudIcon } from './components/icons/OfficialCloudIcons';
 
 type DemoMode = 'simple' | 'complex' | 'blast-radius';
 
@@ -66,21 +65,20 @@ function AppFinal() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <SiTerraform className="text-purple-600 text-2xl" />
-                <FaShieldAlt className="text-red-600 text-xl" />
+                <OfficialCloudIcon type="terraform_change" size={32} />
               </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">TFDrift-Falco</h1>
                 <p className="text-sm text-muted-foreground">
-                  Causality Graph Visualization
+                  Cloud Infrastructure Security & Drift Analysis
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2 text-sm">
-                <SiAmazon className="text-orange-500 text-lg" />
-                <SiGooglecloud className="text-blue-500 text-lg" />
-                <SiKubernetes className="text-blue-600 text-lg" />
+              <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-lg border">
+                <OfficialCloudIcon type="aws_lambda" size={28} />
+                <OfficialCloudIcon type="gcp_compute_instance" size={28} />
+                <OfficialCloudIcon type="kubernetes_pod" size={28} />
               </div>
               <div className="text-right">
                 <p className="text-xs font-medium text-muted-foreground">Core Value</p>

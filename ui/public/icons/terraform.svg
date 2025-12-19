@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <!-- Terraform Official Icon -->
+  <defs>
+    <linearGradient id="tf-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7B42BC;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5C2D91;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect fill="url(#tf-grad)" width="80" height="80" rx="4"/>
+  <!-- Terraform T logo -->
+  <g fill="#FFFFFF">
+    <polygon points="20,25 35,33 35,50 20,42"/>
+    <polygon points="38,25 53,33 53,50 38,42"/>
+    <polygon points="56,18 71,26 71,43 56,35"/>
+  </g>
+</svg>

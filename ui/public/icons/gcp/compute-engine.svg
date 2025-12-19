@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <!-- GCP Compute Engine Official Icon -->
+  <defs>
+    <linearGradient id="gcp-compute-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4285F4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3367D6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect fill="url(#gcp-compute-grad)" width="80" height="80" rx="4"/>
+  <g fill="#FFFFFF">
+    <rect x="20" y="25" width="40" height="30" rx="2" stroke="#FFFFFF" stroke-width="2" fill="none"/>
+    <rect x="24" y="30" width="32" height="5" rx="1"/>
+    <rect x="24" y="38" width="32" height="5" rx="1"/>
+    <rect x="24" y="46" width="32" height="5" rx="1"/>
+    <circle cx="54" cy="32" r="1.5"/>
+    <circle cx="54" cy="40" r="1.5"/>
+    <circle cx="54" cy="48" r="1.5"/>
+  </g>
+</svg>

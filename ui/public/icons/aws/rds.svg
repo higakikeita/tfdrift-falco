@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <!-- AWS RDS Official Icon -->
+  <defs>
+    <linearGradient id="rds-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3A59B3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2E4891;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect fill="url(#rds-grad)" width="80" height="80" rx="4"/>
+  <!-- Database cylinder icon -->
+  <g fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1.5">
+    <ellipse cx="40" cy="25" rx="20" ry="7"/>
+    <path d="M 20 25 L 20 55 C 20 59 28 63 40 63 C 52 63 60 59 60 55 L 60 25" fill="none"/>
+    <ellipse cx="40" cy="37" rx="20" ry="7" opacity="0.7"/>
+    <ellipse cx="40" cy="49" rx="20" ry="7" opacity="0.7"/>
+  </g>
+</svg>

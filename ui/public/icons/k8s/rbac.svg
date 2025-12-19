@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <!-- Kubernetes RBAC (Role/ClusterRole) Official Icon -->
+  <defs>
+    <linearGradient id="rbac-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#326CE5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2254C9;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect fill="url(#rbac-grad)" width="80" height="80" rx="4"/>
+  <!-- RBAC - shield with lock -->
+  <g fill="#FFFFFF">
+    <path d="M 40 18 L 56 26 L 56 42 C 56 52 48 59 40 62 C 32 59 24 52 24 42 L 24 26 Z"/>
+    <!-- Lock icon -->
+    <rect x="36" y="38" width="8" height="10" rx="1" fill="#326CE5"/>
+    <path d="M 36 38 L 36 35 C 36 32 37 30 40 30 C 43 30 44 32 44 35 L 44 38" stroke="#326CE5" stroke-width="2" fill="none"/>
+  </g>
+</svg>
