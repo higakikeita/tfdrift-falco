@@ -436,6 +436,118 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"ModifyClusterParameterGroup": true,
 		"CreateClusterParameterGroup": true,
 		"DeleteClusterParameterGroup": true,
+
+		// S3 - Additional events (v0.5.0)
+		"CreateBucket":              true,
+		"DeleteBucket":              true,
+		"PutBucketLifecycle":        true,
+		"DeleteBucketLifecycle":     true,
+		"PutBucketReplication":      true,
+		"DeleteBucketReplication":   true,
+		"PutBucketCors":             true,
+		"DeleteBucketCors":          true,
+		"PutBucketWebsite":          true,
+		"DeleteBucketWebsite":       true,
+		"PutBucketTagging":          true,
+		"DeleteBucketTagging":       true,
+
+		// Lambda - Additional events (v0.5.0)
+		"CreateFunction":                  true,
+		"DeleteFunction":                  true,
+		"PublishVersion":                  true,
+		"PutProvisionedConcurrencyConfig": true,
+		"PutFunctionEventInvokeConfig":    true,
+		"CreateEventSourceMapping":        true,
+		"DeleteEventSourceMapping":        true,
+		"UpdateEventSourceMapping":        true,
+		"PutFunctionConcurrency":          true,
+		"DeleteFunctionConcurrency":       true,
+
+		// IAM - Additional events (v0.5.0)
+		"UpdateRole":                    true,
+		"TagRole":                       true,
+		"UntagRole":                     true,
+		"UpdateUser":                    true,
+		"UpdateGroup":                   true,
+		"CreateInstanceProfile":         true,
+		"DeleteInstanceProfile":         true,
+		"AddRoleToInstanceProfile":      true,
+		"RemoveRoleFromInstanceProfile": true,
+
+		// CloudFormation (v0.5.0) - Critical for IaC
+		"CreateStack":        true,
+		"UpdateStack":        true,
+		"DeleteStack":        true,
+		"CreateChangeSet":    true,
+		"ExecuteChangeSet":   true,
+		"DeleteChangeSet":    true,
+		"CreateStackSet":     true,
+		"UpdateStackSet":     true,
+		"DeleteStackSet":     true,
+		"SetStackPolicy":     true,
+
+		// EventBridge (v0.5.0) - Critical for event-driven
+		"PutRule":       true,
+		"PutTargets":    true,
+		"RemoveTargets": true,
+
+		// Step Functions (v0.5.0) - Critical for workflow
+		"CreateStateMachine": true,
+		"UpdateStateMachine": true,
+		"DeleteStateMachine": true,
+		"StartExecution":     true,
+		"StopExecution":      true,
+
+		// AWS Glue (v0.5.0) - Critical for data pipeline
+		"CreateJob":    true,
+		"UpdateJob":    true,
+		"DeleteJob":    true,
+		"CreateCrawler": true,
+		"UpdateCrawler": true,
+		"DeleteCrawler": true,
+
+		// Kinesis (v0.5.0) - Critical for streaming
+		"CreateStream":                true,
+		"DeleteStream":                true,
+		"UpdateShardCount":            true,
+		"EnableEnhancedMonitoring":    true,
+		"DisableEnhancedMonitoring":   true,
+		"StartStreamEncryption":       true,
+		"StopStreamEncryption":        true,
+		"RegisterStreamConsumer":      true,
+		"DeregisterStreamConsumer":    true,
+		"CreateDeliveryStream":        true, // Kinesis Firehose
+		"DeleteDeliveryStream":        true, // Kinesis Firehose
+		"UpdateDestination":           true, // Kinesis Firehose
+
+		// ACM (v0.5.0) - Critical for security
+		"RequestCertificate":        true,
+		"DeleteCertificate":         true,
+		"AddTagsToCertificate":      true,
+		"RemoveTagsFromCertificate": true,
+		"ImportCertificate":         true,
+
+		// WAF / WAFv2 (v0.5.0) - Critical for security
+		"CreateWebACL":          true,
+		"UpdateWebACL":          true,
+		"DeleteWebACL":          true,
+		"CreateRuleGroup":       true,
+		"UpdateRuleGroup":       true,
+		"DeleteRuleGroup":       true,
+		"CreateIPSet":           true,
+		"UpdateIPSet":           true,
+		"DeleteIPSet":           true,
+		"AssociateWebACL":       true,
+		"DisassociateWebACL":    true,
+
+		// AWS Backup (v0.5.0) - Critical for disaster recovery
+		"CreateBackupPlan":              true,
+		"UpdateBackupPlan":              true,
+		"DeleteBackupPlan":              true,
+		"CreateBackupVault":             true,
+		"DeleteBackupVault":             true,
+		"PutBackupVaultAccessPolicy":    true,
+		"DeleteBackupVaultAccessPolicy": true,
 	}
 
 	return relevantEvents[eventName]

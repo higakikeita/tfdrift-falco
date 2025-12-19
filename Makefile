@@ -122,6 +122,27 @@ docker-run:
 	@echo "Running Docker container..."
 	docker run --rm -v $(PWD)/config.yaml:/config.yaml tfdrift-falco:latest --config /config.yaml
 
+## quick-start: Run quick start setup script
+quick-start:
+	@echo "Running TFDrift-Falco Quick Start..."
+	@chmod +x quick-start.sh
+	@./quick-start.sh
+
+## start: Quick alias for docker-compose-up
+start: docker-compose-up
+
+## stop: Quick alias for docker-compose-down
+stop: docker-compose-down
+
+## logs: Quick alias for docker-compose-logs
+logs: docker-compose-logs
+
+## restart: Quick alias for docker-compose-restart
+restart: docker-compose-restart
+
+## status: Quick alias for docker-compose-ps
+status: docker-compose-ps
+
 ## docker-compose-up: Start all services with Docker Compose
 docker-compose-up:
 	@echo "Starting TFDrift-Falco stack..."

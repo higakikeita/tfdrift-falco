@@ -22,58 +22,52 @@
 >
 > 🚀 **v0.4.0** - **Structured Event Output** for SIEM/SOAR integrations! JSON output (NDJSON), event-driven architecture.
 
-## 🚀 Quick Start (5 minutes)
+## 🚀 Quick Start - 3コマンドで完結！
 
-### L0: Zero Configuration (完全自動)
-
-**Get started with zero configuration** - TFDrift-Falco automatically detects your Terraform state:
+### 最速セットアップ（5分）
 
 ```bash
-# Navigate to your Terraform directory
-cd /path/to/your/terraform/project
+# 1. リポジトリをクローン
+git clone https://github.com/higakikeita/tfdrift-falco.git && cd tfdrift-falco
 
-# Run with auto-detection (no config file needed!)
-tfdrift --auto
+# 2. セットアップスクリプトを実行（対話的に設定）
+./quick-start.sh
+
+# 3. 起動！
+docker compose up -d
 ```
 
-**What it does:**
-- ✅ Automatically finds your Terraform state (local or S3 backend)
-- ✅ Connects to Falco on localhost:5060 by default
-- ✅ Starts monitoring for drift in real-time
+**これだけです！** 🎉
 
-### L1: Semi-Auto (部分カスタマイズ)
+スクリプトが自動的に以下を行います：
+- ✅ Docker / Docker Compose のチェック
+- ✅ AWS credentials の確認
+- ✅ Falco + TFDrift-Falco の設定ファイル生成
+- ✅ 対話的な設定（AWS Region、Terraform State Backend、Slack Webhook）
 
-**Customize specific settings** while keeping auto-detection:
+### ログを確認
 
 ```bash
-# Custom AWS region
-tfdrift --auto --region ap-northeast-1
+# ドリフト検知ログを表示
+docker compose logs -f tfdrift
 
-# Custom Falco endpoint
-tfdrift --auto --falco-endpoint prod-falco:5060
-
-# Custom state file path
-tfdrift --auto --state-path /custom/path/terraform.tfstate
-
-# Multiple customizations
-tfdrift --auto --region us-west-2 --falco-endpoint 192.168.1.100:5060
+# または make コマンドで
+make logs
 ```
 
-**Available overrides:**
-- `--region` - AWS region(s) to monitor
-- `--falco-endpoint` - Falco gRPC endpoint (host:port)
-- `--state-path` - Terraform state file path
-- `--backend` - Backend type (local/s3)
-
-### L2: Full Configuration (完全手動)
-
-**Full control** with config.yaml:
+### よく使うコマンド
 
 ```bash
-tfdrift --config config.yaml
+make start      # 起動
+make stop       # 停止
+make restart    # 再起動
+make status     # 状態確認
+make logs       # ログ表示
 ```
 
-See [Configuration Guide](#-configuration) for config.yaml examples.
+### 詳細なセットアップ手順
+
+ステップバイステップのガイドは [Getting Started Guide](docs/GETTING_STARTED.md) を参照してください。
 
 ---
 
@@ -243,34 +237,43 @@ Instant Slack alert with user identity and change details
 - 🧩 **Terraform State Comparison** - Detect deviations from IaC definitions
 - 🔒 **Security Context** - Correlate user identity (IAM user, API key, service account)
 - 🔔 **Multiple Notification Channels** - Slack, Discord, Falco output, Webhook
-- 🌐 **Multi-Cloud Support** - AWS (203 events, 19 services), GCP (100+ events, 12+ services), Azure (planned)
+- 🌐 **Multi-Cloud Support** - AWS (411 events, 23 services), GCP (100+ events, 12+ services), Azure (planned)
 - 🎨 **Extensible Rules** - Define custom Falco rules in YAML
 - 🐳 **Container-Ready** - Run as a sidecar or standalone container
 - 📊 **Production-Ready** - Comprehensive load testing and monitoring framework
 
 ## 📋 Supported AWS Services
 
-TFDrift-Falco v0.3.0 monitors **203 CloudTrail events** across 19 AWS services:
+TFDrift-Falco v0.5.0 monitors **411 CloudTrail events** across 23 AWS services:
 
 | Service | Events | Coverage | Priority |
 |---------|--------|----------|----------|
-| **VPC/Networking** 🔒 | 42 | Security Groups, VPC, Subnets, Route Tables, Gateways, ACLs, Endpoints, Peering, Transit Gateway, Flow Logs, Network Firewall | Critical |
-| **RDS** 🗃️ | 31 | Instances, Clusters, Snapshots, Parameter Groups, Subnet Groups, Option Groups | High |
+| **CloudWatch** 📊 | 66 | Alarms, Dashboards, Metrics, Log Groups, Composite Alarms, Metric Streams, Insights | High |
+| **VPC/Networking** 🔒 | 40 | Security Groups, VPC, Subnets, Route Tables, Gateways, ACLs, Endpoints, Peering, Transit Gateway, Flow Logs, Network Firewall | Critical |
+| **RDS** 🗃️ | 37 | Instances, Clusters, Snapshots, Parameter Groups, Subnet Groups, Option Groups, Replicas | High |
+| **API Gateway** 🌐 | 32 | REST APIs, Resources, Methods, Deployments, Stages, Models, Authorizers | High |
+| **IAM** ✅ | 25 | Roles, Users, Groups, Policies, Access Keys, Instance Profiles, Tags | Critical |
+| **ELB/ALB** ⚖️ | 22 | Load Balancers, Target Groups, Listeners, Rules, SSL Certificates | High |
+| **S3** 🪣 | 21 | Buckets, Policies, Encryption, Versioning, Lifecycle, Replication, CORS, Website, Logging | High |
 | **EC2** 💻 | 17 | Instances, AMIs, EBS Volumes, Snapshots, Network Interfaces | High |
+| **ElastiCache** 🗄️ | 16 | Cache Clusters, Replication Groups, Parameter Groups, User Groups | High |
 | **SageMaker** 🤖 | 16 | Endpoints, Training Jobs, Model Packages, Notebook Instances | High |
-| **ELB/ALB** | 15 | Load Balancers, Target Groups, Listeners, Rules | High |
 | **DynamoDB** 📊 | 14 | Tables, PITR, Backups, Global Tables, Streams, Monitoring | High |
-| **IAM** ✅ | 14 | Roles, Users, Groups, Policies, Access Keys | Critical |
-| **ECS** 🐳 | 13 | Services, Task Definitions, Clusters, Capacity Providers | High |
+| **Lambda** ⚡ | 13 | Functions, Event Sources, Permissions, Concurrency, Aliases, Versions | High |
+| **Kinesis** 🌊 | 13 | Streams, Consumers, Firehose, Analytics Applications | Medium |
 | **EKS** ☸️ | 12 | Clusters, Node Groups, Addons, Fargate Profiles | High |
-| **ElastiCache** 🗄️ | 12 | Cache Clusters, Replication Groups, Parameter Groups | High |
-| **KMS** 🔐 | 10 | Keys, Aliases, Rotation, Deletion | Critical |
-| **Lambda** ⚡ | 10 | Functions, Event Sources, Permissions, Concurrency | High |
 | **Auto Scaling** 📈 | 10 | ASGs, Launch Configurations, Policies, Scheduled Actions | Medium |
-| **S3** | 8 | Policies, Encryption, Versioning, Public Access | High |
-| **ECR** | 1 | Repository Policies | Medium |
+| **CloudFormation** 📚 | 10 | Stacks, Stack Sets, Change Sets | High |
+| **KMS** 🔐 | 10 | Keys, Aliases, Rotation, Deletion, Key Policies | Critical |
+| **ECS** 🐳 | 8 | Services, Task Definitions, Clusters, Capacity Providers | High |
+| **WAF/WAFv2** 🛡️ | 8 | Web ACLs, Rule Groups, IP Sets, Regex Pattern Sets | High |
+| **AWS Backup** 💾 | 7 | Backup Plans, Backup Vaults, Recovery Points, Backup Jobs | Medium |
+| **Step Functions** 🔄 | 5 | State Machines, Executions, Tags | Medium |
+| **AWS Glue** 🔗 | 5 | Databases, Tables, Jobs, Crawlers | Medium |
+| **EventBridge** 📡 | 4 | Rules, Targets, Event Buses | Medium |
+| **ECR** 📦 | 1 | Repository Policies | Medium |
 
-**Total**: 203 events | See [AWS Resource Coverage Analysis](./docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for details
+**Total**: 411 events across 23 services | See [AWS Resource Coverage Analysis](./docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for details
 
 ## 📋 Supported GCP Services
 
@@ -679,29 +682,95 @@ CloudTrail EventID: a1b2c3d4-5678-90ab-cdef-1234567890ab
 
 ## 🧪 Use Cases
 
-### 1. Security Compliance
-Detect unauthorized infrastructure changes that bypass IaC workflows:
-- Manual security group modifications
-- IAM policy changes outside Terraform
-- Encryption settings disabled
+TFDrift-Falcoは様々なシナリオで活用できます。**詳細な設定例、アラート例、統合パターンについては [Use Cases Documentation](docs/USE_CASES.md) を参照してください。**
 
-### 2. Cost Management
-Identify resource changes that impact costs:
-- Instance type upgrades
-- Storage volume expansions
-- EBS volume type changes
+### 1. Security & Compliance 🔒
+**不正なインフラ変更をリアルタイムで検知**
+- セキュリティグループの手動変更（例: ポート22を0.0.0.0/0に公開）
+- IAMポリシーのTerraform管理外の変更
+- 暗号化設定の無効化（RDS、S3、EBSなど）
 
-### 3. Audit & Governance
-Track who made what changes and when:
-- Complete change history with user identity
-- Integration with SIEM systems
-- Compliance reporting
+**実例**: 開発者がAWSコンソールで本番環境のセキュリティグループを変更した瞬間にSlackでCriticalアラート送信
 
-### 4. GitOps Enforcement
-Ensure all infrastructure changes go through code review:
-- Alert on console-based changes
-- Enforce infrastructure-as-code discipline
-- Prevent configuration drift
+### 2. Cost Management 💰
+**コスト影響を伴うリソース変更を即座に検知**
+- インスタンスタイプの変更（t3.micro → m5.8xlarge）
+- ストレージボリューム拡張（100GB → 1TB）
+- EBSボリュームタイプ変更（gp2 → io2）
+
+**実例**: EC2がt3.microからm5.8xlargeにアップグレードされた際、コスト影響（＋$1.52/hr）を含むアラートをSlackに送信
+
+### 3. Audit & Governance 📋
+**完全な変更履歴とユーザートラッキング**
+- 誰が・いつ・何を変更したかの完全な記録
+- SIEMシステムとの統合（JSON形式のイベント出力）
+- コンプライアンスレポート生成（SOC2、PCI-DSS、HIPAA）
+
+**実例**: 全てのインフラ変更がJSON形式でSplunkに転送され、監査証跡として永続化
+
+### 4. GitOps Enforcement 🔧
+**Infrastructure-as-Code規律の強制**
+- コンソールベースの変更を即座に検知してアラート
+- コードレビューを経ない変更を防止
+- 設定ドリフトの自動検出
+
+**実例**: Terraformで管理されているリソースがAWSコンソールで変更されると、即座にチームSlackチャネルにアラート送信
+
+### 5. Incident Response 🚨
+**セキュリティインシデントのリアルタイム検知**
+- バックドアIAMユーザー作成の検知
+- 権限昇格の試み検知
+- データ流出の可能性がある変更（S3バケットパブリック化）
+
+**実例**: IAMユーザーが作成された瞬間にPagerDutyでインシデント発火、オンコールエンジニアに通知
+
+### 6. Multi-Cloud Governance 🌐
+**AWS + GCPの統一的な監視**
+- AWS CloudTrailとGCP Audit Logsを同時監視
+- 複数クラウドプロバイダー間の一貫した変更管理
+- 統一されたアラート形式とダッシュボード
+
+**実例**: AWSとGCPの両方のインフラ変更を単一のGrafanaダッシュボードで可視化
+
+---
+
+📚 **詳細なユースケース、設定例、統合パターンについては [Use Cases Documentation](docs/USE_CASES.md) をご覧ください。**
+
+## 📘 Best Practices
+
+本番環境でTFDrift-Falcoを安全かつ効率的に運用するためのベストプラクティスを紹介します。
+
+### Production Deployment 🚀
+- **High Availability**: Active-Passive構成で2つ以上のレプリカをデプロイ
+- **Resource Sizing**: ワークロードに応じた適切なCPU/メモリ割り当て（Small: 128Mi/100m, Medium: 256Mi/250m, Large: 512Mi/500m）
+- **Multi-Region**: リージョンごとに独立したTFDrift-Falcoインスタンスを実行
+
+### Security 🔒
+- **IAM Permissions**: 最小権限の原則（Terraform State読み取り専用）
+- **Network Security**: Falco gRPC接続にmTLSを使用、Kubernetes Network Policyで通信制限
+- **Secrets Management**: Webhook URLや認証情報をKubernetes Secrets/AWS Secrets Manager/GCP Secret Managerで管理
+
+### Operational Excellence 📊
+- **Logging**: 構造化ログ（JSON）を外部ロギングシステムに転送（FluentBit/Elasticsearch）
+- **Monitoring**: Prometheusメトリクスを公開、Grafanaで可視化
+- **Alerting**: Critical/Highレベルのドリフトを即座に通知（Slack/PagerDuty）
+- **Backup**: Terraform Stateの定期的なバックアップ（S3バージョニング有効化）
+
+### Configuration 🔧
+- **Drift Rules**: 環境に応じたルール設計（本番: 全変更、ステージング: Critical のみ）
+- **Event Filtering**: 不要なイベントをFalcoルールで事前フィルタリング
+- **State Refresh**: 環境規模に応じたリフレッシュ間隔（Small: 5m, Medium: 10m, Large: 15m）
+
+### Troubleshooting 🔍
+よくある問題と解決策:
+- **"Cannot connect to Falco gRPC"** → Falco起動確認、gRPC設定確認、ネットワーク接続確認
+- **"Too many alerts (False Positives)"** → watched_attributes を絞る、Terraform管理外リソースを除外
+- **"High memory usage"** → State refresh間隔を延長、Worker数を調整
+- **"High detection latency"** → S3 VPCエンドポイント使用、通知timeout短縮
+
+---
+
+📚 **詳細な設定例、トラブルシューティング、パフォーマンスチューニングについては [Best Practices Documentation](docs/BEST_PRACTICES.md) をご覧ください。**
 
 ## 🧩 Integration Examples
 
@@ -839,7 +908,8 @@ See the **[AWS Coverage Roadmap](./docs/AWS_COVERAGE_ROADMAP.md)** for detailed 
 - [x] **VPC Enhanced** - Peering, Transit Gateway, Flow Logs, Network Firewall (42 events total)
 - [x] **SageMaker** - Endpoints, training, model packages, notebooks (16 events)
 
-**v0.3.0 Achievement**: 203 CloudTrail events (203/198 complete - **103%** 🎉)
+**v0.3.0 Achievement**: 203 CloudTrail events (103% of original goal 🎉)
+**v0.5.0 Achievement**: 411 CloudTrail events across 23 AWS services (**208%** of original goal 🚀)
 
 ### Phase 2: Enhanced Detection (✅ GCP Support Complete - v0.5.0)
 - [x] **GCP Audit Logs support** - 100+ events across 12+ services
@@ -994,7 +1064,7 @@ TFDrift-FalcoがTerraform Stateと比較
 - 🧩 **Terraform State比較** - IaC定義からの逸脱を検出
 - 🔒 **セキュリティコンテキスト** - ユーザーID（IAMユーザー、APIキー、サービスアカウント）と相関
 - 🔔 **複数の通知チャネル** - Slack、Discord、Falco出力、Webhook
-- 🌐 **マルチクラウド対応** - AWS（203イベント、19サービス）、GCP（100+イベント、12+サービス）、Azure（計画中）
+- 🌐 **マルチクラウド対応** - AWS（411イベント、23サービス）、GCP（100+イベント、12+サービス）、Azure（計画中）
 - 🎨 **拡張可能なルール** - YAMLでカスタムドリフト検知ルールを定義
 - 🐳 **コンテナ対応** - サイドカーまたはスタンドアロンコンテナとして実行
 - 📊 **本番環境対応** - 包括的な負荷テストと監視フレームワーク

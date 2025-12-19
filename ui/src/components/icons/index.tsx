@@ -29,7 +29,7 @@ export function getResourceIcon(resourceType: string): React.ComponentType<{ siz
   // Normalize resource type (handle prefixes and variations)
   const normalizedType = resourceType
     .toLowerCase()
-    .replace(/^(aws|gcp|kubernetes|k8s)_/, (match, prefix) => {
+    .replace(/^(aws|gcp|kubernetes|k8s)_/, (_match, prefix) => {
       if (prefix === 'k8s') return 'kubernetes_';
       return `${prefix}_`;
     });

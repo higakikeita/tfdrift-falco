@@ -15,7 +15,7 @@ import {
 } from './utils/sampleData';
 import { LayoutType } from './types/graph';
 import type { LayoutType as LayoutTypeType } from './types/graph';
-import { SiTerraform, SiAmazonaws, SiGooglecloud, SiKubernetes } from 'react-icons/si';
+import { SiTerraform, SiAmazon, SiGooglecloud, SiKubernetes } from 'react-icons/si';
 import { FaShieldAlt } from 'react-icons/fa';
 
 type DemoMode = 'simple' | 'complex' | 'blast-radius';
@@ -78,7 +78,7 @@ function AppFinal() {
             </div>
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2 text-sm">
-                <SiAmazonaws className="text-orange-500 text-lg" />
+                <SiAmazon className="text-orange-500 text-lg" />
                 <SiGooglecloud className="text-blue-500 text-lg" />
                 <SiKubernetes className="text-blue-600 text-lg" />
               </div>
