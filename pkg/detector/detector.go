@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/keitahigaki/tfdrift-falco/pkg/api/broadcaster"
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/diff"
 	"github.com/keitahigaki/tfdrift-falco/pkg/falco"
@@ -22,6 +23,7 @@ type Detector struct {
 	formatter       *diff.DiffFormatter
 	importer        *terraform.Importer
 	approvalManager *terraform.ApprovalManager
+	broadcaster     *broadcaster.Broadcaster
 	eventCh         chan types.Event
 	wg              sync.WaitGroup
 }
@@ -88,4 +90,14 @@ func New(cfg *config.Config) (*Detector, error) {
 // GetStateManager returns the state manager for API access
 func (d *Detector) GetStateManager() *terraform.StateManager {
 	return d.stateManager
+}
+
+// SetBroadcaster sets the broadcaster for real-time event distribution
+func (d *Detector) SetBroadcaster(bc *broadcaster.Broadcaster) {
+	d.broadcaster = bc
+}
+
+// GetBroadcaster returns the broadcaster
+func (d *Detector) GetBroadcaster() *broadcaster.Broadcaster {
+	return d.broadcaster
 }

@@ -3,7 +3,9 @@ package detector
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/keitahigaki/tfdrift-falco/pkg/api/broadcaster"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
@@ -18,6 +20,26 @@ func (d *Detector) sendAlert(alert *types.DriftAlert) {
 	log.Warnf("DRIFT DETECTED: %s.%s - %s: %v → %v",
 		alert.ResourceType, alert.ResourceName, alert.Attribute,
 		alert.OldValue, alert.NewValue)
+
+	// Broadcast to WebSocket clients
+	if d.broadcaster != nil {
+		d.broadcaster.Broadcast(broadcaster.Event{
+			Type:      "drift",
+			Timestamp: time.Now().Format(time.RFC3339),
+			Payload: map[string]interface{}{
+				"severity":      alert.Severity,
+				"resource_type": alert.ResourceType,
+				"resource_name": alert.ResourceName,
+				"resource_id":   alert.ResourceID,
+				"attribute":     alert.Attribute,
+				"old_value":     alert.OldValue,
+				"new_value":     alert.NewValue,
+				"user_identity": alert.UserIdentity,
+				"matched_rules": alert.MatchedRules,
+				"timestamp":     alert.Timestamp,
+			},
+		})
+	}
 
 	if d.cfg.DryRun {
 		log.Info("[DRY-RUN] Alert notification skipped")
@@ -68,6 +90,24 @@ func (d *Detector) sendUnmanagedResourceAlert(event *types.Event) {
 	// Also log
 	log.Warnf("UNMANAGED RESOURCE: %s (%s) - Event: %s by %s",
 		alert.ResourceID, alert.ResourceType, alert.EventName, alert.UserIdentity.UserName)
+
+	// Broadcast to WebSocket clients
+	if d.broadcaster != nil {
+		d.broadcaster.Broadcast(broadcaster.Event{
+			Type:      "unmanaged",
+			Timestamp: time.Now().Format(time.RFC3339),
+			Payload: map[string]interface{}{
+				"severity":      alert.Severity,
+				"resource_type": alert.ResourceType,
+				"resource_id":   alert.ResourceID,
+				"event_name":    alert.EventName,
+				"user_identity": alert.UserIdentity,
+				"changes":       alert.Changes,
+				"reason":        alert.Reason,
+				"timestamp":     alert.Timestamp,
+			},
+		})
+	}
 
 	if d.cfg.DryRun {
 		log.Info("[DRY-RUN] Unmanaged resource alert notification skipped")

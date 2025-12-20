@@ -124,6 +124,9 @@ func run(_ *cobra.Command, _ []string) {
 		log.Info("Starting TFDrift-Falco in API server mode")
 		srv := api.NewServer(cfg, det, apiPort, version)
 
+		// Connect detector to broadcaster for real-time events
+		det.SetBroadcaster(srv.GetBroadcaster())
+
 		// Start detector in background
 		go func() {
 			log.Info("Starting drift detection engine...")
