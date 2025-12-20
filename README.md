@@ -71,6 +71,87 @@ make logs       # ログ表示
 
 ---
 
+## 🏭 Production Deployment (NEW!)
+
+TFDrift-Falcoは本番環境対応の **REST API + WebSocket + SSE + React UI** を提供します！
+
+### 🚀 API Server Mode
+
+```bash
+# API serverモードで起動
+docker-compose up -d
+
+# アクセス
+# Frontend UI: http://localhost:3000
+# Backend API: http://localhost:8080/api/v1
+# WebSocket: ws://localhost:8080/ws
+# SSE Stream: http://localhost:8080/api/v1/stream
+```
+
+### 📡 REST API Endpoints
+
+- `GET /api/v1/graph` - 因果関係グラフ (Cytoscape形式)
+- `GET /api/v1/drifts` - Driftアラート一覧 (フィルタリング対応)
+- `GET /api/v1/events` - Falcoイベント一覧
+- `GET /api/v1/state` - Terraform State概要
+- `GET /api/v1/stats` - 統計情報
+- `GET /health` - ヘルスチェック
+
+**詳細:** [API Documentation](docs/API.md)
+
+### 🌐 React Web UI
+
+![TFDrift UI](https://via.placeholder.com/800x400?text=TFDrift+Web+UI)
+
+**主な機能:**
+- 🎯 **リアルタイムグラフ可視化** - React Flow + LOD rendering
+- 📊 **Drift/Event一覧表示** - TanStack Query + フィルタリング
+- ⚡ **WebSocket/SSE** - リアルタイム通知
+- 🔍 **1000+ノード対応** - Clustering + Progressive Loading
+- 📱 **レスポンシブデザイン** - shadcn/ui + Tailwind CSS
+
+### 🐳 Docker Compose (推奨)
+
+```yaml
+services:
+  backend:
+    image: tfdrift-falco:latest
+    ports:
+      - "8080:8080"  # API server
+      - "9090:9090"  # Prometheus metrics
+    command: ["--server", "--api-port", "8080"]
+
+  frontend:
+    image: tfdrift-frontend:latest
+    ports:
+      - "3000:8080"  # Web UI
+    environment:
+      - VITE_API_BASE_URL=http://backend:8080/api/v1
+```
+
+### ☸️ Kubernetes Deployment
+
+```bash
+# Helm chart (準備中)
+helm install tfdrift ./charts/tfdrift-falco
+
+# または kubectl
+kubectl apply -f k8s/
+```
+
+### 📦 CI/CD
+
+GitHub Actionsワークフロー搭載:
+- ✅ Backend tests (Go)
+- ✅ Frontend tests (React)
+- ✅ Docker multi-platform builds (amd64, arm64)
+- ✅ Security scanning (Trivy + Gosec)
+- ✅ Codecov integration
+
+**詳細:** [Deployment Guide](docs/deployment.md)
+
+---
+
 ## 🔌 Output Modes (NEW in v0.4.0)
 
 TFDrift-Falco now outputs **structured events** for easy integration with SIEM, SOAR, and monitoring systems.
