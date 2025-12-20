@@ -1,7 +1,9 @@
 version: '3.8'
 
 services:
-  # Falco - Runtime security monitoring with CloudTrail plugin
+  # ============================================
+  # Falco - Runtime security monitoring
+  # ============================================
   falco:
     image: falcosecurity/falco:0.37.1
     container_name: tfdrift-falco-falco
@@ -34,19 +36,22 @@ services:
       retries: 3
       start_period: 40s
 
-  # TFDrift-Falco - Main drift detection service
-  tfdrift:
+  # ============================================
+  # TFDrift Backend - API Server
+  # ============================================
+  backend:
     build:
       context: .
       dockerfile: Dockerfile
     image: tfdrift-falco:latest
-    container_name: tfdrift-falco-app
+    container_name: tfdrift-backend
     restart: unless-stopped
     depends_on:
       falco:
         condition: service_healthy
     ports:
-      - "9090:9090"  # Metrics endpoint (future)
+      - "8080:8080"  # API server
+      - "9090:9090"  # Metrics endpoint
     volumes:
       # Configuration
       - ./config.yaml:/config/config.yaml:ro
@@ -57,44 +62,94 @@ services:
       # Terraform state (if using local backend)
       - ${TERRAFORM_STATE_DIR:-./terraform}:/terraform:ro
 
-      # Auto-import output directory (if enabled)
-      - ./terraform-imports:/terraform-imports
+      # Persistent data
+      - tfdrift-data:/data
     environment:
       - AWS_REGION=${AWS_REGION:-us-east-1}
       - TZ=${TZ:-UTC}
-
-      # Optional: Override config via environment variables
-      # - TFDRIFT_FALCO_HOSTNAME=falco
-      # - TFDRIFT_FALCO_PORT=5060
+      - TFDRIFT_FALCO_HOSTNAME=falco
+      - TFDRIFT_FALCO_PORT=5060
+      # Optional Slack webhook
       # - TFDRIFT_SLACK_WEBHOOK=${SLACK_WEBHOOK_URL}
     networks:
       - tfdrift
-    command: ["--config", "/config/config.yaml"]
+    command: ["--server", "--api-port", "8080"]
     healthcheck:
-      test: ["CMD", "pgrep", "-f", "tfdrift"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 10s
+
+  # ============================================
+  # TFDrift Frontend - React UI
+  # ============================================
+  frontend:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    image: tfdrift-frontend:latest
+    container_name: tfdrift-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:8080"  # Web UI
+    environment:
+      - VITE_API_BASE_URL=http://backend:8080/api/v1
+      - VITE_WS_URL=ws://backend:8080/ws
+      - VITE_SSE_URL=http://backend:8080/api/v1/stream
+    networks:
+      - tfdrift
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
 
 networks:
   tfdrift:
     driver: bridge
     name: tfdrift-network
 
-# Example usage:
+volumes:
+  tfdrift-data:
+    driver: local
+    name: tfdrift-data
+
+# ============================================
+# Usage Examples
+# ============================================
 #
-# 1. Basic setup:
+# 1. Start all services:
 #    docker-compose up -d
 #
-# 2. With custom config:
-#    docker-compose up -d
-#
-# 3. View logs:
-#    docker-compose logs -f tfdrift
+# 2. View logs:
+#    docker-compose logs -f backend
+#    docker-compose logs -f frontend
 #    docker-compose logs -f falco
+#
+# 3. Check status:
+#    docker-compose ps
 #
 # 4. Stop services:
 #    docker-compose down
 #
-# 5. Rebuild:
+# 5. Rebuild and restart:
 #    docker-compose up -d --build
+#
+# 6. Scale services (if needed):
+#    docker-compose up -d --scale backend=2
+#
+# 7. Access services:
+#    Frontend: http://localhost:3000
+#    Backend API: http://localhost:8080/api/v1
+#    Backend Health: http://localhost:8080/health
+#    Metrics: http://localhost:9090
+#
+# 8. Environment variables:
+#    export AWS_REGION=us-west-2
+#    export TERRAFORM_STATE_DIR=/path/to/terraform
+#    docker-compose up -d
