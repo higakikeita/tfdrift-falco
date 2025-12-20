@@ -10,6 +10,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/keitahigaki/tfdrift-falco/pkg/api"
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
 	log "github.com/sirupsen/logrus"
@@ -24,11 +25,14 @@ var (
 	dryRun         bool
 	daemon         bool
 	interactive    bool
+	// API server flags
+	serverMode bool
+	apiPort    int
 	// L1 Semi-auto mode flags
-	regionOverride       []string
-	falcoEndpoint        string
-	statePathOverride    string
-	backendTypeOverride  string
+	regionOverride      []string
+	falcoEndpoint       string
+	statePathOverride   string
+	backendTypeOverride string
 )
 
 func main() {
@@ -48,6 +52,10 @@ and Terraform state comparison.`,
 	rootCmd.Flags().BoolVar(&dryRun, "dry-run", false, "run in dry-run mode (no notifications)")
 	rootCmd.Flags().BoolVar(&daemon, "daemon", false, "run in daemon mode")
 	rootCmd.Flags().BoolVar(&interactive, "interactive", false, "run in interactive mode (for approval prompts)")
+
+	// API server flags
+	rootCmd.Flags().BoolVar(&serverMode, "server", false, "run API server mode")
+	rootCmd.Flags().IntVar(&apiPort, "api-port", 8080, "API server port (default: 8080)")
 
 	// L1 Semi-auto mode flags (used with --auto)
 	rootCmd.Flags().StringSliceVar(&regionOverride, "region", nil, "AWS region(s) to monitor (e.g., --region us-west-2,ap-northeast-1)")
@@ -111,10 +119,29 @@ func run(_ *cobra.Command, _ []string) {
 		log.Fatalf("Failed to initialize detector: %v", err)
 	}
 
-	// Start detection
-	log.Info("Drift detection started")
-	if err := det.Start(ctx); err != nil {
-		log.Fatalf("Detector error: %v", err)
+	if serverMode {
+		// API Server mode
+		log.Info("Starting TFDrift-Falco in API server mode")
+		srv := api.NewServer(cfg, det, apiPort, version)
+
+		// Start detector in background
+		go func() {
+			log.Info("Starting drift detection engine...")
+			if err := det.Start(ctx); err != nil {
+				log.Errorf("Detector error: %v", err)
+			}
+		}()
+
+		// Start API server (blocks until shutdown)
+		if err := srv.Start(ctx); err != nil {
+			log.Fatalf("API server error: %v", err)
+		}
+	} else {
+		// Standard detection mode
+		log.Info("Drift detection started")
+		if err := det.Start(ctx); err != nil {
+			log.Fatalf("Detector error: %v", err)
+		}
 	}
 
 	log.Info("TFDrift-Falco stopped")
