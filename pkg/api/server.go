@@ -14,29 +14,32 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
 	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
+	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	log "github.com/sirupsen/logrus"
 )
 
 // Server represents the API server
 type Server struct {
-	cfg         *config.Config
-	detector    *detector.Detector
-	broadcaster *broadcaster.Broadcaster
-	graphStore  *graph.Store
-	router      *chi.Mux
-	port        int
-	version     string
+	cfg          *config.Config
+	detector     *detector.Detector
+	broadcaster  *broadcaster.Broadcaster
+	graphStore   *graph.Store
+	stateManager *terraform.StateManager
+	router       *chi.Mux
+	port         int
+	version      string
 }
 
 // NewServer creates a new API server
 func NewServer(cfg *config.Config, det *detector.Detector, port int, version string) *Server {
 	s := &Server{
-		cfg:         cfg,
-		detector:    det,
-		broadcaster: broadcaster.NewBroadcaster(),
-		graphStore:  graph.NewStore(),
-		port:        port,
-		version:     version,
+		cfg:          cfg,
+		detector:     det,
+		broadcaster:  broadcaster.NewBroadcaster(),
+		graphStore:   graph.NewStore(),
+		stateManager: det.GetStateManager(),
+		port:         port,
+		version:      version,
 	}
 
 	s.setupRouter()
@@ -78,17 +81,24 @@ func (s *Server) setupRouter() {
 		r.Get("/graph/edges", graphHandler.GetEdges)
 
 		// State endpoints (Phase 2)
-		// r.Get("/state", stateHandler.GetState)
-		// r.Get("/state/resources", stateHandler.GetResources)
+		stateHandler := handlers.NewStateHandler(s.stateManager)
+		r.Get("/state", stateHandler.GetState)
+		r.Get("/state/resources", stateHandler.GetResources)
+		r.Get("/state/resource/{id}", stateHandler.GetResource)
 
 		// Events endpoints (Phase 2)
-		// r.Get("/events", eventsHandler.GetEvents)
+		eventsHandler := handlers.NewEventsHandler(s.graphStore)
+		r.Get("/events", eventsHandler.GetEvents)
+		r.Get("/events/{id}", eventsHandler.GetEvent)
 
 		// Drifts endpoints (Phase 2)
-		// r.Get("/drifts", driftsHandler.GetDrifts)
+		driftsHandler := handlers.NewDriftsHandler(s.graphStore)
+		r.Get("/drifts", driftsHandler.GetDrifts)
+		r.Get("/drifts/{id}", driftsHandler.GetDrift)
 
 		// Stats endpoints (Phase 2)
-		// r.Get("/stats", statsHandler.GetStats)
+		statsHandler := handlers.NewStatsHandler(s.graphStore)
+		r.Get("/stats", statsHandler.GetStats)
 
 		// SSE endpoint (Phase 4)
 		// r.Get("/stream", sseHandler.HandleSSE)

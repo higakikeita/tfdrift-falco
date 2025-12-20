@@ -13,9 +13,18 @@ import (
 
 // StateManager manages Terraform state
 type StateManager struct {
-	cfg       config.TerraformStateConfig
-	resources map[string]*Resource
-	mu        sync.RWMutex
+	cfg              config.TerraformStateConfig
+	resources        map[string]*Resource
+	stateMetadata    *StateMetadata
+	mu               sync.RWMutex
+}
+
+// StateMetadata contains metadata about the Terraform state
+type StateMetadata struct {
+	Version          int    `json:"version"`
+	TerraformVersion string `json:"terraform_version"`
+	Serial           int    `json:"serial"`
+	Lineage          string `json:"lineage"`
 }
 
 // Resource represents a Terraform resource
@@ -31,7 +40,10 @@ type Resource struct {
 type State struct {
 	Version          int                  `json:"version"`
 	TerraformVersion string               `json:"terraform_version"`
+	Serial           int                  `json:"serial"`
+	Lineage          string               `json:"lineage"`
 	Resources        []ResourceDefinition `json:"resources"`
+	Outputs          map[string]interface{} `json:"outputs"`
 }
 
 // ResourceDefinition represents a resource in the state file
@@ -85,6 +97,14 @@ func (sm *StateManager) Load(ctx context.Context) error {
 func (sm *StateManager) indexState(state State) error {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
+
+	// Store state metadata
+	sm.stateMetadata = &StateMetadata{
+		Version:          state.Version,
+		TerraformVersion: state.TerraformVersion,
+		Serial:           state.Serial,
+		Lineage:          state.Lineage,
+	}
 
 	sm.resources = make(map[string]*Resource)
 
@@ -151,4 +171,24 @@ func (sm *StateManager) ResourceCount() int {
 func (sm *StateManager) Refresh(ctx context.Context) error {
 	log.Info("Refreshing Terraform state...")
 	return sm.Load(ctx)
+}
+
+// GetStateMetadata returns the state metadata
+func (sm *StateManager) GetStateMetadata() *StateMetadata {
+	sm.mu.RLock()
+	defer sm.mu.RUnlock()
+
+	return sm.stateMetadata
+}
+
+// GetAllResources returns all resources in the state
+func (sm *StateManager) GetAllResources() []*Resource {
+	sm.mu.RLock()
+	defer sm.mu.RUnlock()
+
+	resources := make([]*Resource, 0, len(sm.resources))
+	for _, resource := range sm.resources {
+		resources = append(resources, resource)
+	}
+	return resources
 }

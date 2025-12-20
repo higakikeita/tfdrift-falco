@@ -84,3 +84,8 @@ func New(cfg *config.Config) (*Detector, error) {
 		eventCh:         make(chan types.Event, 100),
 	}, nil
 }
+
+// GetStateManager returns the state manager for API access
+func (d *Detector) GetStateManager() *terraform.StateManager {
+	return d.stateManager
+}
