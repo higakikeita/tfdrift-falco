@@ -4,7 +4,7 @@
  * Modern layout with sidebar, HTML icon overlays, and shadcn/ui
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 import ReactFlowGraph from './components/reactflow/ReactFlowGraph';
 import { Button } from './components/ui/button';
@@ -15,11 +15,13 @@ import {
   generateBlastRadiusGraph
 } from './utils/sampleData';
 import { OfficialCloudIcon } from './components/icons/OfficialCloudIcons';
+import { useGraph, useStats } from './api/hooks';
+import { Loader2, AlertCircle } from 'lucide-react';
 
-type DemoMode = 'simple' | 'complex' | 'blast-radius';
+type DemoMode = 'api' | 'simple' | 'complex' | 'blast-radius';
 
 function AppFinal() {
-  const [demoMode, setDemoMode] = useState<DemoMode>('simple');
+  const [demoMode, setDemoMode] = useState<DemoMode>('api');
   const [highlightedPath, setHighlightedPath] = useState<string[]>([]);
 
   // Filtering state
@@ -27,7 +29,22 @@ function AppFinal() {
   const [severityFilters, setSeverityFilters] = useState<string[]>([]);
   const [resourceTypeFilters, setResourceTypeFilters] = useState<string[]>([]);
 
+  // Fetch data from API
+  const { data: apiGraphData, isLoading: graphLoading, error: graphError } = useGraph();
+  const { data: apiStats, isLoading: statsLoading } = useStats();
+
+  // Get graph data based on mode
   const getGraphData = () => {
+    if (demoMode === 'api') {
+      if (apiGraphData) {
+        return {
+          nodes: apiGraphData.nodes || [],
+          edges: apiGraphData.edges || [],
+        };
+      }
+      return { nodes: [], edges: [] };
+    }
+
     switch (demoMode) {
       case 'simple':
         return generateSampleCausalChain();
@@ -167,33 +184,54 @@ function AppFinal() {
             {/* Demo Mode */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Scenario</CardTitle>
+                <CardTitle className="text-sm">Data Source</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button
-                  variant={demoMode === 'simple' ? 'default' : 'outline'}
+                  variant={demoMode === 'api' ? 'default' : 'outline'}
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => setDemoMode('simple')}
+                  onClick={() => setDemoMode('api')}
+                  disabled={graphLoading}
                 >
-                  <span className="mr-2">🔗</span> Simple Chain
+                  {graphLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading API...
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">🔌</span> Live API Data
+                    </>
+                  )}
                 </Button>
-                <Button
-                  variant={demoMode === 'complex' ? 'default' : 'outline'}
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => setDemoMode('complex')}
-                >
-                  <span className="mr-2">🕸️</span> Complex Graph
-                </Button>
-                <Button
-                  variant={demoMode === 'blast-radius' ? 'default' : 'outline'}
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => setDemoMode('blast-radius')}
-                >
-                  <span className="mr-2">💥</span> Blast Radius
-                </Button>
+                <div className="border-t pt-2 mt-2">
+                  <p className="text-xs text-muted-foreground mb-2">Demo Scenarios:</p>
+                  <Button
+                    variant={demoMode === 'simple' ? 'default' : 'outline'}
+                    size="sm"
+                    className="w-full justify-start mb-1"
+                    onClick={() => setDemoMode('simple')}
+                  >
+                    <span className="mr-2">🔗</span> Simple Chain
+                  </Button>
+                  <Button
+                    variant={demoMode === 'complex' ? 'default' : 'outline'}
+                    size="sm"
+                    className="w-full justify-start mb-1"
+                    onClick={() => setDemoMode('complex')}
+                  >
+                    <span className="mr-2">🕸️</span> Complex Graph
+                  </Button>
+                  <Button
+                    variant={demoMode === 'blast-radius' ? 'default' : 'outline'}
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => setDemoMode('blast-radius')}
+                  >
+                    <span className="mr-2">💥</span> Blast Radius
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -303,29 +341,57 @@ function AppFinal() {
             {/* Stats */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Graph Statistics</CardTitle>
+                <CardTitle className="text-sm">
+                  {demoMode === 'api' ? 'API Statistics' : 'Graph Statistics'}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Nodes</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-semibold">{filteredGraphData.nodes.length}</span>
-                      {filteredGraphData.nodes.length !== graphData.nodes.length && (
-                        <span className="text-xs text-muted-foreground">/ {graphData.nodes.length}</span>
-                      )}
-                    </div>
+                {demoMode === 'api' && statsLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Edges</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-semibold">{filteredGraphData.edges.length}</span>
-                      {filteredGraphData.edges.length !== graphData.edges.length && (
-                        <span className="text-xs text-muted-foreground">/ {graphData.edges.length}</span>
-                      )}
+                ) : (
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Nodes</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-semibold">{filteredGraphData.nodes.length}</span>
+                        {filteredGraphData.nodes.length !== graphData.nodes.length && (
+                          <span className="text-xs text-muted-foreground">/ {graphData.nodes.length}</span>
+                        )}
+                      </div>
                     </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Edges</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-semibold">{filteredGraphData.edges.length}</span>
+                        {filteredGraphData.edges.length !== graphData.edges.length && (
+                          <span className="text-xs text-muted-foreground">/ {graphData.edges.length}</span>
+                        )}
+                      </div>
+                    </div>
+                    {demoMode === 'api' && apiStats && (
+                      <>
+                        <div className="border-t pt-2 mt-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Total Drifts</span>
+                            <span className="font-mono font-semibold">{apiStats.drifts?.total || 0}</span>
+                          </div>
+                        </div>
+                        {apiStats.drifts?.severity_counts && (
+                          <div className="space-y-1 mt-2">
+                            {Object.entries(apiStats.drifts.severity_counts).map(([severity, count]) => (
+                              <div key={severity} className="flex justify-between items-center text-xs">
+                                <span className="text-muted-foreground capitalize">{severity}</span>
+                                <span className="font-mono">{count}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -364,13 +430,68 @@ function AppFinal() {
 
         {/* Main Graph Area */}
         <main className="flex-1 relative bg-gray-50">
-          <ReactFlowProvider>
-            <ReactFlowGraph
-              elements={filteredGraphData}
-              onNodeClick={handleNodeClick}
-              highlightedPath={highlightedPath}
-            />
-          </ReactFlowProvider>
+          {/* Loading State */}
+          {demoMode === 'api' && graphLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+              <div className="text-center">
+                <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
+                <p className="text-sm font-medium text-gray-700">Loading graph data...</p>
+                <p className="text-xs text-gray-500 mt-1">Connecting to TFDrift API</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {demoMode === 'api' && graphError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+              <Card className="max-w-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-red-600">
+                    <AlertCircle className="w-5 h-5" />
+                    API Connection Error
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Unable to connect to the TFDrift API server. Please ensure the backend is running.
+                  </p>
+                  <div className="bg-red-50 border border-red-200 rounded p-3 mb-4">
+                    <p className="text-xs font-mono text-red-800">
+                      {graphError instanceof Error ? graphError.message : 'Unknown error'}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Button
+                      size="sm"
+                      onClick={() => window.location.reload()}
+                      className="w-full"
+                    >
+                      Retry Connection
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDemoMode('simple')}
+                      className="w-full"
+                    >
+                      Switch to Demo Mode
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Graph */}
+          {!(demoMode === 'api' && (graphLoading || graphError)) && (
+            <ReactFlowProvider>
+              <ReactFlowGraph
+                elements={filteredGraphData}
+                onNodeClick={handleNodeClick}
+                highlightedPath={highlightedPath}
+              />
+            </ReactFlowProvider>
+          )}
         </main>
       </div>
     </div>
