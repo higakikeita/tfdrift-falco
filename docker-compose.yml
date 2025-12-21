@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ============================================
   # Falco - Runtime security monitoring
@@ -7,6 +5,7 @@ services:
   falco:
     image: falcosecurity/falco:0.37.1
     container_name: tfdrift-falco-falco
+    platform: linux/amd64  # Force x86_64 for CloudTrail plugin compatibility
     privileged: true
     restart: unless-stopped
     ports:
@@ -20,13 +19,22 @@ services:
       # TFDrift Falco rules
       - ./rules/terraform_drift.yaml:/etc/falco/rules.d/terraform_drift.yaml:ro
 
-      # Falco configuration
-      - ./deployments/falco/falco.yaml:/etc/falco/falco.yaml:ro
+      # Falco configuration (simplified for testing)
+      - ./deployments/falco/falco-simple.yaml:/etc/falco/falco.yaml:ro
+
+      # TLS certificates for gRPC
+      - ./deployments/falco:/etc/falco/certs:ro
+
+      # CloudTrail plugin library
+      - ./deployments/falco/plugins:/etc/falco/plugins:ro
 
       # AWS credentials for CloudTrail plugin
       - ${HOME}/.aws:/root/.aws:ro
     environment:
       - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_PROFILE=${AWS_PROFILE:-mytf}
+      - AWS_SHARED_CREDENTIALS_FILE=/root/.aws/credentials
+      - AWS_CONFIG_FILE=/root/.aws/config
     networks:
       - tfdrift
     healthcheck:
@@ -46,9 +54,9 @@ services:
     image: tfdrift-falco:latest
     container_name: tfdrift-backend
     restart: unless-stopped
-    depends_on:
-      falco:
-        condition: service_healthy
+    # depends_on:
+    #   falco:
+    #     condition: service_healthy
     ports:
       - "8080:8080"  # API server
       - "9090:9090"  # Metrics endpoint
@@ -57,15 +65,18 @@ services:
       - ./config.yaml:/config/config.yaml:ro
 
       # AWS credentials
-      - ${HOME}/.aws:/root/.aws:ro
+      - ${HOME}/.aws:/home/tfdrift/.aws:ro
 
       # Terraform state (if using local backend)
-      - ${TERRAFORM_STATE_DIR:-./terraform}:/terraform:ro
+      - ./terraform:/terraform:ro
 
       # Persistent data
       - tfdrift-data:/data
     environment:
       - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_PROFILE=${AWS_PROFILE:-mytf}
+      - AWS_SHARED_CREDENTIALS_FILE=/home/tfdrift/.aws/credentials
+      - AWS_CONFIG_FILE=/home/tfdrift/.aws/config
       - TZ=${TZ:-UTC}
       - TFDRIFT_FALCO_HOSTNAME=falco
       - TFDRIFT_FALCO_PORT=5060
@@ -73,7 +84,7 @@ services:
       # - TFDRIFT_SLACK_WEBHOOK=${SLACK_WEBHOOK_URL}
     networks:
       - tfdrift
-    command: ["--server", "--api-port", "8080"]
+    command: ["--server", "--api-port", "8080", "--config", "/config/config.yaml"]
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
       interval: 30s
@@ -91,15 +102,14 @@ services:
     image: tfdrift-frontend:latest
     container_name: tfdrift-frontend
     restart: unless-stopped
-    depends_on:
-      backend:
-        condition: service_healthy
     ports:
       - "3000:8080"  # Web UI
     environment:
-      - VITE_API_BASE_URL=http://backend:8080/api/v1
-      - VITE_WS_URL=ws://backend:8080/ws
-      - VITE_SSE_URL=http://backend:8080/api/v1/stream
+      - VITE_API_BASE_URL=http://host.docker.internal:8080/api/v1
+      - VITE_WS_URL=ws://host.docker.internal:8080/ws
+      - VITE_SSE_URL=http://host.docker.internal:8080/api/v1/stream
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - tfdrift
     healthcheck:

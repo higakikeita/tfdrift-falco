@@ -1,593 +1,69 @@
-# Falco Rules for Terraform Drift Detection
-#
+# Falco Rules for Terraform Drift Detection (Simplified)
 # These rules detect manual changes to Terraform-managed AWS resources
-# by monitoring CloudTrail events via the Falco CloudTrail plugin.
 
-- rule: EC2 Termination Protection Disabled
-  desc: Detect when EC2 instance termination protection is disabled
+- rule: AWS EC2 Modification
+  desc: Detect EC2 instance modifications
   condition: >
-    ct.name="ModifyInstanceAttribute" and
-    ct.request.disableApiTermination=false
+    ct.name in ("ModifyInstanceAttribute", "StartInstances", "StopInstances",
+    "TerminateInstances", "RebootInstances")
   output: >
-    EC2 termination protection disabled
-    (user=%ct.user instance=%ct.request.instanceId region=%ct.region account=%ct.account)
-  priority: CRITICAL
-  source: aws_cloudtrail
-  tags: [terraform, drift, ec2, security]
-
-- rule: EC2 Instance Type Changed
-  desc: Detect when EC2 instance type is modified
-  condition: >
-    ct.name="ModifyInstanceAttribute" and
-    ct.request.instanceType exists
-  output: >
-    EC2 instance type changed
-    (user=%ct.user instance=%ct.request.instanceId type=%ct.request.instanceType.value region=%ct.region)
+    AWS EC2 modification detected (event=%ct.name user=%ct.user.identity.principalid region=%ct.region)
   priority: WARNING
   source: aws_cloudtrail
-  tags: [terraform, drift, ec2, cost]
+  tags: [terraform, drift, ec2]
 
-- rule: S3 Bucket Encryption Disabled
-  desc: Detect when S3 bucket encryption is removed
+- rule: AWS S3 Bucket Modification
+  desc: Detect S3 bucket configuration changes
   condition: >
-    ct.name="DeleteBucketEncryption"
+    ct.name in ("PutBucketPolicy", "DeleteBucketPolicy", "PutBucketEncryption",
+    "DeleteBucketEncryption", "PutBucketVersioning")
   output: >
-    S3 bucket encryption removed
-    (user=%ct.user bucket=%ct.request.bucket region=%ct.region account=%ct.account)
-  priority: CRITICAL
-  source: aws_cloudtrail
-  tags: [terraform, drift, s3, security]
-
-- rule: S3 Bucket Encryption Modified
-  desc: Detect when S3 bucket encryption configuration is changed
-  condition: >
-    ct.name="PutBucketEncryption"
-  output: >
-    S3 bucket encryption modified
-    (user=%ct.user bucket=%ct.request.bucket region=%ct.region)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, s3, security]
-
-- rule: S3 Bucket Policy Changed
-  desc: Detect modifications to S3 bucket policies
-  condition: >
-    ct.name="PutBucketPolicy"
-  output: >
-    S3 bucket policy changed
-    (user=%ct.user bucket=%ct.request.bucket region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, s3, security]
-
-- rule: S3 Bucket Versioning Changed
-  desc: Detect changes to S3 bucket versioning
-  condition: >
-    ct.name="PutBucketVersioning"
-  output: >
-    S3 bucket versioning changed
-    (user=%ct.user bucket=%ct.request.bucket status=%ct.request.versioningConfiguration.Status region=%ct.region)
+    AWS S3 bucket modified (event=%ct.name user=%ct.user.identity.principalid)
   priority: WARNING
   source: aws_cloudtrail
   tags: [terraform, drift, s3]
 
-- rule: IAM Role Trust Policy Modified
-  desc: Detect modifications to IAM role trust policies
+- rule: AWS IAM Modification
+  desc: Detect IAM policy and role changes
   condition: >
-    ct.name="UpdateAssumeRolePolicy"
+    ct.name in ("PutRolePolicy", "DeleteRolePolicy", "UpdateAssumeRolePolicy",
+    "PutUserPolicy", "DeleteUserPolicy", "CreateRole", "DeleteRole")
   output: >
-    IAM role trust policy modified
-    (user=%ct.user role=%ct.request.roleName region=%ct.region account=%ct.account)
+    AWS IAM modification detected (event=%ct.name user=%ct.user.identity.principalid)
   priority: CRITICAL
   source: aws_cloudtrail
   tags: [terraform, drift, iam, security]
 
-- rule: IAM Role Policy Attached
-  desc: Detect when a policy is attached to an IAM role
+- rule: AWS Security Group Modification
+  desc: Detect security group rule changes
   condition: >
-    ct.name="AttachRolePolicy"
+    ct.name in ("AuthorizeSecurityGroupIngress", "RevokeSecurityGroupIngress",
+    "AuthorizeSecurityGroupEgress", "RevokeSecurityGroupEgress",
+    "CreateSecurityGroup", "DeleteSecurityGroup")
   output: >
-    IAM policy attached to role
-    (user=%ct.user role=%ct.request.roleName policy=%ct.request.policyArn region=%ct.region)
+    AWS Security Group modified (event=%ct.name user=%ct.user.identity.principalid region=%ct.region)
   priority: WARNING
   source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
+  tags: [terraform, drift, security, network]
 
-- rule: IAM Inline Policy Added
-  desc: Detect when an inline policy is added to an IAM role
+- rule: AWS RDS Modification
+  desc: Detect RDS instance modifications
   condition: >
-    ct.name="PutRolePolicy"
+    ct.name in ("ModifyDBInstance", "DeleteDBInstance", "CreateDBInstance",
+    "ModifyDBCluster", "DeleteDBCluster")
   output: >
-    IAM inline policy added to role
-    (user=%ct.user role=%ct.request.roleName policyName=%ct.request.policyName region=%ct.region)
+    AWS RDS modification detected (event=%ct.name user=%ct.user.identity.principalid region=%ct.region)
   priority: WARNING
   source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
+  tags: [terraform, drift, rds, database]
 
-- rule: IAM User Policy Attached
-  desc: Detect when a policy is attached to an IAM user
+- rule: AWS Lambda Function Modification
+  desc: Detect Lambda function changes
   condition: >
-    ct.name="AttachUserPolicy"
+    ct.name in ("UpdateFunctionCode", "UpdateFunctionConfiguration",
+    "DeleteFunction", "CreateFunction")
   output: >
-    IAM policy attached to user
-    (user=%ct.user targetUser=%ct.request.userName policy=%ct.request.policyArn account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: IAM User Inline Policy Added
-  desc: Detect when an inline policy is added to an IAM user
-  condition: >
-    ct.name="PutUserPolicy"
-  output: >
-    IAM inline policy added to user
-    (user=%ct.user targetUser=%ct.request.userName policyName=%ct.request.policyName account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: IAM Group Policy Attached
-  desc: Detect when a policy is attached to an IAM group
-  condition: >
-    ct.name="AttachGroupPolicy"
-  output: >
-    IAM policy attached to group
-    (user=%ct.user group=%ct.request.groupName policy=%ct.request.policyArn account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: IAM Group Inline Policy Added
-  desc: Detect when an inline policy is added to an IAM group
-  condition: >
-    ct.name="PutGroupPolicy"
-  output: >
-    IAM inline policy added to group
-    (user=%ct.user group=%ct.request.groupName policyName=%ct.request.policyName account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: IAM Policy Created
-  desc: Detect when a new managed IAM policy is created
-  condition: >
-    ct.name="CreatePolicy"
-  output: >
-    IAM managed policy created
-    (user=%ct.user policyName=%ct.request.policyName policyArn=%ct.response.policy.arn account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: IAM Policy Version Created
-  desc: Detect when a new version of a managed IAM policy is created
-  condition: >
-    ct.name="CreatePolicyVersion"
-  output: >
-    IAM policy version created
-    (user=%ct.user policyArn=%ct.request.policyArn setAsDefault=%ct.request.setAsDefault account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: IAM Role Created
-  desc: Detect when a new IAM role is created
-  condition: >
-    ct.name="CreateRole"
-  output: >
-    IAM role created
-    (user=%ct.user roleName=%ct.request.roleName account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: IAM Role Deleted
-  desc: Detect when an IAM role is deleted
-  condition: >
-    ct.name="DeleteRole"
-  output: >
-    IAM role deleted
-    (user=%ct.user roleName=%ct.request.roleName account=%ct.account)
-  priority: CRITICAL
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: IAM User Created
-  desc: Detect when a new IAM user is created
-  condition: >
-    ct.name="CreateUser"
-  output: >
-    IAM user created
-    (user=%ct.user newUser=%ct.request.userName account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: IAM User Deleted
-  desc: Detect when an IAM user is deleted
-  condition: >
-    ct.name="DeleteUser"
-  output: >
-    IAM user deleted
-    (user=%ct.user deletedUser=%ct.request.userName account=%ct.account)
-  priority: CRITICAL
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: IAM Access Key Created
-  desc: Detect when an IAM access key is created
-  condition: >
-    ct.name="CreateAccessKey"
-  output: >
-    IAM access key created
-    (user=%ct.user targetUser=%ct.request.userName accessKeyId=%ct.response.accessKey.accessKeyId account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: IAM User Added to Group
-  desc: Detect when an IAM user is added to a group
-  condition: >
-    ct.name="AddUserToGroup"
-  output: >
-    IAM user added to group
-    (user=%ct.user targetUser=%ct.request.userName group=%ct.request.groupName account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: IAM User Removed from Group
-  desc: Detect when an IAM user is removed from a group
-  condition: >
-    ct.name="RemoveUserFromGroup"
-  output: >
-    IAM user removed from group
-    (user=%ct.user targetUser=%ct.request.userName group=%ct.request.groupName account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: IAM Password Policy Changed
-  desc: Detect changes to account password policy
-  condition: >
-    ct.name="UpdateAccountPasswordPolicy"
-  output: >
-    IAM account password policy changed
-    (user=%ct.user account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: RDS Instance Modified
-  desc: Detect modifications to RDS database instances
-  condition: >
-    ct.name="ModifyDBInstance"
-  output: >
-    RDS instance modified
-    (user=%ct.user instance=%ct.request.dBInstanceIdentifier region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, rds]
-
-- rule: RDS Cluster Modified
-  desc: Detect modifications to RDS database clusters
-  condition: >
-    ct.name="ModifyDBCluster"
-  output: >
-    RDS cluster modified
-    (user=%ct.user cluster=%ct.request.dBClusterIdentifier region=%ct.region)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, rds]
-
-- rule: Lambda Function Configuration Changed
-  desc: Detect changes to Lambda function configuration
-  condition: >
-    ct.name="UpdateFunctionConfiguration"
-  output: >
-    Lambda function configuration changed
-    (user=%ct.user function=%ct.request.functionName region=%ct.region account=%ct.account)
+    AWS Lambda modification detected (event=%ct.name user=%ct.user.identity.principalid region=%ct.region)
   priority: WARNING
   source: aws_cloudtrail
   tags: [terraform, drift, lambda]
-
-- rule: Lambda Function Code Updated
-  desc: Detect updates to Lambda function code
-  condition: >
-    ct.name="UpdateFunctionCode"
-  output: >
-    Lambda function code updated
-    (user=%ct.user function=%ct.request.functionName region=%ct.region)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, lambda]
-
-- rule: EBS Volume Modified
-  desc: Detect modifications to EBS volumes
-  condition: >
-    ct.name="ModifyVolume"
-  output: >
-    EBS volume modified
-    (user=%ct.user volume=%ct.request.volumeId region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, ebs]
-
-# ECS Rules
-- rule: ECS Service Created
-  desc: Detect when an ECS service is created
-  condition: >
-    ct.name="CreateService"
-  output: >
-    ECS service created
-    (user=%ct.user service=%ct.request.serviceName cluster=%ct.request.cluster region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, ecs, container]
-
-- rule: ECS Service Updated
-  desc: Detect when an ECS service is updated
-  condition: >
-    ct.name="UpdateService"
-  output: >
-    ECS service updated
-    (user=%ct.user service=%ct.request.service cluster=%ct.request.cluster region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, ecs, container]
-
-- rule: ECS Service Deleted
-  desc: Detect when an ECS service is deleted
-  condition: >
-    ct.name="DeleteService"
-  output: >
-    ECS service deleted
-    (user=%ct.user service=%ct.request.service cluster=%ct.request.cluster region=%ct.region account=%ct.account)
-  priority: CRITICAL
-  source: aws_cloudtrail
-  tags: [terraform, drift, ecs, container, security]
-
-- rule: ECS Task Definition Registered
-  desc: Detect when a new ECS task definition is registered
-  condition: >
-    ct.name="RegisterTaskDefinition"
-  output: >
-    ECS task definition registered
-    (user=%ct.user family=%ct.request.family region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, ecs, container]
-
-- rule: ECS Task Definition Deregistered
-  desc: Detect when an ECS task definition is deregistered
-  condition: >
-    ct.name="DeregisterTaskDefinition"
-  output: >
-    ECS task definition deregistered
-    (user=%ct.user taskDefinition=%ct.request.taskDefinition region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, ecs, container]
-
-# Note: CreateCluster and DeleteCluster events are shared between ECS, EKS, and Redshift
-# Context-specific detection requires additional fields to distinguish between services
-# For ECS-specific cluster management, monitor UpdateCluster and UpdateClusterSettings instead
-
-- rule: ECS Cluster Updated
-  desc: Detect when an ECS cluster configuration is updated
-  condition: >
-    ct.name="UpdateCluster" or ct.name="UpdateClusterSettings"
-  output: >
-    ECS cluster updated
-    (user=%ct.user cluster=%ct.request.cluster region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, ecs, container]
-
-- rule: ECS Cluster Capacity Providers Changed
-  desc: Detect when ECS cluster capacity providers are modified
-  condition: >
-    ct.name="PutClusterCapacityProviders"
-  output: >
-    ECS cluster capacity providers changed
-    (user=%ct.user cluster=%ct.request.cluster region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, ecs, container]
-
-- rule: ECS Container Instance State Changed
-  desc: Detect when ECS container instance state is modified
-  condition: >
-    ct.name="UpdateContainerInstancesState"
-  output: >
-    ECS container instance state changed
-    (user=%ct.user status=%ct.request.status region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, ecs, container]
-
-- rule: ECS Capacity Provider Created
-  desc: Detect when an ECS capacity provider is created
-  condition: >
-    ct.name="CreateCapacityProvider"
-  output: >
-    ECS capacity provider created
-    (user=%ct.user name=%ct.request.name region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, ecs, container]
-
-- rule: ECS Capacity Provider Updated
-  desc: Detect when an ECS capacity provider is updated
-  condition: >
-    ct.name="UpdateCapacityProvider"
-  output: >
-    ECS capacity provider updated
-    (user=%ct.user name=%ct.request.name region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, ecs, container]
-
-- rule: ECS Capacity Provider Deleted
-  desc: Detect when an ECS capacity provider is deleted
-  condition: >
-    ct.name="DeleteCapacityProvider"
-  output: >
-    ECS capacity provider deleted
-    (user=%ct.user capacityProvider=%ct.request.capacityProvider region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, ecs, container]
-
-# EKS Rules
-- rule: EKS Cluster Created
-  desc: Detect when an EKS cluster is created
-  condition: >
-    ct.name="CreateCluster" and ct.request.name exists
-  output: >
-    EKS cluster created
-    (user=%ct.user cluster=%ct.request.name version=%ct.request.version region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, eks, kubernetes]
-
-- rule: EKS Cluster Deleted
-  desc: Detect when an EKS cluster is deleted
-  condition: >
-    ct.name="DeleteCluster"
-  output: >
-    EKS cluster deleted
-    (user=%ct.user cluster=%ct.request.name region=%ct.region account=%ct.account)
-  priority: CRITICAL
-  source: aws_cloudtrail
-  tags: [terraform, drift, eks, kubernetes, security]
-
-- rule: EKS Cluster Configuration Updated
-  desc: Detect when an EKS cluster configuration is updated
-  condition: >
-    ct.name="UpdateClusterConfig"
-  output: >
-    EKS cluster configuration updated
-    (user=%ct.user cluster=%ct.request.name region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, eks, kubernetes]
-
-- rule: EKS Cluster Version Updated
-  desc: Detect when an EKS cluster Kubernetes version is upgraded
-  condition: >
-    ct.name="UpdateClusterVersion"
-  output: >
-    EKS cluster version upgraded
-    (user=%ct.user cluster=%ct.request.name version=%ct.request.version region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, eks, kubernetes]
-
-- rule: EKS Node Group Created
-  desc: Detect when an EKS node group is created
-  condition: >
-    ct.name="CreateNodegroup"
-  output: >
-    EKS node group created
-    (user=%ct.user nodegroup=%ct.request.nodegroupName cluster=%ct.request.clusterName region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, eks, kubernetes]
-
-- rule: EKS Node Group Deleted
-  desc: Detect when an EKS node group is deleted
-  condition: >
-    ct.name="DeleteNodegroup"
-  output: >
-    EKS node group deleted
-    (user=%ct.user nodegroup=%ct.request.nodegroupName cluster=%ct.request.clusterName region=%ct.region account=%ct.account)
-  priority: CRITICAL
-  source: aws_cloudtrail
-  tags: [terraform, drift, eks, kubernetes, security]
-
-- rule: EKS Node Group Configuration Updated
-  desc: Detect when an EKS node group configuration is updated
-  condition: >
-    ct.name="UpdateNodegroupConfig"
-  output: >
-    EKS node group configuration updated
-    (user=%ct.user nodegroup=%ct.request.nodegroupName cluster=%ct.request.clusterName region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, eks, kubernetes]
-
-- rule: EKS Node Group Version Updated
-  desc: Detect when an EKS node group version is updated
-  condition: >
-    ct.name="UpdateNodegroupVersion"
-  output: >
-    EKS node group version updated
-    (user=%ct.user nodegroup=%ct.request.nodegroupName version=%ct.request.version region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, eks, kubernetes]
-
-- rule: EKS Addon Created
-  desc: Detect when an EKS addon is created
-  condition: >
-    ct.name="CreateAddon"
-  output: >
-    EKS addon created
-    (user=%ct.user addon=%ct.request.addonName cluster=%ct.request.clusterName version=%ct.request.addonVersion region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, eks, kubernetes]
-
-- rule: EKS Addon Deleted
-  desc: Detect when an EKS addon is deleted
-  condition: >
-    ct.name="DeleteAddon"
-  output: >
-    EKS addon deleted
-    (user=%ct.user addon=%ct.request.addonName cluster=%ct.request.clusterName region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, eks, kubernetes]
-
-- rule: EKS Addon Updated
-  desc: Detect when an EKS addon is updated
-  condition: >
-    ct.name="UpdateAddon"
-  output: >
-    EKS addon updated
-    (user=%ct.user addon=%ct.request.addonName cluster=%ct.request.clusterName version=%ct.request.addonVersion region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, eks, kubernetes]
-
-- rule: EKS Fargate Profile Created
-  desc: Detect when an EKS Fargate profile is created
-  condition: >
-    ct.name="CreateFargateProfile"
-  output: >
-    EKS Fargate profile created
-    (user=%ct.user profile=%ct.request.fargateProfileName cluster=%ct.request.clusterName region=%ct.region account=%ct.account)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, eks, kubernetes, fargate]
-
-# Macro for common Terraform-managed resource filter
-- macro: is_terraform_managed
-  condition: >
-    (ct.resource.tags contains "ManagedBy=Terraform" or
-     ct.resource.tags contains "terraform=true")
-
-# Example of filtering only Terraform-managed resources (commented out by default)
-# - rule: EC2 Termination Protection Disabled (Terraform Only)
-#   desc: Detect when termination protection is disabled on Terraform-managed EC2 instances
-#   condition: >
-#     ct.name="ModifyInstanceAttribute" and
-#     ct.request.disableApiTermination=false and
-#     is_terraform_managed
-#   output: >
-#     Terraform-managed EC2 termination protection disabled
-#     (user=%ct.user instance=%ct.request.instanceId)
-#   priority: CRITICAL
-#   source: aws_cloudtrail
-#   tags: [terraform, drift, ec2, security]

@@ -1,0 +1,95 @@
+#
+# Simplified Falco Configuration for TFDrift-Falco Testing
+# This configuration enables gRPC output without CloudTrail plugin
+#
+
+# gRPC Output (Required for TFDrift-Falco)
+grpc:
+  enabled: true
+  bind_address: "0.0.0.0:5060"
+  threadiness: 0
+  private_key: "/etc/falco/certs/server.key"
+  cert_chain: "/etc/falco/certs/server.crt"
+  root_certs: "/etc/falco/certs/server.crt"
+
+# gRPC Output format
+grpc_output:
+  enabled: true
+
+# Rules files
+rules_file:
+  - /etc/falco/falco_rules.yaml
+  - /etc/falco/rules.d
+
+# Output format
+json_output: true
+json_include_output_property: true
+json_include_tags_property: true
+
+# Logging
+log_stderr: true
+log_syslog: false
+log_level: info
+
+# Priority filter (send all events to gRPC)
+priority: debug
+
+# Buffered output
+buffered_outputs: false
+
+# Output channels
+outputs:
+  rate: 0  # Unlimited rate
+  max_burst: 1000
+
+# Syscall event drops
+syscall_event_drops:
+  actions:
+    - log
+    - alert
+  rate: 0.03333
+  max_burst: 1
+
+# File output (disabled, using gRPC)
+file_output:
+  enabled: false
+
+# Stdout output (disabled, using gRPC)
+stdout_output:
+  enabled: false
+
+# Webserver (disabled)
+webserver:
+  enabled: false
+
+# Metrics
+metrics:
+  enabled: false
+
+# Output timeout
+output_timeout: 2000
+
+# Program output (disabled)
+program_output:
+  enabled: false
+
+# HTTP output (disabled)
+http_output:
+  enabled: false
+
+# Use modern eBPF driver (better compatibility with Docker Desktop)
+engine:
+  kind: modern_ebpf
+  modern_ebpf:
+    cpus_for_each_buffer: 2
+    buf_size_preset: 4
+
+# CloudTrail Plugin Configuration
+plugins:
+  - name: cloudtrail
+    library_path: /etc/falco/plugins/libcloudtrail.so
+    init_config: ""
+    open_params: "s3Bucket=tfdrift-cloudtrail-595263720623-us-east-1"
+
+# Load rules for CloudTrail plugin
+load_plugins: [cloudtrail]
