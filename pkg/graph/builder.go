@@ -4,15 +4,17 @@ import (
 	"sync"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
+	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
 // Store maintains the graph data in memory
 type Store struct {
-	drifts    []types.DriftAlert
-	events    []types.Event
-	unmanaged []types.UnmanagedResourceAlert
-	mu        sync.RWMutex
+	drifts       []types.DriftAlert
+	events       []types.Event
+	unmanaged    []types.UnmanagedResourceAlert
+	stateManager *terraform.StateManager
+	mu           sync.RWMutex
 }
 
 // NewStore creates a new graph store
@@ -81,6 +83,13 @@ func (s *Store) Clear() {
 	s.unmanaged = make([]types.UnmanagedResourceAlert, 0)
 }
 
+// SetStateManager sets the Terraform state manager for graph building
+func (s *Store) SetStateManager(sm *terraform.StateManager) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.stateManager = sm
+}
+
 // BuildGraph builds a Cytoscape graph from stored data
 func (s *Store) BuildGraph() models.CytoscapeElements {
 	s.mu.RLock()
@@ -89,8 +98,28 @@ func (s *Store) BuildGraph() models.CytoscapeElements {
 	nodes := make([]models.CytoscapeNode, 0)
 	edges := make([]models.CytoscapeEdge, 0)
 	nodeIDs := make(map[string]bool)
+	driftedIDs := make(map[string]bool)
 
-	// Add drift nodes
+	// Track which resources have drifts
+	for _, drift := range s.drifts {
+		driftedIDs[drift.ResourceID] = true
+	}
+
+	// FIRST: Add all Terraform State resources as base layer
+	if s.stateManager != nil {
+		resources := s.stateManager.GetAllResources()
+		for _, resource := range resources {
+			resourceID := extractResourceIDFromAttributes(resource.Attributes)
+			if resourceID != "" && !nodeIDs[resourceID] {
+				// Determine if this resource has drifted
+				hasDrift := driftedIDs[resourceID]
+				nodes = append(nodes, ConvertTerraformResourceToCytoscape(resource, hasDrift))
+				nodeIDs[resourceID] = true
+			}
+		}
+	}
+
+	// SECOND: Add drift nodes (for resources not in Terraform State)
 	for _, drift := range s.drifts {
 		if !nodeIDs[drift.ResourceID] {
 			nodes = append(nodes, ConvertDriftToCytoscape(drift))

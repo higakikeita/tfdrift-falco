@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
+	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
@@ -75,6 +76,86 @@ func ConvertUnmanagedToCytoscape(unmanaged types.UnmanagedResourceAlert) models.
 			},
 		},
 	}
+}
+
+// ConvertTerraformResourceToCytoscape converts a Terraform State resource to Cytoscape node
+func ConvertTerraformResourceToCytoscape(resource *terraform.Resource, hasDrift bool) models.CytoscapeNode {
+	resourceID := extractResourceIDFromAttributes(resource.Attributes)
+	resourceName := extractResourceName(resource)
+
+	// Determine node type and severity based on drift status
+	nodeType := "terraform_resource"
+	severity := "low" // Normal resources are low severity (green)
+	if hasDrift {
+		nodeType = "terraform_resource_drifted"
+		severity = "high" // Drifted resources are high severity (red/orange)
+	}
+
+	return models.CytoscapeNode{
+		Data: models.NodeData{
+			ID:           resourceID,
+			Label:        resourceName,
+			Type:         nodeType,
+			ResourceType: resource.Type,
+			ResourceName: resourceName,
+			Severity:     severity,
+			Metadata: map[string]interface{}{
+				"mode":       resource.Mode,
+				"provider":   resource.Provider,
+				"tf_name":    resource.Name,
+				"has_drift":  hasDrift,
+				"attributes": resource.Attributes,
+			},
+		},
+	}
+}
+
+// extractResourceIDFromAttributes extracts a unique resource ID from Terraform attributes
+func extractResourceIDFromAttributes(attributes map[string]interface{}) string {
+	// Try to get ID from attributes
+	if id, ok := attributes["id"].(string); ok && id != "" {
+		return id
+	}
+
+	// Fallback to ARN for AWS resources
+	if arn, ok := attributes["arn"].(string); ok && arn != "" {
+		return arn
+	}
+
+	// Fallback to name
+	if name, ok := attributes["name"].(string); ok && name != "" {
+		return name
+	}
+
+	// Fallback to self_link for GCP resources
+	if selfLink, ok := attributes["self_link"].(string); ok && selfLink != "" {
+		return selfLink
+	}
+
+	return ""
+}
+
+// extractResourceName extracts a human-readable name from Terraform resource
+func extractResourceName(resource *terraform.Resource) string {
+	// Try name attribute
+	if name, ok := resource.Attributes["name"].(string); ok && name != "" {
+		return name
+	}
+
+	// Try tags.Name for AWS resources
+	if tags, ok := resource.Attributes["tags"].(map[string]interface{}); ok {
+		if name, ok := tags["Name"].(string); ok && name != "" {
+			return name
+		}
+	}
+
+	// Fallback to Terraform name
+	if resource.Name != "" {
+		return resource.Name
+	}
+
+	// Fallback to resource type
+	return resource.Type
 }
 
 // CreateEdge creates a Cytoscape edge

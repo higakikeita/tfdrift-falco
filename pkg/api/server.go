@@ -59,9 +59,19 @@ func NewServer(cfg *config.Config, det *detector.Detector, port int, version str
 
 	s.setupRouter()
 
-	// Populate sample data for testing
-	s.graphStore.PopulateSampleData()
-	log.Info("Populated sample graph data for testing")
+	// Connect detector to broadcaster and graph store
+	det.SetBroadcaster(bc)
+	det.SetGraphStore(s.graphStore)
+	log.Info("Connected detector to broadcaster and graph store")
+
+	// Connect StateManager to GraphStore for Terraform State-based graph building
+	if s.stateManager != nil {
+		s.graphStore.SetStateManager(s.stateManager)
+		log.Info("Connected Terraform StateManager to GraphStore")
+	}
+
+	// Note: Graph will be populated automatically with Terraform State resources
+	// and drift events will be overlaid as they are detected
 
 	return s
 }
