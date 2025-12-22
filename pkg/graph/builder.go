@@ -90,6 +90,139 @@ func (s *Store) SetStateManager(sm *terraform.StateManager) {
 	s.stateManager = sm
 }
 
+// buildDependencyEdges extracts dependency relationships from resources
+func buildDependencyEdges(resources []*terraform.Resource) []models.CytoscapeEdge {
+	edges := []models.CytoscapeEdge{}
+	resourceMap := make(map[string]*terraform.Resource)
+
+	// Index resources by ID
+	for _, resource := range resources {
+		resourceID := extractResourceIDFromAttributes(resource.Attributes)
+		if resourceID != "" {
+			resourceMap[resourceID] = resource
+		}
+	}
+
+	// Extract dependencies
+	for _, resource := range resources {
+		resourceID := extractResourceIDFromAttributes(resource.Attributes)
+		if resourceID == "" {
+			continue
+		}
+
+		switch resource.Type {
+		case "aws_instance":
+			// EC2 depends on Subnet
+			if subnetID, ok := resource.Attributes["subnet_id"].(string); ok && subnetID != "" {
+				if _, exists := resourceMap[subnetID]; exists {
+					edges = append(edges, models.CytoscapeEdge{
+						Data: models.EdgeData{
+							ID:     resourceID + "->" + subnetID,
+							Source: resourceID,
+							Target: subnetID,
+							Label:  "in subnet",
+						},
+					})
+				}
+			}
+			// EC2 depends on Security Groups
+			if sgIDs, ok := resource.Attributes["vpc_security_group_ids"].([]interface{}); ok {
+				for _, sgID := range sgIDs {
+					if sgIDStr, ok := sgID.(string); ok && sgIDStr != "" {
+						if _, exists := resourceMap[sgIDStr]; exists {
+							edges = append(edges, models.CytoscapeEdge{
+								Data: models.EdgeData{
+									ID:     resourceID + "->" + sgIDStr,
+									Source: resourceID,
+									Target: sgIDStr,
+									Label:  "uses",
+								},
+							})
+						}
+					}
+				}
+			}
+
+		case "aws_subnet":
+			// Subnet depends on VPC
+			if vpcID, ok := resource.Attributes["vpc_id"].(string); ok && vpcID != "" {
+				if _, exists := resourceMap[vpcID]; exists {
+					edges = append(edges, models.CytoscapeEdge{
+						Data: models.EdgeData{
+							ID:     resourceID + "->" + vpcID,
+							Source: resourceID,
+							Target: vpcID,
+							Label:  "in vpc",
+						},
+					})
+				}
+			}
+
+		case "aws_nat_gateway":
+			// NAT Gateway depends on Subnet
+			if subnetID, ok := resource.Attributes["subnet_id"].(string); ok && subnetID != "" {
+				if _, exists := resourceMap[subnetID]; exists {
+					edges = append(edges, models.CytoscapeEdge{
+						Data: models.EdgeData{
+							ID:     resourceID + "->" + subnetID,
+							Source: resourceID,
+							Target: subnetID,
+							Label:  "in subnet",
+						},
+					})
+				}
+			}
+
+		case "aws_route_table":
+			// Route table depends on VPC
+			if vpcID, ok := resource.Attributes["vpc_id"].(string); ok && vpcID != "" {
+				if _, exists := resourceMap[vpcID]; exists {
+					edges = append(edges, models.CytoscapeEdge{
+						Data: models.EdgeData{
+							ID:     resourceID + "->" + vpcID,
+							Source: resourceID,
+							Target: vpcID,
+							Label:  "routes for",
+						},
+					})
+				}
+			}
+
+		case "aws_security_group":
+			// Security Group depends on VPC
+			if vpcID, ok := resource.Attributes["vpc_id"].(string); ok && vpcID != "" {
+				if _, exists := resourceMap[vpcID]; exists {
+					edges = append(edges, models.CytoscapeEdge{
+						Data: models.EdgeData{
+							ID:     resourceID + "->" + vpcID,
+							Source: resourceID,
+							Target: vpcID,
+							Label:  "secures",
+						},
+					})
+				}
+			}
+
+		case "aws_internet_gateway":
+			// IGW depends on VPC
+			if vpcID, ok := resource.Attributes["vpc_id"].(string); ok && vpcID != "" {
+				if _, exists := resourceMap[vpcID]; exists {
+					edges = append(edges, models.CytoscapeEdge{
+						Data: models.EdgeData{
+							ID:     resourceID + "->" + vpcID,
+							Source: resourceID,
+							Target: vpcID,
+							Label:  "gateway for",
+						},
+					})
+				}
+			}
+		}
+	}
+
+	return edges
+}
+
 // findResourceSubnet finds the subnet ID that a resource belongs to
 func findResourceSubnet(resource *terraform.Resource, hierarchy *AWSHierarchy) string {
 	// Extract subnet ID from resource attributes
@@ -141,41 +274,25 @@ func (s *Store) BuildGraph() models.CytoscapeElements {
 		driftedIDs[drift.ResourceID] = true
 	}
 
-	// FIRST: Build AWS hierarchy from Terraform State resources
+	// FIRST: Add all Terraform State resources as flat graph
 	if s.stateManager != nil {
 		resources := s.stateManager.GetAllResources()
 
-		// Build hierarchical AWS structure
-		hierarchyBuilder := NewHierarchyBuilder()
-		hierarchy := hierarchyBuilder.BuildHierarchy(resources)
-
-		// Convert hierarchy to graph nodes (Region -> VPC -> AZ -> Subnet groups)
-		hierarchyNodes := ConvertHierarchyToNodes(hierarchy)
-		nodes = append(nodes, hierarchyNodes...)
-
-		// Mark hierarchy nodes as processed
-		for _, node := range hierarchyNodes {
-			nodeIDs[node.Data.ID] = true
-		}
-
-		// Add individual resources within their hierarchy
+		// Add all resources as nodes
 		for _, resource := range resources {
 			resourceID := extractResourceIDFromAttributes(resource.Attributes)
 			if resourceID != "" && !nodeIDs[resourceID] {
 				// Determine if this resource has drifted
 				hasDrift := driftedIDs[resourceID]
 				resourceNode := ConvertTerraformResourceToCytoscape(resource, hasDrift)
-
-				// Try to find the subnet this resource belongs to
-				subnetID := findResourceSubnet(resource, hierarchy)
-				if subnetID != "" {
-					resourceNode.Data.Metadata["parent_node"] = subnetID
-				}
-
 				nodes = append(nodes, resourceNode)
 				nodeIDs[resourceID] = true
 			}
 		}
+
+		// Build dependency edges between resources
+		dependencyEdges := buildDependencyEdges(resources)
+		edges = append(edges, dependencyEdges...)
 	}
 
 	// SECOND: Add drift nodes (for resources not in Terraform State)

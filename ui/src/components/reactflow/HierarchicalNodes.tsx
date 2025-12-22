@@ -24,11 +24,11 @@ interface GroupNodeData {
 export const RegionGroupNode = memo(({ data }: NodeProps<GroupNodeData>) => {
   return (
     <div
-      className="w-full h-full p-4 rounded-2xl border-[3px] border-[#F59E0B] bg-[#FFF7ED] dark:bg-[#7C2D12] dark:border-[#EA580C]"
-      style={{ minWidth: '800px', minHeight: '600px' }}
+      className="w-full h-full p-8 rounded-2xl border-[3px] border-[#F59E0B] bg-[#FFF7ED] dark:bg-[#7C2D12] dark:border-[#EA580C]"
+      style={{ minWidth: '1800px', minHeight: '1200px' }}
     >
-      <div className="flex items-center gap-2 mb-4">
-        <div className="text-lg font-bold text-[#EA580C] dark:text-[#FB923C]">
+      <div className="flex items-center gap-2 mb-6">
+        <div className="text-2xl font-bold text-[#EA580C] dark:text-[#FB923C]">
           📍 {data.label}
         </div>
       </div>
@@ -45,15 +45,15 @@ RegionGroupNode.displayName = 'RegionGroupNode';
 export const VPCGroupNode = memo(({ data }: NodeProps<GroupNodeData>) => {
   return (
     <div
-      className="w-full h-full p-4 rounded-xl border-2 border-[#3B82F6] bg-[#EFF6FF] dark:bg-[#1E3A8A] dark:border-[#60A5FA]"
-      style={{ minWidth: '700px', minHeight: '500px' }}
+      className="w-full h-full p-6 rounded-xl border-2 border-[#3B82F6] bg-[#EFF6FF] dark:bg-[#1E3A8A] dark:border-[#60A5FA]"
+      style={{ minWidth: '1600px', minHeight: '1000px' }}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-base font-bold text-[#1E40AF] dark:text-[#93C5FD]">
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-xl font-bold text-[#1E40AF] dark:text-[#93C5FD]">
           🔷 {data.label}
         </div>
         {data.metadata?.cidr && (
-          <div className="text-xs font-mono text-[#3B82F6] dark:text-[#60A5FA] bg-white/80 dark:bg-gray-800/80 px-2 py-1 rounded">
+          <div className="text-sm font-mono text-[#3B82F6] dark:text-[#60A5FA] bg-white/80 dark:bg-gray-800/80 px-3 py-1.5 rounded">
             {data.metadata.cidr}
           </div>
         )}
@@ -71,11 +71,11 @@ VPCGroupNode.displayName = 'VPCGroupNode';
 export const AZGroupNode = memo(({ data }: NodeProps<GroupNodeData>) => {
   return (
     <div
-      className="w-full h-full p-3 rounded-lg border-2 border-dashed border-[#10B981] bg-[#F0FDF4] dark:bg-[#064E3B] dark:border-[#34D399]"
-      style={{ minWidth: '300px', minHeight: '400px' }}
+      className="w-full h-full p-5 rounded-lg border-2 border-dashed border-[#10B981] bg-[#F0FDF4] dark:bg-[#064E3B] dark:border-[#34D399]"
+      style={{ minWidth: '700px', minHeight: '800px' }}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <div className="text-sm font-bold text-[#047857] dark:text-[#6EE7B7]">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="text-lg font-bold text-[#047857] dark:text-[#6EE7B7]">
           📦 {data.label}
         </div>
       </div>
@@ -108,16 +108,16 @@ export const SubnetGroupNode = memo(({ data }: NodeProps<GroupNodeData>) => {
 
   return (
     <div
-      className={`w-full h-full p-3 rounded-md border ${borderColor} ${bgColor}`}
-      style={{ minWidth: '250px', minHeight: '200px' }}
+      className={`w-full h-full p-4 rounded-md border ${borderColor} ${bgColor}`}
+      style={{ minWidth: '600px', minHeight: '350px' }}
     >
-      <div className="flex items-center justify-between mb-2">
-        <div className={`text-xs font-bold ${textColor} flex items-center gap-1`}>
-          <span>{icon}</span>
+      <div className="flex items-center justify-between mb-3">
+        <div className={`text-sm font-bold ${textColor} flex items-center gap-2`}>
+          <span className="text-lg">{icon}</span>
           <span>{data.label}</span>
         </div>
         {data.metadata?.cidr && (
-          <div className={`text-[10px] font-mono ${textColor} opacity-80`}>
+          <div className={`text-xs font-mono ${textColor} opacity-80`}>
             {data.metadata.cidr}
           </div>
         )}
