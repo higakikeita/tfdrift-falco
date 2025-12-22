@@ -1,0 +1,36 @@
+# Example Terraform Variables for Production-Like Environment
+# Copy this file to terraform.tfvars and update with your values
+
+# ==================================================
+# General Configuration
+# ==================================================
+aws_region  = "us-east-1"
+environment = "prod-test"
+owner       = "your-name"  # Your name or team name
+
+# ==================================================
+# Network Configuration
+# ==================================================
+vpc_cidr = "10.0.0.0/16"
+az_count = 3  # Number of Availability Zones (2 or 3)
+
+# ==================================================
+# EKS Configuration
+# ==================================================
+eks_cluster_version      = "1.28"
+eks_node_instance_types  = ["t3.medium"]  # Use m5.large or larger for production
+eks_node_desired_size    = 2
+eks_node_min_size        = 1
+eks_node_max_size        = 4
+
+# ==================================================
+# RDS Configuration
+# ==================================================
+rds_instance_class     = "db.t3.micro"   # Use db.t3.medium or larger for production
+rds_allocated_storage  = 20              # GB
+
+# ==================================================
+# ElastiCache Configuration
+# ==================================================
+elasticache_node_type  = "cache.t3.micro"  # Use cache.r6g.large or larger for production
+elasticache_num_nodes  = 2                 # Minimum 2 for automatic failover

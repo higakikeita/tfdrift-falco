@@ -19,6 +19,67 @@ const nodeWidth = 200;
 const nodeHeight = 180;
 
 /**
+ * Layout child nodes within their parent containers
+ */
+const layoutChildNodes = (childNodes: Node[]): Node[] => {
+  // Group children by parent
+  const childrenByParent: Record<string, Node[]> = {};
+  childNodes.forEach(node => {
+    if (node.parentNode) {
+      if (!childrenByParent[node.parentNode]) {
+        childrenByParent[node.parentNode] = [];
+      }
+      childrenByParent[node.parentNode].push(node);
+    }
+  });
+
+  // Position children within each parent
+  const layoutedChildren: Node[] = [];
+
+  Object.entries(childrenByParent).forEach(([_parentId, children]) => {
+    const level = children[0]?.data?.level;
+
+    if (level === 'vpc') {
+      // VPCs are positioned at top-left of region
+      children.forEach((child, index) => {
+        layoutedChildren.push({
+          ...child,
+          position: { x: 20, y: 60 + index * 520 }
+        });
+      });
+    } else if (level === 'az') {
+      // AZs are positioned horizontally within VPC
+      children.forEach((child, index) => {
+        layoutedChildren.push({
+          ...child,
+          position: { x: 20 + index * 320, y: 60 }
+        });
+      });
+    } else if (level === 'subnet') {
+      // Subnets are positioned vertically within AZ
+      children.forEach((child, index) => {
+        layoutedChildren.push({
+          ...child,
+          position: { x: 10, y: 40 + index * 220 }
+        });
+      });
+    } else {
+      // Regular resources within subnets
+      children.forEach((child, index) => {
+        const row = Math.floor(index / 2);
+        const col = index % 2;
+        layoutedChildren.push({
+          ...child,
+          position: { x: 10 + col * 110, y: 40 + row * 100 }
+        });
+      });
+    }
+  });
+
+  return layoutedChildren;
+};
+
+/**
  * Apply Dagre layout to nodes
  */
 const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
@@ -59,19 +120,46 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
  */
 export const convertToReactFlow = (cytoscapeElements: CytoscapeElements): ReactFlowData => {
   // Convert nodes
-  const nodes: Node[] = cytoscapeElements.nodes.map((node) => ({
-    id: node.data.id,
-    type: 'custom',
-    position: { x: 0, y: 0 }, // Will be set by Dagre
-    data: {
-      label: node.data.label,
-      type: node.data.type,
-      resource_type: node.data.resource_type,
-      severity: node.data.severity,
-      resource_name: node.data.resource_name,
-      metadata: node.data.metadata
+  const nodes: Node[] = cytoscapeElements.nodes.map((node) => {
+    const parentNode = node.data.metadata?.parent_node;
+    const level = node.data.metadata?.level;
+
+    // Determine node type based on level or existing type
+    let nodeType = 'custom';
+    const dataType = String(node.data.type || '');
+    if (level === 'region' || dataType === 'region-group') {
+      nodeType = 'region-group';
+    } else if (level === 'vpc' || dataType === 'vpc-group') {
+      nodeType = 'vpc-group';
+    } else if (level === 'az' || dataType === 'az-group') {
+      nodeType = 'az-group';
+    } else if (level === 'subnet' || dataType.startsWith('subnet-group')) {
+      nodeType = dataType; // Use the specific subnet type (public/private)
     }
-  }));
+
+    const reactFlowNode: Node = {
+      id: node.data.id,
+      type: nodeType,
+      position: { x: 0, y: 0 }, // Will be set by layout or manually
+      data: {
+        label: node.data.label,
+        type: node.data.type,
+        resource_type: node.data.resource_type,
+        severity: node.data.severity,
+        resource_name: node.data.resource_name,
+        metadata: node.data.metadata,
+        level: level
+      }
+    };
+
+    // Set parent node and extent for child nodes
+    if (parentNode) {
+      reactFlowNode.parentNode = parentNode;
+      reactFlowNode.extent = 'parent';
+    }
+
+    return reactFlowNode;
+  });
 
   // Convert edges
   const edges: Edge[] = cytoscapeElements.edges.map((edge) => ({
@@ -102,8 +190,20 @@ export const convertToReactFlow = (cytoscapeElements: CytoscapeElements): ReactF
     }
   }));
 
-  // Apply Dagre layout
-  return getLayoutedElements(nodes, edges, 'TB');
+  // Separate parent nodes from child nodes for layout
+  const parentNodes = nodes.filter(n => !n.parentNode);
+  const childNodes = nodes.filter(n => n.parentNode);
+
+  // Apply Dagre layout only to parent nodes and non-hierarchical nodes
+  const layouted = getLayoutedElements(parentNodes, edges, 'TB');
+
+  // Apply manual layout for hierarchical nodes
+  const layoutedChildNodes = layoutChildNodes(childNodes);
+
+  return {
+    nodes: [...layouted.nodes, ...layoutedChildNodes],
+    edges: layouted.edges
+  };
 };
 
 /**

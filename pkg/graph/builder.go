@@ -90,6 +90,42 @@ func (s *Store) SetStateManager(sm *terraform.StateManager) {
 	s.stateManager = sm
 }
 
+// findResourceSubnet finds the subnet ID that a resource belongs to
+func findResourceSubnet(resource *terraform.Resource, hierarchy *AWSHierarchy) string {
+	// Extract subnet ID from resource attributes
+	var subnetID string
+	switch resource.Type {
+	case "aws_instance":
+		if subnet, ok := resource.Attributes["subnet_id"].(string); ok {
+			subnetID = subnet
+		}
+	case "aws_nat_gateway":
+		if subnet, ok := resource.Attributes["subnet_id"].(string); ok {
+			subnetID = subnet
+		}
+	case "aws_db_instance":
+		// RDS instances use subnet groups, so we don't assign to specific subnet
+		return ""
+	}
+
+	if subnetID == "" {
+		return ""
+	}
+
+	// Verify subnet exists in hierarchy
+	for _, region := range hierarchy.Regions {
+		for _, vpc := range region.VPCs {
+			for _, az := range vpc.AvailabilityZones {
+				if _, exists := az.Subnets[subnetID]; exists {
+					return subnetID
+				}
+			}
+		}
+	}
+
+	return ""
+}
+
 // BuildGraph builds a Cytoscape graph from stored data
 func (s *Store) BuildGraph() models.CytoscapeElements {
 	s.mu.RLock()
@@ -105,15 +141,38 @@ func (s *Store) BuildGraph() models.CytoscapeElements {
 		driftedIDs[drift.ResourceID] = true
 	}
 
-	// FIRST: Add all Terraform State resources as base layer
+	// FIRST: Build AWS hierarchy from Terraform State resources
 	if s.stateManager != nil {
 		resources := s.stateManager.GetAllResources()
+
+		// Build hierarchical AWS structure
+		hierarchyBuilder := NewHierarchyBuilder()
+		hierarchy := hierarchyBuilder.BuildHierarchy(resources)
+
+		// Convert hierarchy to graph nodes (Region -> VPC -> AZ -> Subnet groups)
+		hierarchyNodes := ConvertHierarchyToNodes(hierarchy)
+		nodes = append(nodes, hierarchyNodes...)
+
+		// Mark hierarchy nodes as processed
+		for _, node := range hierarchyNodes {
+			nodeIDs[node.Data.ID] = true
+		}
+
+		// Add individual resources within their hierarchy
 		for _, resource := range resources {
 			resourceID := extractResourceIDFromAttributes(resource.Attributes)
 			if resourceID != "" && !nodeIDs[resourceID] {
 				// Determine if this resource has drifted
 				hasDrift := driftedIDs[resourceID]
-				nodes = append(nodes, ConvertTerraformResourceToCytoscape(resource, hasDrift))
+				resourceNode := ConvertTerraformResourceToCytoscape(resource, hasDrift)
+
+				// Try to find the subnet this resource belongs to
+				subnetID := findResourceSubnet(resource, hierarchy)
+				if subnetID != "" {
+					resourceNode.Data.Metadata["parent_node"] = subnetID
+				}
+
+				nodes = append(nodes, resourceNode)
 				nodeIDs[resourceID] = true
 			}
 		}

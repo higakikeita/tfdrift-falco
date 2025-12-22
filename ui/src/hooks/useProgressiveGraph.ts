@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Node, Edge } from 'reactflow';
+import type { Node, Edge } from 'reactflow';
 import { chunkArray } from '../utils/memoryOptimization';
 
 interface ProgressiveGraphOptions {
@@ -20,6 +20,8 @@ interface ProgressiveGraphState<T = any> {
   progress: number; // 0-100
   currentBatch: number;
   totalBatches: number;
+  reset: () => void;
+  skipToEnd: () => void;
 }
 
 export function useProgressiveGraph<T = any>(

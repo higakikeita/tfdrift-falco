@@ -3,7 +3,7 @@
  * Groups nodes by type, provider, severity, or custom criteria
  */
 
-import { Node, Edge } from 'reactflow';
+import type { Node, Edge } from 'reactflow';
 
 export interface ClusterNode<T = any> extends Node<T> {
   type: 'cluster';
@@ -43,16 +43,17 @@ export function clusterNodes<T = any>(
 
   nodes.forEach(node => {
     let groupKey: string;
+    const data = node.data as any;
 
     switch (groupBy) {
       case 'type':
-        groupKey = node.data?.resource_type || node.data?.type || 'unknown';
+        groupKey = data?.resource_type || data?.type || 'unknown';
         break;
       case 'provider':
-        groupKey = extractProvider(node.data?.resource_type || node.data?.type || '');
+        groupKey = extractProvider(data?.resource_type || data?.type || '');
         break;
       case 'severity':
-        groupKey = node.data?.severity || 'unknown';
+        groupKey = data?.severity || 'unknown';
         break;
       case 'custom':
         groupKey = customGroupFn ? customGroupFn(node) : 'default';
@@ -123,7 +124,8 @@ function createClusterNode<T = any>(
   // Calculate severity counts
   const severityCounts: Record<string, number> = {};
   childNodes.forEach(node => {
-    const severity = node.data?.severity || 'unknown';
+    const data = node.data as any;
+    const severity = data?.severity || 'unknown';
     severityCounts[severity] = (severityCounts[severity] || 0) + 1;
   });
 
@@ -223,7 +225,7 @@ export function collapseCluster<T = any>(
 /**
  * Filters edges to handle cluster expansion/collapse
  */
-export function filterEdgesForClusters<T = any>(
+export function filterEdgesForClusters(
   edges: Edge[],
   clusterMap: Map<string, string[]>,
   visibleNodeIds: Set<string>

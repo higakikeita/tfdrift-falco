@@ -8,15 +8,15 @@ import ReactFlow, {
   Background,
   Controls,
   MiniMap,
-  Node,
-  Edge,
-  NodeTypes,
+  type Node,
+  type Edge,
+  type NodeTypes,
   ConnectionLineType,
   MarkerType,
   useNodesState,
   useEdgesState,
-  OnNodesChange,
-  OnEdgesChange,
+  type OnNodesChange,
+  type OnEdgesChange,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 

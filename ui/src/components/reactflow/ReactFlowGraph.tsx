@@ -22,6 +22,7 @@ import { toPng, toSvg } from 'html-to-image';
 import 'reactflow/dist/style.css';
 
 import { CustomNode } from './CustomNode';
+import { RegionGroupNode, VPCGroupNode, AZGroupNode, SubnetGroupNode } from './HierarchicalNodes';
 import { NodeDetailPanel } from './NodeDetailPanel';
 import { convertToReactFlow, highlightPath } from '../../utils/reactFlowAdapter';
 import type { CytoscapeElements } from '../../types/graph';
@@ -35,6 +36,11 @@ interface ReactFlowGraphProps {
 
 const nodeTypes = {
   custom: CustomNode,
+  'region-group': RegionGroupNode,
+  'vpc-group': VPCGroupNode,
+  'az-group': AZGroupNode,
+  'subnet-group-public': SubnetGroupNode,
+  'subnet-group-private': SubnetGroupNode,
 };
 
 const defaultEdgeOptions = {

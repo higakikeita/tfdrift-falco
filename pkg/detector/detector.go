@@ -8,6 +8,7 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/diff"
 	"github.com/keitahigaki/tfdrift-falco/pkg/falco"
+	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
 	"github.com/keitahigaki/tfdrift-falco/pkg/notifier"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
@@ -24,6 +25,7 @@ type Detector struct {
 	importer        *terraform.Importer
 	approvalManager *terraform.ApprovalManager
 	broadcaster     *broadcaster.Broadcaster
+	graphStore      *graph.Store
 	eventCh         chan types.Event
 	wg              sync.WaitGroup
 }
@@ -100,4 +102,14 @@ func (d *Detector) SetBroadcaster(bc *broadcaster.Broadcaster) {
 // GetBroadcaster returns the broadcaster
 func (d *Detector) GetBroadcaster() *broadcaster.Broadcaster {
 	return d.broadcaster
+}
+
+// SetGraphStore sets the graph store for drift visualization
+func (d *Detector) SetGraphStore(gs *graph.Store) {
+	d.graphStore = gs
+}
+
+// GetGraphStore returns the graph store
+func (d *Detector) GetGraphStore() *graph.Store {
+	return d.graphStore
 }

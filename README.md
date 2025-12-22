@@ -22,66 +22,70 @@
 >
 > 🚀 **v0.4.0** - **Structured Event Output** for SIEM/SOAR integrations! JSON output (NDJSON), event-driven architecture.
 
-## 🚀 Quick Start - 3コマンドで完結！
-
-### 最速セットアップ（5分）
-
-```bash
-# 1. リポジトリをクローン
-git clone https://github.com/higakikeita/tfdrift-falco.git && cd tfdrift-falco
-
-# 2. セットアップスクリプトを実行（対話的に設定）
-./quick-start.sh
-
-# 3. 起動！
-docker compose up -d
-```
-
-**これだけです！** 🎉
-
-スクリプトが自動的に以下を行います：
-- ✅ Docker / Docker Compose のチェック
-- ✅ AWS credentials の確認
-- ✅ Falco + TFDrift-Falco の設定ファイル生成
-- ✅ 対話的な設定（AWS Region、Terraform State Backend、Slack Webhook）
-
-### ログを確認
-
-```bash
-# ドリフト検知ログを表示
-docker compose logs -f tfdrift
-
-# または make コマンドで
-make logs
-```
-
-### よく使うコマンド
-
-```bash
-make start      # 起動
-make stop       # 停止
-make restart    # 再起動
-make status     # 状態確認
-make logs       # ログ表示
-```
-
-### 詳細なセットアップ手順
-
-ステップバイステップのガイドは [Getting Started Guide](docs/GETTING_STARTED.md) を参照してください。
+**[English]** | [日本語 (Japanese)](README.ja.md)
 
 ---
 
-## 🏭 Production Deployment (NEW!)
+## 🚀 Quick Start (3 Commands!)
 
-TFDrift-Falcoは本番環境対応の **REST API + WebSocket + SSE + React UI** を提供します！
+### Fastest Setup (5 minutes)
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/higakikeita/tfdrift-falco.git && cd tfdrift-falco
+
+# 2. Run setup script (interactive configuration)
+./quick-start.sh
+
+# 3. Launch!
+docker compose up -d
+```
+
+**That's it!** 🎉
+
+The script automatically:
+- ✅ Checks Docker / Docker Compose
+- ✅ Verifies AWS credentials
+- ✅ Generates Falco + TFDrift-Falco configuration files
+- ✅ Interactive setup (AWS Region, Terraform State Backend, Slack Webhook)
+
+### View Logs
+
+```bash
+# Display drift detection logs
+docker compose logs -f tfdrift
+
+# Or use make command
+make logs
+```
+
+### Common Commands
+
+```bash
+make start      # Start services
+make stop       # Stop services
+make restart    # Restart services
+make status     # Check status
+make logs       # View logs
+```
+
+### Detailed Setup Guide
+
+For step-by-step instructions, see the [Getting Started Guide](docs/GETTING_STARTED.md).
+
+---
+
+## 🏭 Production Deployment
+
+TFDrift-Falco provides production-ready **REST API + WebSocket + SSE + React UI**!
 
 ### 🚀 API Server Mode
 
 ```bash
-# API serverモードで起動
+# Launch in API server mode
 docker-compose up -d
 
-# アクセス
+# Access:
 # Frontend UI: http://localhost:3000
 # Backend API: http://localhost:8080/api/v1
 # WebSocket: ws://localhost:8080/ws
@@ -90,27 +94,53 @@ docker-compose up -d
 
 ### 📡 REST API Endpoints
 
-- `GET /api/v1/graph` - 因果関係グラフ (Cytoscape形式)
-- `GET /api/v1/drifts` - Driftアラート一覧 (フィルタリング対応)
-- `GET /api/v1/events` - Falcoイベント一覧
-- `GET /api/v1/state` - Terraform State概要
-- `GET /api/v1/stats` - 統計情報
-- `GET /health` - ヘルスチェック
+- `GET /api/v1/graph` - Causal graph (Cytoscape format)
+- `GET /api/v1/drifts` - Drift alerts list (with filtering)
+- `GET /api/v1/events` - Falco events list
+- `GET /api/v1/state` - Terraform state overview
+- `GET /api/v1/stats` - Statistics
+- `GET /health` - Health check
 
-**詳細:** [API Documentation](docs/API.md)
+**Details:** [API Documentation](docs/API.md)
 
 ### 🌐 React Web UI
 
 ![TFDrift UI](https://via.placeholder.com/800x400?text=TFDrift+Web+UI)
 
-**主な機能:**
-- 🎯 **リアルタイムグラフ可視化** - React Flow + LOD rendering
-- 📊 **Drift/Event一覧表示** - TanStack Query + フィルタリング
-- ⚡ **WebSocket/SSE** - リアルタイム通知
-- 🔍 **1000+ノード対応** - Clustering + Progressive Loading
-- 📱 **レスポンシブデザイン** - shadcn/ui + Tailwind CSS
+#### Three View Modes
 
-### 🐳 Docker Compose (推奨)
+1. **📊 Graph View** - Causal relationship visualization
+   - React Flow with official AWS/Kubernetes icons
+   - Interactive node operations
+   - Hierarchical, Dagre, Force-directed, Circular layouts
+
+2. **📋 Table View** - Drift event history
+   - 100+ events list display
+   - Filtering (severity, provider, search)
+   - Sort functions (latest, severity order)
+   - Detail panel (before/after values, user info, CloudTrail)
+
+3. **⚡ Split View** - Graph + Table simultaneous display (Recommended)
+   - Left: Causal relationship graph
+   - Right: Drift history table + detail panel
+
+**Key Features:**
+- 🎯 **Official Icons** - AWS React Icons + Kubernetes official SVG
+- 📊 **Real-time Filtering** - Severity, provider, resource type
+- ⚡ **WebSocket/SSE Ready** - Real-time notifications (prepared)
+- 🔍 **Large-scale Graph Support** - 1000+ nodes (LOD, Clustering ready)
+- 📱 **Responsive Design** - Tailwind CSS
+
+#### Development Environment
+
+```bash
+cd ui
+npm install
+npm run dev
+# Access at http://localhost:5173/
+```
+
+### 🐳 Docker Compose (Recommended)
 
 ```yaml
 services:
@@ -132,23 +162,23 @@ services:
 ### ☸️ Kubernetes Deployment
 
 ```bash
-# Helm chart (準備中)
+# Helm chart (coming soon)
 helm install tfdrift ./charts/tfdrift-falco
 
-# または kubectl
+# Or kubectl
 kubectl apply -f k8s/
 ```
 
 ### 📦 CI/CD
 
-GitHub Actionsワークフロー搭載:
+GitHub Actions workflows included:
 - ✅ Backend tests (Go)
 - ✅ Frontend tests (React)
 - ✅ Docker multi-platform builds (amd64, arm64)
 - ✅ Security scanning (Trivy + Gosec)
 - ✅ Codecov integration
 
-**詳細:** [Deployment Guide](docs/deployment.md)
+**Details:** [Deployment Guide](docs/deployment.md)
 
 ---
 
@@ -281,11 +311,7 @@ Raw JSON payload sent to your endpoint:
 - Falco running with CloudTrail plugin (AWS) or gcpaudit plugin (GCP)
 - AWS credentials configured (for AWS) or GCP credentials configured (for GCP)
 
-[English](#english) | [日本語](#japanese)
-
 ---
-
-<a name="english"></a>
 
 ## 🧩 Overview
 
@@ -763,95 +789,95 @@ CloudTrail EventID: a1b2c3d4-5678-90ab-cdef-1234567890ab
 
 ## 🧪 Use Cases
 
-TFDrift-Falcoは様々なシナリオで活用できます。**詳細な設定例、アラート例、統合パターンについては [Use Cases Documentation](docs/USE_CASES.md) を参照してください。**
+For detailed configuration examples, alert patterns, and integration guides, see the [Use Cases Documentation](docs/USE_CASES.md).
 
 ### 1. Security & Compliance 🔒
-**不正なインフラ変更をリアルタイムで検知**
-- セキュリティグループの手動変更（例: ポート22を0.0.0.0/0に公開）
-- IAMポリシーのTerraform管理外の変更
-- 暗号化設定の無効化（RDS、S3、EBSなど）
+**Detect unauthorized infrastructure changes in real-time**
+- Manual security group modifications (e.g., opening port 22 to 0.0.0.0/0)
+- IAM policy changes outside Terraform management
+- Encryption setting disablement (RDS, S3, EBS, etc.)
 
-**実例**: 開発者がAWSコンソールで本番環境のセキュリティグループを変更した瞬間にSlackでCriticalアラート送信
+**Example**: Developer modifies production security group via AWS Console → Critical alert sent to Slack instantly
 
 ### 2. Cost Management 💰
-**コスト影響を伴うリソース変更を即座に検知**
-- インスタンスタイプの変更（t3.micro → m5.8xlarge）
-- ストレージボリューム拡張（100GB → 1TB）
-- EBSボリュームタイプ変更（gp2 → io2）
+**Instantly detect resource changes with cost impact**
+- Instance type changes (t3.micro → m5.8xlarge)
+- Storage volume expansion (100GB → 1TB)
+- EBS volume type changes (gp2 → io2)
 
-**実例**: EC2がt3.microからm5.8xlargeにアップグレードされた際、コスト影響（＋$1.52/hr）を含むアラートをSlackに送信
+**Example**: EC2 upgraded from t3.micro to m5.8xlarge → Alert with cost impact (+$1.52/hr) sent to Slack
 
 ### 3. Audit & Governance 📋
-**完全な変更履歴とユーザートラッキング**
-- 誰が・いつ・何を変更したかの完全な記録
-- SIEMシステムとの統合（JSON形式のイベント出力）
-- コンプライアンスレポート生成（SOC2、PCI-DSS、HIPAA）
+**Complete change history and user tracking**
+- Full record of who changed what and when
+- SIEM system integration (JSON event output)
+- Compliance report generation (SOC2, PCI-DSS, HIPAA)
 
-**実例**: 全てのインフラ変更がJSON形式でSplunkに転送され、監査証跡として永続化
+**Example**: All infrastructure changes forwarded to Splunk in JSON format and persisted as audit trail
 
 ### 4. GitOps Enforcement 🔧
-**Infrastructure-as-Code規律の強制**
-- コンソールベースの変更を即座に検知してアラート
-- コードレビューを経ない変更を防止
-- 設定ドリフトの自動検出
+**Enforce Infrastructure-as-Code discipline**
+- Instantly detect and alert on console-based changes
+- Prevent changes without code review
+- Automatic configuration drift detection
 
-**実例**: Terraformで管理されているリソースがAWSコンソールで変更されると、即座にチームSlackチャネルにアラート送信
+**Example**: Terraform-managed resource modified via AWS Console → Immediate alert to team Slack channel
 
 ### 5. Incident Response 🚨
-**セキュリティインシデントのリアルタイム検知**
-- バックドアIAMユーザー作成の検知
-- 権限昇格の試み検知
-- データ流出の可能性がある変更（S3バケットパブリック化）
+**Real-time detection of security incidents**
+- Backdoor IAM user creation detection
+- Privilege escalation attempt detection
+- Data exfiltration risk changes (S3 bucket made public)
 
-**実例**: IAMユーザーが作成された瞬間にPagerDutyでインシデント発火、オンコールエンジニアに通知
+**Example**: IAM user created → PagerDuty incident fired instantly, on-call engineer notified
 
 ### 6. Multi-Cloud Governance 🌐
-**AWS + GCPの統一的な監視**
-- AWS CloudTrailとGCP Audit Logsを同時監視
-- 複数クラウドプロバイダー間の一貫した変更管理
-- 統一されたアラート形式とダッシュボード
+**Unified monitoring of AWS + GCP**
+- Simultaneous monitoring of AWS CloudTrail and GCP Audit Logs
+- Consistent change management across multiple cloud providers
+- Unified alert format and dashboard
 
-**実例**: AWSとGCPの両方のインフラ変更を単一のGrafanaダッシュボードで可視化
+**Example**: Both AWS and GCP infrastructure changes visualized in single Grafana dashboard
 
 ---
 
-📚 **詳細なユースケース、設定例、統合パターンについては [Use Cases Documentation](docs/USE_CASES.md) をご覧ください。**
+📚 **For detailed use cases, configuration examples, and integration patterns, see [Use Cases Documentation](docs/USE_CASES.md).**
 
 ## 📘 Best Practices
 
-本番環境でTFDrift-Falcoを安全かつ効率的に運用するためのベストプラクティスを紹介します。
+Best practices for running TFDrift-Falco safely and efficiently in production environments.
 
 ### Production Deployment 🚀
-- **High Availability**: Active-Passive構成で2つ以上のレプリカをデプロイ
-- **Resource Sizing**: ワークロードに応じた適切なCPU/メモリ割り当て（Small: 128Mi/100m, Medium: 256Mi/250m, Large: 512Mi/500m）
-- **Multi-Region**: リージョンごとに独立したTFDrift-Falcoインスタンスを実行
+- **High Availability**: Deploy 2+ replicas in Active-Passive configuration
+- **Resource Sizing**: Appropriate CPU/memory allocation based on workload (Small: 128Mi/100m, Medium: 256Mi/250m, Large: 512Mi/500m)
+- **Multi-Region**: Run independent TFDrift-Falco instances per region
 
 ### Security 🔒
-- **IAM Permissions**: 最小権限の原則（Terraform State読み取り専用）
-- **Network Security**: Falco gRPC接続にmTLSを使用、Kubernetes Network Policyで通信制限
-- **Secrets Management**: Webhook URLや認証情報をKubernetes Secrets/AWS Secrets Manager/GCP Secret Managerで管理
+- **IAM Permissions**: Principle of least privilege (Terraform State read-only)
+- **Network Security**: Use mTLS for Falco gRPC connections, restrict communication with Kubernetes Network Policies
+- **Secrets Management**: Manage webhook URLs and credentials with Kubernetes Secrets/AWS Secrets Manager/GCP Secret Manager
 
 ### Operational Excellence 📊
-- **Logging**: 構造化ログ（JSON）を外部ロギングシステムに転送（FluentBit/Elasticsearch）
-- **Monitoring**: Prometheusメトリクスを公開、Grafanaで可視化
-- **Alerting**: Critical/Highレベルのドリフトを即座に通知（Slack/PagerDuty）
-- **Backup**: Terraform Stateの定期的なバックアップ（S3バージョニング有効化）
+- **Logging**: Forward structured logs (JSON) to external logging systems (FluentBit/Elasticsearch)
+- **Monitoring**: Expose Prometheus metrics, visualize with Grafana
+- **Alerting**: Immediately notify Critical/High level drifts (Slack/PagerDuty)
+- **Backup**: Regular Terraform State backups (enable S3 versioning)
 
 ### Configuration 🔧
-- **Drift Rules**: 環境に応じたルール設計（本番: 全変更、ステージング: Critical のみ）
-- **Event Filtering**: 不要なイベントをFalcoルールで事前フィルタリング
-- **State Refresh**: 環境規模に応じたリフレッシュ間隔（Small: 5m, Medium: 10m, Large: 15m）
+- **Drift Rules**: Environment-specific rule design (Production: all changes, Staging: Critical only)
+- **Event Filtering**: Pre-filter unnecessary events with Falco rules
+- **State Refresh**: Refresh interval based on environment scale (Small: 5m, Medium: 10m, Large: 15m)
 
 ### Troubleshooting 🔍
-よくある問題と解決策:
-- **"Cannot connect to Falco gRPC"** → Falco起動確認、gRPC設定確認、ネットワーク接続確認
-- **"Too many alerts (False Positives)"** → watched_attributes を絞る、Terraform管理外リソースを除外
-- **"High memory usage"** → State refresh間隔を延長、Worker数を調整
-- **"High detection latency"** → S3 VPCエンドポイント使用、通知timeout短縮
+Common issues and solutions:
+- **"Cannot connect to Falco gRPC"** → Verify Falco startup, check gRPC configuration, verify network connectivity
+- **"Too many alerts (False Positives)"** → Narrow watched_attributes, exclude non-Terraform-managed resources
+- **"High memory usage"** → Extend state refresh interval, adjust worker count
+- **"High detection latency"** → Use S3 VPC endpoint, reduce notification timeout
 
 ---
 
-📚 **詳細な設定例、トラブルシューティング、パフォーマンスチューニングについては [Best Practices Documentation](docs/BEST_PRACTICES.md) をご覧ください。**
+📚 **For detailed configuration examples, troubleshooting, and performance tuning, see [Best Practices Documentation](docs/BEST_PRACTICES.md).**
 
 ## 🧩 Integration Examples
 
@@ -1107,300 +1133,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Contact
 
 - Author: Keita Higaki
-- GitHub: [@keitahigaki](https://github.com/keitahigaki)
-- X (Twitter): [@keitah0322](https://x.com/keitah0322)
-- Qiita: [@keitah](https://qiita.com/keitah)
-
----
-
-<a name="japanese"></a>
-
-## 🧩 概要（日本語）
-
-**TFDrift-Falco** は、クラウド環境における手動変更（IaC管理外の変更）を**リアルタイムで検知**するツールです。
-
-以下を組み合わせた、次世代のドリフト検知ソリューション：
-
-- **Falco** ランタイムセキュリティ監視 (CloudTrailプラグイン/gcpauditプラグイン)
-- **AWS CloudTrail / GCP Audit Logs** イベントストリーム
-- **Terraform State** 比較
-
-従来のドリフト検知ツール（`driftctl`や`tfsec`など）は定期的な静的スキャンを行いますが、TFDrift-Falcoは**継続的なイベント駆動型のドリフト検知**を、セキュリティコンテキスト付きで提供します。
-
-### 🚨 使用例
-
-```
-誰かがAWSコンソールでEC2インスタンスの削除保護を無効化
-    ↓
-CloudTrailイベントをFalcoが捕捉
-    ↓
-TFDrift-FalcoがTerraform Stateと比較
-    ↓
-ユーザー情報と変更内容を含むSlackアラートを即座に送信
-```
-
-## 🎯 主要機能
-
-- ⚡ **リアルタイム検知** - AWS CloudTrail、GCP Audit Logs、Falcoイベントを監視
-- 🧩 **Terraform State比較** - IaC定義からの逸脱を検出
-- 🔒 **セキュリティコンテキスト** - ユーザーID（IAMユーザー、APIキー、サービスアカウント）と相関
-- 🔔 **複数の通知チャネル** - Slack、Discord、Falco出力、Webhook
-- 🌐 **マルチクラウド対応** - AWS（411イベント、23サービス）、GCP（100+イベント、12+サービス）、Azure（計画中）
-- 🎨 **拡張可能なルール** - YAMLでカスタムドリフト検知ルールを定義
-- 🐳 **コンテナ対応** - サイドカーまたはスタンドアロンコンテナとして実行
-- 📊 **本番環境対応** - 包括的な負荷テストと監視フレームワーク
-
-## 🐳 Dockerで30秒クイックスタート
-
-**公式Dockerイメージで即座に開始:**
-
-```bash
-# 公式イメージをプル＆実行
-docker run -d \
-  --name tfdrift-falco \
-  -e TF_STATE_BACKEND=s3 \
-  -e TF_STATE_S3_BUCKET=my-terraform-state \
-  -e TF_STATE_S3_KEY=prod/terraform.tfstate \
-  -e AWS_REGION=ap-northeast-1 \
-  -v ~/.aws:/root/.aws:ro \
-  ghcr.io/higakikeita/tfdrift-falco:latest
-```
-
-**ログ確認:**
-```bash
-docker logs -f tfdrift-falco
-```
-
-**GitHub Container Registryで利用可能:**
-- 🚀 `ghcr.io/higakikeita/tfdrift-falco:latest` - 最新安定版
-- 📌 `ghcr.io/higakikeita/tfdrift-falco:v0.2.0-beta` - 特定バージョン
-- 🔖 全タグを見る: https://github.com/higakikeita/tfdrift-falco/pkgs/container/tfdrift-falco
-
----
-
-## 🚀 完全インストールガイド
-
-### 前提条件
-
-- Go 1.21以降（ソースからビルドする場合）
-- **Falco 0.35+** CloudTrailプラグイン（AWS）またはgcpauditプラグイン（GCP）必須 - [AWSセットアップ](docs/falco-setup.md) | [GCPセットアップ](docs/gcp-setup.md)
-- Terraform 1.0+
-- AWS CLI設定済み（AWSサポート用）またはgcloud CLI設定済み（GCPサポート用）
-- **Docker**（最も簡単なセットアップ方法として推奨）
-
-> **重要**: TFDrift-Falcoは、gRPCが有効で適切なクラウドプラグインが設定されたFalcoインスタンスが必要です：
-> - AWS: CloudTrailプラグイン - [セットアップガイド](docs/falco-setup.md)
-> - GCP: gcpauditプラグイン - [セットアップガイド](docs/gcp-setup.md)
-
-### インストール
-
-#### オプション1: バイナリリリース
-
-```bash
-# 最新リリースをダウンロード
-curl -LO https://github.com/keitahigaki/tfdrift-falco/releases/latest/download/tfdrift-linux-amd64
-chmod +x tfdrift-linux-amd64
-sudo mv tfdrift-linux-amd64 /usr/local/bin/tfdrift
-```
-
-#### オプション2: ソースからビルド
-
-```bash
-git clone https://github.com/keitahigaki/tfdrift-falco.git
-cd tfdrift-falco
-go build -o tfdrift ./cmd/tfdrift
-```
-
-#### オプション3: Docker（推奨 ⭐）
-
-**GitHub Container Registry（GHCR）で公式イメージが利用可能**
-
-```bash
-# 最新の公式イメージをプル
-docker pull ghcr.io/higakikeita/tfdrift-falco:latest
-
-# または特定バージョンを使用
-docker pull ghcr.io/higakikeita/tfdrift-falco:v0.2.0-beta
-
-# Dockerで実行
-docker run -d \
-  --name tfdrift-falco \
-  -v $(pwd)/config.yaml:/config/config.yaml:ro \
-  -v ~/.aws:/root/.aws:ro \
-  ghcr.io/higakikeita/tfdrift-falco:latest \
-  --config /config/config.yaml
-```
-
-**環境変数で簡単スタート:**
-
-```bash
-docker run -d \
-  --name tfdrift-falco \
-  -e TF_STATE_BACKEND=s3 \
-  -e TF_STATE_S3_BUCKET=my-terraform-state \
-  -e TF_STATE_S3_KEY=prod/terraform.tfstate \
-  -e AWS_REGION=ap-northeast-1 \
-  -e FALCO_HOSTNAME=localhost \
-  -e FALCO_PORT=5060 \
-  -v ~/.aws:/root/.aws:ro \
-  ghcr.io/higakikeita/tfdrift-falco:latest
-```
-
-**ソースからビルド（開発用）:**
-
-```bash
-# ローカルでイメージをビルド
-make docker-build
-
-# ローカルビルドイメージを実行
-docker run -d \
-  --name tfdrift-falco \
-  -v $(pwd)/config.yaml:/config/config.yaml:ro \
-  -v ~/.aws:/root/.aws:ro \
-  tfdrift-falco:latest \
-  --config /config/config.yaml
-```
-
-#### オプション4: Docker Compose（推奨）
-
-全ての依存関係を含む完全なスタックを実行する最も簡単な方法：
-
-```bash
-# フルスタックを起動（Falco + TFDrift）
-make docker-compose-up
-
-# ログを表示
-make docker-compose-logs
-
-# サービスを停止
-make docker-compose-down
-```
-
-Docker、Kubernetes、Systemdデプロイメントの詳細は[デプロイメントガイド](docs/deployment.md)を参照してください。
-
-### 設定
-
-`config.yaml`を作成：
-
-```yaml
-# クラウドプロバイダー設定
-providers:
-  aws:
-    enabled: true
-    regions:
-      - us-east-1
-      - ap-northeast-1
-    cloudtrail:
-      s3_bucket: "my-cloudtrail-bucket"
-      sqs_queue: "cloudtrail-events"
-    state:
-      backend: "s3"
-      s3_bucket: "my-terraform-state"
-      s3_key: "prod/terraform.tfstate"
-
-# Falco統合
-falco:
-  enabled: true
-  socket: "/var/run/falco.sock"
-
-# ドリフト検知ルール
-drift_rules:
-  - name: "EC2インスタンス変更"
-    resource_types:
-      - "aws_instance"
-    watched_attributes:
-      - "disable_api_termination"
-      - "instance_type"
-      - "security_groups"
-    severity: "high"
-
-# 通知チャネル
-notifications:
-  slack:
-    enabled: true
-    webhook_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
-    channel: "#security-alerts"
-```
-
-### 実行
-
-```bash
-# 設定ファイルで実行
-tfdrift --config config.yaml
-
-# デーモンモードで実行
-tfdrift --config config.yaml --daemon
-
-# ドライランモード（通知なし）
-tfdrift --config config.yaml --dry-run
-```
-
-## 🧪 使用ケース
-
-### 1. セキュリティコンプライアンス
-IaCワークフローをバイパスした不正なインフラ変更を検知：
-- 手動でのセキュリティグループ変更
-- Terraform管理外のIAMポリシー変更
-- 暗号化設定の無効化
-
-### 2. コスト管理
-コストに影響するリソース変更を特定：
-- インスタンスタイプのアップグレード
-- ストレージボリュームの拡張
-- EBSボリュームタイプの変更
-
-### 3. 監査とガバナンス
-誰がいつ何を変更したかを追跡：
-- ユーザーIDを含む完全な変更履歴
-- SIEMシステムとの統合
-- コンプライアンスレポート
-
-### 4. GitOps強制
-すべてのインフラ変更がコードレビューを経ることを保証：
-- コンソールベースの変更に対するアラート
-- Infrastructure-as-Code規律の強制
-- 設定ドリフトの防止
-
-## 🗺️ ロードマップ
-
-### フェーズ1: MVP（✅ 完了）
-- [x] AWS CloudTrail統合
-- [x] Terraform State比較（ローカル）
-- [x] Slack通知
-- [x] 基本ドリフトルール（EC2、IAM、S3）
-- [x] Falcoイベント統合（gRPC）
-- [x] Dockerコンテナサポート
-
-### フェーズ2: 検知強化（✅ GCPサポート完了 - v0.5.0）
-- [x] **GCP Audit Logsサポート** - 12+サービスで100+イベント
-- [x] **GCSバックエンドサポート** - Google Cloud StorageからのTerraform State
-- [ ] Azure Activity Logsサポート
-- [ ] Terraform Cloud/Enterprise統合
-- [ ] Azure Blobバックエンドサポート
-
-### フェーズ3: 高度な機能
-- [ ] Webダッシュボード UI
-- [ ] 機械学習ベースの異常検知
-- [ ] 自動修復アクション
-- [ ] Policy-as-Code統合（OPA/Rego）
-
-### フェーズ4: エンタープライズ機能
-- [ ] マルチアカウント/マルチOrg対応
-- [ ] RBACとチーム管理
-- [ ] コンプライアンスレポート
-- [ ] SaaS提供
-
-## 🤝 コントリビューション
-
-コントリビューションを歓迎します！詳細は[CONTRIBUTING.md](CONTRIBUTING.md)をご覧ください。
-
-## 📜 ライセンス
-
-このプロジェクトはMITライセンスの下でライセンスされています - 詳細は[LICENSE](LICENSE)ファイルをご覧ください。
-
-## 📞 連絡先
-
-- 作者: Keita Higaki
 - GitHub: [@keitahigaki](https://github.com/keitahigaki)
 - X (Twitter): [@keitah0322](https://x.com/keitah0322)
 - Qiita: [@keitah](https://qiita.com/keitah)

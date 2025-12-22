@@ -41,6 +41,12 @@ func (d *Detector) sendAlert(alert *types.DriftAlert) {
 		})
 	}
 
+	// Add to graph store for visualization
+	if d.graphStore != nil {
+		d.graphStore.AddDrift(*alert)
+		log.Debug("Added drift alert to graph store")
+	}
+
 	if d.cfg.DryRun {
 		log.Info("[DRY-RUN] Alert notification skipped")
 
@@ -107,6 +113,12 @@ func (d *Detector) sendUnmanagedResourceAlert(event *types.Event) {
 				"timestamp":     alert.Timestamp,
 			},
 		})
+	}
+
+	// Add to graph store for visualization
+	if d.graphStore != nil {
+		d.graphStore.AddUnmanaged(*alert)
+		log.Debug("Added unmanaged resource alert to graph store")
 	}
 
 	if d.cfg.DryRun {

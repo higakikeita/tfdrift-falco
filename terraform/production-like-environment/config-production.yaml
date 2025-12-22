@@ -1,0 +1,130 @@
+# TFDrift-Falco Configuration for Production-Like Environment
+# Generated on: 2025-12-21
+
+# Cloud Provider Configuration
+providers:
+  # AWS Configuration
+  aws:
+    enabled: true
+    regions:
+      - us-east-1
+
+    # Terraform State Backend
+    state:
+      backend: "s3"
+      s3_bucket: "tfdrift-prod-state-230446364776-20251221"
+      s3_key: "production-like-environment/terraform.tfstate"
+      s3_region: "us-east-1"
+
+# Falco Integration (for runtime security monitoring)
+falco:
+  enabled: true  # Falco is now running
+  hostname: "localhost"
+  port: 5060
+  # TLS certificate files
+  cert_file: "/Users/keita.higaki/tfdrift-falco/deployments/falco/server.crt"
+  key_file: "/Users/keita.higaki/tfdrift-falco/deployments/falco/server.key"
+  ca_root_file: "/Users/keita.higaki/tfdrift-falco/deployments/falco/server.crt"
+
+# Drift Detection Rules
+drift_rules:
+  # EKS Rules
+  - name: "EKS Cluster Modification"
+    resource_types:
+      - "aws_eks_cluster"
+    watched_attributes:
+      - "version"
+      - "vpc_config"
+      - "encryption_config"
+    severity: "critical"
+
+  # RDS Rules
+  - name: "RDS Instance Modification"
+    resource_types:
+      - "aws_db_instance"
+    watched_attributes:
+      - "instance_class"
+      - "allocated_storage"
+      - "publicly_accessible"
+      - "storage_encrypted"
+    severity: "high"
+
+  # ElastiCache Rules
+  - name: "ElastiCache Modification"
+    resource_types:
+      - "aws_elasticache_replication_group"
+    watched_attributes:
+      - "node_type"
+      - "num_cache_clusters"
+      - "at_rest_encryption_enabled"
+    severity: "high"
+
+  # Security Group Rules
+  - name: "Security Group Modification"
+    resource_types:
+      - "aws_security_group"
+    watched_attributes:
+      - "ingress"
+      - "egress"
+    severity: "high"
+
+  # S3 Rules
+  - name: "S3 Bucket Security"
+    resource_types:
+      - "aws_s3_bucket"
+    watched_attributes:
+      - "server_side_encryption_configuration"
+      - "versioning"
+      - "policy"
+    severity: "critical"
+
+  # VPC Rules
+  - name: "VPC Configuration Change"
+    resource_types:
+      - "aws_vpc"
+      - "aws_subnet"
+      - "aws_route_table"
+      - "aws_nat_gateway"
+    watched_attributes:
+      - "cidr_block"
+      - "route"
+    severity: "high"
+
+
+# Notification Channels
+notifications:
+  # Falco Output Format
+  falco_output:
+    enabled: true
+    priority: "warning"
+
+  # Slack Integration (disabled by default)
+  slack:
+    enabled: false
+    webhook_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+    channel: "#security-alerts"
+
+# Logging Configuration
+logging:
+  level: "info"
+  format: "json"
+  output: "stdout"
+
+# Advanced Options
+advanced:
+  # State refresh interval (how often to reload Terraform state)
+  state_refresh_interval: "5m"
+
+  # Event processing workers
+  workers: 4
+
+  # Event buffer size
+  event_buffer_size: 100
+
+  # Rate limiting (alerts per minute per resource)
+  rate_limit:
+    enabled: true
+    max_alerts_per_minute: 5
+
+  # Deduplication window (suppress duplicate alerts within this time)
+  deduplication_window: "5m"

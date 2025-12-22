@@ -1,0 +1,21 @@
+# Example Terraform Variables
+# Copy this file to terraform.tfvars and update with your values
+
+# AWS Region
+aws_region = "us-east-1"
+
+# Environment name
+environment = "test"
+
+# S3 Bucket name (MUST be globally unique)
+# Add a unique suffix like your account ID or date
+test_bucket_name = "tfdrift-test-bucket-CHANGEME"
+
+# VPC ID (use your default VPC or create a new one)
+# Find your default VPC: aws ec2 describe-vpcs --filters "Name=isDefault,Values=true"
+vpc_id = "vpc-CHANGEME"
+
+# Optional: Email for drift alerts
+# Leave empty to skip SNS email subscription
+alert_email = ""
+# alert_email = "your-email@example.com"

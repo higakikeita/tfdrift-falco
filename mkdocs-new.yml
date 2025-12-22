@@ -68,17 +68,17 @@ nav:
   # 3. User Guide - Daily Operations
   # ==========================================
   - User Guide:
-      - Basic Usage: usage.md
+      - Basic Usage: USAGE.md
       - Use Cases:
-          - Overview: use-cases.md
-      - Best Practices: best-practices.md
+          - Overview: USE_CASES.md
+      - Best Practices: BEST_PRACTICES.md
 
   # ==========================================
   # 4. Reference - Technical Details
   # ==========================================
   - Reference:
       - API:
-          - REST API: api/rest-api.md
+          - REST API: API.md
           - WebSocket: api/websocket.md
           - Server-Sent Events: api/sse.md
       - Architecture:

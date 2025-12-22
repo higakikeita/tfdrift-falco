@@ -109,22 +109,22 @@ const MediumNode = memo(({ data, selected }: { data: LODNodeData; selected?: boo
 MediumNode.displayName = 'MediumNode';
 
 // Main LOD Node component with zoom-based switching
-export const LODNode = memo(({ data, id, selected }: NodeProps<LODNodeData>) => {
+export const LODNode = memo((props: NodeProps<LODNodeData>) => {
   // Get current zoom level from ReactFlow store
   const zoom = useStore((state) => state.transform[2]);
 
   // Minimal detail: zoom < 0.2
   if (zoom < 0.2) {
-    return <MinimalNode data={data} />;
+    return <MinimalNode data={props.data} />;
   }
 
   // Medium detail: zoom 0.2-0.5
   if (zoom < 0.5) {
-    return <MediumNode data={data} selected={selected} />;
+    return <MediumNode data={props.data} selected={props.selected} />;
   }
 
   // Full detail: zoom >= 0.5
-  return <CustomNode data={data} id={id} selected={selected} />;
+  return <CustomNode {...props} />;
 });
 
 LODNode.displayName = 'LODNode';
