@@ -14,6 +14,7 @@ type Store struct {
 	events       []types.Event
 	unmanaged    []types.UnmanagedResourceAlert
 	stateManager *terraform.StateManager
+	graphDB      *GraphDatabase  // Neo4j-style graph database
 	mu           sync.RWMutex
 }
 
@@ -23,6 +24,7 @@ func NewStore() *Store {
 		drifts:    make([]types.DriftAlert, 0),
 		events:    make([]types.Event, 0),
 		unmanaged: make([]types.UnmanagedResourceAlert, 0),
+		graphDB:   NewGraphDatabase(),
 	}
 }
 
@@ -88,6 +90,35 @@ func (s *Store) SetStateManager(sm *terraform.StateManager) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.stateManager = sm
+
+	// Rebuild graph database when state manager is set
+	s.rebuildGraphDB()
+}
+
+// GetGraphDB returns the graph database
+func (s *Store) GetGraphDB() *GraphDatabase {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.graphDB
+}
+
+// rebuildGraphDB rebuilds the graph database from current resources
+// Should be called with lock held
+func (s *Store) rebuildGraphDB() {
+	if s.stateManager == nil {
+		return
+	}
+
+	resources := s.stateManager.GetAllResources()
+
+	// Track which resources have drifts
+	driftedIDs := make(map[string]bool)
+	for _, drift := range s.drifts {
+		driftedIDs[drift.ResourceID] = true
+	}
+
+	// Convert to graph database
+	s.graphDB = TerraformToGraph(resources, driftedIDs)
 }
 
 // buildDependencyEdges extracts dependency relationships from resources
