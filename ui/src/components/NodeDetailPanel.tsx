@@ -19,7 +19,10 @@ interface Node {
   properties: Record<string, any>;
 }
 
+type TabType = 'overview' | 'relationships' | 'impact';
+
 const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: NodeDetailPanelProps) => {
+  const [activeTab, setActiveTab] = React.useState<TabType>('overview');
   const [impactDepth, setImpactDepth] = React.useState(2);
   const [showImpact, setShowImpact] = React.useState(false);
 
@@ -78,9 +81,46 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
         </button>
       </div>
 
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <nav className="flex">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200 ${
+              activeTab === 'overview'
+                ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            概要
+          </button>
+          <button
+            onClick={() => setActiveTab('relationships')}
+            className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200 ${
+              activeTab === 'relationships'
+                ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            関係性
+          </button>
+          <button
+            onClick={() => setActiveTab('impact')}
+            className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200 ${
+              activeTab === 'impact'
+                ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            影響範囲
+          </button>
+        </nav>
+      </div>
+
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Node Basic Info */}
+        <div style={{ display: activeTab === 'overview' ? 'block' : 'none' }}>
         {nodeLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-blue-600 dark:text-blue-400" />
@@ -121,8 +161,10 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
         ) : (
           <div className="text-sm text-gray-500 dark:text-gray-400">ノード情報が見つかりません</div>
         )}
+        </div>
 
         {/* Dependencies */}
+        <div className="space-y-4" style={{ display: activeTab === 'relationships' ? 'block' : 'none' }}>
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1 flex items-center gap-2">
             <ArrowRight className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -225,8 +267,10 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
             <div className="text-sm text-gray-500 dark:text-gray-400">隣接ノードなし</div>
           )}
         </div>
+        </div>
 
         {/* Impact Radius */}
+        <div style={{ display: activeTab === 'impact' ? 'block' : 'none' }}>
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1 flex items-center gap-2">
             <Target className="w-4 h-4 text-red-600 dark:text-red-400" />
@@ -275,6 +319,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
               </>
             )}
           </div>
+        </div>
         </div>
       </div>
     </div>
