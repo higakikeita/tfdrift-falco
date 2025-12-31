@@ -143,6 +143,54 @@ class APIClient {
   async getStats() {
     return this.request('/stats');
   }
+
+  // GraphDB Query API
+  async getGraphStats() {
+    return this.request('/graph/stats');
+  }
+
+  async getNodeById(id: string) {
+    return this.request(`/graph/nodes/${id}`);
+  }
+
+  async getNodeNeighbors(id: string) {
+    return this.request(`/graph/neighbors/${id}`);
+  }
+
+  async getNodeRelationships(id: string, direction?: 'incoming' | 'outgoing' | 'all') {
+    const searchParams = new URLSearchParams();
+    if (direction) searchParams.append('direction', direction);
+    const query = searchParams.toString();
+    return this.request(`/graph/relationships/${id}${query ? `?${query}` : ''}`);
+  }
+
+  async getImpactRadius(id: string, maxDepth: number) {
+    return this.request(`/graph/impact/${id}?max_depth=${maxDepth}`);
+  }
+
+  async getDependencies(id: string, depth: number = 5) {
+    return this.request(`/graph/dependencies/${id}?depth=${depth}`);
+  }
+
+  async getDependents(id: string, depth: number = 5) {
+    return this.request(`/graph/dependents/${id}?depth=${depth}`);
+  }
+
+  async getCriticalNodes(min: number = 3) {
+    return this.request(`/graph/critical?min=${min}`);
+  }
+
+  async matchPattern(pattern: {
+    start_labels: string[];
+    rel_type: string;
+    end_labels: string[];
+    end_filter: Record<string, any>;
+  }) {
+    return this.request('/graph/match', {
+      method: 'POST',
+      body: JSON.stringify(pattern),
+    });
+  }
 }
 
 // Export singleton instance

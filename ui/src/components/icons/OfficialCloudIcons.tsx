@@ -25,6 +25,7 @@ import {
   // AWS Networking Icons
   ArchitectureGroupVirtualprivatecloudVPC,
   ArchitectureServiceElasticLoadBalancing,
+  ArchitectureServiceAmazonVPCLattice,
 } from 'aws-react-icons';
 
 interface OfficialIconProps {
@@ -45,7 +46,9 @@ const AWS_ICON_MAPPING: Record<string, React.ComponentType<any>> = {
   // AWS Compute
   'aws_lambda_function': ArchitectureServiceAWSLambda,
   'aws_lambda': ArchitectureServiceAWSLambda,
+  'aws_instance': ArchitectureServiceAmazonEC2,
   'aws_ec2_instance': ArchitectureServiceAmazonEC2,
+  'ec2_instance': ArchitectureServiceAmazonEC2,
   'aws_ecs_service': ArchitectureServiceAmazonElasticContainerService,
   'aws_eks_cluster': ArchitectureServiceAmazonEKSCloud,
 
@@ -59,9 +62,16 @@ const AWS_ICON_MAPPING: Record<string, React.ComponentType<any>> = {
   'aws_subnet': ArchitectureGroupVirtualprivatecloudVPC,
   'aws_security_group': ArchitectureGroupVirtualprivatecloudVPC,
   'aws_elb': ArchitectureServiceElasticLoadBalancing,
+  'aws_lb': ArchitectureServiceElasticLoadBalancing,
+  'aws_alb': ArchitectureServiceElasticLoadBalancing,
+  'load_balancer': ArchitectureServiceElasticLoadBalancing,
+  'aws_nat_gateway': ArchitectureServiceAmazonVPCLattice,
+  'nat_gateway': ArchitectureServiceAmazonVPCLattice,
 
   // AWS Database
+  'aws_db_instance': ArchitectureServiceAmazonRDS,
   'aws_rds_instance': ArchitectureServiceAmazonRDS,
+  'rds_instance': ArchitectureServiceAmazonRDS,
   'aws_dynamodb_table': ArchitectureServiceAmazonDynamoDB,
 };
 

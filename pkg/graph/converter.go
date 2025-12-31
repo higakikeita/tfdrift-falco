@@ -11,13 +11,17 @@ import (
 func TerraformToGraph(resources []*terraform.Resource, driftedIDs map[string]bool) *GraphDatabase {
 	db := NewGraphDatabase()
 
-	log.Info("Converting Terraform resources to graph database...")
+	log.Infof("Converting Terraform resources to graph database... (input: %d resources)", len(resources))
 
 	// First pass: Create nodes for all resources
-	for _, resource := range resources {
+	for i, resource := range resources {
+		log.Debugf("Processing resource %d/%d: %s.%s", i+1, len(resources), resource.Type, resource.Name)
 		node := resourceToNode(resource, driftedIDs)
 		if node != nil {
+			log.Debugf("Created node with ID: %s", node.ID)
 			db.AddNode(node)
+		} else {
+			log.Warnf("resourceToNode returned nil for %s.%s", resource.Type, resource.Name)
 		}
 	}
 
@@ -41,7 +45,9 @@ func TerraformToGraph(resources []*terraform.Resource, driftedIDs map[string]boo
 func resourceToNode(resource *terraform.Resource, driftedIDs map[string]bool) *Node {
 	resourceID := extractResourceIDFromAttributes(resource.Attributes)
 	if resourceID == "" {
-		return nil
+		// Fallback: use type + name as ID if no ID found
+		resourceID = resource.Type + "." + resource.Name
+		log.Debugf("No ID found for resource %s.%s, using fallback ID: %s", resource.Type, resource.Name, resourceID)
 	}
 
 	// Determine labels

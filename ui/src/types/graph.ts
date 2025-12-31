@@ -138,7 +138,8 @@ export const LayoutType = {
   HIERARCHICAL: 'dagre',
   RADIAL: 'concentric',
   FORCE: 'cose',
-  GRID: 'grid'
+  GRID: 'grid',
+  NETWORK_DIAGRAM: 'network-diagram'
 } as const;
 
 export type LayoutType = typeof LayoutType[keyof typeof LayoutType];

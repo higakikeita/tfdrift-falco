@@ -29,8 +29,11 @@ import type { CytoscapeElements } from '../../types/graph';
 
 interface ReactFlowGraphProps {
   elements: CytoscapeElements;
+  layout?: 'dagre' | 'cose' | 'concentric' | 'grid' | 'network-diagram';
   onNodeClick?: (nodeId: string, nodeData: any) => void;
   highlightedPath?: string[];
+  highlightedNodes?: string[];
+  criticalNodes?: string[];
   className?: string;
 }
 
@@ -53,16 +56,19 @@ const imageHeight = 1600;
 
 export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
   elements,
+  layout = 'dagre',
   onNodeClick,
   highlightedPath = [],
+  highlightedNodes = [],
+  criticalNodes = [],
   className = ''
 }) => {
   const { getNodes } = useReactFlow();
 
   // Convert Cytoscape data to React Flow format
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
-    () => convertToReactFlow(elements),
-    [elements]
+    () => convertToReactFlow(elements, layout),
+    [elements, layout]
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -126,21 +132,62 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
     });
   }, [getNodes]);
 
-  // Apply highlighting when path changes
+  // Apply highlighting when path, nodes, or critical nodes change
   useEffect(() => {
     if (highlightedPath.length > 0) {
-      const { nodes: highlightedNodes, edges: highlightedEdges } = highlightPath(
+      const { nodes: pathNodes, edges: pathEdges } = highlightPath(
         initialNodes,
         initialEdges,
         highlightedPath
       );
-      setNodes(highlightedNodes);
-      setEdges(highlightedEdges);
+      setNodes(pathNodes);
+      setEdges(pathEdges);
+    } else if (highlightedNodes.length > 0) {
+      // Highlight nodes with impact radius style
+      const updatedNodes = initialNodes.map((node) => {
+        const isHighlighted = highlightedNodes.includes(node.id);
+        const isCritical = criticalNodes.includes(node.id);
+        return {
+          ...node,
+          style: {
+            ...node.style,
+            opacity: isHighlighted ? 1 : 0.3,
+            border: isHighlighted
+              ? '3px solid #dc2626'
+              : isCritical
+              ? '3px solid #f59e0b'
+              : node.style?.border,
+            boxShadow: isHighlighted
+              ? '0 0 20px rgba(220, 38, 38, 0.5)'
+              : isCritical
+              ? '0 0 15px rgba(245, 158, 11, 0.4)'
+              : node.style?.boxShadow,
+          },
+        };
+      });
+      setNodes(updatedNodes);
+      setEdges(initialEdges);
+    } else if (criticalNodes.length > 0) {
+      // Highlight critical nodes only
+      const updatedNodes = initialNodes.map((node) => {
+        const isCritical = criticalNodes.includes(node.id);
+        return {
+          ...node,
+          style: {
+            ...node.style,
+            border: isCritical ? '3px solid #f59e0b' : node.style?.border,
+            boxShadow: isCritical ? '0 0 15px rgba(245, 158, 11, 0.4)' : node.style?.boxShadow,
+            backgroundColor: isCritical ? '#fef3c7' : node.style?.backgroundColor,
+          },
+        };
+      });
+      setNodes(updatedNodes);
+      setEdges(initialEdges);
     } else {
       setNodes(initialNodes);
       setEdges(initialEdges);
     }
-  }, [highlightedPath, initialNodes, initialEdges, setNodes, setEdges]);
+  }, [highlightedPath, highlightedNodes, criticalNodes, initialNodes, initialEdges, setNodes, setEdges]);
 
   // Handle node click
   const handleNodeClick = useCallback(

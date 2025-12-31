@@ -8,22 +8,25 @@ import { ReactFlowProvider } from 'reactflow';
 import { ReactFlowGraph } from './components/reactflow/ReactFlowGraph';
 import DriftHistoryTable from './components/DriftHistoryTable';
 import DriftDetailPanel from './components/DriftDetailPanel';
+import NodeDetailPanel from './components/NodeDetailPanel';
+// import PatternSearchPanel from './components/PatternSearchPanel'; // TODO: Integrate pattern search
 import { ThemeToggle } from './components/ThemeToggle';
 import {
   generateSampleCausalChain,
   generateComplexSampleGraph,
-  generateBlastRadiusGraph
+  generateBlastRadiusGraph,
+  generateNetworkDiagram
 } from './utils/sampleData';
 import { generateSampleDrifts } from './utils/sampleDrifts';
 import { LayoutType } from './types/graph';
 import type { LayoutType as LayoutTypeType } from './types/graph';
 import type { DriftEvent } from './types/drift';
-import { useGraph, useDrifts } from './api/hooks';
+import { useGraph, useDrifts, useCriticalNodes } from './api/hooks';
 import { Loader2, AlertCircle } from 'lucide-react';
 import type { DriftAlert } from './api/types';
 import './App.css';
 
-type DemoMode = 'api' | 'simple' | 'complex' | 'blast-radius';
+type DemoMode = 'api' | 'simple' | 'complex' | 'blast-radius' | 'network-diagram';
 type ViewMode = 'graph' | 'table' | 'split';
 
 // Convert API DriftAlert to UI DriftEvent
@@ -59,6 +62,10 @@ function App() {
 
   // Graph state
   const [highlightedPath, setHighlightedPath] = useState<string[]>([]);
+  const [highlightedNodes, setHighlightedNodes] = useState<string[]>([]);
+  const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [showCriticalNodes, setShowCriticalNodes] = useState(false);
+  const [criticalNodeMin, setCriticalNodeMin] = useState(3);
 
   // Drift table state
   const [selectedDrift, setSelectedDrift] = useState<DriftEvent | null>(null);
@@ -66,11 +73,17 @@ function App() {
   // Fetch data from API
   const { data: apiGraphData, isLoading: graphLoading, error: graphError } = useGraph();
   const { data: apiDriftsData, isLoading: driftsLoading, error: driftsError } = useDrifts({ limit: 100 });
+  const { data: criticalNodesData } = useCriticalNodes(showCriticalNodes ? criticalNodeMin : 999);
 
   // Convert API drifts to UI format or use sample data
   const drifts: DriftEvent[] = demoMode === 'api' && apiDriftsData?.data
     ? apiDriftsData.data.map(convertDriftAlertToEvent)
     : generateSampleDrifts(100);
+
+  // Get critical node IDs
+  const criticalNodeIds: string[] = showCriticalNodes && criticalNodesData
+    ? ((criticalNodesData as any)?.data?.critical_nodes || []).map((node: any) => node.id)
+    : [];
 
   // Get graph data based on demo mode
   const getGraphData = () => {
@@ -113,6 +126,8 @@ function App() {
         return generateComplexSampleGraph();
       case 'blast-radius':
         return generateBlastRadiusGraph();
+      case 'network-diagram':
+        return generateNetworkDiagram();
       default:
         return generateSampleCausalChain();
     }
@@ -122,6 +137,7 @@ function App() {
 
   const handleNodeClick = (nodeId: string, nodeData: any) => {
     console.log('Node clicked:', nodeId, nodeData);
+    setSelectedNode(nodeId);
   };
 
   const handleHighlightPath = () => {
@@ -146,8 +162,13 @@ function App() {
     setSelectedDrift(drift);
   };
 
+  const handleShowImpactRadius = (nodeIds: string[], depth: number) => {
+    console.log('Impact Radius:', nodeIds.length, 'nodes at depth', depth);
+    setHighlightedNodes(nodeIds);
+  };
+
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900">
       {/* Header */}
       <header className="bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-4 shadow-lg">
         <div className="flex items-center justify-between">
@@ -166,38 +187,38 @@ function App() {
       </header>
 
       {/* Control Panel */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3">
         <div className="flex items-center gap-4 flex-wrap">
           {/* View Mode Tabs */}
-          <div className="flex items-center gap-2 border-r border-gray-300 pr-4">
-            <label className="text-sm font-medium text-gray-700">表示:</label>
-            <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+          <div className="flex items-center gap-2 border-r border-gray-300 dark:border-gray-600 pr-4">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">表示:</label>
+            <div className="flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
               <button
                 onClick={() => setViewMode('graph')}
                 className={`px-4 py-1.5 text-sm font-medium transition-colors ${
                   viewMode === 'graph'
                     ? 'bg-red-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600'
                 }`}
               >
                 📊 グラフ
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`px-4 py-1.5 text-sm font-medium border-l border-gray-300 transition-colors ${
+                className={`px-4 py-1.5 text-sm font-medium border-l border-gray-300 dark:border-gray-600 transition-colors ${
                   viewMode === 'table'
                     ? 'bg-red-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600'
                 }`}
               >
                 📋 テーブル
               </button>
               <button
                 onClick={() => setViewMode('split')}
-                className={`px-4 py-1.5 text-sm font-medium border-l border-gray-300 transition-colors ${
+                className={`px-4 py-1.5 text-sm font-medium border-l border-gray-300 dark:border-gray-600 transition-colors ${
                   viewMode === 'split'
                     ? 'bg-red-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600'
                 }`}
               >
                 ⚡ 分割
@@ -208,13 +229,14 @@ function App() {
           {/* Demo Mode (for Graph) */}
           {(viewMode === 'graph' || viewMode === 'split') && (
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">データソース:</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">データソース:</label>
               <select
                 value={demoMode}
                 onChange={(e) => setDemoMode(e.target.value as DemoMode)}
-                className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-red-500"
+                className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500"
               >
                 <option value="api">🔴 Live API (本番)</option>
+                <option value="network-diagram">🟦 Network Diagram (AWS構成図)</option>
                 <option value="simple">🟢 Simple Chain (デモ)</option>
                 <option value="complex">🟢 Complex Graph (デモ)</option>
                 <option value="blast-radius">🟢 Blast Radius (デモ)</option>
@@ -233,17 +255,43 @@ function App() {
           {/* Layout (for Graph) */}
           {(viewMode === 'graph' || viewMode === 'split') && (
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">レイアウト:</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">レイアウト:</label>
               <select
                 value={layout}
                 onChange={(e) => setLayout(e.target.value as LayoutTypeType)}
-                className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-red-500"
+                className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500"
               >
+                <option value={LayoutType.NETWORK_DIAGRAM}>🟦 ネットワーク構成図 (AWS-Style)</option>
                 <option value={LayoutType.HIERARCHICAL}>階層 (Hierarchical/Dagre)</option>
                 <option value={LayoutType.FORCE}>力学配置 (Force)</option>
                 <option value={LayoutType.RADIAL}>放射状 (Radial)</option>
                 <option value={LayoutType.GRID}>グリッド (Grid)</option>
               </select>
+            </div>
+          )}
+
+          {/* Critical Nodes Control */}
+          {(viewMode === 'graph' || viewMode === 'split') && (
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">クリティカル:</label>
+              <input
+                type="checkbox"
+                checked={showCriticalNodes}
+                onChange={(e) => setShowCriticalNodes(e.target.checked)}
+                className="w-4 h-4 text-red-600 rounded focus:ring-red-500"
+              />
+              {showCriticalNodes && (
+                <select
+                  value={criticalNodeMin}
+                  onChange={(e) => setCriticalNodeMin(Number(e.target.value))}
+                  className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                >
+                  <option value={2}>2+ 依存</option>
+                  <option value={3}>3+ 依存</option>
+                  <option value={4}>4+ 依存</option>
+                  <option value={5}>5+ 依存</option>
+                </select>
+              )}
             </div>
           )}
 
@@ -258,7 +306,7 @@ function App() {
               </button>
               <button
                 onClick={handleClearHighlight}
-                className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors"
+                className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 ✕ クリア
               </button>
@@ -266,11 +314,11 @@ function App() {
           )}
 
           {/* Stats */}
-          <div className="ml-auto text-sm text-gray-600 flex items-center gap-2">
+          <div className="ml-auto text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
             <span className="font-medium">総ドリフト数:</span>{' '}
-            <span className="text-lg font-bold text-red-600">{drifts.length}</span>
+            <span className="text-lg font-bold text-red-600 dark:text-red-400">{drifts.length}</span>
             {demoMode === 'api' && driftsLoading && (
-              <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+              <Loader2 className="w-4 h-4 animate-spin text-gray-400 dark:text-gray-500" />
             )}
             {demoMode === 'api' && driftsError && (
               <span title="ドリフト読み込みエラー">
@@ -285,16 +333,31 @@ function App() {
       <div className="flex-1 flex overflow-hidden">
         {/* Graph View */}
         {viewMode === 'graph' && (
-          <div className="flex-1 p-4">
-            <div className="h-full bg-white rounded-lg shadow-lg overflow-hidden">
-              <ReactFlowProvider>
-                <ReactFlowGraph
-                  elements={graphData}
-                  onNodeClick={handleNodeClick}
-                  highlightedPath={highlightedPath}
-                />
-              </ReactFlowProvider>
+          <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 p-4">
+              <div className="h-full bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                <ReactFlowProvider>
+                  <ReactFlowGraph
+                    elements={graphData}
+                    layout={layout}
+                    onNodeClick={handleNodeClick}
+                    highlightedPath={highlightedPath}
+                    highlightedNodes={highlightedNodes}
+                    criticalNodes={criticalNodeIds}
+                  />
+                </ReactFlowProvider>
+              </div>
             </div>
+            {selectedNode && (
+              <div className="w-96">
+                <NodeDetailPanel
+                  nodeId={selectedNode}
+                  onClose={() => setSelectedNode(null)}
+                  onNodeSelect={(nodeId) => setSelectedNode(nodeId)}
+                  onShowImpactRadius={handleShowImpactRadius}
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -323,23 +386,26 @@ function App() {
           <>
             {/* Left: Graph */}
             <div className="flex-1 p-4 pr-2">
-              <div className="h-full bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-700">因果関係グラフ</h3>
+              <div className="h-full bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">因果関係グラフ</h3>
                 </div>
                 <div className="h-[calc(100%-40px)]">
                   <ReactFlowProvider>
                     <ReactFlowGraph
                       elements={graphData}
+                      layout={layout}
                       onNodeClick={handleNodeClick}
                       highlightedPath={highlightedPath}
+                      highlightedNodes={highlightedNodes}
+                      criticalNodes={criticalNodeIds}
                     />
                   </ReactFlowProvider>
                 </div>
               </div>
             </div>
 
-            {/* Right: Table + Detail */}
+            {/* Right: Table + Detail Panels */}
             <div className="flex-1 flex p-4 pl-2 overflow-hidden">
               <div className="flex-1 mr-2">
                 <div className="h-full">
@@ -349,9 +415,19 @@ function App() {
                   />
                 </div>
               </div>
-              {selectedDrift && (
+              {selectedNode && (
+                <div className="w-96">
+                  <NodeDetailPanel
+                    nodeId={selectedNode}
+                    onClose={() => setSelectedNode(null)}
+                    onNodeSelect={(nodeId) => setSelectedNode(nodeId)}
+                    onShowImpactRadius={handleShowImpactRadius}
+                  />
+                </div>
+              )}
+              {!selectedNode && selectedDrift && (
                 <div className="w-80">
-                  <div className="h-full bg-white rounded-lg shadow-lg overflow-hidden">
+                  <div className="h-full bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
                     <DriftDetailPanel
                       drift={selectedDrift}
                       onClose={() => setSelectedDrift(null)}
@@ -365,8 +441,8 @@ function App() {
       </div>
 
       {/* Footer / Status Bar */}
-      <div className="bg-white border-t border-gray-200 px-6 py-2">
-        <div className="flex items-center justify-between text-xs text-gray-600">
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-2">
+        <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
           <div className="flex items-center gap-4">
             <span>🟢 接続: Falco gRPC</span>
             <span>📊 グラフノード: {graphData.nodes?.length || 0}</span>

@@ -310,6 +310,316 @@ export function generateComplexSampleGraph(): CytoscapeElements {
 }
 
 /**
+ * AWS Network Diagram - リアルなネットワーク構成図
+ * Region > VPC > AZ > Subnet > Resources の階層構造
+ */
+export function generateNetworkDiagram(): CytoscapeElements {
+  return {
+    nodes: [
+      // ==== Region Group ====
+      {
+        data: {
+          id: 'region-us-west-2',
+          label: 'US West 2 (Oregon)',
+          type: 'region' as any,
+          resource_type: 'aws_region',
+          resource_name: 'us-west-2',
+          metadata: {
+            hierarchical_level: 'region',
+            region: 'us-west-2'
+          }
+        }
+      },
+
+      // ==== VPC ====
+      {
+        data: {
+          id: 'vpc-prod-123',
+          label: 'Production VPC',
+          type: 'vpc' as any,
+          resource_type: 'aws_vpc',
+          resource_name: 'vpc-prod-123',
+          metadata: {
+            hierarchical_level: 'vpc',
+            parent: 'region-us-west-2',
+            region: 'us-west-2',
+            cidr: '10.0.0.0/16',
+            vpc_id: 'vpc-prod-123'
+          }
+        }
+      },
+
+      // ==== AZ 2a ====
+      {
+        data: {
+          id: 'az-us-west-2a',
+          label: 'us-west-2a',
+          type: 'availability_zone' as any,
+          resource_type: 'aws_availability_zone',
+          resource_name: 'us-west-2a',
+          metadata: {
+            hierarchical_level: 'az',
+            parent: 'vpc-prod-123',
+            region: 'us-west-2',
+            availability_zone: 'us-west-2a'
+          }
+        }
+      },
+
+      // ==== Public Subnet 2a ====
+      {
+        data: {
+          id: 'subnet-pub-2a',
+          label: 'Public Subnet 2a',
+          type: 'subnet' as any,
+          resource_type: 'aws_subnet',
+          resource_name: 'subnet-pub-2a',
+          metadata: {
+            hierarchical_level: 'subnet',
+            parent: 'az-us-west-2a',
+            subnet_type: 'public',
+            cidr: '10.0.1.0/24',
+            availability_zone: 'us-west-2a'
+          }
+        }
+      },
+
+      // Resources in Public Subnet 2a
+      {
+        data: {
+          id: 'alb-web',
+          label: 'Web ALB',
+          type: 'load_balancer' as any,
+          resource_type: 'aws_lb',
+          resource_name: 'web-alb',
+          severity: 'low' as const,
+          metadata: {
+            hierarchical_level: 'resource',
+            parent: 'subnet-pub-2a',
+            resource_type: 'ALB',
+            dns_name: 'web-alb-123456.us-west-2.elb.amazonaws.com'
+          }
+        }
+      },
+      {
+        data: {
+          id: 'nat-2a',
+          label: 'NAT Gateway 2a',
+          type: 'nat_gateway' as any,
+          resource_type: 'aws_nat_gateway',
+          resource_name: 'nat-2a',
+          severity: 'low' as const,
+          metadata: {
+            hierarchical_level: 'resource',
+            parent: 'subnet-pub-2a'
+          }
+        }
+      },
+
+      // ==== Private Subnet 2a ====
+      {
+        data: {
+          id: 'subnet-priv-2a',
+          label: 'Private Subnet 2a',
+          type: 'subnet' as any,
+          resource_type: 'aws_subnet',
+          resource_name: 'subnet-priv-2a',
+          metadata: {
+            hierarchical_level: 'subnet',
+            parent: 'az-us-west-2a',
+            subnet_type: 'private',
+            cidr: '10.0.10.0/24',
+            availability_zone: 'us-west-2a'
+          }
+        }
+      },
+
+      // Resources in Private Subnet 2a
+      {
+        data: {
+          id: 'ec2-web-1',
+          label: 'Web Server 1',
+          type: 'ec2_instance' as any,
+          resource_type: 'aws_instance',
+          resource_name: 'web-server-1',
+          severity: 'medium' as const,
+          metadata: {
+            hierarchical_level: 'resource',
+            parent: 'subnet-priv-2a',
+            instance_type: 't3.medium',
+            private_ip: '10.0.10.10'
+          }
+        }
+      },
+      {
+        data: {
+          id: 'ec2-web-2',
+          label: 'Web Server 2',
+          type: 'ec2_instance' as any,
+          resource_type: 'aws_instance',
+          resource_name: 'web-server-2',
+          severity: 'medium' as const,
+          metadata: {
+            hierarchical_level: 'resource',
+            parent: 'subnet-priv-2a',
+            instance_type: 't3.medium',
+            private_ip: '10.0.10.11'
+          }
+        }
+      },
+      {
+        data: {
+          id: 'rds-primary',
+          label: 'PostgreSQL Primary',
+          type: 'rds_instance' as any,
+          resource_type: 'aws_db_instance',
+          resource_name: 'postgres-primary',
+          severity: 'high' as const,
+          metadata: {
+            hierarchical_level: 'resource',
+            parent: 'subnet-priv-2a',
+            engine: 'postgres',
+            engine_version: '15.3'
+          }
+        }
+      },
+
+      // ==== AZ 2b ====
+      {
+        data: {
+          id: 'az-us-west-2b',
+          label: 'us-west-2b',
+          type: 'availability_zone' as any,
+          resource_type: 'aws_availability_zone',
+          resource_name: 'us-west-2b',
+          metadata: {
+            hierarchical_level: 'az',
+            parent: 'vpc-prod-123',
+            region: 'us-west-2',
+            availability_zone: 'us-west-2b'
+          }
+        }
+      },
+
+      // ==== Public Subnet 2b ====
+      {
+        data: {
+          id: 'subnet-pub-2b',
+          label: 'Public Subnet 2b',
+          type: 'subnet' as any,
+          resource_type: 'aws_subnet',
+          resource_name: 'subnet-pub-2b',
+          metadata: {
+            hierarchical_level: 'subnet',
+            parent: 'az-us-west-2b',
+            subnet_type: 'public',
+            cidr: '10.0.2.0/24',
+            availability_zone: 'us-west-2b'
+          }
+        }
+      },
+
+      // Resources in Public Subnet 2b
+      {
+        data: {
+          id: 'nat-2b',
+          label: 'NAT Gateway 2b',
+          type: 'nat_gateway' as any,
+          resource_type: 'aws_nat_gateway',
+          resource_name: 'nat-2b',
+          severity: 'low' as const,
+          metadata: {
+            hierarchical_level: 'resource',
+            parent: 'subnet-pub-2b'
+          }
+        }
+      },
+
+      // ==== Private Subnet 2b ====
+      {
+        data: {
+          id: 'subnet-priv-2b',
+          label: 'Private Subnet 2b',
+          type: 'subnet' as any,
+          resource_type: 'aws_subnet',
+          resource_name: 'subnet-priv-2b',
+          metadata: {
+            hierarchical_level: 'subnet',
+            parent: 'az-us-west-2b',
+            subnet_type: 'private',
+            cidr: '10.0.11.0/24',
+            availability_zone: 'us-west-2b'
+          }
+        }
+      },
+
+      // Resources in Private Subnet 2b
+      {
+        data: {
+          id: 'ec2-web-3',
+          label: 'Web Server 3',
+          type: 'ec2_instance' as any,
+          resource_type: 'aws_instance',
+          resource_name: 'web-server-3',
+          severity: 'medium' as const,
+          metadata: {
+            hierarchical_level: 'resource',
+            parent: 'subnet-priv-2b',
+            instance_type: 't3.medium',
+            private_ip: '10.0.11.10'
+          }
+        }
+      },
+      {
+        data: {
+          id: 'rds-standby',
+          label: 'PostgreSQL Standby',
+          type: 'rds_instance' as any,
+          resource_type: 'aws_db_instance',
+          resource_name: 'postgres-standby',
+          severity: 'high' as const,
+          metadata: {
+            hierarchical_level: 'resource',
+            parent: 'subnet-priv-2b',
+            engine: 'postgres',
+            engine_version: '15.3',
+            role: 'standby'
+          }
+        }
+      },
+      {
+        data: {
+          id: 'lambda-api',
+          label: 'API Handler Lambda',
+          type: 'lambda_function' as any,
+          resource_type: 'aws_lambda_function',
+          resource_name: 'api-handler',
+          severity: 'low' as const,
+          metadata: {
+            hierarchical_level: 'resource',
+            parent: 'subnet-priv-2b',
+            runtime: 'python3.11',
+            memory: 256
+          }
+        }
+      }
+    ],
+
+    edges: [
+      // Logical connections between resources
+      { data: { id: 'e-alb-web1', source: 'alb-web', target: 'ec2-web-1', label: 'routes to', type: EdgeType.GRANTS_ACCESS, relationship: 'load_balancing' } },
+      { data: { id: 'e-alb-web2', source: 'alb-web', target: 'ec2-web-2', label: 'routes to', type: EdgeType.GRANTS_ACCESS, relationship: 'load_balancing' } },
+      { data: { id: 'e-alb-web3', source: 'alb-web', target: 'ec2-web-3', label: 'routes to', type: EdgeType.GRANTS_ACCESS, relationship: 'load_balancing' } },
+      { data: { id: 'e-web1-db', source: 'ec2-web-1', target: 'rds-primary', label: 'queries', type: EdgeType.USED_BY, relationship: 'database_connection' } },
+      { data: { id: 'e-web2-db', source: 'ec2-web-2', target: 'rds-primary', label: 'queries', type: EdgeType.USED_BY, relationship: 'database_connection' } },
+      { data: { id: 'e-web3-db', source: 'ec2-web-3', target: 'rds-primary', label: 'queries', type: EdgeType.USED_BY, relationship: 'database_connection' } },
+      { data: { id: 'e-db-repl', source: 'rds-primary', target: 'rds-standby', label: 'replicates to', type: EdgeType.CONTAINS, relationship: 'replication' } },
+      { data: { id: 'e-lambda-db', source: 'lambda-api', target: 'rds-primary', label: 'queries', type: EdgeType.USED_BY, relationship: 'database_connection' } }
+    ]
+  };
+}
+
+/**
  * Blast Radiusデモ用のデータ
  */
 export function generateBlastRadiusGraph(): CytoscapeElements {

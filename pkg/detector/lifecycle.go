@@ -17,6 +17,15 @@ func (d *Detector) Start(ctx context.Context) error {
 	resourceCount := d.stateManager.ResourceCount()
 	log.Infof("Loaded Terraform state: %d resources", resourceCount)
 
+	// Rebuild graph database with loaded resources
+	if d.graphStore == nil {
+		log.Warn("GraphStore is nil in detector, cannot rebuild graph database")
+	} else {
+		log.Info("GraphStore is available, rebuilding graph database...")
+		d.graphStore.RebuildGraphDB()
+		log.Info("Rebuilt graph database with loaded resources")
+	}
+
 	// Start event collectors
 	d.wg.Add(1)
 	go func() {

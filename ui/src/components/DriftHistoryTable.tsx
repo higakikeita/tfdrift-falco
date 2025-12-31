@@ -5,7 +5,7 @@
 
 import { useState, useMemo } from 'react';
 import type { DriftEvent, DriftSeverity, ChangeType, Provider } from '../types/drift';
-import { SiAmazon, SiGooglecloud } from 'react-icons/si';
+import { ProviderIcon } from './icons/ProviderIcons';
 
 interface DriftHistoryTableProps {
   drifts: DriftEvent[];
@@ -286,8 +286,7 @@ export default function DriftHistoryTable({ drifts, onSelectDrift }: DriftHistor
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      {drift.provider === 'aws' && <SiAmazon size={20} className="text-orange-500" />}
-                      {drift.provider === 'gcp' && <SiGooglecloud size={20} className="text-blue-500" />}
+                      <ProviderIcon provider={drift.provider as 'aws' | 'gcp' | 'azure'} size={20} />
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                         {drift.provider.toUpperCase()}
                       </span>

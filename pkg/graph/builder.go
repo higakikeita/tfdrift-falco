@@ -6,6 +6,7 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	log "github.com/sirupsen/logrus"
 )
 
 // Store maintains the graph data in memory
@@ -99,7 +100,16 @@ func (s *Store) SetStateManager(sm *terraform.StateManager) {
 func (s *Store) GetGraphDB() *GraphDatabase {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	log.Infof("[GetGraphDB] Returning GraphDatabase instance: %p (node count: %d)", s.graphDB, s.graphDB.NodeCount())
 	return s.graphDB
+}
+
+// RebuildGraphDB rebuilds the graph database from current resources
+// Can be called externally after state manager loads resources
+func (s *Store) RebuildGraphDB() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.rebuildGraphDB()
 }
 
 // rebuildGraphDB rebuilds the graph database from current resources

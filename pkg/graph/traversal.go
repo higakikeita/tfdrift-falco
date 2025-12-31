@@ -1,5 +1,9 @@
 package graph
 
+import (
+	log "github.com/sirupsen/logrus"
+)
+
 // Path represents a path through the graph
 type Path struct {
 	Nodes         []*Node         `json:"nodes"`
@@ -181,9 +185,16 @@ func (db *GraphDatabase) FindDependencies(nodeID string, maxDepth int) []*Node {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
+	log.Infof("[FindDependencies] ENTRY: Receiver instance: %p, nodeID=%s, maxDepth=%d", db, nodeID, maxDepth)
+	log.Infof("[FindDependencies] Called with nodeID=%s, maxDepth=%d", nodeID, maxDepth)
+
 	if db.nodes[nodeID] == nil {
+		log.Warnf("[FindDependencies] Node %s not found", nodeID)
 		return []*Node{}
 	}
+
+	outgoingCount := len(db.outgoing[nodeID])
+	log.Infof("[FindDependencies] Node %s has %d outgoing relationships", nodeID, outgoingCount)
 
 	visited := make(map[string]bool)
 	queue := []struct {
@@ -193,33 +204,49 @@ func (db *GraphDatabase) FindDependencies(nodeID string, maxDepth int) []*Node {
 
 	dependencies := []*Node{}
 
+	iterCount := 0
 	for len(queue) > 0 {
+		iterCount++
 		current := queue[0]
 		queue = queue[1:]
 
+		log.Infof("[FindDependencies] Iteration %d: Processing node %s at depth %d", iterCount, current.id, current.depth)
+
 		if current.depth >= maxDepth {
+			log.Infof("[FindDependencies] Skipping node %s: depth %d >= maxDepth %d", current.id, current.depth, maxDepth)
 			continue
 		}
 
 		if visited[current.id] {
+			log.Infof("[FindDependencies] Skipping node %s: already visited", current.id)
 			continue
 		}
 		visited[current.id] = true
 
-		// Find DEPENDS_ON relationships
-		for _, rel := range db.outgoing[current.id] {
-			if rel.Type == DEPENDS_ON {
-				if node := db.nodes[rel.EndNode]; node != nil && rel.EndNode != nodeID {
-					dependencies = append(dependencies, node)
-					queue = append(queue, struct {
-						id    string
-						depth int
-					}{rel.EndNode, current.depth + 1})
-				}
+		// Find all outgoing relationships (treating them as dependencies)
+		// This includes DEPENDS_ON, PART_OF, etc.
+		outgoingRels := db.outgoing[current.id]
+		log.Infof("[FindDependencies] Node %s has %d outgoing relationships in map", current.id, len(outgoingRels))
+
+		for relID, rel := range outgoingRels {
+			log.Infof("[FindDependencies] Processing relationship %s: %s -> %s (type: %s)", relID, rel.StartNode, rel.EndNode, rel.Type)
+
+			if node := db.nodes[rel.EndNode]; node != nil && rel.EndNode != nodeID {
+				log.Infof("[FindDependencies] Adding dependency: %s", rel.EndNode)
+				dependencies = append(dependencies, node)
+				queue = append(queue, struct {
+					id    string
+					depth int
+				}{rel.EndNode, current.depth + 1})
+			} else if node == nil {
+				log.Warnf("[FindDependencies] End node %s not found in db.nodes", rel.EndNode)
+			} else {
+				log.Infof("[FindDependencies] Skipping %s: same as start node", rel.EndNode)
 			}
 		}
 	}
 
+	log.Infof("[FindDependencies] Found %d dependencies for node %s", len(dependencies), nodeID)
 	return dependencies
 }
 
@@ -229,7 +256,10 @@ func (db *GraphDatabase) FindDependents(nodeID string, maxDepth int) []*Node {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
+	log.Infof("[FindDependents] ENTRY: Receiver instance: %p, nodeID=%s, maxDepth=%d", db, nodeID, maxDepth)
+
 	if db.nodes[nodeID] == nil {
+		log.Warnf("[FindDependents] Node %s not found", nodeID)
 		return []*Node{}
 	}
 
@@ -254,16 +284,15 @@ func (db *GraphDatabase) FindDependents(nodeID string, maxDepth int) []*Node {
 		}
 		visited[current.id] = true
 
-		// Find incoming DEPENDS_ON relationships (reverse direction)
+		// Find all incoming relationships (treating them as dependents)
+		// This includes DEPENDS_ON, PART_OF (reverse), etc.
 		for _, rel := range db.incoming[current.id] {
-			if rel.Type == DEPENDS_ON {
-				if node := db.nodes[rel.StartNode]; node != nil && rel.StartNode != nodeID {
-					dependents = append(dependents, node)
-					queue = append(queue, struct {
-						id    string
-						depth int
-					}{rel.StartNode, current.depth + 1})
-				}
+			if node := db.nodes[rel.StartNode]; node != nil && rel.StartNode != nodeID {
+				dependents = append(dependents, node)
+				queue = append(queue, struct {
+					id    string
+					depth int
+				}{rel.StartNode, current.depth + 1})
 			}
 		}
 	}
@@ -280,13 +309,8 @@ func (db *GraphDatabase) FindCriticalPaths(minDependents int) []*Node {
 	criticalNodes := []*Node{}
 
 	for nodeID, node := range db.nodes {
-		// Count incoming DEPENDS_ON relationships
-		dependentCount := 0
-		for _, rel := range db.incoming[nodeID] {
-			if rel.Type == DEPENDS_ON {
-				dependentCount++
-			}
-		}
+		// Count all incoming relationships (any type)
+		dependentCount := len(db.incoming[nodeID])
 
 		if dependentCount >= minDependents {
 			criticalNodes = append(criticalNodes, node)
