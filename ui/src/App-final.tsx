@@ -4,7 +4,7 @@
  * Modern layout with sidebar, HTML icon overlays, and shadcn/ui
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 import ReactFlowGraph from './components/reactflow/ReactFlowGraph';
 import { Button } from './components/ui/button';
@@ -17,17 +17,53 @@ import {
 import { OfficialCloudIcon } from './components/icons/OfficialCloudIcons';
 import { useGraph, useStats } from './api/hooks';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { WelcomeModal, shouldShowWelcome } from './components/onboarding/WelcomeModal';
+import { HelpOverlay } from './components/onboarding/HelpOverlay';
+import { KeyboardShortcutsGuide } from './components/onboarding/KeyboardShortcutsGuide';
 
 type DemoMode = 'api' | 'simple' | 'complex' | 'blast-radius';
 
 function AppFinal() {
   const [demoMode, setDemoMode] = useState<DemoMode>('api');
   const [highlightedPath, setHighlightedPath] = useState<string[]>([]);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Filtering state
   const [searchTerm, setSearchTerm] = useState('');
   const [severityFilters, setSeverityFilters] = useState<string[]>([]);
   const [resourceTypeFilters, setResourceTypeFilters] = useState<string[]>([]);
+
+  // Check if welcome modal should be shown
+  useEffect(() => {
+    setShowWelcome(shouldShowWelcome());
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      switch (e.key.toLowerCase()) {
+        case '?':
+          setShowShortcuts(true);
+          break;
+        case 'h':
+          // Toggle help - handled by HelpOverlay component
+          break;
+        case 'escape':
+          setShowWelcome(false);
+          setShowShortcuts(false);
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
 
   // Fetch data from API
   const { data: apiGraphData, isLoading: graphLoading, error: graphError } = useGraph();
@@ -494,6 +530,18 @@ function AppFinal() {
           )}
         </main>
       </div>
+
+      {/* Welcome Modal */}
+      {showWelcome && <WelcomeModal onClose={() => setShowWelcome(false)} />}
+
+      {/* Keyboard Shortcuts Guide */}
+      {showShortcuts && <KeyboardShortcutsGuide onClose={() => setShowShortcuts(false)} />}
+
+      {/* Help Overlay */}
+      <HelpOverlay
+        onOpenShortcuts={() => setShowShortcuts(true)}
+        onOpenWelcome={() => setShowWelcome(true)}
+      />
     </div>
   );
 }
