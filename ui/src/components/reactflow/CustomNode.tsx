@@ -22,15 +22,15 @@ interface CustomNodeData {
 const getSeverityColor = (severity?: string) => {
   switch (severity) {
     case 'critical':
-      return 'border-red-500 bg-red-50';
+      return 'border-red-600 dark:border-red-500 bg-red-50 dark:bg-red-950/20 border-4';
     case 'high':
-      return 'border-orange-500 bg-orange-50';
+      return 'border-orange-600 dark:border-orange-500 bg-orange-50 dark:bg-orange-950/20 border-4';
     case 'medium':
-      return 'border-yellow-500 bg-yellow-50';
+      return 'border-yellow-600 dark:border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 border-3';
     case 'low':
-      return 'border-blue-500 bg-blue-50';
+      return 'border-blue-600 dark:border-blue-500 bg-blue-50 dark:bg-blue-950/20 border-2';
     default:
-      return 'border-gray-300 bg-white';
+      return 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 border-2';
   }
 };
 
@@ -121,10 +121,10 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData
         onDoubleClick={handleDoubleClick}
         onClick={handleClick}
         className={`
-          relative px-5 py-4 rounded-2xl border-2 shadow-xl
-          transition-all duration-300 min-w-[200px] cursor-pointer
+          relative px-6 py-5 rounded-2xl shadow-xl
+          transition-all duration-300 min-w-[240px] cursor-pointer
           ${severityColor}
-          ${selected ? 'ring-4 ring-blue-500 shadow-2xl scale-110 border-blue-500' : 'hover:shadow-2xl hover:scale-105 hover:border-gray-400'}
+          ${selected ? 'ring-4 ring-blue-500 shadow-2xl scale-110' : 'hover:shadow-2xl hover:scale-105'}
         `}
       >
       {/* Input Handle */}
@@ -135,11 +135,11 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData
       />
 
       {/* Icon */}
-      <div className="flex justify-center mb-3">
-        <div className="p-3 bg-white rounded-xl shadow-lg ring-1 ring-gray-200 transform transition-transform hover:scale-110">
+      <div className="flex justify-center mb-4">
+        <div className="p-4 bg-white rounded-xl shadow-lg ring-1 ring-gray-200 transform transition-transform hover:scale-110">
           <OfficialCloudIcon
             type={data.resource_type || data.type}
-            size={64}
+            size={80}
           />
         </div>
       </div>
@@ -158,9 +158,10 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData
 
       {/* Severity Badge */}
       {data.severity && (
-        <div className="absolute -top-2 -right-2">
+        <div className="absolute -top-3 -right-3">
           <span className={`
-            px-2 py-1 text-xs font-bold rounded-full shadow-md
+            px-3 py-1.5 text-sm font-bold rounded-full shadow-lg
+            ring-2 ring-white dark:ring-gray-900
             ${badgeColor}
           `}>
             {data.severity.toUpperCase()}
