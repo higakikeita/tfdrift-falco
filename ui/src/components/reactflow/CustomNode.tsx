@@ -8,6 +8,7 @@ import { Handle, Position } from 'reactflow';
 import type { NodeProps } from 'reactflow';
 import { OfficialCloudIcon } from '../icons/OfficialCloudIcons';
 import { NodeTooltip } from '../graph/NodeTooltip';
+import { NodeContextMenu } from '../graph/NodeContextMenu';
 
 interface CustomNodeData {
   label: string;
@@ -51,6 +52,8 @@ const getSeverityBadgeColor = (severity?: string) => {
 export const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData>) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   const nodeRef = useRef<HTMLDivElement>(null);
   const severityColor = getSeverityColor(data.severity);
   const badgeColor = getSeverityBadgeColor(data.severity);
@@ -70,15 +73,56 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData
     setShowTooltip(false);
   };
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenuPosition({ x: e.clientX, y: e.clientY });
+    setShowContextMenu(true);
+    setShowTooltip(false);
+  };
+
+  const handleDoubleClick = () => {
+    // Emit custom event for focus view
+    window.dispatchEvent(new CustomEvent('node-focus', { detail: { nodeId: id, data } }));
+  };
+
+  const handleClick = () => {
+    // Emit custom event for detail panel
+    window.dispatchEvent(new CustomEvent('node-detail', { detail: { nodeId: id, data } }));
+  };
+
+  const handleViewDetails = () => {
+    window.dispatchEvent(new CustomEvent('node-detail', { detail: { nodeId: id, data } }));
+  };
+
+  const handleFocusView = () => {
+    window.dispatchEvent(new CustomEvent('node-focus', { detail: { nodeId: id, data } }));
+  };
+
+  const handleShowDependencies = () => {
+    window.dispatchEvent(new CustomEvent('node-dependencies', { detail: { nodeId: id, data } }));
+  };
+
+  const handleShowImpact = () => {
+    window.dispatchEvent(new CustomEvent('node-impact', { detail: { nodeId: id, data } }));
+  };
+
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(id || '');
+  };
+
   return (
     <>
       <div
         ref={nodeRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onContextMenu={handleContextMenu}
+        onDoubleClick={handleDoubleClick}
+        onClick={handleClick}
         className={`
           relative px-5 py-4 rounded-2xl border-2 shadow-xl
-          transition-all duration-300 min-w-[200px]
+          transition-all duration-300 min-w-[200px] cursor-pointer
           ${severityColor}
           ${selected ? 'ring-4 ring-blue-500 shadow-2xl scale-110 border-blue-500' : 'hover:shadow-2xl hover:scale-105 hover:border-gray-400'}
         `}
@@ -133,7 +177,7 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData
       </div>
 
       {/* Tooltip */}
-      {showTooltip && (
+      {showTooltip && !showContextMenu && (
         <NodeTooltip
           data={{
             id: id || '',
@@ -145,6 +189,25 @@ export const CustomNode = memo(({ data, selected, id }: NodeProps<CustomNodeData
             metadata: data.metadata,
           }}
           position={tooltipPosition}
+        />
+      )}
+
+      {/* Context Menu */}
+      {showContextMenu && (
+        <NodeContextMenu
+          position={contextMenuPosition}
+          nodeId={id || ''}
+          nodeData={{
+            label: data.label,
+            type: data.type,
+            resource_type: data.resource_type,
+          }}
+          onClose={() => setShowContextMenu(false)}
+          onViewDetails={handleViewDetails}
+          onFocusView={handleFocusView}
+          onShowDependencies={handleShowDependencies}
+          onShowImpact={handleShowImpact}
+          onCopyId={handleCopyId}
         />
       )}
     </>
