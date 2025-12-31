@@ -74,6 +74,7 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [localHighlightedNodes, setLocalHighlightedNodes] = useState<string[]>([]);
 
   // Export to PNG
   const handleExportPNG = useCallback(() => {
@@ -132,8 +133,67 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
     });
   }, [getNodes]);
 
+  // Listen for custom node events (from CustomNode)
+  useEffect(() => {
+    const handleNodeDetail = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { nodeId } = customEvent.detail;
+      const node = initialNodes.find(n => n.id === nodeId);
+      if (node) {
+        setSelectedNode(node);
+      }
+    };
+
+    const handleNodeFocus = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { nodeId } = customEvent.detail;
+      // Focus on the selected node by highlighting it
+      setLocalHighlightedNodes([nodeId]);
+      const node = initialNodes.find(n => n.id === nodeId);
+      if (node) {
+        setSelectedNode(node);
+      }
+    };
+
+    const handleNodeDependencies = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { nodeId } = customEvent.detail;
+      // TODO: Fetch dependencies from API and highlight them
+      // For now, just open the detail panel
+      const node = initialNodes.find(n => n.id === nodeId);
+      if (node) {
+        setSelectedNode(node);
+      }
+    };
+
+    const handleNodeImpact = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { nodeId } = customEvent.detail;
+      // TODO: Fetch impact radius from API and highlight
+      // For now, just open the detail panel
+      const node = initialNodes.find(n => n.id === nodeId);
+      if (node) {
+        setSelectedNode(node);
+      }
+    };
+
+    window.addEventListener('node-detail', handleNodeDetail);
+    window.addEventListener('node-focus', handleNodeFocus);
+    window.addEventListener('node-dependencies', handleNodeDependencies);
+    window.addEventListener('node-impact', handleNodeImpact);
+
+    return () => {
+      window.removeEventListener('node-detail', handleNodeDetail);
+      window.removeEventListener('node-focus', handleNodeFocus);
+      window.removeEventListener('node-dependencies', handleNodeDependencies);
+      window.removeEventListener('node-impact', handleNodeImpact);
+    };
+  }, [initialNodes]);
+
   // Apply highlighting when path, nodes, or critical nodes change
   useEffect(() => {
+    const allHighlightedNodes = [...highlightedNodes, ...localHighlightedNodes];
+
     if (highlightedPath.length > 0) {
       const { nodes: pathNodes, edges: pathEdges } = highlightPath(
         initialNodes,
@@ -142,10 +202,10 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
       );
       setNodes(pathNodes);
       setEdges(pathEdges);
-    } else if (highlightedNodes.length > 0) {
+    } else if (allHighlightedNodes.length > 0) {
       // Highlight nodes with impact radius style
       const updatedNodes = initialNodes.map((node) => {
-        const isHighlighted = highlightedNodes.includes(node.id);
+        const isHighlighted = allHighlightedNodes.includes(node.id);
         const isCritical = criticalNodes.includes(node.id);
         return {
           ...node,
@@ -187,7 +247,7 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
       setNodes(initialNodes);
       setEdges(initialEdges);
     }
-  }, [highlightedPath, highlightedNodes, criticalNodes, initialNodes, initialEdges, setNodes, setEdges]);
+  }, [highlightedPath, highlightedNodes, localHighlightedNodes, criticalNodes, initialNodes, initialEdges, setNodes, setEdges]);
 
   // Handle node click
   const handleNodeClick = useCallback(
