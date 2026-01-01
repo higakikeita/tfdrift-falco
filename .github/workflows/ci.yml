@@ -516,7 +516,6 @@ jobs:
     needs: [changes, backend]
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'benchmark'))
 
     steps:
