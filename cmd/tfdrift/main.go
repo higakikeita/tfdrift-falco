@@ -18,13 +18,13 @@ import (
 )
 
 var (
-	version        = "0.4.1"
-	cfgFile        string
-	autoDetect     bool
-	outputMode     string
-	dryRun         bool
-	daemon         bool
-	interactive    bool
+	version     = "0.4.1"
+	cfgFile     string
+	autoDetect  bool
+	outputMode  string
+	dryRun      bool
+	daemon      bool
+	interactive bool
 	// API server flags
 	serverMode bool
 	apiPort    int

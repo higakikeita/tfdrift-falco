@@ -99,16 +99,16 @@ func initializeEventMapping() map[string]string {
 		"compute.networks.patch":  "google_compute_network",
 
 		// Compute Engine - Subnetworks
-		"compute.subnetworks.insert":           "google_compute_subnetwork",
-		"compute.subnetworks.delete":           "google_compute_subnetwork",
-		"compute.subnetworks.patch":            "google_compute_subnetwork",
+		"compute.subnetworks.insert":                   "google_compute_subnetwork",
+		"compute.subnetworks.delete":                   "google_compute_subnetwork",
+		"compute.subnetworks.patch":                    "google_compute_subnetwork",
 		"compute.subnetworks.setPrivateIpGoogleAccess": "google_compute_subnetwork",
 
 		// Compute Engine - Disks
-		"compute.disks.insert":     "google_compute_disk",
-		"compute.disks.delete":     "google_compute_disk",
-		"compute.disks.resize":     "google_compute_disk",
-		"compute.disks.setLabels":  "google_compute_disk",
+		"compute.disks.insert":    "google_compute_disk",
+		"compute.disks.delete":    "google_compute_disk",
+		"compute.disks.resize":    "google_compute_disk",
+		"compute.disks.setLabels": "google_compute_disk",
 
 		// Compute Engine - Routes
 		"compute.routes.insert": "google_compute_route",
@@ -121,8 +121,8 @@ func initializeEventMapping() map[string]string {
 		"compute.routers.update": "google_compute_router",
 
 		// Compute Engine - VPN
-		"compute.vpnTunnels.insert": "google_compute_vpn_tunnel",
-		"compute.vpnTunnels.delete": "google_compute_vpn_tunnel",
+		"compute.vpnTunnels.insert":  "google_compute_vpn_tunnel",
+		"compute.vpnTunnels.delete":  "google_compute_vpn_tunnel",
 		"compute.vpnGateways.insert": "google_compute_vpn_gateway",
 		"compute.vpnGateways.delete": "google_compute_vpn_gateway",
 

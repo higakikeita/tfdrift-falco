@@ -15,7 +15,7 @@ type Store struct {
 	events       []types.Event
 	unmanaged    []types.UnmanagedResourceAlert
 	stateManager *terraform.StateManager
-	graphDB      *GraphDatabase  // Neo4j-style graph database
+	graphDB      *GraphDatabase // Neo4j-style graph database
 	mu           sync.RWMutex
 }
 

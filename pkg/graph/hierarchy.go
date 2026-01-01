@@ -22,9 +22,9 @@ type AWSHierarchy struct {
 
 // Region represents an AWS region
 type Region struct {
-	ID    string
-	Name  string
-	VPCs  map[string]*VPC
+	ID   string
+	Name string
+	VPCs map[string]*VPC
 }
 
 // VPC represents a Virtual Private Cloud

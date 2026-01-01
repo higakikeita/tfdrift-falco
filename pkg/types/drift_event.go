@@ -9,30 +9,30 @@ import (
 // This is the core event model for system integrations (SIEM, SOAR, webhooks, etc.)
 type DriftEvent struct {
 	// Core fields (always present)
-	EventType    string    `json:"event_type"`              // Always "terraform_drift_detected"
-	Provider     string    `json:"provider"`                // Cloud provider (aws, gcp, azure)
-	AccountID    string    `json:"account_id,omitempty"`    // Cloud account/project ID
-	ResourceType string    `json:"resource_type"`           // Terraform resource type (e.g., aws_security_group)
-	ResourceID   string    `json:"resource_id"`             // Cloud resource ID
-	ChangeType   string    `json:"change_type"`             // created, modified, deleted, unknown
-	DetectedAt   time.Time `json:"detected_at"`             // When drift was detected (RFC3339)
-	Source       string    `json:"source"`                  // Always "tfdrift-falco"
-	Severity     string    `json:"severity"`                // critical, high, medium, low, info
+	EventType    string    `json:"event_type"`           // Always "terraform_drift_detected"
+	Provider     string    `json:"provider"`             // Cloud provider (aws, gcp, azure)
+	AccountID    string    `json:"account_id,omitempty"` // Cloud account/project ID
+	ResourceType string    `json:"resource_type"`        // Terraform resource type (e.g., aws_security_group)
+	ResourceID   string    `json:"resource_id"`          // Cloud resource ID
+	ChangeType   string    `json:"change_type"`          // created, modified, deleted, unknown
+	DetectedAt   time.Time `json:"detected_at"`          // When drift was detected (RFC3339)
+	Source       string    `json:"source"`               // Always "tfdrift-falco"
+	Severity     string    `json:"severity"`             // critical, high, medium, low, info
 
 	// Optional context fields
-	Region       string `json:"region,omitempty"`        // Cloud region
-	User         string `json:"user,omitempty"`          // IAM user who made the change
-	IPAddress    string `json:"ip_address,omitempty"`    // Source IP address
-	UserAgent    string `json:"user_agent,omitempty"`    // User agent string
+	Region    string `json:"region,omitempty"`     // Cloud region
+	User      string `json:"user,omitempty"`       // IAM user who made the change
+	IPAddress string `json:"ip_address,omitempty"` // Source IP address
+	UserAgent string `json:"user_agent,omitempty"` // User agent string
 
 	// Terraform state context
 	TerraformWorkspace string `json:"terraform_workspace,omitempty"` // Terraform workspace
 	StateBackend       string `json:"state_backend,omitempty"`       // local, s3, etc.
 
 	// Change details (optional, can be large)
-	Expected     any    `json:"expected,omitempty"`      // Expected state from Terraform
-	Actual       any    `json:"actual,omitempty"`        // Actual state from cloud
-	Diff         any    `json:"diff,omitempty"`          // Human-readable diff
+	Expected any `json:"expected,omitempty"` // Expected state from Terraform
+	Actual   any `json:"actual,omitempty"`   // Actual state from cloud
+	Diff     any `json:"diff,omitempty"`     // Human-readable diff
 
 	// CloudTrail context
 	CloudTrailEvent string `json:"cloudtrail_event,omitempty"` // CloudTrail event name
@@ -45,8 +45,8 @@ type DriftEvent struct {
 	FalcoFields   map[string]string `json:"falco_fields,omitempty"`   // Additional Falco fields
 
 	// Metadata
-	Version string            `json:"version"`           // Event schema version
-	Labels  map[string]string `json:"labels,omitempty"`  // Custom labels
+	Version string            `json:"version"`          // Event schema version
+	Labels  map[string]string `json:"labels,omitempty"` // Custom labels
 }
 
 // ChangeType constants
@@ -166,24 +166,24 @@ func (e *DriftEvent) WithLabel(key, value string) *DriftEvent {
 func DetermineSeverity(resourceType, changeType string) string {
 	// Critical resources
 	criticalResources := map[string]bool{
-		"aws_iam_role":             true,
-		"aws_iam_policy":           true,
-		"aws_security_group":       true,
-		"aws_network_acl":          true,
-		"aws_kms_key":              true,
-		"aws_s3_bucket_policy":     true,
+		"aws_iam_role":                    true,
+		"aws_iam_policy":                  true,
+		"aws_security_group":              true,
+		"aws_network_acl":                 true,
+		"aws_kms_key":                     true,
+		"aws_s3_bucket_policy":            true,
 		"aws_iam_account_password_policy": true,
 	}
 
 	// High priority resources
 	highResources := map[string]bool{
-		"aws_instance":              true,
-		"aws_db_instance":           true,
-		"aws_rds_cluster":           true,
-		"aws_lambda_function":       true,
-		"aws_ecs_service":           true,
-		"aws_eks_cluster":           true,
-		"aws_elasticache_cluster":   true,
+		"aws_instance":            true,
+		"aws_db_instance":         true,
+		"aws_rds_cluster":         true,
+		"aws_lambda_function":     true,
+		"aws_ecs_service":         true,
+		"aws_eks_cluster":         true,
+		"aws_elasticache_cluster": true,
 	}
 
 	if criticalResources[resourceType] {

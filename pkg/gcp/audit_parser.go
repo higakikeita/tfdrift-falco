@@ -64,11 +64,11 @@ func NewAuditParser() *AuditParser {
 //
 // Returns:
 //   - *types.Event: Parsed drift detection event, or nil if:
-//     • Response is nil
-//     • Source is not "gcpaudit"
-//     • Event is not relevant for drift detection
-//     • Required fields are missing
-//     • No resource mapping exists for the event type
+//   - Response is nil
+//   - Source is not "gcpaudit"
+//   - Event is not relevant for drift detection
+//   - Required fields are missing
+//   - No resource mapping exists for the event type
 //
 // Example:
 //
@@ -165,13 +165,13 @@ func (p *AuditParser) Parse(res *outputs.Response) *types.Event {
 func (p *AuditParser) isRelevantEvent(methodName string) bool {
 	relevantEvents := map[string]bool{
 		// Compute Engine - Instances (Phase 1)
-		"compute.instances.insert":          true,
-		"compute.instances.delete":          true,
-		"compute.instances.setMetadata":     true,
-		"compute.instances.setLabels":       true,
-		"compute.instances.setTags":         true,
-		"compute.instances.setMachineType":  true,
-		"compute.instances.setServiceAccount": true,
+		"compute.instances.insert":                true,
+		"compute.instances.delete":                true,
+		"compute.instances.setMetadata":           true,
+		"compute.instances.setLabels":             true,
+		"compute.instances.setTags":               true,
+		"compute.instances.setMachineType":        true,
+		"compute.instances.setServiceAccount":     true,
 		"compute.instances.setDeletionProtection": true,
 
 		// Compute Engine - Firewall (Phase 1)

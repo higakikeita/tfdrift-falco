@@ -13,10 +13,10 @@ import (
 
 // StateManager manages Terraform state
 type StateManager struct {
-	cfg              config.TerraformStateConfig
-	resources        map[string]*Resource
-	stateMetadata    *StateMetadata
-	mu               sync.RWMutex
+	cfg           config.TerraformStateConfig
+	resources     map[string]*Resource
+	stateMetadata *StateMetadata
+	mu            sync.RWMutex
 }
 
 // StateMetadata contains metadata about the Terraform state
@@ -38,11 +38,11 @@ type Resource struct {
 
 // State represents a Terraform state file
 type State struct {
-	Version          int                  `json:"version"`
-	TerraformVersion string               `json:"terraform_version"`
-	Serial           int                  `json:"serial"`
-	Lineage          string               `json:"lineage"`
-	Resources        []ResourceDefinition `json:"resources"`
+	Version          int                    `json:"version"`
+	TerraformVersion string                 `json:"terraform_version"`
+	Serial           int                    `json:"serial"`
+	Lineage          string                 `json:"lineage"`
+	Resources        []ResourceDefinition   `json:"resources"`
 	Outputs          map[string]interface{} `json:"outputs"`
 }
 

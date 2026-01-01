@@ -8,7 +8,7 @@ import (
 // Example: (:Resource:EC2 {id: "i-123", name: "web-server"})
 type Node struct {
 	ID         string                 `json:"id"`
-	Labels     []string               `json:"labels"`      // ["Resource", "EC2", "Drifted"]
+	Labels     []string               `json:"labels"` // ["Resource", "EC2", "Drifted"]
 	Properties map[string]interface{} `json:"properties"`
 }
 
@@ -16,20 +16,20 @@ type Node struct {
 // Example: (ec2)-[:DEPENDS_ON {since: "2024-01-01"}]->(subnet)
 type Relationship struct {
 	ID         string                 `json:"id"`
-	Type       string                 `json:"type"`        // "DEPENDS_ON", "CONTAINS", etc.
-	StartNode  string                 `json:"start_node"`  // Source node ID
-	EndNode    string                 `json:"end_node"`    // Target node ID
+	Type       string                 `json:"type"`       // "DEPENDS_ON", "CONTAINS", etc.
+	StartNode  string                 `json:"start_node"` // Source node ID
+	EndNode    string                 `json:"end_node"`   // Target node ID
 	Properties map[string]interface{} `json:"properties"`
 }
 
 // Relationship types (similar to Neo4j relationship types)
 const (
 	// Hierarchical relationships
-	CONTAINS   = "CONTAINS"    // VPC contains Subnet
-	PART_OF    = "PART_OF"     // Subnet part of VPC
+	CONTAINS = "CONTAINS" // VPC contains Subnet
+	PART_OF  = "PART_OF"  // Subnet part of VPC
 
 	// Dependency relationships
-	DEPENDS_ON = "DEPENDS_ON"  // EC2 depends on Subnet
+	DEPENDS_ON  = "DEPENDS_ON"  // EC2 depends on Subnet
 	REQUIRED_BY = "REQUIRED_BY" // Inverse of DEPENDS_ON
 
 	// Network relationships
@@ -37,8 +37,8 @@ const (
 	ROUTES_TO   = "ROUTES_TO"   // Route table routes to Gateway
 
 	// Security relationships
-	ALLOWS = "ALLOWS" // SecurityGroup allows traffic
-	BLOCKS = "BLOCKS" // NACL blocks traffic
+	ALLOWS  = "ALLOWS"  // SecurityGroup allows traffic
+	BLOCKS  = "BLOCKS"  // NACL blocks traffic
 	SECURES = "SECURES" // SecurityGroup secures resource
 
 	// Change relationships
@@ -55,9 +55,9 @@ type GraphDatabase struct {
 	relationships map[string]*Relationship
 
 	// Indexes for fast lookups
-	nodesByLabel map[string]map[string]*Node           // label -> {node_id -> node}
-	outgoing     map[string]map[string]*Relationship   // node_id -> {rel_id -> relationship}
-	incoming     map[string]map[string]*Relationship   // node_id -> {rel_id -> relationship}
+	nodesByLabel map[string]map[string]*Node         // label -> {node_id -> node}
+	outgoing     map[string]map[string]*Relationship // node_id -> {rel_id -> relationship}
+	incoming     map[string]map[string]*Relationship // node_id -> {rel_id -> relationship}
 
 	// Type-based relationship indexes
 	relationshipsByType map[string]map[string]*Relationship // type -> {rel_id -> relationship}

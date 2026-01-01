@@ -59,7 +59,7 @@ func ResolveEventSourceConflict(eventName string, eventSource string) string {
 			return "aws_api_gateway_model"
 		}
 
-	case "CreateCluster", "DeleteCluster":
+	case "CreateCluster", "DeleteCluster", "ModifyCluster", "RebootCluster", "ResizeCluster":
 		if eventSource == "eks.amazonaws.com" {
 			return "aws_eks_cluster"
 		}

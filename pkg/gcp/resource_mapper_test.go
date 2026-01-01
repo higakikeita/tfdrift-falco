@@ -194,11 +194,11 @@ func TestResourceMapper_Coverage(t *testing.T) {
 
 	// Test that all major GCP services are covered
 	services := []string{
-		"compute",     // Compute Engine
-		"storage",     // Cloud Storage
-		"cloudsql",    // Cloud SQL
-		"container",   // GKE
-		"run",         // Cloud Run
+		"compute",        // Compute Engine
+		"storage",        // Cloud Storage
+		"cloudsql",       // Cloud SQL
+		"container",      // GKE
+		"run",            // Cloud Run
 		"cloudfunctions", // Cloud Functions
 	}
 

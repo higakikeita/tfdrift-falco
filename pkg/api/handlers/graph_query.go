@@ -357,10 +357,10 @@ func (h *GraphQueryHandler) GetGraphStats(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"data": map[string]interface{}{
-			"node_count":             db.NodeCount(),
-			"relationship_count":     db.RelationshipCount(),
-			"nodes_by_label":         labelCounts,
-			"relationships_by_type":  typeCounts,
+			"node_count":            db.NodeCount(),
+			"relationship_count":    db.RelationshipCount(),
+			"nodes_by_label":        labelCounts,
+			"relationships_by_type": typeCounts,
 		},
 	})
 }

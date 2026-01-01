@@ -106,9 +106,9 @@ var StorageAndDatabaseMappings = map[string]string{
 	"UpdateGlobalTable": "aws_dynamodb_global_table",
 
 	// DynamoDB - Backups
-	"CreateBackup":             "aws_dynamodb_table_backup",
-	"DeleteBackup":             "aws_dynamodb_table_backup",
-	"RestoreTableFromBackup":   "aws_dynamodb_table",
+	"CreateBackup":              "aws_dynamodb_table_backup",
+	"DeleteBackup":              "aws_dynamodb_table_backup",
+	"RestoreTableFromBackup":    "aws_dynamodb_table",
 	"RestoreTableToPointInTime": "aws_dynamodb_table",
 
 	// DynamoDB - Streams
@@ -146,6 +146,13 @@ var StorageAndDatabaseMappings = map[string]string{
 	// ElastiCache - Global Replication
 	"CreateGlobalReplicationGroup": "aws_elasticache_global_replication_group",
 	"DeleteGlobalReplicationGroup": "aws_elasticache_global_replication_group",
+
+	// Redshift - Clusters
+	"CreateCluster": "aws_redshift_cluster",
+	"DeleteCluster": "aws_redshift_cluster",
+	"ModifyCluster": "aws_redshift_cluster",
+	"RebootCluster": "aws_redshift_cluster",
+	"ResizeCluster": "aws_redshift_cluster",
 
 	// ECR - Repositories
 	"CreateRepository": "aws_ecr_repository",

@@ -14,11 +14,11 @@ var ComputeMappings = map[string]string{
 	"DeregisterImage": "aws_ami",
 
 	// EC2 - EBS Volume Management
-	"CreateVolume":  "aws_ebs_volume",
-	"DeleteVolume":  "aws_ebs_volume",
-	"AttachVolume":  "aws_volume_attachment",
-	"DetachVolume":  "aws_volume_attachment",
-	"ModifyVolume":  "aws_ebs_volume",
+	"CreateVolume": "aws_ebs_volume",
+	"DeleteVolume": "aws_ebs_volume",
+	"AttachVolume": "aws_volume_attachment",
+	"DetachVolume": "aws_volume_attachment",
+	"ModifyVolume": "aws_ebs_volume",
 
 	// EC2 - Snapshot Management
 	"CreateSnapshot": "aws_ebs_snapshot",
@@ -111,8 +111,8 @@ var ComputeMappings = map[string]string{
 	"DeleteScheduledAction":         "aws_autoscaling_schedule",
 
 	// Auto Scaling - Load Balancers
-	"AttachLoadBalancers":              "aws_autoscaling_attachment",
-	"DetachLoadBalancers":              "aws_autoscaling_attachment",
-	"AttachLoadBalancerTargetGroups":   "aws_autoscaling_attachment",
-	"DetachLoadBalancerTargetGroups":   "aws_autoscaling_attachment",
+	"AttachLoadBalancers":            "aws_autoscaling_attachment",
+	"DetachLoadBalancers":            "aws_autoscaling_attachment",
+	"AttachLoadBalancerTargetGroups": "aws_autoscaling_attachment",
+	"DetachLoadBalancerTargetGroups": "aws_autoscaling_attachment",
 }

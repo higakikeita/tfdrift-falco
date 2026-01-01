@@ -17,11 +17,11 @@ import (
 // WebhookConfig contains webhook configuration
 type WebhookConfig struct {
 	URL         string            `yaml:"url" json:"url"`
-	Method      string            `yaml:"method" json:"method"`           // POST, PUT (default: POST)
-	Headers     map[string]string `yaml:"headers" json:"headers"`         // Custom headers
-	Timeout     time.Duration     `yaml:"timeout" json:"timeout"`         // Request timeout (default: 10s)
-	MaxRetries  int               `yaml:"max_retries" json:"max_retries"` // Max retry attempts (default: 3)
-	RetryDelay  time.Duration     `yaml:"retry_delay" json:"retry_delay"` // Initial retry delay (default: 1s)
+	Method      string            `yaml:"method" json:"method"`             // POST, PUT (default: POST)
+	Headers     map[string]string `yaml:"headers" json:"headers"`           // Custom headers
+	Timeout     time.Duration     `yaml:"timeout" json:"timeout"`           // Request timeout (default: 10s)
+	MaxRetries  int               `yaml:"max_retries" json:"max_retries"`   // Max retry attempts (default: 3)
+	RetryDelay  time.Duration     `yaml:"retry_delay" json:"retry_delay"`   // Initial retry delay (default: 1s)
 	ContentType string            `yaml:"content_type" json:"content_type"` // Content-Type header (default: application/json)
 }
 
@@ -176,11 +176,11 @@ func FormatSlackPayload(event *types.DriftEvent) map[string]interface{} {
 	return map[string]interface{}{
 		"attachments": []map[string]interface{}{
 			{
-				"color":      severity,
-				"text":       text,
-				"footer":     "TFDrift-Falco",
+				"color":       severity,
+				"text":        text,
+				"footer":      "TFDrift-Falco",
 				"footer_icon": "https://falco.org/img/brand/falco-logo.png",
-				"ts":         event.DetectedAt.Unix(),
+				"ts":          event.DetectedAt.Unix(),
 			},
 		},
 	}
@@ -205,11 +205,11 @@ func FormatTeamsPayload(event *types.DriftEvent) map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"@type":    "MessageCard",
-		"@context": "https://schema.org/extensions",
-		"summary":  title,
-		"title":    title,
-		"text":     text,
+		"@type":      "MessageCard",
+		"@context":   "https://schema.org/extensions",
+		"summary":    title,
+		"title":      title,
+		"text":       text,
 		"themeColor": getTeamsColor(event.Severity),
 	}
 }

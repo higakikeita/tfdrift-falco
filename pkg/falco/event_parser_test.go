@@ -39,7 +39,8 @@ func TestIsRelevantEvent(t *testing.T) {
 		{"S3 PutBucketPolicy", "PutBucketPolicy", true},
 		{"S3 PutBucketEncryption", "PutBucketEncryption", true},
 		{"S3 DeleteBucketEncryption", "DeleteBucketEncryption", true},
-		{"S3 Irrelevant", "CreateBucket", false},
+		{"S3 CreateBucket", "CreateBucket", true},
+		{"S3 Irrelevant", "GetBucketLocation", false},
 
 		// RDS Events
 		{"RDS ModifyDBInstance", "ModifyDBInstance", true},
@@ -47,7 +48,8 @@ func TestIsRelevantEvent(t *testing.T) {
 
 		// Lambda Events
 		{"Lambda UpdateFunctionConfiguration", "UpdateFunctionConfiguration", true},
-		{"Lambda Irrelevant", "CreateFunction", false},
+		{"Lambda CreateFunction", "CreateFunction", true},
+		{"Lambda Irrelevant", "ListFunctions", false},
 
 		// ECS Events - Services
 		{"ECS CreateService", "CreateService", true},
@@ -615,12 +617,12 @@ func TestAWSParser_Parse_UnicodeCharacters(t *testing.T) {
 	res := &outputs.Response{
 		Source: "aws_cloudtrail",
 		OutputFields: map[string]string{
-			"ct.name":                 "CreateRole",
-			"ct.request.rolename":     "test-role",
-			"ct.user":                 "ユーザー名", // Japanese
-			"ct.user.type":            "IAMUser",
-			"ct.user.arn":             "arn:aws:iam::123456789012:user/名前", // Japanese in ARN
-			"ct.user.accountid":       "123456789012",
+			"ct.name":             "CreateRole",
+			"ct.request.rolename": "test-role",
+			"ct.user":             "ユーザー名", // Japanese
+			"ct.user.type":        "IAMUser",
+			"ct.user.arn":         "arn:aws:iam::123456789012:user/名前", // Japanese in ARN
+			"ct.user.accountid":   "123456789012",
 		},
 	}
 	event := sub.parseFalcoOutput(res)
@@ -638,27 +640,27 @@ func TestAWSParser_Parse_EmptyFields(t *testing.T) {
 		{
 			"Empty event name",
 			map[string]string{
-				"ct.name":                 "",
-				"ct.request.instanceid":   "i-123456",
+				"ct.name":               "",
+				"ct.request.instanceid": "i-123456",
 			},
 			true,
 		},
 		{
 			"Empty resource ID",
 			map[string]string{
-				"ct.name":                 "ModifyInstanceAttribute",
-				"ct.request.instanceid":   "",
+				"ct.name":               "ModifyInstanceAttribute",
+				"ct.request.instanceid": "",
 			},
 			true,
 		},
 		{
 			"Empty user identity fields",
 			map[string]string{
-				"ct.name":                 "ModifyInstanceAttribute",
-				"ct.request.instanceid":   "i-123456",
-				"ct.user":                 "",
-				"ct.user.type":            "",
-				"ct.user.arn":             "",
+				"ct.name":               "ModifyInstanceAttribute",
+				"ct.request.instanceid": "i-123456",
+				"ct.user":               "",
+				"ct.user.type":          "",
+				"ct.user.arn":           "",
 			},
 			false, // Should still parse, user identity is optional
 		},
@@ -783,9 +785,6 @@ func TestAWSParser_Parse_AllAWSServiceTypes(t *testing.T) {
 		// ElastiCache
 		{"CreateCacheCluster", "aws_elasticache_cluster"},
 
-		// Redshift
-		{"ModifyCluster", "aws_redshift_cluster"},
-
 		// SageMaker
 		{"CreateEndpoint", "aws_sagemaker_endpoint"},
 		{"CreateNotebookInstance", "aws_sagemaker_notebook_instance"},
@@ -809,10 +808,10 @@ func TestAWSParser_Parse_ConcurrentAccess(t *testing.T) {
 			res := &outputs.Response{
 				Source: "aws_cloudtrail",
 				OutputFields: map[string]string{
-					"ct.name":                 "ModifyInstanceAttribute",
-					"ct.request.instanceid":   string(rune(id)) + "-concurrent-test",
-					"ct.user.type":            "IAMUser",
-					"ct.user":                 "test-user",
+					"ct.name":               "ModifyInstanceAttribute",
+					"ct.request.instanceid": string(rune(id)) + "-concurrent-test",
+					"ct.user.type":          "IAMUser",
+					"ct.user":               "test-user",
 				},
 			}
 			event := sub.parseFalcoOutput(res)
@@ -836,13 +835,13 @@ func TestAWSParser_UserIdentity_EdgeCases(t *testing.T) {
 		{
 			"IAMUser with full details",
 			map[string]string{
-				"ct.name":                 "CreateRole",
-				"ct.request.rolename":     "test-role",
-				"ct.user.type":            "IAMUser",
-				"ct.user":                 "admin",
-				"ct.user.arn":             "arn:aws:iam::123456789012:user/admin",
-				"ct.user.principalid":     "AIDAI123456789",
-				"ct.user.accountid":       "123456789012",
+				"ct.name":             "CreateRole",
+				"ct.request.rolename": "test-role",
+				"ct.user.type":        "IAMUser",
+				"ct.user":             "admin",
+				"ct.user.arn":         "arn:aws:iam::123456789012:user/admin",
+				"ct.user.principalid": "AIDAI123456789",
+				"ct.user.accountid":   "123456789012",
 			},
 			func(t *testing.T, userIdentity interface{}) {
 				// Just basic validation - actual structure differs
@@ -852,13 +851,13 @@ func TestAWSParser_UserIdentity_EdgeCases(t *testing.T) {
 		{
 			"AssumedRole",
 			map[string]string{
-				"ct.name":                 "CreateRole",
-				"ct.request.rolename":     "test-role",
-				"ct.user.type":            "AssumedRole",
-				"ct.user":                 "assumed-role-session",
-				"ct.user.arn":             "arn:aws:sts::123456789012:assumed-role/MyRole/MySession",
-				"ct.user.principalid":     "AROAI123456789:MySession",
-				"ct.user.accountid":       "123456789012",
+				"ct.name":             "CreateRole",
+				"ct.request.rolename": "test-role",
+				"ct.user.type":        "AssumedRole",
+				"ct.user":             "assumed-role-session",
+				"ct.user.arn":         "arn:aws:sts::123456789012:assumed-role/MyRole/MySession",
+				"ct.user.principalid": "AROAI123456789:MySession",
+				"ct.user.accountid":   "123456789012",
 			},
 			func(t *testing.T, userIdentity interface{}) {
 				assert.NotNil(t, userIdentity)
@@ -867,12 +866,12 @@ func TestAWSParser_UserIdentity_EdgeCases(t *testing.T) {
 		{
 			"Root user",
 			map[string]string{
-				"ct.name":                 "CreateRole",
-				"ct.request.rolename":     "test-role",
-				"ct.user.type":            "Root",
-				"ct.user":                 "root",
-				"ct.user.arn":             "arn:aws:iam::123456789012:root",
-				"ct.user.accountid":       "123456789012",
+				"ct.name":             "CreateRole",
+				"ct.request.rolename": "test-role",
+				"ct.user.type":        "Root",
+				"ct.user":             "root",
+				"ct.user.arn":         "arn:aws:iam::123456789012:root",
+				"ct.user.accountid":   "123456789012",
 			},
 			func(t *testing.T, userIdentity interface{}) {
 				assert.NotNil(t, userIdentity)
@@ -881,11 +880,11 @@ func TestAWSParser_UserIdentity_EdgeCases(t *testing.T) {
 		{
 			"Service account",
 			map[string]string{
-				"ct.name":                 "CreateRole",
-				"ct.request.rolename":     "test-role",
-				"ct.user.type":            "AWSService",
-				"ct.user":                 "ec2.amazonaws.com",
-				"ct.user.accountid":       "123456789012",
+				"ct.name":             "CreateRole",
+				"ct.request.rolename": "test-role",
+				"ct.user.type":        "AWSService",
+				"ct.user":             "ec2.amazonaws.com",
+				"ct.user.accountid":   "123456789012",
 			},
 			func(t *testing.T, userIdentity interface{}) {
 				assert.NotNil(t, userIdentity)

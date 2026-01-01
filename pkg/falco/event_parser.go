@@ -438,18 +438,18 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"DeleteClusterParameterGroup": true,
 
 		// S3 - Additional events (v0.5.0)
-		"CreateBucket":              true,
-		"DeleteBucket":              true,
-		"PutBucketLifecycle":        true,
-		"DeleteBucketLifecycle":     true,
-		"PutBucketReplication":      true,
-		"DeleteBucketReplication":   true,
-		"PutBucketCors":             true,
-		"DeleteBucketCors":          true,
-		"PutBucketWebsite":          true,
-		"DeleteBucketWebsite":       true,
-		"PutBucketTagging":          true,
-		"DeleteBucketTagging":       true,
+		"CreateBucket":            true,
+		"DeleteBucket":            true,
+		"PutBucketLifecycle":      true,
+		"DeleteBucketLifecycle":   true,
+		"PutBucketReplication":    true,
+		"DeleteBucketReplication": true,
+		"PutBucketCors":           true,
+		"DeleteBucketCors":        true,
+		"PutBucketWebsite":        true,
+		"DeleteBucketWebsite":     true,
+		"PutBucketTagging":        true,
+		"DeleteBucketTagging":     true,
 
 		// Lambda - Additional events (v0.5.0)
 		"CreateFunction":                  true,
@@ -475,16 +475,16 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"RemoveRoleFromInstanceProfile": true,
 
 		// CloudFormation (v0.5.0) - Critical for IaC
-		"CreateStack":        true,
-		"UpdateStack":        true,
-		"DeleteStack":        true,
-		"CreateChangeSet":    true,
-		"ExecuteChangeSet":   true,
-		"DeleteChangeSet":    true,
-		"CreateStackSet":     true,
-		"UpdateStackSet":     true,
-		"DeleteStackSet":     true,
-		"SetStackPolicy":     true,
+		"CreateStack":      true,
+		"UpdateStack":      true,
+		"DeleteStack":      true,
+		"CreateChangeSet":  true,
+		"ExecuteChangeSet": true,
+		"DeleteChangeSet":  true,
+		"CreateStackSet":   true,
+		"UpdateStackSet":   true,
+		"DeleteStackSet":   true,
+		"SetStackPolicy":   true,
 
 		// EventBridge (v0.5.0) - Critical for event-driven
 		"PutRule":       true,
@@ -499,26 +499,26 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"StopExecution":      true,
 
 		// AWS Glue (v0.5.0) - Critical for data pipeline
-		"CreateJob":    true,
-		"UpdateJob":    true,
-		"DeleteJob":    true,
+		"CreateJob":     true,
+		"UpdateJob":     true,
+		"DeleteJob":     true,
 		"CreateCrawler": true,
 		"UpdateCrawler": true,
 		"DeleteCrawler": true,
 
 		// Kinesis (v0.5.0) - Critical for streaming
-		"CreateStream":                true,
-		"DeleteStream":                true,
-		"UpdateShardCount":            true,
-		"EnableEnhancedMonitoring":    true,
-		"DisableEnhancedMonitoring":   true,
-		"StartStreamEncryption":       true,
-		"StopStreamEncryption":        true,
-		"RegisterStreamConsumer":      true,
-		"DeregisterStreamConsumer":    true,
-		"CreateDeliveryStream":        true, // Kinesis Firehose
-		"DeleteDeliveryStream":        true, // Kinesis Firehose
-		"UpdateDestination":           true, // Kinesis Firehose
+		"CreateStream":              true,
+		"DeleteStream":              true,
+		"UpdateShardCount":          true,
+		"EnableEnhancedMonitoring":  true,
+		"DisableEnhancedMonitoring": true,
+		"StartStreamEncryption":     true,
+		"StopStreamEncryption":      true,
+		"RegisterStreamConsumer":    true,
+		"DeregisterStreamConsumer":  true,
+		"CreateDeliveryStream":      true, // Kinesis Firehose
+		"DeleteDeliveryStream":      true, // Kinesis Firehose
+		"UpdateDestination":         true, // Kinesis Firehose
 
 		// ACM (v0.5.0) - Critical for security
 		"RequestCertificate":        true,
@@ -528,17 +528,17 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"ImportCertificate":         true,
 
 		// WAF / WAFv2 (v0.5.0) - Critical for security
-		"CreateWebACL":          true,
-		"UpdateWebACL":          true,
-		"DeleteWebACL":          true,
-		"CreateRuleGroup":       true,
-		"UpdateRuleGroup":       true,
-		"DeleteRuleGroup":       true,
-		"CreateIPSet":           true,
-		"UpdateIPSet":           true,
-		"DeleteIPSet":           true,
-		"AssociateWebACL":       true,
-		"DisassociateWebACL":    true,
+		"CreateWebACL":       true,
+		"UpdateWebACL":       true,
+		"DeleteWebACL":       true,
+		"CreateRuleGroup":    true,
+		"UpdateRuleGroup":    true,
+		"DeleteRuleGroup":    true,
+		"CreateIPSet":        true,
+		"UpdateIPSet":        true,
+		"DeleteIPSet":        true,
+		"AssociateWebACL":    true,
+		"DisassociateWebACL": true,
 
 		// AWS Backup (v0.5.0) - Critical for disaster recovery
 		"CreateBackupPlan":              true,

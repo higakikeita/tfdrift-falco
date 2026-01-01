@@ -54,15 +54,15 @@ var NetworkingMappings = map[string]string{
 	"RejectVpcPeeringConnection": "aws_vpc_peering_connection",
 
 	// VPC - Transit Gateway
-	"CreateTransitGateway":                     "aws_ec2_transit_gateway",
-	"DeleteTransitGateway":                     "aws_ec2_transit_gateway",
-	"ModifyTransitGateway":                     "aws_ec2_transit_gateway",
-	"CreateTransitGatewayVpcAttachment":        "aws_ec2_transit_gateway_vpc_attachment",
-	"DeleteTransitGatewayVpcAttachment":        "aws_ec2_transit_gateway_vpc_attachment",
-	"CreateTransitGatewayRouteTable":           "aws_ec2_transit_gateway_route_table",
-	"DeleteTransitGatewayRouteTable":           "aws_ec2_transit_gateway_route_table",
-	"CreateTransitGatewayRoute":                "aws_ec2_transit_gateway_route",
-	"DeleteTransitGatewayRoute":                "aws_ec2_transit_gateway_route",
+	"CreateTransitGateway":              "aws_ec2_transit_gateway",
+	"DeleteTransitGateway":              "aws_ec2_transit_gateway",
+	"ModifyTransitGateway":              "aws_ec2_transit_gateway",
+	"CreateTransitGatewayVpcAttachment": "aws_ec2_transit_gateway_vpc_attachment",
+	"DeleteTransitGatewayVpcAttachment": "aws_ec2_transit_gateway_vpc_attachment",
+	"CreateTransitGatewayRouteTable":    "aws_ec2_transit_gateway_route_table",
+	"DeleteTransitGatewayRouteTable":    "aws_ec2_transit_gateway_route_table",
+	"CreateTransitGatewayRoute":         "aws_ec2_transit_gateway_route",
+	"DeleteTransitGatewayRoute":         "aws_ec2_transit_gateway_route",
 
 	// VPC - Flow Logs
 	"CreateFlowLogs": "aws_flow_log",

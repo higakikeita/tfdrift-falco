@@ -37,7 +37,7 @@ var SecurityMappings = map[string]string{
 	"RemoveRoleFromInstanceProfile": "aws_iam_instance_profile",
 
 	// IAM - OIDC Providers
-	"AddClientIDToOpenIDConnectProvider":    "aws_iam_openid_connect_provider",
+	"AddClientIDToOpenIDConnectProvider":      "aws_iam_openid_connect_provider",
 	"RemoveClientIDFromOpenIDConnectProvider": "aws_iam_openid_connect_provider",
 
 	// KMS - Key Management

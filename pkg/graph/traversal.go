@@ -13,8 +13,8 @@ type Path struct {
 
 // TraversalResult holds the results of a graph traversal
 type TraversalResult struct {
-	Nodes     []*Node         `json:"nodes"`
-	Distances map[string]int  `json:"distances"` // node_id -> distance from start
+	Nodes     []*Node           `json:"nodes"`
+	Distances map[string]int    `json:"distances"` // node_id -> distance from start
 	Parents   map[string]string `json:"parents"`   // node_id -> parent node_id
 }
 

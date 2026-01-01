@@ -84,25 +84,25 @@ var OtherServicesMappings = map[string]string{
 	"UpdateUsagePlan": "aws_api_gateway_usage_plan",
 
 	// API Gateway v2 (HTTP/WebSocket)
-	"CreateApi":        "aws_apigatewayv2_api",
-	"DeleteApi":        "aws_apigatewayv2_api",
-	"UpdateApi":        "aws_apigatewayv2_api",
-	"UpdateRoute":      "aws_apigatewayv2_route",
+	"CreateApi":         "aws_apigatewayv2_api",
+	"DeleteApi":         "aws_apigatewayv2_api",
+	"UpdateApi":         "aws_apigatewayv2_api",
+	"UpdateRoute":       "aws_apigatewayv2_route",
 	"CreateIntegration": "aws_apigatewayv2_integration",
 	"DeleteIntegration": "aws_apigatewayv2_integration",
 	"UpdateIntegration": "aws_apigatewayv2_integration",
 
 	// CloudFormation - Stacks
-	"CreateStack":        "aws_cloudformation_stack",
-	"UpdateStack":        "aws_cloudformation_stack",
-	"DeleteStack":        "aws_cloudformation_stack",
-	"CreateChangeSet":    "aws_cloudformation_change_set",
-	"ExecuteChangeSet":   "aws_cloudformation_change_set",
-	"DeleteChangeSet":    "aws_cloudformation_change_set",
-	"CreateStackSet":     "aws_cloudformation_stack_set",
-	"UpdateStackSet":     "aws_cloudformation_stack_set",
-	"DeleteStackSet":     "aws_cloudformation_stack_set",
-	"SetStackPolicy":     "aws_cloudformation_stack",
+	"CreateStack":      "aws_cloudformation_stack",
+	"UpdateStack":      "aws_cloudformation_stack",
+	"DeleteStack":      "aws_cloudformation_stack",
+	"CreateChangeSet":  "aws_cloudformation_change_set",
+	"ExecuteChangeSet": "aws_cloudformation_change_set",
+	"DeleteChangeSet":  "aws_cloudformation_change_set",
+	"CreateStackSet":   "aws_cloudformation_stack_set",
+	"UpdateStackSet":   "aws_cloudformation_stack_set",
+	"DeleteStackSet":   "aws_cloudformation_stack_set",
+	"SetStackPolicy":   "aws_cloudformation_stack",
 
 	// CloudFormation - Stack Instances
 	"CreateStackInstances": "aws_cloudformation_stack_set_instance",
@@ -123,21 +123,21 @@ var OtherServicesMappings = map[string]string{
 	"StopExecution":      "aws_sfn_state_machine",
 
 	// AWS Glue - Jobs
-	"CreateJob":    "aws_glue_job",
-	"UpdateJob":    "aws_glue_job",
-	"DeleteJob":    "aws_glue_job",
+	"CreateJob":     "aws_glue_job",
+	"UpdateJob":     "aws_glue_job",
+	"DeleteJob":     "aws_glue_job",
 	"CreateCrawler": "aws_glue_crawler",
 	"UpdateCrawler": "aws_glue_crawler",
 	"DeleteCrawler": "aws_glue_crawler",
 
 	// Kinesis - Streams
-	"CreateStream":             "aws_kinesis_stream",
-	"DeleteStream":             "aws_kinesis_stream",
-	"UpdateShardCount":         "aws_kinesis_stream",
-	"EnableEnhancedMonitoring": "aws_kinesis_stream",
+	"CreateStream":              "aws_kinesis_stream",
+	"DeleteStream":              "aws_kinesis_stream",
+	"UpdateShardCount":          "aws_kinesis_stream",
+	"EnableEnhancedMonitoring":  "aws_kinesis_stream",
 	"DisableEnhancedMonitoring": "aws_kinesis_stream",
-	"StartStreamEncryption":    "aws_kinesis_stream",
-	"StopStreamEncryption":     "aws_kinesis_stream",
+	"StartStreamEncryption":     "aws_kinesis_stream",
+	"StopStreamEncryption":      "aws_kinesis_stream",
 
 	// Kinesis - Consumers
 	"RegisterStreamConsumer":   "aws_kinesis_stream_consumer",
@@ -165,9 +165,9 @@ var OtherServicesMappings = map[string]string{
 	"DeleteBackupVaultAccessPolicy": "aws_backup_vault_policy",
 
 	// AWS Backup - Jobs
-	"StartBackupJob":   "aws_backup_selection",
-	"StopBackupJob":    "aws_backup_selection",
-	"StartRestoreJob":  "aws_backup_selection",
+	"StartBackupJob":  "aws_backup_selection",
+	"StopBackupJob":   "aws_backup_selection",
+	"StartRestoreJob": "aws_backup_selection",
 
 	// SageMaker - Endpoints
 	"CreateEndpoint":       "aws_sagemaker_endpoint",

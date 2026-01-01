@@ -41,9 +41,9 @@ func (h *StatsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 
 		// Drifts
 		"drifts": map[string]interface{}{
-			"total":            baseStats["total_drifts"],
-			"severity_counts":  baseStats["severity_counts"],
-			"resource_types":   baseStats["resource_type_counts"],
+			"total":           baseStats["total_drifts"],
+			"severity_counts": baseStats["severity_counts"],
+			"resource_types":  baseStats["resource_type_counts"],
 		},
 
 		// Events
