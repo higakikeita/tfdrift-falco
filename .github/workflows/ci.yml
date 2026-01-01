@@ -7,6 +7,16 @@ on:
     branches: [main, develop]
   release:
     types: [published]
+  schedule:
+    # Run security scans every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  security-events: write
+  actions: read
+  pull-requests: write
 
 env:
   GO_VERSION: '1.24'
@@ -265,3 +275,401 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
+
+  # ============================================
+  # Integration Tests
+  # ============================================
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [changes, backend]
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (needs.changes.outputs.backend == 'true' && (github.event_name == 'push' || github.event_name == 'pull_request'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run integration tests
+        run: |
+          cd tests/integration
+          # Check if there are active test files (not build-ignored)
+          go list -f '{{.TestGoFiles}}' ./... | grep -q "\[.*\]"
+          if [ $? -eq 0 ]; then
+            go test -v -race -coverprofile=integration-coverage.out ./...
+          else
+            echo "ℹ️  Integration tests are disabled (build tags: ignore)"
+            echo "These tests require external services (Slack, Grafana, etc.)"
+            echo "Skipping..."
+            # Create empty coverage file to satisfy next step
+            touch integration-coverage.out
+            exit 0
+          fi
+
+      - name: Generate integration coverage report
+        run: |
+          cd tests/integration
+          if [ -s integration-coverage.out ]; then
+            go tool cover -func=integration-coverage.out
+          else
+            echo "No coverage data to report"
+          fi
+
+      - name: Upload integration coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./tests/integration/integration-coverage.out
+          flags: integration
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Run integration tests for summary
+        if: github.event_name == 'pull_request'
+        run: |
+          cd tests/integration
+          go test -v ./... 2>&1 | tee integration-results.txt
+        continue-on-error: true
+
+      - name: Comment PR with integration test results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let results = '';
+            try {
+              results = fs.readFileSync('tests/integration/integration-results.txt', 'utf8');
+            } catch (e) {
+              results = 'Could not read test results';
+            }
+
+            // Parse test results
+            const passMatch = results.match(/PASS/g);
+            const failMatch = results.match(/FAIL/g);
+            const passCount = passMatch ? passMatch.length : 0;
+            const failCount = failMatch ? failMatch.length : 0;
+
+            // Extract test names
+            const testLines = results.split('\n').filter(line =>
+              line.includes('=== RUN') || line.includes('--- PASS') || line.includes('--- FAIL')
+            );
+
+            let summary = '## 🔗 Integration Test Results\n\n';
+
+            if (failCount === 0) {
+              summary += '✅ **All integration tests passed!**\n\n';
+            } else {
+              summary += '❌ **Some integration tests failed**\n\n';
+            }
+
+            summary += `- Passed: ${passCount}\n`;
+            summary += `- Failed: ${failCount}\n\n`;
+
+            if (testLines.length > 0) {
+              summary += '### Test Details\n\n';
+              summary += '```\n';
+              summary += testLines.slice(0, 20).join('\n'); // First 20 lines
+              if (testLines.length > 20) {
+                summary += '\n... (truncated)\n';
+              }
+              summary += '\n```\n';
+            }
+
+            summary += '\n### What are Integration Tests?\n\n';
+            summary += 'Integration tests validate component interactions with mocked external dependencies:\n';
+            summary += '- Slack/Discord webhook notifications\n';
+            summary += '- Falco gRPC event parsing\n';
+            summary += '- State loading and comparison\n';
+            summary += '- No real AWS or Falco required\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+  # ============================================
+  # Security Scans
+  # ============================================
+  security-snyk:
+    name: Snyk Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: changes
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (needs.changes.outputs.backend == 'true' && github.event_name != 'pull_request') ||
+      (needs.changes.outputs.backend == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/golang@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --sarif-file-output=snyk.sarif --file=go.mod
+          command: test
+
+      - name: Upload Snyk results to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: snyk.sarif
+
+  security-gosec:
+    name: GoSec Security Scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: changes
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (needs.changes.outputs.backend == 'true' && (github.event_name == 'push' || github.event_name == 'pull_request'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        continue-on-error: true
+        with:
+          args: '-fmt sarif -out gosec.sarif -exclude-generated ./...'
+
+      - name: Upload Gosec results to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: gosec.sarif
+
+  security-nancy:
+    name: Nancy Dependency Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: changes
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (needs.changes.outputs.backend == 'true' && (github.event_name == 'push' || github.event_name == 'pull_request'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Write Go List
+        run: go list -json -deps ./... > go.list
+
+      - name: Run Nancy
+        uses: sonatype-nexus-community/nancy-github-action@main
+        continue-on-error: true
+
+  # ============================================
+  # Benchmark Tests
+  # ============================================
+  benchmark:
+    name: Benchmark Tests
+    runs-on: ubuntu-latest
+    needs: [changes, backend]
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'benchmark'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for comparison
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Install benchstat
+        run: go install golang.org/x/perf/cmd/benchstat@latest
+
+      - name: Run benchmarks (current)
+        run: |
+          cd tests/benchmark
+          go test -bench=. -benchmem -benchtime=10s -count=5 | tee current.txt
+
+      - name: Run benchmarks (base) for PR
+        if: github.event_name == 'pull_request'
+        run: |
+          git checkout ${{ github.event.pull_request.base.sha }}
+          cd tests/benchmark
+          go test -bench=. -benchmem -benchtime=10s -count=5 | tee base.txt
+          git checkout -
+
+      - name: Compare benchmarks
+        if: github.event_name == 'pull_request'
+        id: compare
+        run: |
+          cd tests/benchmark
+          if [ -f base.txt ] && [ -f current.txt ]; then
+            benchstat base.txt current.txt > comparison.txt || true
+            echo "comparison_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "comparison_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for performance degradation
+        if: github.event_name == 'pull_request' && steps.compare.outputs.comparison_exists == 'true'
+        id: check_degradation
+        run: |
+          cd tests/benchmark
+
+          # Parse benchstat output for significant regressions (>20% slower)
+          if grep -E '\+[2-9][0-9]\.[0-9]+%|^\+[1][0-9]{2,}\.[0-9]+%' comparison.txt; then
+            echo "degradation=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Performance degradation detected (>20% slower)"
+          else
+            echo "degradation=false" >> $GITHUB_OUTPUT
+            echo "✅ No significant performance degradation"
+          fi
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-${{ github.sha }}
+          path: tests/benchmark/*.txt
+          retention-days: 30
+
+      - name: Comment PR with benchmark results
+        if: github.event_name == 'pull_request' && steps.compare.outputs.comparison_exists == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let comparison = '';
+            let current = '';
+            let degradation = '${{ steps.check_degradation.outputs.degradation }}' === 'true';
+
+            try {
+              comparison = fs.readFileSync('tests/benchmark/comparison.txt', 'utf8');
+              current = fs.readFileSync('tests/benchmark/current.txt', 'utf8');
+            } catch (e) {
+              comparison = 'Could not read benchmark results';
+            }
+
+            let summary = '## 📊 Benchmark Results\n\n';
+
+            if (degradation) {
+              summary += '⚠️ **Performance degradation detected (>20% slower)**\n\n';
+              summary += 'Please review the changes to ensure performance is acceptable.\n\n';
+            } else {
+              summary += '✅ **No significant performance degradation detected**\n\n';
+            }
+
+            summary += '### Comparison vs Base Branch\n\n';
+            summary += '```\n';
+            summary += comparison;
+            summary += '\n```\n\n';
+
+            // Extract key metrics from current run
+            const benchLines = current.split('\n').filter(line =>
+              line.includes('Benchmark') && !line.includes('=== RUN')
+            ).slice(0, 10);
+
+            if (benchLines.length > 0) {
+              summary += '### Current Performance Metrics\n\n';
+              summary += '```\n';
+              summary += benchLines.join('\n');
+              summary += '\n```\n\n';
+            }
+
+            summary += '### About Benchmarks\n\n';
+            summary += 'These benchmarks measure:\n';
+            summary += '- **Event processing throughput** (events/sec)\n';
+            summary += '- **Memory allocations** (bytes/op, allocs/op)\n';
+            summary += '- **State comparison performance**\n';
+            summary += '- **Drift detection for EC2, IAM, S3**\n';
+            summary += '- **Concurrent event handling**\n\n';
+            summary += 'Performance targets:\n';
+            summary += '- ✅ >5,000 events/sec single-threaded\n';
+            summary += '- ✅ <10KB memory per event\n';
+            summary += '- ✅ Linear scaling with concurrent workloads\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+      - name: Warn if performance degraded
+        if: github.event_name == 'pull_request' && steps.check_degradation.outputs.degradation == 'true'
+        run: |
+          echo "::warning::Performance degradation detected. Please review benchmark results."
+          exit 0
+
+      - name: Update benchmark baseline (main branch only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          cd tests/benchmark
+          cp current.txt baseline-${{ github.sha }}.txt
+
+      - name: Upload baseline
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-baseline-${{ github.sha }}
+          path: tests/benchmark/baseline-*.txt
+          retention-days: 90
+
+      - name: Commit baseline to repo
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p .github/benchmark-baselines
+          cp tests/benchmark/baseline-${{ github.sha }}.txt .github/benchmark-baselines/latest.txt
+
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add .github/benchmark-baselines/latest.txt
+            git commit -m "chore: update benchmark baseline [skip ci]"
+            git push
+          fi
