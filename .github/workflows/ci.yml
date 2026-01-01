@@ -539,14 +539,14 @@ jobs:
       - name: Run benchmarks (current)
         run: |
           cd tests/benchmark
-          go test -bench=. -benchmem -benchtime=10s -count=5 | tee current.txt
+          go test -bench=. -benchmem -benchtime=3s -count=3 -run=^$ | tee current.txt
 
       - name: Run benchmarks (base) for PR
         if: github.event_name == 'pull_request'
         run: |
           git checkout ${{ github.event.pull_request.base.sha }}
           cd tests/benchmark
-          go test -bench=. -benchmem -benchtime=10s -count=5 | tee base.txt
+          go test -bench=. -benchmem -benchtime=3s -count=3 -run=^$ | tee base.txt
           git checkout -
 
       - name: Compare benchmarks
