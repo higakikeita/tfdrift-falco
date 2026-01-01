@@ -257,35 +257,6 @@ func getEnvOrDefault(key, defaultValue string) string {
 }
 
 // skipIfShort skips test if running in short mode
-// Note: Used in E2E tests which are excluded from normal builds with //go:build ignore
-func skipIfShort(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping E2E test in short mode")
-	}
-}
-
-// skipIfNoAWS skips test if AWS credentials are not available
-// Note: Used in E2E tests which are excluded from normal builds with //go:build ignore
-func skipIfNoAWS(t *testing.T) {
-	if os.Getenv("AWS_ACCESS_KEY_ID") == "" {
-		t.Skip("Skipping E2E test: AWS credentials not found")
-	}
-}
-
-// skipIfNoFalco skips test if Falco is not available
-// Note: Used in E2E tests which are excluded from normal builds with //go:build ignore
-func skipIfNoFalco(t *testing.T) {
-	falcoHost := getEnvOrDefault("FALCO_HOSTNAME", "localhost")
-	falcoPort := getEnvOrDefault("FALCO_PORT", "5060")
-
-	// Simple check - could be enhanced with actual gRPC probe
-	if falcoHost == "" {
-		t.Skip("Skipping E2E test: Falco not configured")
-	}
-
-	t.Logf("Using Falco at %s:%s", falcoHost, falcoPort)
-}
-
 // AssertAlertReceived asserts that an alert was received
 func AssertAlertReceived(t *testing.T, alert *types.DriftAlert, resourceType, resourceID string) {
 	t.Helper()

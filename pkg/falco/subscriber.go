@@ -88,8 +88,7 @@ func (s *Subscriber) startWithTLS(ctx context.Context, eventCh chan<- types.Even
 func (s *Subscriber) startWithInsecure(ctx context.Context, eventCh chan<- types.Event) error {
 	// Create direct gRPC connection with insecure credentials
 	target := fmt.Sprintf("%s:%d", s.cfg.Hostname, s.cfg.Port)
-	conn, err := grpc.DialContext(
-		ctx,
+	conn, err := grpc.NewClient(
 		target,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)

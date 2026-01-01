@@ -264,42 +264,6 @@ func buildDependencyEdges(resources []*terraform.Resource) []models.CytoscapeEdg
 	return edges
 }
 
-// findResourceSubnet finds the subnet ID that a resource belongs to
-func findResourceSubnet(resource *terraform.Resource, hierarchy *AWSHierarchy) string {
-	// Extract subnet ID from resource attributes
-	var subnetID string
-	switch resource.Type {
-	case "aws_instance":
-		if subnet, ok := resource.Attributes["subnet_id"].(string); ok {
-			subnetID = subnet
-		}
-	case "aws_nat_gateway":
-		if subnet, ok := resource.Attributes["subnet_id"].(string); ok {
-			subnetID = subnet
-		}
-	case "aws_db_instance":
-		// RDS instances use subnet groups, so we don't assign to specific subnet
-		return ""
-	}
-
-	if subnetID == "" {
-		return ""
-	}
-
-	// Verify subnet exists in hierarchy
-	for _, region := range hierarchy.Regions {
-		for _, vpc := range region.VPCs {
-			for _, az := range vpc.AvailabilityZones {
-				if _, exists := az.Subnets[subnetID]; exists {
-					return subnetID
-				}
-			}
-		}
-	}
-
-	return ""
-}
-
 // BuildGraph builds a Cytoscape graph from stored data
 func (s *Store) BuildGraph() models.CytoscapeElements {
 	s.mu.RLock()
