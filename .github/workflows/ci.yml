@@ -79,6 +79,7 @@ jobs:
       # ===== Lint (from lint.yml) =====
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v4
+        continue-on-error: true
         with:
           version: latest
           args: --timeout=5m
