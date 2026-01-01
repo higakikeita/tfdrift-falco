@@ -2,11 +2,11 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   release:
-    types: [ published ]
+    types: [published]
 
 env:
   GO_VERSION: '1.24'
@@ -14,11 +14,39 @@ env:
 
 jobs:
   # ============================================
-  # Backend Tests and Build
+  # Detect changed files
+  # ============================================
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - '**.go'
+              - 'go.mod'
+              - 'go.sum'
+              - 'cmd/**'
+              - 'pkg/**'
+              - 'tests/**'
+              - '.github/workflows/ci.yml'
+            frontend:
+              - 'ui/**'
+              - '.github/workflows/ci.yml'
+
+  # ============================================
+  # Backend: Go Build, Lint, and Test
   # ============================================
   backend:
-    name: Backend CI
+    name: Backend
     runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' }}
 
     steps:
       - name: Checkout code
@@ -30,16 +58,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
-
-      - name: Cache Go modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+          cache: true
 
       - name: Download dependencies
         run: go mod download
@@ -47,14 +66,47 @@ jobs:
       - name: Verify dependencies
         run: go mod verify
 
+      # ===== Lint (from lint.yml) =====
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: v2
+          args: --timeout=5m
+
+      - name: Check formatting
+        run: |
+          if [ -n "$(gofmt -l .)" ]; then
+            echo "❌ Go files must be formatted with gofmt. Please run:"
+            echo "  gofmt -w ."
+            gofmt -l .
+            exit 1
+          fi
+
       - name: Run go vet
         run: go vet ./...
 
-      # Note: Staticcheck is run in lint.yml workflow
-      # Removed from here to avoid duplication
+      - name: Run staticcheck
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./...
+        continue-on-error: true
 
-      - name: Run tests
+      - name: Check go mod tidy
+        run: |
+          go mod tidy
+          if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
+            echo "❌ go.mod or go.sum is not up to date. Please run:"
+            echo "  go mod tidy"
+            git diff go.mod go.sum
+            exit 1
+          fi
+
+      # ===== Test (from test.yml) =====
+      - name: Run tests with coverage
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Generate coverage report
+        run: go tool cover -func=coverage.out
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -62,7 +114,9 @@ jobs:
           file: ./coverage.out
           flags: backend
           name: backend-coverage
+          fail_ci_if_error: false
 
+      # ===== Build =====
       - name: Build binary
         run: |
           CGO_ENABLED=0 GOOS=linux go build \
@@ -78,11 +132,13 @@ jobs:
           retention-days: 7
 
   # ============================================
-  # Frontend Tests and Build
+  # Frontend: UI Build, Lint, and Test
   # ============================================
   frontend:
-    name: Frontend CI
+    name: Frontend
     runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' }}
     defaults:
       run:
         working-directory: ./ui
@@ -99,20 +155,36 @@ jobs:
           cache-dependency-path: ui/package-lock.json
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
-      - name: Run linter
+      # ===== Lint =====
+      - name: Run ESLint
         run: npm run lint
         continue-on-error: true
 
-      - name: Run type check
+      - name: Run TypeScript compiler
         run: npx tsc -b --noEmit
         continue-on-error: true
 
-      - name: Run tests
+      # ===== Test =====
+      - name: Run unit tests
         run: npm test -- --passWithNoTests
         continue-on-error: true
 
+      - name: Run tests with coverage
+        run: npm run test:coverage
+        continue-on-error: true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./ui/coverage/coverage-final.json
+          flags: frontend
+          name: frontend-coverage
+          fail_ci_if_error: false
+
+      # ===== Build =====
       - name: Build for production
         run: npm run build
         env:
@@ -193,10 +265,3 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
-
-  # ============================================
-  # Security Scanning
-  # ============================================
-  # Note: Security scanning is now handled in security.yml workflow
-  # This includes Snyk, Gosec, Nancy, and Trivy scans
-  # Removed from here to avoid duplication and consolidate security checks
