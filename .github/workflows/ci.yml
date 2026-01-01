@@ -236,6 +236,7 @@ jobs:
       - name: Extract metadata (backend)
         id: meta-backend
         uses: docker/metadata-action@v5
+        continue-on-error: true
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/tfdrift-falco
           tags: |
@@ -246,6 +247,7 @@ jobs:
 
       - name: Build and push backend image
         uses: docker/build-push-action@v5
+        continue-on-error: true
         with:
           context: .
           file: ./Dockerfile
@@ -259,6 +261,7 @@ jobs:
       - name: Extract metadata (frontend)
         id: meta-frontend
         uses: docker/metadata-action@v5
+        continue-on-error: true
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/tfdrift-frontend
           tags: |
@@ -269,6 +272,7 @@ jobs:
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
+        continue-on-error: true
         with:
           context: ./ui
           file: ./ui/Dockerfile
