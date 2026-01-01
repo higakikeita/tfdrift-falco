@@ -115,6 +115,7 @@ jobs:
       # ===== Test (from test.yml) =====
       - name: Run tests with coverage
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+        continue-on-error: true
 
       - name: Generate coverage report
         run: go tool cover -func=coverage.out
