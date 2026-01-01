@@ -32,6 +32,10 @@ config.yaml
 *.tfstate.backup
 *.tfvars
 
+# Exception: Allow testdata files for testing
+!**/testdata/*.tfstate
+!**/testdata/*.tfstate.backup
+
 # Terraform files
 .terraform/
 .terraform.lock.hcl
