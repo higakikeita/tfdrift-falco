@@ -5,11 +5,14 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React from 'react';
 import { useDrifts, useDrift } from './useDrifts';
 import { apiClient } from '../client';
-import type { DriftAlert, PaginatedResponse } from '../types';
+import { createQueryClientWrapper } from '../../__tests__/utils/reactQueryTestUtils';
+import {
+  mockDriftAlert,
+  mockPaginatedDrifts,
+  createMockDrift,
+} from '../../__tests__/fixtures/driftsFixtures';
 
 // Mock API client
 vi.mock('../client', () => ({
@@ -18,51 +21,6 @@ vi.mock('../client', () => ({
     getDrift: vi.fn(),
   },
 }));
-
-// Mock data
-const mockDriftAlert: DriftAlert = {
-  id: 'drift-123',
-  severity: 'high',
-  resource_type: 'aws_iam_role',
-  resource_name: 'test-role',
-  resource_id: 'role-123',
-  attribute: 'assume_role_policy',
-  old_value: '{}',
-  new_value: '{"Version": "2012-10-17"}',
-  user_identity: {
-    Type: 'IAMUser',
-    PrincipalID: 'AIDAI123',
-    ARN: 'arn:aws:iam::123456789012:user/test',
-    AccountID: '123456789012',
-    UserName: 'test-user',
-  },
-  matched_rules: ['rule1'],
-  timestamp: '2024-01-01T00:00:00Z',
-  alert_type: 'drift',
-};
-
-const mockPaginatedDrifts: PaginatedResponse<DriftAlert> = {
-  data: [mockDriftAlert],
-  page: 1,
-  limit: 10,
-  total: 50,
-  total_pages: 5,
-};
-
-// Helper to create React Query wrapper
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false, // Disable retries for tests
-      },
-    },
-  });
-
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-};
 
 describe('useDrifts', () => {
   beforeEach(() => {
@@ -74,7 +32,7 @@ describe('useDrifts', () => {
       vi.mocked(apiClient.getDrifts).mockResolvedValue(mockPaginatedDrifts);
 
       const { result } = renderHook(() => useDrifts(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -93,7 +51,7 @@ describe('useDrifts', () => {
 
       const params = { page: 2, limit: 20 };
       const { result } = renderHook(() => useDrifts(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -108,7 +66,7 @@ describe('useDrifts', () => {
 
       const params = { severity: 'high' };
       const { result } = renderHook(() => useDrifts(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -123,7 +81,7 @@ describe('useDrifts', () => {
 
       const params = { resource_type: 'aws_iam_role' };
       const { result } = renderHook(() => useDrifts(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -143,7 +101,7 @@ describe('useDrifts', () => {
         resource_type: 'aws_iam_role',
       };
       const { result } = renderHook(() => useDrifts(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -160,7 +118,7 @@ describe('useDrifts', () => {
       vi.mocked(apiClient.getDrifts).mockRejectedValue(error);
 
       const { result } = renderHook(() => useDrifts(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -175,7 +133,7 @@ describe('useDrifts', () => {
       vi.mocked(apiClient.getDrifts).mockRejectedValue(error);
 
       const { result } = renderHook(() => useDrifts(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -191,7 +149,7 @@ describe('useDrifts', () => {
       vi.mocked(apiClient.getDrifts).mockResolvedValue(mockPaginatedDrifts);
 
       const { result } = renderHook(() => useDrifts(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -207,7 +165,7 @@ describe('useDrifts', () => {
 
       const params = { page: 1, severity: 'high' };
       const { result } = renderHook(() => useDrifts(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -226,7 +184,7 @@ describe('useDrifts', () => {
       );
 
       const { result } = renderHook(() => useDrifts(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -237,7 +195,7 @@ describe('useDrifts', () => {
       vi.mocked(apiClient.getDrifts).mockResolvedValue(mockPaginatedDrifts);
 
       const { result } = renderHook(() => useDrifts(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -262,7 +220,7 @@ describe('useDrift', () => {
       vi.mocked(apiClient.getDrift).mockResolvedValue(mockDriftAlert);
 
       const { result } = renderHook(() => useDrift('drift-123'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -280,7 +238,7 @@ describe('useDrift', () => {
       vi.mocked(apiClient.getDrift).mockResolvedValue(mockDriftAlert);
 
       const { result } = renderHook(() => useDrift(''), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(false);
@@ -294,7 +252,7 @@ describe('useDrift', () => {
       const { result, rerender } = renderHook(
         ({ id }: { id: string }) => useDrift(id),
         {
-          wrapper: createWrapper(),
+          wrapper: createQueryClientWrapper(),
           initialProps: { id: '' },
         }
       );
@@ -317,7 +275,7 @@ describe('useDrift', () => {
       vi.mocked(apiClient.getDrift).mockRejectedValue(error);
 
       const { result } = renderHook(() => useDrift('drift-123'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -332,7 +290,7 @@ describe('useDrift', () => {
       vi.mocked(apiClient.getDrift).mockRejectedValue(error);
 
       const { result } = renderHook(() => useDrift('nonexistent'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -348,7 +306,7 @@ describe('useDrift', () => {
       vi.mocked(apiClient.getDrift).mockResolvedValue(mockDriftAlert);
 
       const { result } = renderHook(() => useDrift('drift-123'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -365,7 +323,7 @@ describe('useDrift', () => {
       vi.mocked(apiClient.getDrift).mockResolvedValue(mockDriftAlert);
 
       const { result } = renderHook(() => useDrift(''), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(false);
@@ -377,7 +335,7 @@ describe('useDrift', () => {
       vi.mocked(apiClient.getDrift).mockResolvedValue(mockDriftAlert);
 
       const { result } = renderHook(() => useDrift('drift-123'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -397,7 +355,7 @@ describe('useDrift', () => {
       );
 
       const { result } = renderHook(() => useDrift('drift-123'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -408,7 +366,7 @@ describe('useDrift', () => {
       vi.mocked(apiClient.getDrift).mockResolvedValue(mockDriftAlert);
 
       const { result } = renderHook(() => useDrift('drift-123'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);

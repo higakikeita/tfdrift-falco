@@ -5,11 +5,21 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React from 'react';
 import { useGraph, useNodes, useEdges } from './useGraph';
 import { apiClient } from '../client';
-import type { CytoscapeElements, CytoscapeNode, CytoscapeEdge, PaginatedResponse } from '../types';
+import type { CytoscapeElements } from '../types';
+import { createQueryClientWrapper } from '../../__tests__/utils/reactQueryTestUtils';
+import {
+  mockNode,
+  mockEdge,
+  mockGraphData,
+  mockPaginatedNodes,
+  mockPaginatedEdges,
+  createMockNode,
+  createMockEdge,
+  createLargeGraphData,
+  createEmptyGraphData,
+} from '../../__tests__/fixtures/graphFixtures';
 
 // Mock API client
 vi.mock('../client', () => ({
@@ -19,65 +29,6 @@ vi.mock('../client', () => ({
     getEdges: vi.fn(),
   },
 }));
-
-// Mock data
-const mockNode: CytoscapeNode = {
-  data: {
-    id: 'node1',
-    label: 'Test Node',
-    type: 'aws_iam_role',
-    severity: 'high',
-    metadata: {
-      arn: 'arn:aws:iam::123456789012:role/test',
-    },
-  },
-};
-
-const mockEdge: CytoscapeEdge = {
-  data: {
-    id: 'edge1',
-    source: 'node1',
-    target: 'node2',
-    type: 'depends_on',
-    label: 'depends on',
-  },
-};
-
-const mockGraphData: CytoscapeElements = {
-  nodes: [mockNode],
-  edges: [mockEdge],
-};
-
-const mockPaginatedNodes: PaginatedResponse<CytoscapeNode> = {
-  data: [mockNode],
-  page: 1,
-  limit: 10,
-  total: 100,
-  total_pages: 10,
-};
-
-const mockPaginatedEdges: PaginatedResponse<CytoscapeEdge> = {
-  data: [mockEdge],
-  page: 1,
-  limit: 10,
-  total: 150,
-  total_pages: 15,
-};
-
-// Helper to create React Query wrapper
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false, // Disable retries for tests
-      },
-    },
-  });
-
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-};
 
 describe('useGraph', () => {
   beforeEach(() => {
@@ -89,7 +40,7 @@ describe('useGraph', () => {
       vi.mocked(apiClient.getGraph).mockResolvedValue(mockGraphData);
 
       const { result } = renderHook(() => useGraph(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -103,22 +54,12 @@ describe('useGraph', () => {
     });
 
     it('should fetch graph with multiple nodes and edges', async () => {
-      const largeGraph: CytoscapeElements = {
-        nodes: [
-          mockNode,
-          { ...mockNode, data: { ...mockNode.data, id: 'node2', label: 'Node 2' } },
-          { ...mockNode, data: { ...mockNode.data, id: 'node3', label: 'Node 3' } },
-        ],
-        edges: [
-          mockEdge,
-          { ...mockEdge, data: { ...mockEdge.data, id: 'edge2', source: 'node2', target: 'node3' } },
-        ],
-      };
+      const largeGraph = createLargeGraphData();
 
       vi.mocked(apiClient.getGraph).mockResolvedValue(largeGraph);
 
       const { result } = renderHook(() => useGraph(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -130,15 +71,12 @@ describe('useGraph', () => {
     });
 
     it('should fetch empty graph', async () => {
-      const emptyGraph: CytoscapeElements = {
-        nodes: [],
-        edges: [],
-      };
+      const emptyGraph = createEmptyGraphData();
 
       vi.mocked(apiClient.getGraph).mockResolvedValue(emptyGraph);
 
       const { result } = renderHook(() => useGraph(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -156,7 +94,7 @@ describe('useGraph', () => {
       vi.mocked(apiClient.getGraph).mockRejectedValue(error);
 
       const { result } = renderHook(() => useGraph(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -171,7 +109,7 @@ describe('useGraph', () => {
       vi.mocked(apiClient.getGraph).mockRejectedValue(error);
 
       const { result } = renderHook(() => useGraph(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -186,7 +124,7 @@ describe('useGraph', () => {
       vi.mocked(apiClient.getGraph).mockRejectedValue(error);
 
       const { result } = renderHook(() => useGraph(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -202,7 +140,7 @@ describe('useGraph', () => {
       vi.mocked(apiClient.getGraph).mockResolvedValue(mockGraphData);
 
       const { result } = renderHook(() => useGraph(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -221,7 +159,7 @@ describe('useGraph', () => {
       );
 
       const { result } = renderHook(() => useGraph(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -232,7 +170,7 @@ describe('useGraph', () => {
       vi.mocked(apiClient.getGraph).mockResolvedValue(mockGraphData);
 
       const { result } = renderHook(() => useGraph(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -257,7 +195,7 @@ describe('useNodes', () => {
       vi.mocked(apiClient.getNodes).mockResolvedValue(mockPaginatedNodes);
 
       const { result } = renderHook(() => useNodes(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -276,7 +214,7 @@ describe('useNodes', () => {
 
       const params = { page: 2, limit: 20 };
       const { result } = renderHook(() => useNodes(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -291,7 +229,7 @@ describe('useNodes', () => {
 
       const params = { page: 3 };
       const { result } = renderHook(() => useNodes(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -306,7 +244,7 @@ describe('useNodes', () => {
 
       const params = { limit: 50 };
       const { result } = renderHook(() => useNodes(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -323,7 +261,7 @@ describe('useNodes', () => {
       vi.mocked(apiClient.getNodes).mockRejectedValue(error);
 
       const { result } = renderHook(() => useNodes(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -338,7 +276,7 @@ describe('useNodes', () => {
       vi.mocked(apiClient.getNodes).mockRejectedValue(error);
 
       const { result } = renderHook(() => useNodes(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -354,7 +292,7 @@ describe('useNodes', () => {
       vi.mocked(apiClient.getNodes).mockResolvedValue(mockPaginatedNodes);
 
       const { result } = renderHook(() => useNodes(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -370,7 +308,7 @@ describe('useNodes', () => {
 
       const params = { page: 1, limit: 10 };
       const { result } = renderHook(() => useNodes(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -388,7 +326,7 @@ describe('useNodes', () => {
       const page2 = {
         ...mockPaginatedNodes,
         page: 2,
-        data: [{ ...mockNode, data: { ...mockNode.data, id: 'node2' } }],
+        data: [createMockNode({ id: 'node2' })],
       };
 
       vi.mocked(apiClient.getNodes).mockResolvedValueOnce(page1);
@@ -396,7 +334,7 @@ describe('useNodes', () => {
       const { result, rerender } = renderHook(
         ({ page }: { page: number }) => useNodes({ page }),
         {
-          wrapper: createWrapper(),
+          wrapper: createQueryClientWrapper(),
           initialProps: { page: 1 },
         }
       );
@@ -424,7 +362,7 @@ describe('useNodes', () => {
       );
 
       const { result } = renderHook(() => useNodes(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -435,7 +373,7 @@ describe('useNodes', () => {
       vi.mocked(apiClient.getNodes).mockResolvedValue(mockPaginatedNodes);
 
       const { result } = renderHook(() => useNodes(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -460,7 +398,7 @@ describe('useEdges', () => {
       vi.mocked(apiClient.getEdges).mockResolvedValue(mockPaginatedEdges);
 
       const { result } = renderHook(() => useEdges(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -479,7 +417,7 @@ describe('useEdges', () => {
 
       const params = { page: 2, limit: 20 };
       const { result } = renderHook(() => useEdges(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -494,7 +432,7 @@ describe('useEdges', () => {
 
       const params = { page: 3 };
       const { result } = renderHook(() => useEdges(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -509,7 +447,7 @@ describe('useEdges', () => {
 
       const params = { limit: 50 };
       const { result } = renderHook(() => useEdges(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -524,15 +462,15 @@ describe('useEdges', () => {
         ...mockPaginatedEdges,
         data: [
           mockEdge,
-          { ...mockEdge, data: { ...mockEdge.data, id: 'edge2', type: 'contains' } },
-          { ...mockEdge, data: { ...mockEdge.data, id: 'edge3', type: 'references' } },
+          createMockEdge({ id: 'edge2', type: 'contains' }),
+          createMockEdge({ id: 'edge3', type: 'references' }),
         ],
       };
 
       vi.mocked(apiClient.getEdges).mockResolvedValue(edgesWithTypes);
 
       const { result } = renderHook(() => useEdges(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -552,7 +490,7 @@ describe('useEdges', () => {
       vi.mocked(apiClient.getEdges).mockRejectedValue(error);
 
       const { result } = renderHook(() => useEdges(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -567,7 +505,7 @@ describe('useEdges', () => {
       vi.mocked(apiClient.getEdges).mockRejectedValue(error);
 
       const { result } = renderHook(() => useEdges(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -583,7 +521,7 @@ describe('useEdges', () => {
       vi.mocked(apiClient.getEdges).mockResolvedValue(mockPaginatedEdges);
 
       const { result } = renderHook(() => useEdges(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -599,7 +537,7 @@ describe('useEdges', () => {
 
       const params = { page: 1, limit: 10 };
       const { result } = renderHook(() => useEdges(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -617,7 +555,7 @@ describe('useEdges', () => {
       const page2 = {
         ...mockPaginatedEdges,
         page: 2,
-        data: [{ ...mockEdge, data: { ...mockEdge.data, id: 'edge2' } }],
+        data: [createMockEdge({ id: 'edge2' })],
       };
 
       vi.mocked(apiClient.getEdges).mockResolvedValueOnce(page1);
@@ -625,7 +563,7 @@ describe('useEdges', () => {
       const { result, rerender } = renderHook(
         ({ page }: { page: number }) => useEdges({ page }),
         {
-          wrapper: createWrapper(),
+          wrapper: createQueryClientWrapper(),
           initialProps: { page: 1 },
         }
       );
@@ -653,7 +591,7 @@ describe('useEdges', () => {
       );
 
       const { result } = renderHook(() => useEdges(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -664,7 +602,7 @@ describe('useEdges', () => {
       vi.mocked(apiClient.getEdges).mockResolvedValue(mockPaginatedEdges);
 
       const { result } = renderHook(() => useEdges(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);

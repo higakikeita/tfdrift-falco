@@ -5,11 +5,15 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React from 'react';
 import { useEvents, useEvent } from './useEvents';
 import { apiClient } from '../client';
-import type { FalcoEvent, PaginatedResponse } from '../types';
+import { createQueryClientWrapper } from '../../__tests__/utils/reactQueryTestUtils';
+import {
+  mockFalcoEvent,
+  mockPaginatedEvents,
+  createMockEvent,
+  createMockGCPEvent,
+} from '../../__tests__/fixtures/eventsFixtures';
 
 // Mock API client
 vi.mock('../client', () => ({
@@ -18,49 +22,6 @@ vi.mock('../client', () => ({
     getEvent: vi.fn(),
   },
 }));
-
-// Mock data
-const mockFalcoEvent: FalcoEvent = {
-  id: 'event-123',
-  provider: 'aws',
-  event_name: 'CreateRole',
-  resource_type: 'aws_iam_role',
-  resource_id: 'role-123',
-  user_identity: {
-    Type: 'IAMUser',
-    PrincipalID: 'AIDAI123',
-    ARN: 'arn:aws:iam::123456789012:user/test',
-    AccountID: '123456789012',
-    UserName: 'test-user',
-  },
-  changes: { name: 'test-role' },
-  region: 'us-east-1',
-  project_id: 'project-123',
-  service_name: 'iam',
-};
-
-const mockPaginatedEvents: PaginatedResponse<FalcoEvent> = {
-  data: [mockFalcoEvent],
-  page: 1,
-  limit: 10,
-  total: 200,
-  total_pages: 20,
-};
-
-// Helper to create React Query wrapper
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false, // Disable retries for tests
-      },
-    },
-  });
-
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-};
 
 describe('useEvents', () => {
   beforeEach(() => {
@@ -72,7 +33,7 @@ describe('useEvents', () => {
       vi.mocked(apiClient.getEvents).mockResolvedValue(mockPaginatedEvents);
 
       const { result } = renderHook(() => useEvents(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -91,7 +52,7 @@ describe('useEvents', () => {
 
       const params = { page: 2, limit: 20 };
       const { result } = renderHook(() => useEvents(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -106,7 +67,7 @@ describe('useEvents', () => {
 
       const params = { severity: 'high' };
       const { result } = renderHook(() => useEvents(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -121,7 +82,7 @@ describe('useEvents', () => {
 
       const params = { provider: 'aws' };
       const { result } = renderHook(() => useEvents(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -141,7 +102,7 @@ describe('useEvents', () => {
         provider: 'aws',
       };
       const { result } = renderHook(() => useEvents(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -154,13 +115,13 @@ describe('useEvents', () => {
     it('should fetch events with GCP provider', async () => {
       const gcpEvents = {
         ...mockPaginatedEvents,
-        data: [{ ...mockFalcoEvent, provider: 'gcp' }],
+        data: [createMockGCPEvent()],
       };
       vi.mocked(apiClient.getEvents).mockResolvedValue(gcpEvents);
 
       const params = { provider: 'gcp' };
       const { result } = renderHook(() => useEvents(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -178,7 +139,7 @@ describe('useEvents', () => {
       vi.mocked(apiClient.getEvents).mockRejectedValue(error);
 
       const { result } = renderHook(() => useEvents(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -193,7 +154,7 @@ describe('useEvents', () => {
       vi.mocked(apiClient.getEvents).mockRejectedValue(error);
 
       const { result } = renderHook(() => useEvents(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -208,7 +169,7 @@ describe('useEvents', () => {
       vi.mocked(apiClient.getEvents).mockRejectedValue(error);
 
       const { result } = renderHook(() => useEvents(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -224,7 +185,7 @@ describe('useEvents', () => {
       vi.mocked(apiClient.getEvents).mockResolvedValue(mockPaginatedEvents);
 
       const { result } = renderHook(() => useEvents(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -240,7 +201,7 @@ describe('useEvents', () => {
 
       const params = { page: 1, severity: 'high' };
       const { result } = renderHook(() => useEvents(params), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -259,7 +220,7 @@ describe('useEvents', () => {
       );
 
       const { result } = renderHook(() => useEvents(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -270,7 +231,7 @@ describe('useEvents', () => {
       vi.mocked(apiClient.getEvents).mockResolvedValue(mockPaginatedEvents);
 
       const { result } = renderHook(() => useEvents(), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -287,14 +248,13 @@ describe('useEvents', () => {
   describe('Pagination', () => {
     it('should handle multiple pages', async () => {
       const page1 = { ...mockPaginatedEvents, page: 1 };
-      const page2 = { ...mockPaginatedEvents, page: 2, data: [{ ...mockFalcoEvent, id: 'event-456' }] };
 
       vi.mocked(apiClient.getEvents).mockResolvedValueOnce(page1);
 
       const { result, rerender } = renderHook(
         ({ page }: { page: number }) => useEvents({ page }),
         {
-          wrapper: createWrapper(),
+          wrapper: createQueryClientWrapper(),
           initialProps: { page: 1 },
         }
       );
@@ -306,6 +266,11 @@ describe('useEvents', () => {
       expect(result.current.data?.page).toBe(1);
 
       // Switch to page 2
+      const page2 = {
+        ...mockPaginatedEvents,
+        page: 2,
+        data: [createMockEvent({ id: 'event-456' })]
+      };
       vi.mocked(apiClient.getEvents).mockResolvedValueOnce(page2);
       rerender({ page: 2 });
 
@@ -326,7 +291,7 @@ describe('useEvent', () => {
       vi.mocked(apiClient.getEvent).mockResolvedValue(mockFalcoEvent);
 
       const { result } = renderHook(() => useEvent('event-123'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -344,7 +309,7 @@ describe('useEvent', () => {
       vi.mocked(apiClient.getEvent).mockResolvedValue(mockFalcoEvent);
 
       const { result } = renderHook(() => useEvent(''), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(false);
@@ -358,7 +323,7 @@ describe('useEvent', () => {
       const { result, rerender } = renderHook(
         ({ id }: { id: string }) => useEvent(id),
         {
-          wrapper: createWrapper(),
+          wrapper: createQueryClientWrapper(),
           initialProps: { id: '' },
         }
       );
@@ -380,7 +345,7 @@ describe('useEvent', () => {
       const { result, rerender } = renderHook(
         ({ id }: { id: string }) => useEvent(id),
         {
-          wrapper: createWrapper(),
+          wrapper: createQueryClientWrapper(),
           initialProps: { id: 'event-123' },
         }
       );
@@ -392,7 +357,7 @@ describe('useEvent', () => {
       expect(result.current.data?.id).toBe('event-123');
 
       // Switch to different event
-      const anotherEvent = { ...mockFalcoEvent, id: 'event-456' };
+      const anotherEvent = createMockEvent({ id: 'event-456' });
       vi.mocked(apiClient.getEvent).mockResolvedValueOnce(anotherEvent);
       rerender({ id: 'event-456' });
 
@@ -408,7 +373,7 @@ describe('useEvent', () => {
       vi.mocked(apiClient.getEvent).mockRejectedValue(error);
 
       const { result } = renderHook(() => useEvent('event-123'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -423,7 +388,7 @@ describe('useEvent', () => {
       vi.mocked(apiClient.getEvent).mockRejectedValue(error);
 
       const { result } = renderHook(() => useEvent('nonexistent'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -438,7 +403,7 @@ describe('useEvent', () => {
       vi.mocked(apiClient.getEvent).mockRejectedValue(error);
 
       const { result } = renderHook(() => useEvent('event-123'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -454,7 +419,7 @@ describe('useEvent', () => {
       vi.mocked(apiClient.getEvent).mockResolvedValue(mockFalcoEvent);
 
       const { result } = renderHook(() => useEvent('event-123'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       await waitFor(() => {
@@ -471,7 +436,7 @@ describe('useEvent', () => {
       vi.mocked(apiClient.getEvent).mockResolvedValue(mockFalcoEvent);
 
       const { result } = renderHook(() => useEvent(''), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(false);
@@ -483,7 +448,7 @@ describe('useEvent', () => {
       vi.mocked(apiClient.getEvent).mockResolvedValue(mockFalcoEvent);
 
       const { result } = renderHook(() => useEvent('event-123'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -503,7 +468,7 @@ describe('useEvent', () => {
       );
 
       const { result } = renderHook(() => useEvent('event-123'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -514,7 +479,7 @@ describe('useEvent', () => {
       vi.mocked(apiClient.getEvent).mockResolvedValue(mockFalcoEvent);
 
       const { result } = renderHook(() => useEvent('event-123'), {
-        wrapper: createWrapper(),
+        wrapper: createQueryClientWrapper(),
       });
 
       expect(result.current.isLoading).toBe(true);

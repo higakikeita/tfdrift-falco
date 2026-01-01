@@ -1,0 +1,13 @@
+# Build output
+dist
+build
+storybook-static
+
+# Coverage reports
+coverage
+
+# Dependencies
+node_modules
+
+# Generated files
+*.generated.*
