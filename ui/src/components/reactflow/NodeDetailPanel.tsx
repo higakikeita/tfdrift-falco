@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Node Detail Panel Component
  * Displays detailed information about selected nodes

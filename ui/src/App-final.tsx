@@ -4,7 +4,7 @@
  * Modern layout with sidebar, HTML icon overlays, and shadcn/ui
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 import ReactFlowGraph from './components/reactflow/ReactFlowGraph';
 import { Button } from './components/ui/button';
@@ -26,18 +26,13 @@ type DemoMode = 'api' | 'simple' | 'complex' | 'blast-radius';
 function AppFinal() {
   const [demoMode, setDemoMode] = useState<DemoMode>('api');
   const [highlightedPath, setHighlightedPath] = useState<string[]>([]);
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(shouldShowWelcome());
   const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Filtering state
   const [searchTerm, setSearchTerm] = useState('');
   const [severityFilters, setSeverityFilters] = useState<string[]>([]);
   const [resourceTypeFilters, setResourceTypeFilters] = useState<string[]>([]);
-
-  // Check if welcome modal should be shown
-  useEffect(() => {
-    setShowWelcome(shouldShowWelcome());
-  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -162,7 +157,7 @@ function AppFinal() {
     })
   };
 
-  const handleNodeClick = (nodeId: string, nodeData: any) => {
+  const handleNodeClick = (nodeId: string, nodeData: unknown) => {
     console.log('Node clicked:', nodeId, nodeData);
   };
 

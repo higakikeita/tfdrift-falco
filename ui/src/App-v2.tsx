@@ -4,9 +4,9 @@
  * Clean, modern interface with proper shadcn/ui integration
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import CytoscapeGraph from './components/CytoscapeGraph';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
 import { Button } from './components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './components/ui/card';
 import {

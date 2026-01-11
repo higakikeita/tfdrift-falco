@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Graph with HTML Icon Overlays
  *
@@ -7,7 +8,7 @@
 import { useEffect, useRef, useState } from 'react';
 import cytoscape from 'cytoscape';
 import type { Core, NodeSingular } from 'cytoscape';
-// @ts-ignore
+// @ts-expect-error - cytoscape-dagre lacks type definitions
 import dagre from 'cytoscape-dagre';
 import { cytoscapeConfig, layoutConfigs } from '../styles/cytoscapeStyles';
 import type { CytoscapeElements } from '../types/graph';
@@ -110,6 +111,7 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
     return () => {
       cy.destroy();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [elements, layout]);
 
   // Update highlighted path

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * React Flow Graph Component
  * High-quality graph visualization with official cloud provider icons

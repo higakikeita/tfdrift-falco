@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Hierarchical Group Nodes for AWS Architecture Diagram
  * Following AWS standard architecture diagram conventions

@@ -11,7 +11,7 @@ export type SSEEventType = 'connected' | 'drift' | 'falco' | 'state_change' | 'k
 
 export interface SSEEvent {
   type: SSEEventType;
-  data: any;
+  data: unknown;
   timestamp?: string;
 }
 
@@ -65,12 +65,14 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     console.log(`[SSE] Reconnecting in ${delay}ms (attempt ${reconnectCount.current}/${reconnectAttempts})`);
 
     reconnectTimeout.current = setTimeout(() => {
+      // eslint-disable-next-line react-hooks/immutability
       connect();
     }, delay);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reconnectAttempts, reconnectDelay]);
 
   // Handle incoming event
-  const handleEvent = useCallback((type: SSEEventType, data: any) => {
+  const handleEvent = useCallback((type: SSEEventType, data: unknown) => {
     const event: SSEEvent = {
       type,
       data,
@@ -204,6 +206,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     return () => {
       disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
@@ -232,8 +235,8 @@ export function useSSEEvents(eventTypes: SSEEventType[]): SSEEvent[] {
  */
 export function useSSEEventHandler(
   eventType: SSEEventType,
-  callback: (data: any) => void,
-  dependencies: any[] = []
+  callback: (data: unknown) => void,
+  dependencies: unknown[] = []
 ) {
   const { lastEvent } = useSSE();
 
@@ -241,6 +244,7 @@ export function useSSEEventHandler(
     if (lastEvent && lastEvent.type === eventType) {
       callback(lastEvent.data);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastEvent, eventType, ...dependencies]);
 }
 
@@ -248,7 +252,7 @@ export function useSSEEventHandler(
  * Hook for real-time drift alerts
  */
 export function useDriftAlerts() {
-  const [driftAlerts, setDriftAlerts] = useState<any[]>([]);
+  const [driftAlerts, setDriftAlerts] = useState<unknown[]>([]);
 
   useSSEEventHandler('drift', (data) => {
     setDriftAlerts(prev => [data, ...prev].slice(0, 50)); // Keep last 50 alerts
@@ -264,7 +268,7 @@ export function useDriftAlerts() {
  * Hook for real-time Falco events
  */
 export function useFalcoEvents() {
-  const [falcoEvents, setFalcoEvents] = useState<any[]>([]);
+  const [falcoEvents, setFalcoEvents] = useState<unknown[]>([]);
 
   useSSEEventHandler('falco', (data) => {
     setFalcoEvents(prev => [data, ...prev].slice(0, 50)); // Keep last 50 events

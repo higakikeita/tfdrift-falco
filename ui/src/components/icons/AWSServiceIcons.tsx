@@ -183,6 +183,7 @@ export const AWSDynamoDBIcon: React.FC<IconProps> = ({ size = 48, className = ''
   </svg>
 );
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AWSServiceIcons = {
   'aws_iam_policy': AWSIAMIcon,
   'aws_iam_role': AWSIAMIcon,

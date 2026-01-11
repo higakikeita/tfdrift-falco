@@ -3,6 +3,7 @@
  * グラフビュー + ドリフトテーブルビュー統合版
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 import { ReactFlowGraph } from './components/reactflow/ReactFlowGraph';

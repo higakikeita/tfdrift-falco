@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/purity */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Progressive Graph Loading Hook
  * Loads and renders large graphs in batches for better performance

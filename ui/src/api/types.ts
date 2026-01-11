@@ -102,3 +102,64 @@ export interface Stats {
     count: number;
   }>;
 }
+
+// AWS Discovery Types
+export interface DiscoveredResource {
+  id: string;
+  type: string;
+  arn?: string;
+  name: string;
+  region: string;
+  attributes: Record<string, unknown>;
+  tags?: Record<string, string>;
+}
+
+export interface FieldDiff {
+  field: string;
+  terraform_value: unknown;
+  actual_value: unknown;
+}
+
+export interface ResourceDiff {
+  resource_id: string;
+  resource_type: string;
+  terraform_state: Record<string, unknown>;
+  actual_state: Record<string, unknown>;
+  differences: FieldDiff[];
+}
+
+export interface DriftResult {
+  unmanaged_resources: DiscoveredResource[];  // Resources in AWS but not in Terraform (manually created)
+  missing_resources: TerraformResource[];      // Resources in Terraform but not in AWS (manually deleted)
+  modified_resources: ResourceDiff[];          // Resources with configuration differences
+}
+
+export interface DriftSummary {
+  region: string;
+  timestamp: string;
+  counts: {
+    terraform_resources: number;
+    aws_resources: number;
+    unmanaged: number;
+    missing: number;
+    modified: number;
+  };
+  breakdown: {
+    unmanaged_by_type: Record<string, number>;
+    missing_by_type: Record<string, number>;
+    modified_by_type: Record<string, number>;
+  };
+}
+
+export interface DriftDetectionResult {
+  region: string;
+  timestamp: string;
+  summary: {
+    terraform_resources: number;
+    aws_resources: number;
+    unmanaged_count: number;
+    missing_count: number;
+    modified_count: number;
+  };
+  drift: DriftResult;
+}

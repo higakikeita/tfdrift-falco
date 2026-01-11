@@ -7,10 +7,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useGraph, useNodes, useEdges } from './useGraph';
 import { apiClient } from '../client';
-import type { CytoscapeElements } from '../types';
 import { createQueryClientWrapper } from '../../__tests__/utils/reactQueryTestUtils';
 import {
-  mockNode,
   mockEdge,
   mockGraphData,
   mockPaginatedNodes,
@@ -343,14 +341,14 @@ describe('useNodes', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(result.current.data?.page).toBe(1);
+      expect((result.current.data as typeof page1)?.page).toBe(1);
 
       // Switch to page 2
       vi.mocked(apiClient.getNodes).mockResolvedValueOnce(page2);
       rerender({ page: 2 });
 
       await waitFor(() => {
-        expect(result.current.data?.page).toBe(2);
+        expect((result.current.data as typeof page2)?.page).toBe(2);
       });
     });
   });
@@ -477,10 +475,10 @@ describe('useEdges', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(result.current.data?.data).toHaveLength(3);
-      expect(result.current.data?.data[0].data.type).toBe('depends_on');
-      expect(result.current.data?.data[1].data.type).toBe('contains');
-      expect(result.current.data?.data[2].data.type).toBe('references');
+      expect((result.current.data as typeof mockPaginatedEdges)?.data).toHaveLength(3);
+      expect((result.current.data as typeof mockPaginatedEdges)?.data[0].data.type).toBe('depends_on');
+      expect((result.current.data as typeof mockPaginatedEdges)?.data[1].data.type).toBe('contains');
+      expect((result.current.data as typeof mockPaginatedEdges)?.data[2].data.type).toBe('references');
     });
   });
 
@@ -572,14 +570,14 @@ describe('useEdges', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(result.current.data?.page).toBe(1);
+      expect((result.current.data as typeof page1)?.page).toBe(1);
 
       // Switch to page 2
       vi.mocked(apiClient.getEdges).mockResolvedValueOnce(page2);
       rerender({ page: 2 });
 
       await waitFor(() => {
-        expect(result.current.data?.page).toBe(2);
+        expect((result.current.data as typeof page2)?.page).toBe(2);
       });
     });
   });

@@ -14,16 +14,11 @@ const meta: Meta<typeof KeyboardShortcutsGuide> = {
     layout: 'fullscreen',
   },
   argTypes: {
-    isOpen: {
-      control: 'boolean',
-      description: 'Controls whether the guide is visible',
-    },
     onClose: {
       description: 'Callback function when the guide is closed',
     },
   },
   args: {
-    isOpen: true,
     onClose: () => console.log('Guide closed'),
   },
 };
@@ -36,9 +31,7 @@ type Story = StoryObj<typeof KeyboardShortcutsGuide>;
  * Shows all keyboard shortcuts organized by category
  */
 export const Default: Story = {
-  args: {
-    isOpen: true,
-  },
+  args: {},
 };
 
 /**
@@ -46,9 +39,7 @@ export const Default: Story = {
  * Interactive example showing all shortcuts
  */
 export const Open: Story = {
-  args: {
-    isOpen: true,
-  },
+  args: {},
 };
 
 /**
@@ -56,9 +47,7 @@ export const Open: Story = {
  * No guide is visible
  */
 export const Closed: Story = {
-  args: {
-    isOpen: false,
-  },
+  args: {},
 };
 
 /**
@@ -66,9 +55,7 @@ export const Closed: Story = {
  * User can browse all shortcut categories
  */
 export const InteractiveGuide: Story = {
-  args: {
-    isOpen: true,
-  },
+  args: {},
   parameters: {
     docs: {
       description: {

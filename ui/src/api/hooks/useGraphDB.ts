@@ -130,7 +130,7 @@ export const usePatternMatch = (
     start_labels: string[];
     rel_type: string;
     end_labels: string[];
-    end_filter: Record<string, any>;
+    end_filter: Record<string, unknown>;
   } | null,
   enabled: boolean = true
 ) => {

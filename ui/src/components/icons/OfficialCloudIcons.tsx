@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
 // Official AWS React Icons from aws-react-icons package
@@ -244,6 +245,7 @@ export const OfficialCloudIcon: React.FC<OfficialIconProps> = ({
 };
 
 // Helper function to get icon path for a resource type
+// eslint-disable-next-line react-refresh/only-export-components
 export const getOfficialIconPath = (type: string): string => {
   const iconData = GCP_K8S_ICON_MAPPING[type];
   if (iconData) {

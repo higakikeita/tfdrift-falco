@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Custom Node Component Tests
  * Tests for React Flow custom node rendering and interactions
@@ -30,7 +31,6 @@ vi.mock('../graph/NodeTooltip', () => ({
 
 vi.mock('../graph/NodeContextMenu', () => ({
   NodeContextMenu: ({
-    position,
     nodeId,
     onClose,
     onViewDetails,

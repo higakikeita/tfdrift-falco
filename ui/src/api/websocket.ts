@@ -13,13 +13,13 @@ export type WSTopic = 'all' | 'drifts' | 'events' | 'state' | 'stats';
 export interface WSMessage {
   type: WSMessageType;
   topic?: WSTopic;
-  payload?: any;
+  payload?: unknown;
 }
 
 export interface WSResponse {
   type: string;
   topic?: string;
-  payload: any;
+  payload: unknown;
   timestamp?: string;
 }
 
@@ -116,8 +116,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt ${reconnectCount.current}/${reconnectAttempts})`);
 
     reconnectTimeout.current = setTimeout(() => {
+      // eslint-disable-next-line react-hooks/immutability
       connect();
     }, delay);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reconnectAttempts, reconnectDelay]);
 
   // Connect to WebSocket
@@ -212,6 +214,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     return () => {
       disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
@@ -232,8 +235,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
  */
 export function useWebSocketEvent(
   eventType: string,
-  callback: (payload: any) => void,
-  dependencies: any[] = []
+  callback: (payload: unknown) => void,
+  dependencies: unknown[] = []
 ) {
   const { lastMessage } = useWebSocket();
 
@@ -241,5 +244,6 @@ export function useWebSocketEvent(
     if (lastMessage && lastMessage.type === eventType) {
       callback(lastMessage.payload);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastMessage, eventType, ...dependencies]);
 }

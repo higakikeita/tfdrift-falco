@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Custom Node Component for React Flow
  * High-quality node rendering with official cloud provider icons

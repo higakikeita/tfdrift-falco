@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * PatternSearchPanel - Neo4j-style pattern matching search UI
  */

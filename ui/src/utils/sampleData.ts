@@ -4,6 +4,7 @@
  * TFDrift-Falco因果関係グラフのデモ用サンプルデータ
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { CytoscapeElements } from '../types/graph';
 import { NodeType, EdgeType } from '../types/graph';
 

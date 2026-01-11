@@ -158,6 +158,7 @@ export const GCPVPCIcon: React.FC<IconProps> = ({ size = 48, className = '' }) =
   </svg>
 );
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const GCPServiceIcons = {
   'gcp_iam_policy': GCPIAMIcon,
   'gcp_iam_role': GCPIAMIcon,

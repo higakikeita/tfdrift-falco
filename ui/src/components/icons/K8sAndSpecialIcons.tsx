@@ -211,6 +211,7 @@ export const DriftIcon: React.FC<IconProps> = ({ size = 48, className = '' }) =>
   </svg>
 );
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const K8sAndSpecialIcons = {
   'kubernetes_pod': K8sPodIcon,
   'kubernetes_service_account': K8sServiceAccountIcon,

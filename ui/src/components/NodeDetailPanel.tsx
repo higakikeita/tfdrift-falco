@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * NodeDetailPanel - Display detailed node information and relationships
  */

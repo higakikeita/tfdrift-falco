@@ -14,16 +14,11 @@ const meta: Meta<typeof WelcomeModal> = {
     layout: 'centered',
   },
   argTypes: {
-    isOpen: {
-      control: 'boolean',
-      description: 'Controls whether the modal is visible',
-    },
     onClose: {
       description: 'Callback function when the modal is closed',
     },
   },
   args: {
-    isOpen: true,
     onClose: () => console.log('Modal closed'),
   },
 };
@@ -37,7 +32,6 @@ type Story = StoryObj<typeof WelcomeModal>;
  */
 export const Default: Story = {
   args: {
-    isOpen: true,
   },
 };
 
@@ -47,7 +41,6 @@ export const Default: Story = {
  */
 export const Open: Story = {
   args: {
-    isOpen: true,
   },
 };
 
@@ -57,7 +50,6 @@ export const Open: Story = {
  */
 export const Closed: Story = {
   args: {
-    isOpen: false,
   },
 };
 
@@ -67,7 +59,6 @@ export const Closed: Story = {
  */
 export const InteractiveTutorial: Story = {
   args: {
-    isOpen: true,
   },
   parameters: {
     docs: {

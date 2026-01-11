@@ -113,6 +113,7 @@ export const CloudIcon: React.FC<CloudIconProps> = ({
  * Inline SVG Icons for Cytoscape.js nodes
  * These are base64 encoded SVGs for use in Cytoscape node backgrounds
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const CloudIconSVGs = {
   aws_iam: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHJ4PSI4IiBmaWxsPSIjRkY5OTAwIi8+CiAgPHBhdGggZD0iTTI0IDEyTDM2IDI0TDI0IDM2TDEyIDI0TDI0IDEyWiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+',
 

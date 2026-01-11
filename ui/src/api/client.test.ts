@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
-import { apiClient, APIResponse } from './client';
+import { apiClient, type APIResponse } from './client';
 import type { CytoscapeElements, DriftAlert, FalcoEvent, Stats } from './types';
 
 // Setup MSW server

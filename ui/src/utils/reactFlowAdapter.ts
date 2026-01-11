@@ -7,6 +7,23 @@ import { MarkerType } from 'reactflow';
 import type { Node, Edge } from 'reactflow';
 import type { CytoscapeElements } from '../types/graph';
 
+// Custom node data interface with metadata
+interface CustomNodeData {
+  label?: string;
+  type?: string;
+  severity?: string;
+  metadata?: {
+    hierarchical_level?: string;
+    parent?: string;
+    subnet_type?: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+// Custom node type with metadata
+type CustomNode = Node<CustomNodeData>;
+
 export interface ReactFlowData {
   nodes: Node[];
   edges: Edge[];
@@ -203,7 +220,8 @@ const getHierarchicalNetworkLayout = (nodes: Node[], edges: Edge[]): ReactFlowDa
   const resourceNodes: Node[] = [];
 
   nodes.forEach(node => {
-    const level = (node.data as any).metadata?.hierarchical_level;
+    const customNode = node as CustomNode;
+    const level = customNode.data.metadata?.hierarchical_level;
     switch (level) {
       case 'region': regionNodes.push(node); break;
       case 'vpc': vpcNodes.push(node); break;
@@ -236,12 +254,13 @@ const getHierarchicalNetworkLayout = (nodes: Node[], edges: Edge[]): ReactFlowDa
 
   // VPC nodes (Level 2) - children of regions
   vpcNodes.forEach((node) => {
-    const parent = (node.data as any).metadata?.parent;
+    const customNode = node as CustomNode;
+    const parent = customNode.data.metadata?.parent;
     layoutedNodes.push({
       ...node,
       type: 'vpc-group',
       parentNode: parent,
-      extent: 'parent' as any,
+      extent: 'parent',
       position: { x: 60, y: 90 },
       style: {
         width: 1820,
@@ -257,13 +276,14 @@ const getHierarchicalNetworkLayout = (nodes: Node[], edges: Edge[]): ReactFlowDa
 
   // AZ nodes (Level 3) - children of VPCs
   azNodes.forEach((node, idx) => {
-    const parent = (node.data as any).metadata?.parent;
+    const customNode = node as CustomNode;
+    const parent = customNode.data.metadata?.parent;
     const xOffset = idx * 900; // Increased spacing between AZs
     layoutedNodes.push({
       ...node,
       type: 'az-group',
       parentNode: parent,
-      extent: 'parent' as any,
+      extent: 'parent',
       position: { x: 30 + xOffset, y: 70 },
       style: {
         width: 850,
@@ -280,7 +300,9 @@ const getHierarchicalNetworkLayout = (nodes: Node[], edges: Edge[]): ReactFlowDa
   // Subnet nodes (Level 4) - children of AZs
   const subnetsByParent = new Map<string, Node[]>();
   subnetNodes.forEach(node => {
-    const parent = (node.data as any).metadata?.parent;
+    const customNode = node as CustomNode;
+    const parent = customNode.data.metadata?.parent;
+    if (!parent) return;
     if (!subnetsByParent.has(parent)) {
       subnetsByParent.set(parent, []);
     }
@@ -289,13 +311,14 @@ const getHierarchicalNetworkLayout = (nodes: Node[], edges: Edge[]): ReactFlowDa
 
   subnetsByParent.forEach((subnets, parentId) => {
     subnets.forEach((node, idx) => {
-      const subnetType = (node.data as any).metadata?.subnet_type;
+      const customNode = node as CustomNode;
+      const subnetType = customNode.data.metadata?.subnet_type;
       const yOffset = idx * 490; // Increased spacing between subnets
       layoutedNodes.push({
         ...node,
         type: subnetType === 'public' ? 'subnet-group-public' : 'subnet-group-private',
         parentNode: parentId,
-        extent: 'parent' as any,
+        extent: 'parent',
         position: { x: 25, y: 60 + yOffset },
         style: {
           width: 790,
@@ -313,7 +336,9 @@ const getHierarchicalNetworkLayout = (nodes: Node[], edges: Edge[]): ReactFlowDa
   // Resource nodes (Level 5) - children of subnets
   const resourcesByParent = new Map<string, Node[]>();
   resourceNodes.forEach(node => {
-    const parent = (node.data as any).metadata?.parent;
+    const customNode = node as CustomNode;
+    const parent = customNode.data.metadata?.parent;
+    if (!parent) return;
     if (!resourcesByParent.has(parent)) {
       resourcesByParent.set(parent, []);
     }
@@ -328,7 +353,7 @@ const getHierarchicalNetworkLayout = (nodes: Node[], edges: Edge[]): ReactFlowDa
         ...node,
         type: 'custom',
         parentNode: parentId,
-        extent: 'parent' as any,
+        extent: 'parent',
         position: { x: 30 + col * 250, y: 60 + row * 140 }, // More spacing between resources
         style: {
           width: 220,

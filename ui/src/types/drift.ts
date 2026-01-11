@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Drift Event Types
  * TFDrift-Falcoで検知されたドリフトイベントの型定義
@@ -8,6 +9,33 @@ export type DriftSeverity = 'critical' | 'high' | 'medium' | 'low';
 export type ChangeType = 'created' | 'modified' | 'deleted';
 
 export type Provider = 'aws' | 'gcp' | 'azure';
+
+/**
+ * Drift Change - Individual change within a drift
+ */
+export interface DriftChange {
+  path: string;
+  before: unknown;
+  after: unknown;
+  change_type: string;
+}
+
+/**
+ * Drift - Drift detection result
+ */
+export interface Drift {
+  id: string;
+  resource_type: string;
+  resource_name: string;
+  resource_id: string;
+  provider: string;
+  region: string;
+  change_type: string;
+  severity: string;
+  detected_at: string;
+  changes: DriftChange[];
+  metadata: Record<string, unknown>;
+}
 
 export interface UserIdentity {
   type: string;

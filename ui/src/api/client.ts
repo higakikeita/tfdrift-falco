@@ -184,12 +184,25 @@ class APIClient {
     start_labels: string[];
     rel_type: string;
     end_labels: string[];
-    end_filter: Record<string, any>;
+    end_filter: Record<string, unknown>;
   }) {
     return this.request('/graph/match', {
       method: 'POST',
       body: JSON.stringify(pattern),
     });
+  }
+
+  // Discovery API
+  async scanAWSResources(region: string = 'us-east-1') {
+    return this.request(`/discovery/scan?region=${region}`);
+  }
+
+  async detectDrift(region: string = 'us-east-1') {
+    return this.request(`/discovery/drift?region=${region}`);
+  }
+
+  async getDriftSummary(region: string = 'us-east-1') {
+    return this.request(`/discovery/drift/summary?region=${region}`);
   }
 }
 

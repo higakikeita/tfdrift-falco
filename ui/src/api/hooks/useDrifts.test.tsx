@@ -11,7 +11,6 @@ import { createQueryClientWrapper } from '../../__tests__/utils/reactQueryTestUt
 import {
   mockDriftAlert,
   mockPaginatedDrifts,
-  createMockDrift,
 } from '../../__tests__/fixtures/driftsFixtures';
 
 // Mock API client

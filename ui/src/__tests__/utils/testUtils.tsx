@@ -3,8 +3,9 @@
  * Common testing helpers and mock data generators
  */
 
-import { render, RenderOptions } from '@testing-library/react';
-import { ReactElement, ReactNode } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { render, type RenderOptions } from '@testing-library/react';
+import type { ReactElement, ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactFlowProvider } from 'reactflow';
 import type { Drift, DriftChange } from '@/types/drift';
@@ -28,11 +29,6 @@ export function createTestQueryClient() {
       mutations: {
         retry: false,
       },
-    },
-    logger: {
-      log: () => {},
-      warn: () => {},
-      error: () => {},
     },
   });
 }
@@ -116,18 +112,21 @@ export function createMockDriftChange(overrides?: Partial<DriftChange>): DriftCh
 export function createMockFalcoEvent(overrides?: Partial<FalcoEvent>): FalcoEvent {
   return {
     id: 'falco-456',
-    timestamp: '2025-01-01T00:01:00Z',
-    priority: 'Warning',
-    rule: 'Terminal shell in container',
-    output: 'A shell was spawned in a container',
-    severity: 'medium',
-    source: 'syscall',
-    tags: ['container', 'shell'],
-    fields: {
-      'container.id': 'abc123',
-      'container.name': 'test-container',
-      'proc.cmdline': '/bin/bash',
+    provider: 'aws',
+    event_name: 'CreateRole',
+    resource_type: 'aws_iam_role',
+    resource_id: 'role-123',
+    user_identity: {
+      Type: 'IAMUser',
+      PrincipalID: 'AIDAI123',
+      ARN: 'arn:aws:iam::123456789012:user/test',
+      AccountID: '123456789012',
+      UserName: 'test-user',
     },
+    changes: { name: 'test-role' },
+    region: 'us-east-1',
+    project_id: 'project-123',
+    service_name: 'iam',
     ...overrides,
   };
 }
@@ -140,9 +139,10 @@ export function createMockCytoscapeNode(overrides?: Partial<CytoscapeNode>): Cyt
     data: {
       id: 'node-1',
       label: 'Test Node',
-      type: 'aws_iam_role',
+      type: 'iam_role',
       severity: 'high',
-      provider: 'aws',
+      resource_type: 'aws_iam_role',
+      resource_name: 'test-role',
       metadata: {},
       ...overrides?.data,
     },
@@ -159,6 +159,8 @@ export function createMockCytoscapeEdge(overrides?: Partial<CytoscapeEdge>): Cyt
       source: 'node-1',
       target: 'node-2',
       label: 'depends_on',
+      type: 'caused_by',
+      relationship: 'depends_on',
       ...overrides?.data,
     },
   };
@@ -173,8 +175,11 @@ export function createMockNodes(count: number): CytoscapeNode[] {
       data: {
         id: `node-${i + 1}`,
         label: `Node ${i + 1}`,
-        type: i % 2 === 0 ? 'aws_iam_role' : 'aws_ec2_instance',
+        type: i % 2 === 0 ? 'iam_role' : 'pod',
+        resource_type: i % 2 === 0 ? 'aws_iam_role' : 'kubernetes_pod',
+        resource_name: `resource-${i + 1}`,
         severity: (['critical', 'high', 'medium', 'low'] as Severity[])[i % 4],
+        metadata: {},
       },
     })
   );
@@ -193,6 +198,8 @@ export function createMockEdges(nodeCount: number): CytoscapeEdge[] {
           source: `node-${i}`,
           target: `node-${i + 1}`,
           label: 'depends_on',
+          type: 'caused_by',
+          relationship: 'depends_on',
         },
       })
     );
@@ -261,5 +268,7 @@ export function createMockReactFlowInstance() {
 }
 
 // Re-export testing library utilities
+/* eslint-disable react-refresh/only-export-components */
 export * from '@testing-library/react';
 export { default as userEvent } from '@testing-library/user-event';
+/* eslint-enable react-refresh/only-export-components */

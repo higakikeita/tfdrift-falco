@@ -4,10 +4,12 @@
  * Unified export for all cloud provider and service icons
  */
 
+/* eslint-disable react-refresh/only-export-components */
 export * from './CloudIcons';
 export * from './AWSServiceIcons';
 export * from './GCPServiceIcons';
 export * from './K8sAndSpecialIcons';
+/* eslint-enable react-refresh/only-export-components */
 
 import { AWSServiceIcons } from './AWSServiceIcons';
 import { GCPServiceIcons } from './GCPServiceIcons';

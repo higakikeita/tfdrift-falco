@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/purity */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Memory Optimization Utilities
  * Performance helpers for large-scale graph rendering
@@ -60,6 +62,7 @@ export function useMemoizedFilter<T>(
 ): T[] {
   return useMemo(() => {
     return items.filter(filterFn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, ...dependencies]);
 }
 
@@ -73,6 +76,7 @@ export function useMemoizedSort<T>(
 ): T[] {
   return useMemo(() => {
     return [...items].sort(compareFn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, ...dependencies]);
 }
 

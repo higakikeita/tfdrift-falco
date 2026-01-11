@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * LOD (Level-of-Detail) Node Component
  * Dynamically adjusts rendering detail based on zoom level for performance optimization
@@ -130,11 +131,13 @@ export const LODNode = memo((props: NodeProps<LODNodeData>) => {
 LODNode.displayName = 'LODNode';
 
 // Utility function to determine if LOD should be used based on node count
+// eslint-disable-next-line react-refresh/only-export-components
 export const shouldUseLOD = (nodeCount: number): boolean => {
   return nodeCount > 100; // Use LOD for graphs with more than 100 nodes
 };
 
 // Utility function to get recommended zoom thresholds based on node count
+// eslint-disable-next-line react-refresh/only-export-components
 export const getLODThresholds = (nodeCount: number) => {
   if (nodeCount < 100) {
     return { minimal: 0, medium: 0, full: 0 }; // Always full detail

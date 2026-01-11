@@ -40,9 +40,10 @@ type Story = StoryObj<typeof CustomNode>;
 export const Default: Story = {
   args: {
     data: {
-      id: 'node-1',
       label: 'aws_iam_role',
       type: 'aws_iam_role',
+      resource_type: 'aws_iam_role',
+      resource_name: 'default-role',
     },
     selected: false,
   },
@@ -54,11 +55,11 @@ export const Default: Story = {
 export const CriticalSeverity: Story = {
   args: {
     data: {
-      id: 'node-2',
       label: 'critical_bucket',
       type: 'aws_s3_bucket',
+      resource_type: 'aws_s3_bucket',
       severity: 'critical',
-      resourceName: 'production-data-bucket',
+      resource_name: 'production-data-bucket',
     },
   },
 };
@@ -69,11 +70,11 @@ export const CriticalSeverity: Story = {
 export const HighSeverity: Story = {
   args: {
     data: {
-      id: 'node-3',
       label: 'important_role',
       type: 'aws_iam_role',
+      resource_type: 'aws_iam_role',
       severity: 'high',
-      resourceName: 'admin-role',
+      resource_name: 'admin-role',
     },
   },
 };
@@ -84,11 +85,11 @@ export const HighSeverity: Story = {
 export const MediumSeverity: Story = {
   args: {
     data: {
-      id: 'node-4',
       label: 'moderate_function',
       type: 'aws_lambda_function',
+      resource_type: 'aws_lambda_function',
       severity: 'medium',
-      resourceName: 'data-processor',
+      resource_name: 'data-processor',
     },
   },
 };
@@ -99,9 +100,10 @@ export const MediumSeverity: Story = {
 export const LowSeverity: Story = {
   args: {
     data: {
-      id: 'node-5',
       label: 'minor_resource',
       type: 'aws_cloudwatch_log_group',
+      resource_type: 'aws_cloudwatch_log_group',
+      resource_name: 'minor-resource',
       severity: 'low',
     },
   },
@@ -113,9 +115,10 @@ export const LowSeverity: Story = {
 export const Selected: Story = {
   args: {
     data: {
-      id: 'node-6',
       label: 'selected_node',
       type: 'aws_iam_role',
+      resource_type: 'aws_iam_role',
+      resource_name: 'selected-node',
       severity: 'high',
     },
     selected: true,
@@ -128,10 +131,10 @@ export const Selected: Story = {
 export const LongLabel: Story = {
   args: {
     data: {
-      id: 'node-7',
       label: 'very-long-resource-name-that-exceeds-normal-width-limits',
       type: 'aws_lambda_function',
-      resourceName: 'extremely-long-function-name-for-testing-overflow-behavior',
+      resource_type: 'aws_lambda_function',
+      resource_name: 'extremely-long-function-name-for-testing-overflow-behavior',
       severity: 'medium',
     },
   },
@@ -143,11 +146,11 @@ export const LongLabel: Story = {
 export const GCPResource: Story = {
   args: {
     data: {
-      id: 'node-8',
       label: 'gcp_storage_bucket',
       type: 'gcp_storage_bucket',
+      resource_type: 'gcp_storage_bucket',
       severity: 'high',
-      resourceName: 'prod-data-bucket',
+      resource_name: 'prod-data-bucket',
     },
   },
 };
@@ -158,11 +161,11 @@ export const GCPResource: Story = {
 export const WithMetadata: Story = {
   args: {
     data: {
-      id: 'node-9',
       label: 'complex_role',
       type: 'aws_iam_role',
+      resource_type: 'aws_iam_role',
       severity: 'critical',
-      resourceName: 'cross-account-role',
+      resource_name: 'cross-account-role',
       metadata: {
         arn: 'arn:aws:iam::123456789012:role/cross-account-role',
         created: '2024-01-15T10:30:00Z',
@@ -182,9 +185,10 @@ export const WithMetadata: Story = {
 export const Minimal: Story = {
   args: {
     data: {
-      id: 'node-10',
       label: 'simple_node',
       type: 'aws_iam_policy',
+      resource_type: 'aws_iam_policy',
+      resource_name: 'simple-node',
     },
   },
 };
@@ -195,11 +199,11 @@ export const Minimal: Story = {
 export const Interactive: Story = {
   args: {
     data: {
-      id: 'node-interactive',
       label: 'interactive_node',
       type: 'aws_iam_role',
+      resource_type: 'aws_iam_role',
       severity: 'high',
-      resourceName: 'test-role',
+      resource_name: 'test-role',
     },
     selected: false,
   },

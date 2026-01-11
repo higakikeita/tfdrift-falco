@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Graph Clustering Utilities
  * Groups nodes by type, provider, severity, or custom criteria

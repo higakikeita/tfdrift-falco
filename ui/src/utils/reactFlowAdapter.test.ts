@@ -17,7 +17,9 @@ describe('reactFlowAdapter', () => {
           data: {
             id: 'node-1',
             label: 'IAM Role',
-            type: 'aws_iam_role',
+            type: 'iam_role',
+            resource_type: 'aws_iam_role',
+            resource_name: 'test-role',
             severity: 'high',
             metadata: {}
           }
@@ -26,7 +28,9 @@ describe('reactFlowAdapter', () => {
           data: {
             id: 'node-2',
             label: 'EC2 Instance',
-            type: 'aws_ec2_instance',
+            type: 'pod',
+            resource_type: 'aws_ec2_instance',
+            resource_name: 'test-instance',
             severity: 'medium',
             metadata: {}
           }
@@ -35,7 +39,9 @@ describe('reactFlowAdapter', () => {
           data: {
             id: 'node-3',
             label: 'S3 Bucket',
-            type: 'aws_s3_bucket',
+            type: 'pod',
+            resource_type: 'aws_s3_bucket',
+            resource_name: 'test-bucket',
             severity: 'low',
             metadata: {}
           }
@@ -47,7 +53,9 @@ describe('reactFlowAdapter', () => {
             id: 'edge-1',
             source: 'node-1',
             target: 'node-2',
-            label: 'depends_on'
+            label: 'depends_on',
+            type: 'caused_by',
+            relationship: 'depends_on'
           }
         }),
         createMockCytoscapeEdge({
@@ -55,7 +63,9 @@ describe('reactFlowAdapter', () => {
             id: 'edge-2',
             source: 'node-2',
             target: 'node-3',
-            label: 'connects_to'
+            label: 'connects_to',
+            type: 'caused_by',
+            relationship: 'connects_to'
           }
         })
       ]
@@ -164,7 +174,7 @@ describe('reactFlowAdapter', () => {
             data: {
               id: 'region-1',
               label: 'us-east-1',
-              type: 'aws_region',
+              type: 'terraform_change', resource_type: 'aws_region', resource_name: 'region',
               severity: 'low',
               metadata: { hierarchical_level: 'region' }
             }
@@ -173,7 +183,7 @@ describe('reactFlowAdapter', () => {
             data: {
               id: 'vpc-1',
               label: 'VPC',
-              type: 'aws_vpc',
+              type: 'network', resource_type: 'aws_vpc', resource_name: 'vpc',
               severity: 'low',
               metadata: { hierarchical_level: 'vpc', parent: 'region-1' }
             }
@@ -182,7 +192,7 @@ describe('reactFlowAdapter', () => {
             data: {
               id: 'subnet-1',
               label: 'Subnet',
-              type: 'aws_subnet',
+              type: 'network', resource_type: 'aws_subnet', resource_name: 'subnet',
               severity: 'low',
               metadata: {
                 hierarchical_level: 'subnet',
@@ -195,7 +205,9 @@ describe('reactFlowAdapter', () => {
             data: {
               id: 'resource-1',
               label: 'EC2',
-              type: 'aws_ec2_instance',
+              type: 'pod',
+              resource_type: 'aws_ec2_instance',
+              resource_name: 'ec2-instance',
               severity: 'medium',
               metadata: { hierarchical_level: 'resource', parent: 'subnet-1' }
             }
@@ -242,7 +254,8 @@ describe('reactFlowAdapter', () => {
             data: {
               id: 'node-1',
               label: 'Test Node',
-              type: 'aws_iam_role',
+              type: 'iam_role',
+              resource_type: 'aws_iam_role',
               severity: 'critical',
               resource_name: 'test-role',
               metadata: {

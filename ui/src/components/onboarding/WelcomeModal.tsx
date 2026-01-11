@@ -216,6 +216,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
 /**
  * Check if user should see welcome modal
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const shouldShowWelcome = (): boolean => {
   return !localStorage.getItem(STORAGE_KEY);
 };
@@ -223,6 +224,7 @@ export const shouldShowWelcome = (): boolean => {
 /**
  * Reset welcome modal (for testing)
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const resetWelcome = () => {
   localStorage.removeItem(STORAGE_KEY);
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import CytoscapeGraph from './components/CytoscapeGraph';
 import { generateSampleCausalChain } from './utils/sampleData';
 
@@ -22,7 +22,7 @@ function AppMinimal() {
         <CytoscapeGraph
           elements={graphData}
           layout="dagre"
-          onNodeClick={(id, data) => console.log('Clicked:', id)}
+          onNodeClick={(id, _data) => console.log('Clicked:', id)}
           highlightedPath={[]}
         />
       </div>
