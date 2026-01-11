@@ -30,7 +30,7 @@
 ### 3. CloudTrail統合の準備
 - ✅ AWS CloudTrail作成完了
   - Trail名: `tfdrift-falco-trail`
-  - S3バケット: `tfdrift-cloudtrail-595263720623-us-east-1`
+  - S3バケット: `tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1`
   - リージョン: `us-east-1`
   - マルチリージョン有効
 - ✅ セットアップスクリプト作成: `scripts/setup-cloudtrail.sh`

@@ -37,13 +37,13 @@ IAM
 └── Role Policy (cloudwatch-policy)
 
 S3
-└── Bucket (tfdrift-test-app-data-595263720623)
+└── Bucket (tfdrift-test-app-data-YOUR-AWS-ACCOUNT-ID)
     ├── Versioning: Enabled
     └── Encryption: AES256
 ```
 
 **Terraform State Backend**:
-- S3 Bucket: `tfdrift-terraform-state-595263720623`
+- S3 Bucket: `tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID`
 - DynamoDB Table: `terraform-state-lock`
 - State Key: `production-test/terraform.tfstate`
 
@@ -84,7 +84,7 @@ S3
 
 ```
 ✅ Trail作成: tfdrift-falco-trail
-✅ S3 Bucket: tfdrift-cloudtrail-595263720623-us-east-1
+✅ S3 Bucket: tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1
 ✅ ログ記録開始済み
 ✅ マルチリージョン有効
 ✅ ログファイル確認済み (9ファイル以上)
@@ -102,10 +102,10 @@ S3
 
 #### config.yaml
 - ✅ S3 Backend設定更新
-  - Bucket: `tfdrift-terraform-state-595263720623`
+  - Bucket: `tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID`
   - Key: `production-test/terraform.tfstate`
 - ✅ CloudTrail S3 Bucket設定
-  - Bucket: `tfdrift-cloudtrail-595263720623-us-east-1`
+  - Bucket: `tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1`
 
 ---
 
@@ -116,7 +116,7 @@ S3
 **問題**: Falcoが CloudTrail S3バケットに接続できない
 
 ```
-Error: cloudtrail plugin error: cannot open s3Bucket=tfdrift-cloudtrail-595263720623-us-east-1
+Error: cloudtrail plugin error: cannot open s3Bucket=tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1
 ```
 
 **原因の可能性**:
@@ -315,7 +315,7 @@ s3://bucket-name/
 
 ```
 [INFO] Starting TFDrift-Falco vdev
-[INFO] Loading Terraform state from S3: s3://tfdrift-terraform-state-595263720623/production-test/terraform.tfstate
+[INFO] Loading Terraform state from S3: s3://tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID/production-test/terraform.tfstate
 [INFO] Successfully loaded 24103 bytes from S3
 [INFO] Indexed 13 resources from Terraform state
 [INFO] Loaded Terraform state: 13 resources
@@ -330,7 +330,7 @@ s3://bucket-name/
 [INFO] Loading rules from file /etc/falco/rules.d/terraform_drift.yaml
 [INFO] Enabled event sources: aws_cloudtrail, syscall
 [INFO] Opening 'aws_cloudtrail' source with plugin 'cloudtrail'
-[ERROR] cloudtrail plugin error: cannot open s3Bucket=tfdrift-cloudtrail-595263720623-us-east-1
+[ERROR] cloudtrail plugin error: cannot open s3Bucket=tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1
 ```
 
 ---

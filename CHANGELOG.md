@@ -7,9 +7,121 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0+] - 2026-01-10
+
+### 🎨 UI Improvements - Storybook-Driven Development
+
+This release brings significant UI improvements with Storybook-Driven Development (SDD) methodology and AWS official icons integration, dramatically improving development speed and user experience.
+
+#### Added
+
+##### Storybook-Driven Development (SDD)
+- **17 Comprehensive Stories** covering all UI scenarios
+  - Default, Empty, VPC Hierarchy
+  - Layout variations (fcose, dagre, cose, grid)
+  - Graph sizes (Small 10, Medium 30, Large 100, Very Large 200)
+  - Drift highlighted scenarios
+  - All 28 AWS resource types showcase
+  - Interactive stories (node click, edge click, path highlighting)
+  - Playground story with live controls
+- **Mock Data Library** (`/ui/src/mocks/`)
+  - `graphData.ts` - Reusable graph mock data (282 lines)
+  - `driftData.ts` - Drift detection mock data (366 lines)
+- **SDD Guidelines** (`/ui/docs/STORYBOOK_DRIVEN_DEVELOPMENT.md`)
+  - Development principles and best practices (289 lines)
+  - Story naming conventions
+  - Component development checklist
+- **Qiita Article** (`/ui/docs/QIITA_STORYBOOK_DRIVEN_DEVELOPMENT.md`)
+  - Real-world SDD implementation showcase
+  - Before/After comparison
+  - Quantitative results (30x faster feedback loop)
+
+##### AWS Official Icons Integration
+- **28 AWS Architecture Icons** from aws-icons npm package (v3.2.0)
+  - Compute: Lambda, EKS, ECS, Fargate, EC2 (5)
+  - Database: RDS, Aurora, DynamoDB, ElastiCache, Neptune, Timestream (6)
+  - Storage: S3 (1)
+  - Network: VPC, Subnet, Security Group, ELB, CloudFront, IGW, NAT, Route Table (8)
+  - Security: IAM, KMS, Secrets Manager (3)
+  - Integration: API Gateway, SNS, SQS, Step Functions, EventBridge (5)
+  - Monitoring: CloudWatch (1)
+- **Icon Management** (`/ui/public/aws-icons/README.md`)
+  - Categorized icon list
+  - License information (MIT)
+  - Version tracking
+
+##### Drift Detection Display
+- **DriftDashboard Component** fully functional with mock data
+  - Overall status (Drift Detected / No Drift)
+  - Summary cards (Terraform Resources, Unmanaged, Missing, Modified)
+  - Resource Type Breakdown with color coding
+- **Mock Data Scenarios**
+  - Drift detected: 8 unmanaged, 3 missing, 5 modified resources
+  - Clean state: No drift scenario
+  - Detailed resource information with attributes
+
+##### DisplayOptions Enhancements
+- **Draggable Panel** - Move panel anywhere on screen
+- **Close Button** (×) - Toggle panel visibility
+- **Layout Switcher** - fcose, dagre, concentric, cose, grid
+- **Filter Modes**
+  - All Resources (default)
+  - Drift Only (show resources with drift)
+  - VPC/Network Only (network resources only)
+- **Legend** - 28 AWS services in 2-column grid layout
+
+#### Changed
+
+##### Visual Improvements
+- **Node Sizes Optimized** for better visibility
+  - Default: 45px → 60px (+33%)
+  - Small: 40px → 50px (+25%)
+  - Medium: 45px → 65px (+44%)
+  - Large: 50px → 70px (+40%)
+- **VPC/Subnet Hierarchy Enhanced**
+  - VPC: padding 80px → 100px, opacity 0.6 → 0.95, border 4px → 5px
+  - Subnet: padding 50px → 70px, opacity 0.7 → 0.9, border 3px → 4px
+- **Typography Improved**
+  - Font sizes increased by 2-3px across all elements
+  - Better readability for labels and text
+- **Icon Sizes** - 75% → 80% (+5%)
+
+##### Layout Configuration
+- **fcose Layout Optimized** for large graphs (100+ nodes)
+  - Node separation: 60 → 100
+  - Ideal edge length: 80 → 120
+  - Iterations: 2500 → 3000
+  - Compound node gravity improved
+
+#### Development Experience
+- **30x Faster Feedback Loop** (2 min → 4 sec)
+- **17 Live Stories** for instant visual verification
+- **Mock Data** eliminates backend dependency
+- **Visual Documentation** - Stories serve as living documentation
+
+#### Technical Details
+- **Cytoscape.js** - Compound nodes for VPC/Subnet hierarchy
+- **React Query** - API data management
+- **Tailwind CSS** - Utility-first styling
+- **TypeScript** - Full type safety
+- **Vite** - Fast build and HMR
+
+#### Documentation
+- Added comprehensive SDD guidelines
+- Created Qiita article draft
+- Updated AWS icons README
+- Added detailed status report (STATUS_REPORT_2026-01-10.md)
+- Added TODO list refresh (TODO.md)
+- Added document consistency check (DOCUMENT_CONSISTENCY_CHECK.md)
+- Added project roadmap (PROJECT_ROADMAP.md)
+
+---
+
 ## [0.5.0] - 2025-12-17
 
 ### 🎉 Major Release - Multi-Cloud Support (GCP)
+
+*Note: This version focuses on GCP integration. For UI improvements, see v0.5.0+ above.*
 
 This release brings comprehensive Google Cloud Platform (GCP) support to TFDrift-Falco, enabling real-time drift detection across both AWS and GCP environments simultaneously.
 

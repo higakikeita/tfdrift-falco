@@ -16,11 +16,22 @@
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
-> 🎉 **v0.5.0 Released!** - **Multi-Cloud Support**! GCP Audit Logs integration with 100+ event mappings across 12+ services. GCS backend support for Terraform state. [See Release Notes](https://github.com/higakikeita/tfdrift-falco/releases/tag/v0.5.0)
+> 🎉 **v0.5.0+ Released!** (2026-01-10) - **Massive UI Improvements**!
+> - **Storybook-Driven Development** - 30x faster feedback loop (2 min → 4 sec)
+> - **28 AWS Official Icons** integrated from aws-icons package
+> - **Enhanced VPC/Subnet Hierarchy** - Dramatically improved visibility
+> - **Drift Detection Dashboard** - Complete implementation with mock data
+> - **Draggable Display Options** - Filters, layout switcher, legend
+> - [📊 Details](STATUS_REPORT_2026-01-10.md) | [📘 Storybook](http://localhost:6006/) | [🗺️ Roadmap](PROJECT_ROADMAP.md)
 >
-> 🎯 **v0.4.1** - **Webhook Integration**! Send drift events to Slack, Teams, PagerDuty, or any custom API. Automatic retries, timeout handling.
+> 🌐 **v0.5.0** (2025-12-17) - **Multi-Cloud Support (GCP)**!
+> - GCP Audit Logs integration with 100+ event mappings across 12+ services
+> - GCS backend support for Terraform state
+> - [See Release Notes](https://github.com/higakikeita/tfdrift-falco/releases/tag/v0.5.0) | [📝 CHANGELOG](CHANGELOG.md#050---2025-12-17)
 >
-> 🚀 **v0.4.0** - **Structured Event Output** for SIEM/SOAR integrations! JSON output (NDJSON), event-driven architecture.
+> 🎯 **v0.4.1** - **Webhook Integration**!
+> - Send drift events to Slack, Teams, PagerDuty, or any custom API
+> - Automatic retries, timeout handling
 
 **[English]** | [日本語 (Japanese)](README.ja.md)
 
@@ -72,6 +83,87 @@ make logs       # View logs
 ### Detailed Setup Guide
 
 For step-by-step instructions, see the [Getting Started Guide](docs/GETTING_STARTED.md).
+
+---
+
+## ⚙️ Configuration
+
+TFDrift-Falco requires you to configure your AWS account and Terraform state location.
+
+### Step 1: Create Your Configuration File
+
+```bash
+# Copy the example configuration
+cp config.yaml.example config.yaml
+```
+
+### Step 2: Replace Placeholders
+
+Edit `config.yaml` and replace **`YOUR-AWS-ACCOUNT-ID`** with your actual AWS account ID:
+
+```yaml
+providers:
+  aws:
+    enabled: true
+    regions:
+      - us-east-1
+
+    cloudtrail:
+      # Replace with your actual AWS Account ID
+      s3_bucket: "tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1"
+
+    state:
+      backend: "s3"
+      # Replace with your actual AWS Account ID
+      s3_bucket: "tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID"
+      s3_key: "production-test/terraform.tfstate"
+      s3_region: "us-east-1"
+```
+
+### Step 3: Get Your AWS Account ID
+
+If you don't know your AWS Account ID:
+
+```bash
+# Method 1: Using AWS CLI
+aws sts get-caller-identity --query Account --output text
+
+# Method 2: Check AWS Console
+# AWS Console → Top Right → Account ID
+```
+
+### Step 4: Configure AWS Credentials
+
+Ensure your AWS credentials are configured:
+
+```bash
+# Option 1: AWS CLI configuration
+aws configure
+
+# Option 2: Environment variables
+export AWS_ACCESS_KEY_ID="your-access-key"
+export AWS_SECRET_ACCESS_KEY="your-secret-key"
+export AWS_REGION="us-east-1"
+
+# Option 3: IAM Role (recommended for EC2/ECS)
+# Attach an IAM role with appropriate permissions
+```
+
+### Step 5: Verify Configuration
+
+```bash
+# Test AWS authentication
+aws sts get-caller-identity
+
+# Start TFDrift-Falco
+docker compose up -d
+```
+
+**Important Notes:**
+- ⚠️ **Never commit `config.yaml` to version control** - it's already in `.gitignore`
+- ✅ Use `config.yaml.example` as a template
+- 🔒 Use IAM users (not root account) for better security
+- 📝 For GCP configuration, see [GCP Setup Guide](docs/gcp-setup.md)
 
 ---
 
