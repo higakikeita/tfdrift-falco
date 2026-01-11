@@ -1,0 +1,303 @@
+# TFDrift-Falco Configuration Example
+# This file demonstrates all available configuration options
+
+# Cloud Provider Configuration
+providers:
+  # AWS Configuration
+  aws:
+    enabled: true
+    regions:
+      - us-east-1
+      - us-west-2
+      - ap-northeast-1
+
+    # CloudTrail Event Source
+    cloudtrail:
+      # SQS queue for CloudTrail events (recommended)
+      # sqs_queue: "arn:aws:sqs:us-east-1:123456789012:cloudtrail-events"
+
+      # S3 bucket for direct CloudTrail log access
+      s3_bucket: "tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1"
+
+    # Terraform State Backend
+    state:
+      # Backend type: "local", "s3", "remote"
+      backend: "s3"
+
+      # S3 backend configuration (production-test environment)
+      s3_bucket: "tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID"
+      s3_key: "production-test/terraform.tfstate"
+      s3_region: "us-east-1"
+
+      # Local backend configuration
+      # local_path: "./terraform.tfstate"
+
+      # Remote backend (Terraform Cloud/Enterprise)
+      # remote_hostname: "app.terraform.io"
+      # remote_organization: "my-org"
+      # remote_workspace: "prod"
+
+  # GCP Configuration (v0.5.0+)
+  gcp:
+    enabled: false
+    projects:
+      - "my-project-id"
+      - "another-project"
+    state:
+      backend: "gcs"
+      gcs_bucket: "my-terraform-state-bucket"
+      gcs_prefix: "prod/terraform.tfstate"
+      # Optional: explicit credentials file
+      # credentials_file: "/path/to/service-account-key.json"
+
+  # Azure Configuration (future)
+  azure:
+    enabled: false
+    subscriptions:
+      - "subscription-id-1"
+
+# Falco Integration (Required for TFDrift-Falco)
+# You must have Falco 0.35+ installed with:
+#   - CloudTrail plugin enabled
+#   - gRPC output enabled
+falco:
+  enabled: true
+
+  # Falco gRPC server configuration
+  hostname: "localhost"  # Falco gRPC server hostname
+  port: 5060              # Falco gRPC server port (default: 5060)
+
+  # Optional: mTLS client certificates (if Falco gRPC requires authentication)
+  # cert_file: "/path/to/client-cert.pem"
+  # key_file: "/path/to/client-key.pem"
+  # ca_root_file: "/path/to/ca-root.pem"
+
+# Drift Detection Rules
+drift_rules:
+  # EC2 Instance Rules
+  - name: "EC2 Instance Termination Protection"
+    resource_types:
+      - "aws_instance"
+    watched_attributes:
+      - "disable_api_termination"
+    severity: "critical"
+
+  - name: "EC2 Instance Type Change"
+    resource_types:
+      - "aws_instance"
+    watched_attributes:
+      - "instance_type"
+    severity: "high"
+
+  - name: "EC2 Security Group Modification"
+    resource_types:
+      - "aws_instance"
+      - "aws_security_group"
+    watched_attributes:
+      - "security_groups"
+      - "ingress"
+      - "egress"
+    severity: "high"
+
+  # IAM Rules
+  - name: "IAM Policy Modification"
+    resource_types:
+      - "aws_iam_policy"
+      - "aws_iam_role_policy"
+      - "aws_iam_user_policy"
+    watched_attributes:
+      - "policy"
+    severity: "critical"
+
+  - name: "IAM Role Trust Policy Change"
+    resource_types:
+      - "aws_iam_role"
+    watched_attributes:
+      - "assume_role_policy"
+    severity: "critical"
+
+  # S3 Rules
+  - name: "S3 Bucket Policy Change"
+    resource_types:
+      - "aws_s3_bucket"
+      - "aws_s3_bucket_policy"
+    watched_attributes:
+      - "policy"
+    severity: "high"
+
+  - name: "S3 Bucket Encryption Change"
+    resource_types:
+      - "aws_s3_bucket"
+    watched_attributes:
+      - "server_side_encryption_configuration"
+    severity: "critical"
+
+  - name: "S3 Bucket Versioning Change"
+    resource_types:
+      - "aws_s3_bucket"
+    watched_attributes:
+      - "versioning"
+    severity: "medium"
+
+  # RDS Rules
+  - name: "RDS Instance Modification"
+    resource_types:
+      - "aws_db_instance"
+    watched_attributes:
+      - "instance_class"
+      - "allocated_storage"
+      - "publicly_accessible"
+    severity: "high"
+
+  # Lambda Rules
+  - name: "Lambda Function Configuration Change"
+    resource_types:
+      - "aws_lambda_function"
+    watched_attributes:
+      - "timeout"
+      - "memory_size"
+      - "environment"
+    severity: "medium"
+
+  # GCP Rules (v0.5.0+)
+  - name: "GCE Instance Configuration Change"
+    resource_types:
+      - "google_compute_instance"
+    watched_attributes:
+      - "metadata"
+      - "labels"
+      - "machine_type"
+    severity: "high"
+
+  - name: "GCP Firewall Rule Modification"
+    resource_types:
+      - "google_compute_firewall"
+    watched_attributes:
+      - "allow"
+      - "deny"
+      - "source_ranges"
+    severity: "critical"
+
+  - name: "Cloud Storage Bucket Security"
+    resource_types:
+      - "google_storage_bucket"
+    watched_attributes:
+      - "encryption"
+      - "public_access_prevention"
+    severity: "critical"
+
+# Notification Channels
+notifications:
+  # Slack Integration
+  slack:
+    enabled: true
+    webhook_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+    channel: "#security-alerts"
+
+    # Optional: Minimum severity to send to Slack
+    # min_severity: "medium"  # critical, high, medium, low
+
+  # Discord Integration
+  discord:
+    enabled: false
+    webhook_url: "https://discord.com/api/webhooks/YOUR/WEBHOOK/URL"
+
+  # Falco Output Format
+  falco_output:
+    enabled: true
+    priority: "warning"  # critical, error, warning, notice, info
+
+  # Generic Webhook
+  webhook:
+    enabled: false
+    url: "https://your-siem.example.com/webhook"
+    method: "POST"  # POST, PUT
+    headers:
+      Authorization: "Bearer YOUR_TOKEN"
+      Content-Type: "application/json"
+
+    # Optional: Custom payload template (Go template syntax)
+    # payload_template: |
+    #   {
+    #     "alert_type": "terraform_drift",
+    #     "severity": "{{ .Severity }}",
+    #     "resource": "{{ .ResourceType }}.{{ .ResourceName }}",
+    #     "user": "{{ .UserIdentity.UserName }}"
+    #   }
+
+  # Email Notifications (future)
+  # email:
+  #   enabled: false
+  #   smtp_host: "smtp.gmail.com"
+  #   smtp_port: 587
+  #   from: "tfdrift@example.com"
+  #   to:
+  #     - "sre-team@example.com"
+  #     - "security-team@example.com"
+
+  # PagerDuty Integration (future)
+  # pagerduty:
+  #   enabled: false
+  #   integration_key: "YOUR_INTEGRATION_KEY"
+  #   severity_mapping:
+  #     critical: "critical"
+  #     high: "error"
+  #     medium: "warning"
+  #     low: "info"
+
+# Logging Configuration
+logging:
+  # Log level: debug, info, warning, error
+  level: "info"
+
+  # Log format: json, text
+  format: "json"
+
+  # Log output: stdout, stderr, file
+  output: "stdout"
+
+  # Optional: Log file path (when output is "file")
+  # file: "/var/log/tfdrift-falco.log"
+
+# Advanced Options
+advanced:
+  # State refresh interval (how often to reload Terraform state)
+  state_refresh_interval: "5m"
+
+  # Event processing workers
+  workers: 4
+
+  # Event buffer size
+  event_buffer_size: 100
+
+  # Rate limiting (alerts per minute per resource)
+  rate_limit:
+    enabled: true
+    max_alerts_per_minute: 5
+
+  # Deduplication window (suppress duplicate alerts within this time)
+  deduplication_window: "5m"
+
+  # Ignored users (don't alert on changes by these users)
+  ignored_users:
+    - "terraform-automation-user"
+    - "arn:aws:sts::123456789012:assumed-role/TerraformRole/*"
+
+  # Ignored resources (don't monitor these resources)
+  ignored_resources:
+    - "aws_instance.bastion-temp-*"
+    - "aws_s3_bucket.test-*"
+
+  # Maintenance windows (disable alerts during these times)
+  maintenance_windows:
+    - name: "Weekly Deployment"
+      days: ["Sunday"]
+      start_time: "02:00"
+      end_time: "06:00"
+      timezone: "America/New_York"
+
+# Metrics & Monitoring (future)
+# metrics:
+#   enabled: true
+#   prometheus_port: 9090
+#   endpoint: "/metrics"

@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: falco-grpc-config
+  namespace: falco
+data:
+  falco.yaml: |
+    # Falco gRPC configuration - insecure mode for testing
+    grpc:
+      enabled: true
+      bind_address: "0.0.0.0:5060"
+      threadiness: 8
+      # Leave certificate fields unset for insecure mode
+
+    grpc_output:
+      enabled: true
+
+    json_output: true
+    json_include_output_property: true
+    json_include_tags_property: true
+
+    log_level: info
+
+    # Use default rules
+    rules_files:
+      - /etc/falco/falco_rules.yaml
+      - /etc/falco/falco_rules.local.yaml
+      - /etc/falco/rules.d

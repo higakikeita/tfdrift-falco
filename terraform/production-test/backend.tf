@@ -1,6 +1,6 @@
 terraform {
   backend "s3" {
-    bucket = "tfdrift-terraform-state-595263720623"
+    bucket = "tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID"
     key    = "production-test/terraform.tfstate"
     region = "us-east-1"
 

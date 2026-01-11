@@ -119,7 +119,7 @@ TFDrift-Falcoは、Terraformで管理されているクラウドインフラス�
 ```hcl
 terraform {
   backend "s3" {
-    bucket         = "tfdrift-terraform-state-595263720623"
+    bucket         = "tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID"
     key            = "production-test/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "terraform-state-lock"
@@ -187,11 +187,11 @@ docker-compose.ymlを修正し、実環境用の設定を適用しました。
      aws:
        state:
          backend: "s3"
-         s3_bucket: "tfdrift-terraform-state-595263720623"
+         s3_bucket: "tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID"
          s3_key: "production-test/terraform.tfstate"
          s3_region: "us-east-1"
        cloudtrail:
-         s3_bucket: "tfdrift-cloudtrail-595263720623-us-east-1"
+         s3_bucket: "tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1"
    ```
 
 ### 検証結果
@@ -201,7 +201,7 @@ docker-compose.ymlを修正し、実環境用の設定を適用しました。
 1. **Backend API**
    ```
    [INFO] Starting TFDrift-Falco vdev
-   [INFO] Loading Terraform state from S3: s3://tfdrift-terraform-state-595263720623/...
+   [INFO] Loading Terraform state from S3: s3://tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID/...
    [INFO] Successfully loaded 24103 bytes from S3
    [INFO] Indexed 13 resources from Terraform state
    [INFO] Loaded Terraform state: 13 resources
@@ -227,7 +227,7 @@ docker-compose.ymlを修正し、実環境用の設定を適用しました。
 
 1. **Falco CloudTrail Plugin**
    ```
-   Error: cloudtrail plugin error: cannot open s3Bucket=tfdrift-cloudtrail-595263720623-us-east-1
+   Error: cloudtrail plugin error: cannot open s3Bucket=tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1
    ```
    - AWS認証情報の取り扱い問題
    - プラグインのエラーハンドリング不足

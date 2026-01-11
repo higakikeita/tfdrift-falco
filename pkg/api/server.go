@@ -142,6 +142,12 @@ func (s *Server) setupRouter() {
 			// Stats endpoints (Phase 2)
 			statsHandler := handlers.NewStatsHandler(s.graphStore)
 			r.Get("/stats", statsHandler.GetStats)
+
+			// Discovery endpoints (AWS resource discovery and drift detection)
+			discoveryHandler := handlers.NewDiscoveryHandler(s.stateManager)
+			r.Get("/discovery/scan", discoveryHandler.DiscoverAWSResources)
+			r.Get("/discovery/drift", discoveryHandler.DetectDrift)
+			r.Get("/discovery/drift/summary", discoveryHandler.GetDriftSummary)
 		})
 	})
 

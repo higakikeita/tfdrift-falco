@@ -28,6 +28,8 @@ go.work
 
 # Configuration files (don't commit sensitive data)
 config.yaml
+config-*.yaml
+docker-compose-falco-test.yaml
 *.tfstate
 *.tfstate.backup
 *.tfvars

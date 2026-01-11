@@ -41,6 +41,12 @@ const (
 	BLOCKS  = "BLOCKS"  // NACL blocks traffic
 	SECURES = "SECURES" // SecurityGroup secures resource
 
+	// Application relationships
+	RUNS_IN      = "RUNS_IN"      // ECS Service runs in ECS Cluster
+	REGISTERS_TO = "REGISTERS_TO" // ECS Service registers to Target Group
+	APPLIES_TO   = "APPLIES_TO"   // IAM Policy applies to Role
+	ASSOCIATES   = "ASSOCIATES"   // Route Table associates with Subnet
+
 	// Change relationships
 	DRIFTED_FROM    = "DRIFTED_FROM"    // Current state drifted from desired
 	CAUSED_DRIFT_IN = "CAUSED_DRIFT_IN" // Change A caused drift in B

@@ -497,7 +497,7 @@ module "eks" {
   }
 
   # Cluster access
-  manage_aws_auth_configmap = true
+  manage_aws_auth_configmap = false
 
   tags = local.tags
 }

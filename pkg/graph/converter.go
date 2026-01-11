@@ -267,6 +267,354 @@ func extractRelationships(resource *terraform.Resource) []*Relationship {
 				},
 			})
 		}
+
+	case "aws_eks_cluster":
+		// EKS DEPENDS_ON VPC
+		if vpcConfig, ok := resource.Attributes["vpc_config"].([]interface{}); ok && len(vpcConfig) > 0 {
+			if vpcConfigMap, ok := vpcConfig[0].(map[string]interface{}); ok {
+				// EKS → Subnets
+				if subnetIDs, ok := vpcConfigMap["subnet_ids"].([]interface{}); ok {
+					for _, subnetID := range subnetIDs {
+						if subnetIDStr, ok := subnetID.(string); ok && subnetIDStr != "" {
+							relationships = append(relationships, &Relationship{
+								ID:        fmt.Sprintf("%s-DEPENDS_ON-%s", resourceID, subnetIDStr),
+								Type:      DEPENDS_ON,
+								StartNode: resourceID,
+								EndNode:   subnetIDStr,
+								Properties: map[string]interface{}{
+									"type": "network_placement",
+								},
+							})
+						}
+					}
+				}
+				// EKS → Security Groups
+				if sgIDs, ok := vpcConfigMap["security_group_ids"].([]interface{}); ok {
+					for _, sgID := range sgIDs {
+						if sgIDStr, ok := sgID.(string); ok && sgIDStr != "" {
+							relationships = append(relationships, &Relationship{
+								ID:        fmt.Sprintf("%s-SECURES-%s", sgIDStr, resourceID),
+								Type:      SECURES,
+								StartNode: sgIDStr,
+								EndNode:   resourceID,
+								Properties: map[string]interface{}{
+									"type": "security",
+								},
+							})
+						}
+					}
+				}
+			}
+		}
+
+	case "aws_eks_node_group":
+		// Node Group PART_OF EKS Cluster
+		if clusterName, ok := resource.Attributes["cluster_name"].(string); ok && clusterName != "" {
+			relationships = append(relationships, &Relationship{
+				ID:        fmt.Sprintf("%s-PART_OF-%s", resourceID, clusterName),
+				Type:      PART_OF,
+				StartNode: resourceID,
+				EndNode:   clusterName,
+				Properties: map[string]interface{}{
+					"type": "cluster_membership",
+				},
+			})
+		}
+		// Node Group → Subnets
+		if subnetIDs, ok := resource.Attributes["subnet_ids"].([]interface{}); ok {
+			for _, subnetID := range subnetIDs {
+				if subnetIDStr, ok := subnetID.(string); ok && subnetIDStr != "" {
+					relationships = append(relationships, &Relationship{
+						ID:        fmt.Sprintf("%s-DEPENDS_ON-%s", resourceID, subnetIDStr),
+						Type:      DEPENDS_ON,
+						StartNode: resourceID,
+						EndNode:   subnetIDStr,
+						Properties: map[string]interface{}{
+							"type": "network_placement",
+						},
+					})
+				}
+			}
+		}
+
+	case "aws_db_instance":
+		// RDS → Subnet Group
+		if subnetGroupName, ok := resource.Attributes["db_subnet_group_name"].(string); ok && subnetGroupName != "" {
+			relationships = append(relationships, &Relationship{
+				ID:        fmt.Sprintf("%s-DEPENDS_ON-%s", resourceID, subnetGroupName),
+				Type:      DEPENDS_ON,
+				StartNode: resourceID,
+				EndNode:   subnetGroupName,
+				Properties: map[string]interface{}{
+					"type": "network_placement",
+				},
+			})
+		}
+		// RDS → Security Groups
+		if sgIDs, ok := resource.Attributes["vpc_security_group_ids"].([]interface{}); ok {
+			for _, sgID := range sgIDs {
+				if sgIDStr, ok := sgID.(string); ok && sgIDStr != "" {
+					relationships = append(relationships, &Relationship{
+						ID:        fmt.Sprintf("%s-SECURES-%s", sgIDStr, resourceID),
+						Type:      SECURES,
+						StartNode: sgIDStr,
+						EndNode:   resourceID,
+						Properties: map[string]interface{}{
+							"type": "security",
+						},
+					})
+				}
+			}
+		}
+
+	case "aws_db_subnet_group":
+		// DB Subnet Group → Subnets
+		if subnetIDs, ok := resource.Attributes["subnet_ids"].([]interface{}); ok {
+			for _, subnetID := range subnetIDs {
+				if subnetIDStr, ok := subnetID.(string); ok && subnetIDStr != "" {
+					relationships = append(relationships, &Relationship{
+						ID:        fmt.Sprintf("%s-CONTAINS-%s", resourceID, subnetIDStr),
+						Type:      CONTAINS,
+						StartNode: resourceID,
+						EndNode:   subnetIDStr,
+						Properties: map[string]interface{}{
+							"type": "subnet_group_membership",
+						},
+					})
+				}
+			}
+		}
+
+	case "aws_elasticache_replication_group":
+		// ElastiCache → Subnet Group
+		if subnetGroupName, ok := resource.Attributes["subnet_group_name"].(string); ok && subnetGroupName != "" {
+			relationships = append(relationships, &Relationship{
+				ID:        fmt.Sprintf("%s-DEPENDS_ON-%s", resourceID, subnetGroupName),
+				Type:      DEPENDS_ON,
+				StartNode: resourceID,
+				EndNode:   subnetGroupName,
+				Properties: map[string]interface{}{
+					"type": "network_placement",
+				},
+			})
+		}
+		// ElastiCache → Security Groups
+		if sgIDs, ok := resource.Attributes["security_group_ids"].([]interface{}); ok {
+			for _, sgID := range sgIDs {
+				if sgIDStr, ok := sgID.(string); ok && sgIDStr != "" {
+					relationships = append(relationships, &Relationship{
+						ID:        fmt.Sprintf("%s-SECURES-%s", sgIDStr, resourceID),
+						Type:      SECURES,
+						StartNode: sgIDStr,
+						EndNode:   resourceID,
+						Properties: map[string]interface{}{
+							"type": "security",
+						},
+					})
+				}
+			}
+		}
+
+	case "aws_elasticache_subnet_group":
+		// ElastiCache Subnet Group → Subnets
+		if subnetIDs, ok := resource.Attributes["subnet_ids"].([]interface{}); ok {
+			for _, subnetID := range subnetIDs {
+				if subnetIDStr, ok := subnetID.(string); ok && subnetIDStr != "" {
+					relationships = append(relationships, &Relationship{
+						ID:        fmt.Sprintf("%s-CONTAINS-%s", resourceID, subnetIDStr),
+						Type:      CONTAINS,
+						StartNode: resourceID,
+						EndNode:   subnetIDStr,
+						Properties: map[string]interface{}{
+							"type": "subnet_group_membership",
+						},
+					})
+				}
+			}
+		}
+
+	case "aws_lb":
+		// ALB → Subnets
+		if subnetIDs, ok := resource.Attributes["subnets"].([]interface{}); ok {
+			for _, subnetID := range subnetIDs {
+				if subnetIDStr, ok := subnetID.(string); ok && subnetIDStr != "" {
+					relationships = append(relationships, &Relationship{
+						ID:        fmt.Sprintf("%s-DEPENDS_ON-%s", resourceID, subnetIDStr),
+						Type:      DEPENDS_ON,
+						StartNode: resourceID,
+						EndNode:   subnetIDStr,
+						Properties: map[string]interface{}{
+							"type": "network_placement",
+						},
+					})
+				}
+			}
+		}
+		// ALB → Security Groups
+		if sgIDs, ok := resource.Attributes["security_groups"].([]interface{}); ok {
+			for _, sgID := range sgIDs {
+				if sgIDStr, ok := sgID.(string); ok && sgIDStr != "" {
+					relationships = append(relationships, &Relationship{
+						ID:        fmt.Sprintf("%s-SECURES-%s", sgIDStr, resourceID),
+						Type:      SECURES,
+						StartNode: sgIDStr,
+						EndNode:   resourceID,
+						Properties: map[string]interface{}{
+							"type": "security",
+						},
+					})
+				}
+			}
+		}
+
+	case "aws_lb_target_group":
+		// Target Group → VPC
+		if vpcID, ok := resource.Attributes["vpc_id"].(string); ok && vpcID != "" {
+			relationships = append(relationships, &Relationship{
+				ID:        fmt.Sprintf("%s-PART_OF-%s", resourceID, vpcID),
+				Type:      PART_OF,
+				StartNode: resourceID,
+				EndNode:   vpcID,
+				Properties: map[string]interface{}{
+					"type": "vpc_membership",
+				},
+			})
+		}
+
+	case "aws_lb_listener":
+		// Listener → Load Balancer
+		if lbArn, ok := resource.Attributes["load_balancer_arn"].(string); ok && lbArn != "" {
+			relationships = append(relationships, &Relationship{
+				ID:        fmt.Sprintf("%s-PART_OF-%s", resourceID, lbArn),
+				Type:      PART_OF,
+				StartNode: resourceID,
+				EndNode:   lbArn,
+				Properties: map[string]interface{}{
+					"type": "listener_attachment",
+				},
+			})
+		}
+		// Listener → Target Group
+		if tgArn, ok := resource.Attributes["default_action"].([]interface{}); ok && len(tgArn) > 0 {
+			if action, ok := tgArn[0].(map[string]interface{}); ok {
+				if targetGroupArn, ok := action["target_group_arn"].(string); ok && targetGroupArn != "" {
+					relationships = append(relationships, &Relationship{
+						ID:        fmt.Sprintf("%s-ROUTES_TO-%s", resourceID, targetGroupArn),
+						Type:      ROUTES_TO,
+						StartNode: resourceID,
+						EndNode:   targetGroupArn,
+						Properties: map[string]interface{}{
+							"type": "traffic_routing",
+						},
+					})
+				}
+			}
+		}
+
+	case "aws_route_table_association":
+		// Route Table Association → Route Table
+		if rtID, ok := resource.Attributes["route_table_id"].(string); ok && rtID != "" {
+			relationships = append(relationships, &Relationship{
+				ID:        fmt.Sprintf("%s-ASSOCIATES-%s", resourceID, rtID),
+				Type:      ASSOCIATES,
+				StartNode: resourceID,
+				EndNode:   rtID,
+				Properties: map[string]interface{}{
+					"type": "routing",
+				},
+			})
+		}
+		// Route Table Association → Subnet
+		if subnetID, ok := resource.Attributes["subnet_id"].(string); ok && subnetID != "" {
+			relationships = append(relationships, &Relationship{
+				ID:        fmt.Sprintf("%s-ASSOCIATES-%s", resourceID, subnetID),
+				Type:      ASSOCIATES,
+				StartNode: resourceID,
+				EndNode:   subnetID,
+				Properties: map[string]interface{}{
+					"type": "subnet_routing",
+				},
+			})
+		}
+
+	case "aws_ecs_cluster":
+		// ECS Cluster (base resource, no dependencies typically)
+
+	case "aws_ecs_service":
+		// ECS Service → Cluster
+		if clusterArn, ok := resource.Attributes["cluster"].(string); ok && clusterArn != "" {
+			relationships = append(relationships, &Relationship{
+				ID:        fmt.Sprintf("%s-RUNS_IN-%s", resourceID, clusterArn),
+				Type:      RUNS_IN,
+				StartNode: resourceID,
+				EndNode:   clusterArn,
+				Properties: map[string]interface{}{
+					"type": "service_placement",
+				},
+			})
+		}
+		// ECS Service → Target Group
+		if loadBalancers, ok := resource.Attributes["load_balancer"].([]interface{}); ok {
+			for _, lb := range loadBalancers {
+				if lbMap, ok := lb.(map[string]interface{}); ok {
+					if tgArn, ok := lbMap["target_group_arn"].(string); ok && tgArn != "" {
+						relationships = append(relationships, &Relationship{
+							ID:        fmt.Sprintf("%s-REGISTERS_TO-%s", resourceID, tgArn),
+							Type:      REGISTERS_TO,
+							StartNode: resourceID,
+							EndNode:   tgArn,
+							Properties: map[string]interface{}{
+								"type": "load_balancing",
+							},
+						})
+					}
+				}
+			}
+		}
+
+	case "aws_s3_bucket":
+		// S3 buckets typically don't have explicit dependencies in attributes
+		// but may be referenced by other resources
+
+	case "aws_iam_role":
+		// IAM roles are referenced by other resources but don't have dependencies in attributes
+
+	case "aws_iam_policy", "aws_iam_role_policy":
+		// Policy → Role
+		if roleArn, ok := resource.Attributes["role"].(string); ok && roleArn != "" {
+			relationships = append(relationships, &Relationship{
+				ID:        fmt.Sprintf("%s-APPLIES_TO-%s", resourceID, roleArn),
+				Type:      APPLIES_TO,
+				StartNode: resourceID,
+				EndNode:   roleArn,
+				Properties: map[string]interface{}{
+					"type": "policy_attachment",
+				},
+			})
+		}
+	}
+
+	// Generic fallback: Extract common reference patterns
+	relationships = append(relationships, extractGenericDependencies(resource, resourceID)...)
+
+	return relationships
+}
+
+// extractGenericDependencies extracts dependencies using common AWS attribute patterns
+func extractGenericDependencies(resource *terraform.Resource, resourceID string) []*Relationship {
+	relationships := []*Relationship{}
+
+	// Common VPC reference
+	if vpcID, ok := resource.Attributes["vpc_id"].(string); ok && vpcID != "" && resource.Type != "aws_vpc" {
+		relationships = append(relationships, &Relationship{
+			ID:        fmt.Sprintf("%s-GENERIC_DEPENDS_ON-%s", resourceID, vpcID),
+			Type:      DEPENDS_ON,
+			StartNode: resourceID,
+			EndNode:   vpcID,
+			Properties: map[string]interface{}{
+				"type": "vpc_dependency",
+			},
+		})
 	}
 
 	return relationships

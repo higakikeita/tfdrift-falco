@@ -1,5 +1,7 @@
 # Falco Rules for Terraform Drift Detection (Simplified)
 # These rules detect manual changes to Terraform-managed AWS resources
+# NOTE: CloudTrail source is currently DISABLED (requires IAM user credentials)
+# These rules are defined but will not trigger without CloudTrail plugin enabled
 
 - rule: AWS EC2 Modification
   desc: Detect EC2 instance modifications

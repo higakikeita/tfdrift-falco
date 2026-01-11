@@ -1,0 +1,160 @@
+# Falco Configuration for EKS
+# Enables gRPC API and AWS CloudTrail monitoring
+
+# Modern eBPF driver
+driver:
+  kind: modern_ebpf
+
+# Enable gRPC API for TFDrift integration
+falco:
+  grpc:
+    enabled: true
+    bind_address: "0.0.0.0:5060"
+    threadiness: 8
+    # TLS certificates from Kubernetes secret
+    private_key: "/etc/falco/certs/server.key"
+    cert_chain: "/etc/falco/certs/server.crt"
+    root_certs: "/etc/falco/certs/ca.crt"
+
+  grpc_output:
+    enabled: true
+
+  # JSON output for easier parsing
+  json_output: true
+  json_include_output_property: true
+  json_include_tags_property: true
+
+# Service configuration
+service:
+  type: ClusterIP
+  ports:
+    - name: grpc
+      port: 5060
+      targetPort: 5060
+      protocol: TCP
+
+# Enable AWS CloudTrail plugin
+falcosidekick:
+  enabled: false  # We'll use gRPC directly
+
+# Resource limits
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1024Mi
+
+# Tolerations for node selectors
+tolerations:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+
+# Custom rules configmap
+customRules:
+  terraform-drift.yaml: |-
+    - rule: Terraform Drift - IAM Policy Modification
+      desc: Detect manual IAM policy changes that could indicate drift
+      condition: >
+        jevt.type = "iam" and
+        (jevt.value[/requestParameters/policyArn] != null or
+         jevt.value[/requestParameters/policyName] != null) and
+        jevt.value[/eventName] in ("PutUserPolicy", "PutRolePolicy", "PutGroupPolicy",
+                                     "DeleteUserPolicy", "DeleteRolePolicy", "DeleteGroupPolicy",
+                                     "CreatePolicy", "DeletePolicy", "CreatePolicyVersion",
+                                     "DeletePolicyVersion", "SetDefaultPolicyVersion")
+      output: >
+        Terraform Drift Detected: IAM Policy Modified
+        (user=%jevt.value[/userIdentity/principalId]
+         action=%jevt.value[/eventName]
+         policy=%jevt.value[/requestParameters/policyArn]
+         resource=%jevt.value[/requestParameters/policyName])
+      priority: WARNING
+      source: aws_cloudtrail
+      tags: [terraform, drift, iam, compliance]
+
+    - rule: Terraform Drift - EC2 Security Group Modification
+      desc: Detect security group changes outside of Terraform
+      condition: >
+        jevt.type = "ec2" and
+        jevt.value[/eventName] in ("AuthorizeSecurityGroupIngress", "RevokeSecurityGroupIngress",
+                                     "AuthorizeSecurityGroupEgress", "RevokeSecurityGroupEgress",
+                                     "CreateSecurityGroup", "DeleteSecurityGroup",
+                                     "ModifySecurityGroupRules")
+      output: >
+        Terraform Drift Detected: Security Group Modified
+        (user=%jevt.value[/userIdentity/principalId]
+         action=%jevt.value[/eventName]
+         group_id=%jevt.value[/requestParameters/groupId])
+      priority: WARNING
+      source: aws_cloudtrail
+      tags: [terraform, drift, security-group, network]
+
+    - rule: Terraform Drift - S3 Bucket Configuration Change
+      desc: Detect S3 bucket policy or configuration changes
+      condition: >
+        jevt.type = "s3" and
+        jevt.value[/eventName] in ("PutBucketPolicy", "DeleteBucketPolicy",
+                                     "PutBucketEncryption", "DeleteBucketEncryption",
+                                     "PutBucketVersioning", "PutBucketLifecycle",
+                                     "DeleteBucketLifecycle", "PutBucketLogging",
+                                     "PutBucketAcl")
+      output: >
+        Terraform Drift Detected: S3 Bucket Modified
+        (user=%jevt.value[/userIdentity/principalId]
+         action=%jevt.value[/eventName]
+         bucket=%jevt.value[/requestParameters/bucketName])
+      priority: WARNING
+      source: aws_cloudtrail
+      tags: [terraform, drift, s3, storage]
+
+    - rule: Terraform Drift - RDS Instance Modification
+      desc: Detect RDS instance changes outside of Terraform
+      condition: >
+        jevt.type = "rds" and
+        jevt.value[/eventName] in ("ModifyDBInstance", "DeleteDBInstance",
+                                     "CreateDBInstance", "RebootDBInstance",
+                                     "ModifyDBParameterGroup", "ModifyDBSubnetGroup")
+      output: >
+        Terraform Drift Detected: RDS Instance Modified
+        (user=%jevt.value[/userIdentity/principalId]
+         action=%jevt.value[/eventName]
+         instance=%jevt.value[/requestParameters/dBInstanceIdentifier])
+      priority: WARNING
+      source: aws_cloudtrail
+      tags: [terraform, drift, rds, database]
+
+    - rule: Terraform Drift - EKS Cluster Modification
+      desc: Detect EKS cluster configuration changes
+      condition: >
+        jevt.type = "eks" and
+        jevt.value[/eventName] in ("UpdateClusterConfig", "UpdateClusterVersion",
+                                     "DeleteCluster", "UpdateNodegroupConfig",
+                                     "UpdateNodegroupVersion", "DeleteNodegroup")
+      output: >
+        Terraform Drift Detected: EKS Cluster Modified
+        (user=%jevt.value[/userIdentity/principalId]
+         action=%jevt.value[/eventName]
+         cluster=%jevt.value[/requestParameters/name])
+      priority: CRITICAL
+      source: aws_cloudtrail
+      tags: [terraform, drift, eks, kubernetes]
+
+# Mount TLS certificates from secret
+mounts:
+  volumes:
+    - name: falco-grpc-certs
+      secret:
+        secretName: falco-grpc-certs
+  volumeMounts:
+    - name: falco-grpc-certs
+      mountPath: /etc/falco/certs
+      readOnly: true
+
+# Enable modern eBPF
+ebpf:
+  enabled: true
+
+# Logging
+logLevel: info

@@ -289,7 +289,7 @@ plugins:
   - name: cloudtrail
     library_path: /etc/falco/plugins/libcloudtrail.so
     init_config: ""
-    open_params: "s3Bucket=tfdrift-cloudtrail-595263720623-us-east-1"  # ← あなたのバケット名
+    open_params: "s3Bucket=tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1"  # ← あなたのバケット名
 
 # Load plugins
 load_plugins: [cloudtrail]
