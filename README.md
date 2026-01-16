@@ -429,6 +429,111 @@ TFDrift-Falco receives event and compares with Terraform state
 Instant Slack alert with user identity and change details
 ```
 
+---
+
+## 📖 Why Falco? - A Story
+
+**The Perfect Blueprint and The Witness**
+
+Imagine a city with a brilliant architect who meticulously documents everything in a **blueprint** (Terraform). Every building, every road, every gate—perfectly mapped out. The blueprint represents the "ideal city."
+
+But one night, someone secretly replaces a gate. By morning, a lock has been added. Yet the blueprint... shows no changes.
+
+The architect walks through the city the next day, comparing reality to the blueprint. Finally, they notice: *"...ah, it's different."*
+
+But it's too late. They can see:
+- ✅ **What** changed
+- ❌ **Who** did it
+- ❌ **When** it happened
+- ❌ **Why** it was done
+
+**The blueprint only speaks of results, not actions.**
+
+---
+
+### Enter Falco: The Witness
+
+So the city hires **Falco**—not an architect, not a designer, but a **witness**. Falco's job is singular and essential:
+
+> **To observe the exact moment someone takes action.**
+
+Falco doesn't build. Falco doesn't draw maps. Falco watches:
+- **Who** touched the gate
+- **When** they did it
+- **Which** gate it was
+- **What** their intent was
+
+Not after the change—**during the moment of change**.
+
+One midnight, Falco observes an unfamiliar person approaching the gate from an unusual path, reaching for the lock. At that instant, Falco alerts:
+
+> *"Now. This is not the city we know."*
+
+---
+
+### The Meeting of Blueprint and Witness
+
+The architect listens to Falco's report:
+- *"Who touched it?"*
+- *"When?"*
+- *"Which gate?"*
+
+The architect opens the blueprint and realizes:
+
+> **"That change... doesn't exist in my blueprint."**
+
+In that moment, they both understand:
+
+**The Blueprint (Terraform)**
+→ Knows *what should exist*
+
+**The Witness (Falco)**
+→ Knows *what actually happened*
+
+Neither alone can protect the city.
+
+---
+
+### Why Falco?
+
+What makes Falco special is that it speaks of **actions, not just results**:
+
+- Not states, but **behaviors**
+- Not diffs, but **intentions**
+- Not resources, but **people**
+
+That's why Falco can answer:
+
+> *"Not just 'what happened in this city,' but 'why it happened.'"*
+
+---
+
+### The Modern City (Cloud)
+
+Today's cities aren't built by humans alone:
+- Bots
+- CI/CD pipelines
+- Automation
+- AI agents
+
+Changes happen in an instant.
+
+That's why we need more than post-mortem audits.
+We need **someone who was there when it happened**.
+
+---
+
+**In one sentence:**
+
+> Terraform tells us **what should exist**.
+> Falco tells us **what actually happened**.
+
+That's why placing Falco between your infrastructure means:
+
+**Adding a "witness" to your cloud.**
+
+---
+
 ## 🎯 Key Features
 
 - ⚡ **Real-time Detection** - Subscribes to Falco gRPC outputs for instant event processing
