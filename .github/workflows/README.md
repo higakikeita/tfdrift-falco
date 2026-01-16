@@ -6,10 +6,13 @@ This directory contains the CI/CD workflows for TFDrift-Falco. All workflows are
 
 | Workflow | Trigger | Duration | Purpose |
 |----------|---------|----------|---------|
+| **ci.yml** | Push/PR | ~10 min | Complete CI/CD pipeline (build, test, lint, security) |
 | **test.yml** | Push/PR | ~5 min | Unit tests, race detection, coverage |
 | **integration.yml** | Push/PR | ~2 min | Integration tests with mocked dependencies |
 | **benchmark.yml** | Push/PR | ~3 min | Performance benchmarks with comparison |
 | **e2e.yml** | On-demand/Scheduled | ~30 min | End-to-end tests with real AWS & Falco |
+| **sysdig-scan.yml** | PR | ~8 min | Container security scanning with Sysdig CLI |
+| **publish-ghcr.yml** | Release/Tag | ~10 min | Build and publish Docker images to GHCR |
 
 ## Workflows
 
@@ -128,6 +131,91 @@ This directory contains the CI/CD workflows for TFDrift-Falco. All workflows are
 
 **Duration:** 20-30 minutes (full), 5 minutes (quick)
 
+### 5. sysdig-scan.yml - Container Security Scanning
+
+**Triggers:**
+- Pull requests to `main` or `develop` (when Dockerfile changes)
+- Manual workflow dispatch with target selection
+
+**Jobs:**
+- **scan-backend**: Scan backend Go application image
+  - Builds Docker image from root Dockerfile
+  - Scans for vulnerabilities using Sysdig CLI Scanner
+  - Fails on critical or high severity vulnerabilities
+  - Uploads SARIF report to GitHub Security tab
+- **scan-frontend**: Scan frontend Node.js/Nginx image
+  - Builds Docker image from ui/Dockerfile
+  - Scans for vulnerabilities
+  - Uploads SARIF report
+- **report**: Aggregate results and comment on PR
+  - Generates summary of both scans
+  - Posts detailed report as PR comment
+  - Shows vulnerability counts by severity
+
+**What it tests:**
+- Container base images (Alpine Linux)
+- Application dependencies (Go modules, npm packages)
+- OS packages (apk packages)
+- Known CVEs in all layers
+
+**Severity thresholds:**
+- ❌ Fails on: Critical, High
+- ⚠️ Warns on: Medium, Low
+- ℹ️ Reports: All vulnerabilities
+
+**Requirements:**
+- GitHub secret: `SYSDIG_SECURE_API_TOKEN`
+- See [SYSDIG_SETUP.md](SYSDIG_SETUP.md) for setup instructions
+
+**Duration:** ~8 minutes (backend + frontend)
+
+### 6. ci.yml - Complete CI/CD Pipeline
+
+**Triggers:**
+- Push to `main` or `develop`
+- Pull requests to `main` or `develop`
+- Scheduled weekly security scans
+- Manual workflow dispatch
+
+**Jobs:**
+- **changes**: Detect which files changed (backend/frontend)
+- **backend**: Go build, lint, test with coverage
+  - golangci-lint, gofmt, go vet, staticcheck
+  - Unit tests with race detection
+  - Coverage upload to Codecov
+- **frontend**: UI build, lint, test
+  - ESLint, TypeScript compiler
+  - Unit tests with coverage
+- **docker**: Build and push Docker images
+  - Multi-platform builds (amd64, arm64)
+  - Push to Docker Hub on release
+- **integration**: Integration tests with race detection
+- **security-snyk**: Snyk vulnerability scanning
+- **security-gosec**: GoSec security analysis
+- **security-nancy**: Nancy dependency checks
+- **benchmark**: Performance benchmarks with comparison
+
+**Duration:** ~10 minutes (depends on what changed)
+
+### 7. publish-ghcr.yml - Docker Image Publishing
+
+**Triggers:**
+- Tags matching `v*` pattern
+- Release published
+- Manual workflow dispatch
+
+**Jobs:**
+- **build-and-push**: Build and push to GitHub Container Registry
+  - Multi-platform builds (amd64, arm64)
+  - Automatic tagging (semver, branch, sha)
+  - Build provenance attestation
+  - Docker Scout CVE scan
+- **verify-image**: Pull and verify published images
+  - Run version and help commands
+  - Ensure images are functional
+
+**Duration:** ~10 minutes
+
 ## Running Tests Locally
 
 ### Unit Tests
@@ -188,14 +276,40 @@ make docker-down
 make all
 ```
 
+### Container Security Scanning
+
+```bash
+# Install Sysdig CLI Scanner locally
+curl -LO "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner"
+chmod +x sysdig-cli-scanner
+sudo mv sysdig-cli-scanner /usr/local/bin/
+
+# Scan backend image
+docker build -t tfdrift-backend:local .
+sysdig-cli-scanner \
+  --apiurl https://secure.sysdig.com \
+  tfdrift-backend:local
+
+# Scan frontend image
+docker build -t tfdrift-frontend:local ./ui
+sysdig-cli-scanner \
+  --apiurl https://secure.sysdig.com \
+  tfdrift-frontend:local
+
+# Note: Requires SYSDIG_SECURE_API_TOKEN environment variable
+# export SYSDIG_SECURE_API_TOKEN="your-token-here"
+```
+
 ## CI/CD Best Practices
 
 ### For Contributors
 
 1. **All PRs trigger**:
+   - CI/CD pipeline (ci.yml)
    - Unit tests (test.yml)
    - Integration tests (integration.yml)
    - Benchmark tests (benchmark.yml)
+   - Container security scanning (sysdig-scan.yml)
 
 2. **E2E tests are optional**:
    - Add label `run-e2e` to PR to trigger full E2E tests
@@ -226,10 +340,14 @@ make all
 
 3. **Adding new secrets**:
    ```
-   E2E_AWS_ACCESS_KEY_ID       - AWS access key for E2E tests
-   E2E_AWS_SECRET_ACCESS_KEY   - AWS secret key for E2E tests
-   E2E_CLOUDTRAIL_BUCKET       - S3 bucket with CloudTrail logs
-   CODECOV_TOKEN               - Codecov upload token (optional)
+   E2E_AWS_ACCESS_KEY_ID         - AWS access key for E2E tests
+   E2E_AWS_SECRET_ACCESS_KEY     - AWS secret key for E2E tests
+   E2E_CLOUDTRAIL_BUCKET         - S3 bucket with CloudTrail logs
+   SYSDIG_SECURE_API_TOKEN       - Sysdig Secure API token for container scanning
+   CODECOV_TOKEN                 - Codecov upload token (optional)
+   SNYK_TOKEN                    - Snyk token for security scanning (optional)
+   DOCKER_USERNAME               - Docker Hub username (for releases)
+   DOCKER_PASSWORD               - Docker Hub password (for releases)
    ```
 
 4. **Workflow maintenance**:
@@ -293,16 +411,40 @@ make cleanup
 3. Generate HTML report: `make test-coverage`
 4. Add tests for uncovered code paths
 
+### Container Security Scan Failing
+
+1. **Check vulnerability details**: Review SARIF report in Security tab
+2. **Update base images**: Use newer Alpine/Go/Node versions
+3. **Update dependencies**:
+   ```bash
+   # Backend (Go)
+   go get -u ./...
+   go mod tidy
+
+   # Frontend (npm)
+   cd ui
+   npm update
+   npm audit fix
+   ```
+4. **Ignore false positives**: Configure Sysdig policies (see SYSDIG_SETUP.md)
+5. **Review severity threshold**: Consider adjusting `severities-to-fail` in workflow
+
 ## Workflow Dependencies
 
 ### Required GitHub Actions
 - `actions/checkout@v4` - Checkout code
 - `actions/setup-go@v5` - Set up Go
+- `actions/setup-node@v4` - Set up Node.js
 - `actions/upload-artifact@v4` - Upload artifacts
 - `actions/github-script@v7` - Run JavaScript in workflows
 - `codecov/codecov-action@v4` - Upload coverage
 - `aws-actions/configure-aws-credentials@v4` - AWS credentials
 - `hashicorp/setup-terraform@v3` - Set up Terraform
+- `docker/setup-buildx-action@v3` - Docker Buildx setup
+- `docker/build-push-action@v5` - Build and push Docker images
+- `docker/metadata-action@v5` - Extract Docker metadata
+- `sysdiglabs/scan-action@v5` - Sysdig container scanning
+- `github/codeql-action/upload-sarif@v3` - Upload SARIF security reports
 
 ### External Tools
 - **benchstat**: `go install golang.org/x/perf/cmd/benchstat@latest`
@@ -315,10 +457,12 @@ make cleanup
 Add these to your README.md:
 
 ```markdown
-[![Test](https://github.com/your-org/tfdrift-falco/actions/workflows/test.yml/badge.svg)](https://github.com/your-org/tfdrift-falco/actions/workflows/test.yml)
-[![Integration Tests](https://github.com/your-org/tfdrift-falco/actions/workflows/integration.yml/badge.svg)](https://github.com/your-org/tfdrift-falco/actions/workflows/integration.yml)
-[![Benchmark](https://github.com/your-org/tfdrift-falco/actions/workflows/benchmark.yml/badge.svg)](https://github.com/your-org/tfdrift-falco/actions/workflows/benchmark.yml)
-[![E2E Tests](https://github.com/your-org/tfdrift-falco/actions/workflows/e2e.yml/badge.svg)](https://github.com/your-org/tfdrift-falco/actions/workflows/e2e.yml)
+[![CI/CD](https://github.com/higakikeita/tfdrift-falco/actions/workflows/ci.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/ci.yml)
+[![Test](https://github.com/higakikeita/tfdrift-falco/actions/workflows/test.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/test.yml)
+[![Integration Tests](https://github.com/higakikeita/tfdrift-falco/actions/workflows/integration.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/integration.yml)
+[![Benchmark](https://github.com/higakikeita/tfdrift-falco/actions/workflows/benchmark.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/benchmark.yml)
+[![E2E Tests](https://github.com/higakikeita/tfdrift-falco/actions/workflows/e2e.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/e2e.yml)
+[![Sysdig Security Scan](https://github.com/higakikeita/tfdrift-falco/actions/workflows/sysdig-scan.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/sysdig-scan.yml)
 ```
 
 ## Cost Considerations
@@ -358,14 +502,16 @@ Free tier: 2,000 minutes/month for private repos
 
 ## Future Enhancements
 
-1. **Linting workflow**: Add golangci-lint
-2. **Security scanning**: Add CodeQL, gosec
-3. **Docker image builds**: Automate image publishing
-4. **Release automation**: Automate GitHub releases
-5. **Performance tracking**: Historical benchmark tracking
-6. **Multi-region E2E**: Test in multiple AWS regions
-7. **Load testing**: Add load test workflow
-8. **Dependency updates**: Dependabot integration
+1. ~~**Security scanning**: Add CodeQL, gosec~~ ✅ Implemented in ci.yml and sysdig-scan.yml
+2. ~~**Docker image builds**: Automate image publishing~~ ✅ Implemented in publish-ghcr.yml
+3. **Release automation**: Automate GitHub releases
+4. **Performance tracking**: Historical benchmark tracking
+5. **Multi-region E2E**: Test in multiple AWS regions
+6. **Load testing**: Add load test workflow
+7. **Dependency updates**: Dependabot integration
+8. **SBOM generation**: Software Bill of Materials for images
+9. **Image signing**: Sign Docker images with cosign
+10. **Policy enforcement**: Sysdig policy-based scanning
 
 ## Resources
 

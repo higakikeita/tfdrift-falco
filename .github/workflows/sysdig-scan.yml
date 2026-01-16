@@ -1,0 +1,269 @@
+name: Sysdig Container Security Scan
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'Dockerfile'
+      - 'ui/Dockerfile'
+      - '.github/workflows/sysdig-scan.yml'
+      - 'go.mod'
+      - 'go.sum'
+      - 'ui/package*.json'
+  workflow_dispatch:
+    inputs:
+      scan_target:
+        description: 'Which image to scan'
+        required: false
+        default: 'both'
+        type: choice
+        options:
+          - 'both'
+          - 'backend'
+          - 'frontend'
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ============================================
+  # Build and Scan Backend Image
+  # ============================================
+  scan-backend:
+    name: Scan Backend Image
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event.inputs.scan_target == 'both' ||
+      github.event.inputs.scan_target == 'backend'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=pr
+            type=sha,prefix=pr-${{ github.event.pull_request.number }}-
+            type=raw,value=scan-${{ github.sha }}
+
+      - name: Build backend image for scanning
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Get image tag for scanning
+        id: image-tag
+        run: |
+          IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
+          echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "Scanning image: ${IMAGE_TAG}"
+
+      - name: Scan backend image with Sysdig CLI Scanner
+        id: scan-backend
+        uses: sysdiglabs/scan-action@v5
+        with:
+          image-tag: ${{ steps.image-tag.outputs.tag }}
+          sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_API_TOKEN }}
+          sysdig-secure-url: https://secure.sysdig.com
+          input-type: docker-daemon
+          ignore-failed-scan: false
+          run-as-user: root
+          severities-to-fail: 'critical,high'
+          upload-sarif: true
+
+      - name: Upload backend SARIF report
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ${{ steps.scan-backend.outputs.sarifReport }}
+          category: sysdig-backend
+
+      - name: Generate backend scan summary
+        if: always()
+        run: |
+          echo "## 🔒 Sysdig Backend Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.scan-backend.outcome }}" == "success" ]; then
+            echo "✅ **Backend image scan passed**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Backend image scan found critical/high vulnerabilities**" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`${{ steps.image-tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View detailed results in the Security tab." >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # Build and Scan Frontend Image
+  # ============================================
+  scan-frontend:
+    name: Scan Frontend Image
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event.inputs.scan_target == 'both' ||
+      github.event.inputs.scan_target == 'frontend'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui
+          tags: |
+            type=ref,event=pr
+            type=sha,prefix=pr-${{ github.event.pull_request.number }}-
+            type=raw,value=scan-${{ github.sha }}
+
+      - name: Build frontend image for scanning
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ui
+          file: ./ui/Dockerfile
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Get image tag for scanning
+        id: image-tag
+        run: |
+          IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
+          echo "tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "Scanning image: ${IMAGE_TAG}"
+
+      - name: Scan frontend image with Sysdig CLI Scanner
+        id: scan-frontend
+        uses: sysdiglabs/scan-action@v5
+        with:
+          image-tag: ${{ steps.image-tag.outputs.tag }}
+          sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_API_TOKEN }}
+          sysdig-secure-url: https://secure.sysdig.com
+          input-type: docker-daemon
+          ignore-failed-scan: false
+          run-as-user: root
+          severities-to-fail: 'critical,high'
+          upload-sarif: true
+
+      - name: Upload frontend SARIF report
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ${{ steps.scan-frontend.outputs.sarifReport }}
+          category: sysdig-frontend
+
+      - name: Generate frontend scan summary
+        if: always()
+        run: |
+          echo "## 🔒 Sysdig Frontend Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.scan-frontend.outcome }}" == "success" ]; then
+            echo "✅ **Frontend image scan passed**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Frontend image scan found critical/high vulnerabilities**" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`${{ steps.image-tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View detailed results in the Security tab." >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # Aggregate Results and Comment on PR
+  # ============================================
+  report:
+    name: Generate Scan Report
+    runs-on: ubuntu-latest
+    needs: [scan-backend, scan-frontend]
+    if: always() && github.event_name == 'pull_request'
+
+    steps:
+      - name: Comment PR with scan results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const backendStatus = '${{ needs.scan-backend.result }}';
+            const frontendStatus = '${{ needs.scan-frontend.result }}';
+
+            let summary = '## 🔒 Sysdig Container Security Scan Results\n\n';
+
+            // Backend results
+            summary += '### Backend Image\n';
+            if (backendStatus === 'success') {
+              summary += '✅ **Passed** - No critical or high vulnerabilities found\n\n';
+            } else if (backendStatus === 'failure') {
+              summary += '❌ **Failed** - Critical or high severity vulnerabilities detected\n\n';
+            } else if (backendStatus === 'skipped') {
+              summary += '⏭️ **Skipped** - Backend scan was not triggered\n\n';
+            } else {
+              summary += '⚠️ **Unknown** - Scan encountered an error\n\n';
+            }
+
+            // Frontend results
+            summary += '### Frontend Image\n';
+            if (frontendStatus === 'success') {
+              summary += '✅ **Passed** - No critical or high vulnerabilities found\n\n';
+            } else if (frontendStatus === 'failure') {
+              summary += '❌ **Failed** - Critical or high severity vulnerabilities detected\n\n';
+            } else if (frontendStatus === 'skipped') {
+              summary += '⏭️ **Skipped** - Frontend scan was not triggered\n\n';
+            } else {
+              summary += '⚠️ **Unknown** - Scan encountered an error\n\n';
+            }
+
+            summary += '---\n\n';
+            summary += '### 📊 What was scanned?\n\n';
+            summary += '- **Backend Image**: Go application with Alpine base\n';
+            summary += '- **Frontend Image**: Node.js build with Nginx runtime\n\n';
+            summary += '### 🔍 Scan Details\n\n';
+            summary += '- **Tool**: Sysdig CLI Scanner\n';
+            summary += '- **Severities checked**: Critical, High\n';
+            summary += '- **Fail threshold**: Critical or High vulnerabilities\n\n';
+            summary += 'Detailed vulnerability reports are available in the **Security** tab.\n\n';
+
+            // Overall status
+            if (backendStatus === 'success' && frontendStatus === 'success') {
+              summary += '### ✅ Overall Status: PASSED\n\n';
+              summary += 'All container images passed security scans!\n';
+            } else if (backendStatus === 'failure' || frontendStatus === 'failure') {
+              summary += '### ❌ Overall Status: FAILED\n\n';
+              summary += 'One or more images have critical/high vulnerabilities that need to be addressed.\n';
+            } else {
+              summary += '### ⚠️ Overall Status: PARTIAL\n\n';
+              summary += 'Some scans were skipped or encountered errors.\n';
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });

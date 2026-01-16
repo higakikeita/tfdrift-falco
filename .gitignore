@@ -63,3 +63,4 @@ release/
 lint-results.txt
 deployments/falco/certs/
 deployments/falco/plugins/*.tar.gz
+sysdig-cli-scanner
