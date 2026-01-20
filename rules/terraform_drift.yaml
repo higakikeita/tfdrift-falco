@@ -9,7 +9,7 @@
     ct.name in ("ModifyInstanceAttribute", "StartInstances", "StopInstances",
     "TerminateInstances", "RebootInstances")
   output: >
-    AWS EC2 modification detected (event=%ct.name user=%ct.user.identity.principalid region=%ct.region)
+    AWS EC2 modification detected (event=%ct.name user=%ct.user region=%ct.region)
   priority: WARNING
   source: aws_cloudtrail
   tags: [terraform, drift, ec2]
@@ -20,7 +20,7 @@
     ct.name in ("PutBucketPolicy", "DeleteBucketPolicy", "PutBucketEncryption",
     "DeleteBucketEncryption", "PutBucketVersioning")
   output: >
-    AWS S3 bucket modified (event=%ct.name user=%ct.user.identity.principalid)
+    AWS S3 bucket modified (event=%ct.name user=%ct.user)
   priority: WARNING
   source: aws_cloudtrail
   tags: [terraform, drift, s3]
@@ -31,7 +31,7 @@
     ct.name in ("PutRolePolicy", "DeleteRolePolicy", "UpdateAssumeRolePolicy",
     "PutUserPolicy", "DeleteUserPolicy", "CreateRole", "DeleteRole")
   output: >
-    AWS IAM modification detected (event=%ct.name user=%ct.user.identity.principalid)
+    AWS IAM modification detected (event=%ct.name user=%ct.user)
   priority: CRITICAL
   source: aws_cloudtrail
   tags: [terraform, drift, iam, security]
@@ -43,7 +43,7 @@
     "AuthorizeSecurityGroupEgress", "RevokeSecurityGroupEgress",
     "CreateSecurityGroup", "DeleteSecurityGroup")
   output: >
-    AWS Security Group modified (event=%ct.name user=%ct.user.identity.principalid region=%ct.region)
+    AWS Security Group modified (event=%ct.name user=%ct.user region=%ct.region)
   priority: WARNING
   source: aws_cloudtrail
   tags: [terraform, drift, security, network]
@@ -54,7 +54,7 @@
     ct.name in ("ModifyDBInstance", "DeleteDBInstance", "CreateDBInstance",
     "ModifyDBCluster", "DeleteDBCluster")
   output: >
-    AWS RDS modification detected (event=%ct.name user=%ct.user.identity.principalid region=%ct.region)
+    AWS RDS modification detected (event=%ct.name user=%ct.user region=%ct.region)
   priority: WARNING
   source: aws_cloudtrail
   tags: [terraform, drift, rds, database]
@@ -65,7 +65,7 @@
     ct.name in ("UpdateFunctionCode", "UpdateFunctionConfiguration",
     "DeleteFunction", "CreateFunction")
   output: >
-    AWS Lambda modification detected (event=%ct.name user=%ct.user.identity.principalid region=%ct.region)
+    AWS Lambda modification detected (event=%ct.name user=%ct.user region=%ct.region)
   priority: WARNING
   source: aws_cloudtrail
   tags: [terraform, drift, lambda]
