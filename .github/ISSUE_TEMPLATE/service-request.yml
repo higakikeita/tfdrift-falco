@@ -1,0 +1,124 @@
+name: AWS Service Coverage Request
+description: Request support for a new AWS service or additional events for an existing service
+title: "[Service Request]: "
+labels: ["enhancement", "service-request"]
+assignees:
+  - higakikeita
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for requesting AWS service coverage! This helps us prioritize which services to add next.
+        Please fill out the information below to help us understand your use case.
+
+  - type: dropdown
+    id: request-type
+    attributes:
+      label: Request Type
+      description: Are you requesting a new service or additional events for an existing service?
+      options:
+        - New Service
+        - Additional Events for Existing Service
+    validations:
+      required: true
+
+  - type: input
+    id: service-name
+    attributes:
+      label: AWS Service Name
+      description: What AWS service do you want TFDrift-Falco to support?
+      placeholder: e.g., ECS, EKS, Lambda, Secrets Manager
+    validations:
+      required: true
+
+  - type: textarea
+    id: events
+    attributes:
+      label: Key Events to Monitor
+      description: Which CloudTrail events should be monitored for drift detection?
+      placeholder: |
+        e.g., for ECS:
+        - CreateCluster
+        - DeleteCluster
+        - UpdateCluster
+        - RegisterTaskDefinition
+        - CreateService
+        - UpdateService
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe your use case and why this service is important for drift detection
+      placeholder: Tell us about your infrastructure setup and how this service fits into your drift detection needs
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How critical is this service for your organization?
+      options:
+        - P0 - Critical (Production blocker)
+        - P1 - High (Important for security/compliance)
+        - P2 - Medium (Nice to have)
+        - P3 - Low (Future enhancement)
+    validations:
+      required: true
+
+  - type: textarea
+    id: resources
+    attributes:
+      label: Terraform Resources
+      description: Which Terraform resources are you using for this service?
+      placeholder: |
+        e.g., for ECS:
+        - aws_ecs_cluster
+        - aws_ecs_task_definition
+        - aws_ecs_service
+    validations:
+      required: false
+
+  - type: textarea
+    id: drift-scenarios
+    attributes:
+      label: Common Drift Scenarios
+      description: What are the common ways this service experiences drift in your environment?
+      placeholder: |
+        e.g., manual changes via console, automated scripts, other tools modifying the service
+    validations:
+      required: false
+
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Contribution Interest
+      description: Would you be interested in contributing to implementing this service?
+      options:
+        - Yes, I can contribute
+        - Yes, with guidance
+        - No, just requesting
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other information that would help us implement this service
+      placeholder: Links to AWS documentation, specific attributes to monitor, security considerations, etc.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: roadmap-check
+    attributes:
+      label: Roadmap Review
+      description: Have you checked the AWS Coverage Roadmap?
+      options:
+        - label: I have reviewed the [AWS Coverage Roadmap](../docs/AWS_COVERAGE_ROADMAP.md) and this service is not currently planned
+          required: true

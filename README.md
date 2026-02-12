@@ -600,6 +600,22 @@ TFDrift-Falco v0.5.0 monitors **100+ GCP Audit Log events** across 12+ services:
 
 **Total**: 100+ events across 12+ services | See [GCP Setup Guide](./docs/gcp-setup.md) for configuration details
 
+### 🗺️ AWS Service Coverage Roadmap
+
+We're expanding AWS service coverage in a phased approach. See the **[AWS Coverage Roadmap](./docs/AWS_COVERAGE_ROADMAP.md)** for the complete plan.
+
+**Upcoming in v0.3.0 (Q1 2025):**
+- **ECS** (Elastic Container Service) - 15 events
+- **EKS** (Elastic Kubernetes Service) - 12 events
+- **Lambda Enhanced** - +10 events (total 14)
+- **EC2 Enhanced** - +15 events (total 18)
+- **ElastiCache** - 12 events
+- **Auto Scaling** - 10 events
+
+**Target: +82 events** (198 total by v0.3.0)
+
+**Want to see a service added?** Submit a [Service Request](https://github.com/higakikeita/tfdrift-falco/issues/new?template=service-request.yml) or check the [full roadmap](./docs/AWS_COVERAGE_ROADMAP.md) for upcoming releases.
+
 ## 🏗️ Architecture
 
 ```mermaid
