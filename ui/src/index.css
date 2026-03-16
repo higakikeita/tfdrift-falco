@@ -2,48 +2,74 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+    --background: 222 47% 7%;
+    --foreground: 215 28% 89%;
+    --card: 222 33% 14%;
+    --card-foreground: 215 28% 89%;
+    --popover: 222 33% 14%;
+    --popover-foreground: 215 28% 89%;
+    --primary: 190 100% 50%;
+    --primary-foreground: 222 47% 7%;
+    --secondary: 263 84% 52%;
+    --secondary-foreground: 215 28% 89%;
+    --muted: 220 26% 20%;
+    --muted-foreground: 215 16% 57%;
+    --accent: 190 100% 50%;
+    --accent-foreground: 222 47% 7%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --border: 216 24% 22%;
+    --input: 216 24% 22%;
+    --ring: 190 100% 50%;
     --radius: 0.5rem;
+    --success: 160 84% 39%;
+    --warning: 38 92% 50%;
+    --danger: 0 84% 60%;
+    --cyan: #00d4ff;
+    --purple: #7c3aed;
   }
+}
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 4px #00d4ff, 0 0 8px #00d4ff40;
+  }
+  50% {
+    opacity: 0.6;
+    text-shadow: 0 0 8px #00d4ff, 0 0 16px #00d4ff60;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift-alert {
+  0%, 100% {
+    box-shadow: 0 0 0 0 #ef444400;
+  }
+  50% {
+    box-shadow: 0 0 12px 4px #ef444480;
   }
 }
 
@@ -53,14 +79,13 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: #0f1117;
+  color: #e2e8f0;
 }
 
 code {
@@ -74,36 +99,36 @@ code {
 }
 
 /* React Flow Dark Mode Styles */
-.dark .react-flow__background {
-  background: hsl(var(--background));
+.react-flow__background {
+  background: #0f1117;
 }
 
-.dark .react-flow__node {
-  background: hsl(var(--card));
-  border-color: hsl(var(--border));
-  color: hsl(var(--card-foreground));
+.react-flow__node {
+  background: #1a1f2e;
+  border-color: #2d3748;
+  color: #e2e8f0;
 }
 
-.dark .react-flow__edge-path {
-  stroke: hsl(var(--muted-foreground));
+.react-flow__edge-path {
+  stroke: #4a5568;
 }
 
-.dark .react-flow__controls {
-  background: hsl(var(--card));
-  border-color: hsl(var(--border));
+.react-flow__controls {
+  background: #1a1f2e;
+  border-color: #2d3748;
 }
 
-.dark .react-flow__controls button {
-  background: hsl(var(--card));
-  border-color: hsl(var(--border));
-  color: hsl(var(--foreground));
+.react-flow__controls button {
+  background: #1a1f2e;
+  border-color: #2d3748;
+  color: #e2e8f0;
 }
 
-.dark .react-flow__controls button:hover {
-  background: hsl(var(--accent));
+.react-flow__controls button:hover {
+  background: #2d3748;
 }
 
-.dark .react-flow__minimap {
-  background: hsl(var(--card));
-  border-color: hsl(var(--border));
+.react-flow__minimap {
+  background: #1a1f2e;
+  border-color: #2d3748;
 }

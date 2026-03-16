@@ -1,71 +1,211 @@
-# Falco Rules for Terraform Drift Detection (Simplified)
-# These rules detect manual changes to Terraform-managed AWS resources
-# NOTE: CloudTrail source is currently DISABLED (requires IAM user credentials)
-# These rules are defined but will not trigger without CloudTrail plugin enabled
+# Falco Rules for Terraform Drift Detection
+# These rules detect manual changes to Terraform-managed AWS resources via CloudTrail
+# NOTE: Requires the CloudTrail plugin to be enabled in Falco configuration
+#
+# Plugin fields used:
+#   ct.name       - CloudTrail event name (API action)
+#   ct.user       - IAM user/role that performed the action
+#   ct.region     - AWS region where the event occurred
+#   ct.srcip      - Source IP address of the API call
+#   ct.accountid  - AWS account ID
+#   ct.error      - Error code (empty if successful)
 
-- rule: AWS EC2 Modification
-  desc: Detect EC2 instance modifications
+- required_engine_version: 0.31.0
+
+- required_plugin_versions:
+  - name: cloudtrail
+    version: 0.6.0
+
+# --- Compute Resources ---
+
+- rule: Terraform Drift - EC2 Modification
+  desc: >
+    Detects manual modifications to EC2 instances that may cause drift
+    from the Terraform-managed state.
   condition: >
-    ct.name in ("ModifyInstanceAttribute", "StartInstances", "StopInstances",
-    "TerminateInstances", "RebootInstances")
+    ct.name in (
+      "ModifyInstanceAttribute", "StartInstances", "StopInstances",
+      "TerminateInstances", "RebootInstances", "RunInstances"
+    ) and ct.error = ""
   output: >
-    AWS EC2 modification detected (event=%ct.name user=%ct.user region=%ct.region)
+    Terraform drift detected: EC2 modification
+    (event=%ct.name user=%ct.user region=%ct.region srcip=%ct.srcip account=%ct.accountid)
   priority: WARNING
   source: aws_cloudtrail
-  tags: [terraform, drift, ec2]
+  tags: [terraform, drift, ec2, compute]
 
-- rule: AWS S3 Bucket Modification
-  desc: Detect S3 bucket configuration changes
+- rule: Terraform Drift - Lambda Modification
+  desc: >
+    Detects manual modifications to Lambda functions that may cause drift.
   condition: >
-    ct.name in ("PutBucketPolicy", "DeleteBucketPolicy", "PutBucketEncryption",
-    "DeleteBucketEncryption", "PutBucketVersioning")
+    ct.name in (
+      "UpdateFunctionCode", "UpdateFunctionConfiguration",
+      "DeleteFunction", "CreateFunction", "AddPermission",
+      "RemovePermission", "UpdateFunctionEventInvokeConfig"
+    ) and ct.error = ""
   output: >
-    AWS S3 bucket modified (event=%ct.name user=%ct.user)
+    Terraform drift detected: Lambda modification
+    (event=%ct.name user=%ct.user region=%ct.region srcip=%ct.srcip)
   priority: WARNING
   source: aws_cloudtrail
-  tags: [terraform, drift, s3]
+  tags: [terraform, drift, lambda, compute]
 
-- rule: AWS IAM Modification
-  desc: Detect IAM policy and role changes
+- rule: Terraform Drift - ECS Modification
+  desc: >
+    Detects manual modifications to ECS services and task definitions.
   condition: >
-    ct.name in ("PutRolePolicy", "DeleteRolePolicy", "UpdateAssumeRolePolicy",
-    "PutUserPolicy", "DeleteUserPolicy", "CreateRole", "DeleteRole")
+    ct.name in (
+      "UpdateService", "DeleteService", "CreateService",
+      "RegisterTaskDefinition", "DeregisterTaskDefinition",
+      "UpdateCluster", "DeleteCluster"
+    ) and ct.error = ""
   output: >
-    AWS IAM modification detected (event=%ct.name user=%ct.user)
-  priority: CRITICAL
-  source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
-
-- rule: AWS Security Group Modification
-  desc: Detect security group rule changes
-  condition: >
-    ct.name in ("AuthorizeSecurityGroupIngress", "RevokeSecurityGroupIngress",
-    "AuthorizeSecurityGroupEgress", "RevokeSecurityGroupEgress",
-    "CreateSecurityGroup", "DeleteSecurityGroup")
-  output: >
-    AWS Security Group modified (event=%ct.name user=%ct.user region=%ct.region)
+    Terraform drift detected: ECS modification
+    (event=%ct.name user=%ct.user region=%ct.region srcip=%ct.srcip)
   priority: WARNING
   source: aws_cloudtrail
-  tags: [terraform, drift, security, network]
+  tags: [terraform, drift, ecs, compute]
 
-- rule: AWS RDS Modification
-  desc: Detect RDS instance modifications
+- rule: Terraform Drift - EKS Modification
+  desc: >
+    Detects manual modifications to EKS clusters and node groups.
   condition: >
-    ct.name in ("ModifyDBInstance", "DeleteDBInstance", "CreateDBInstance",
-    "ModifyDBCluster", "DeleteDBCluster")
+    ct.name in (
+      "UpdateClusterConfig", "UpdateClusterVersion", "DeleteCluster",
+      "CreateNodegroup", "UpdateNodegroupConfig", "DeleteNodegroup"
+    ) and ct.error = ""
   output: >
-    AWS RDS modification detected (event=%ct.name user=%ct.user region=%ct.region)
+    Terraform drift detected: EKS modification
+    (event=%ct.name user=%ct.user region=%ct.region srcip=%ct.srcip)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, eks, compute]
+
+# --- Storage Resources ---
+
+- rule: Terraform Drift - S3 Bucket Modification
+  desc: >
+    Detects manual modifications to S3 bucket configurations that may cause drift.
+  condition: >
+    ct.name in (
+      "PutBucketPolicy", "DeleteBucketPolicy", "PutBucketEncryption",
+      "DeleteBucketEncryption", "PutBucketVersioning", "PutBucketAcl",
+      "PutBucketCors", "PutBucketLifecycleConfiguration",
+      "DeleteBucket", "PutBucketPublicAccessBlock"
+    ) and ct.error = ""
+  output: >
+    Terraform drift detected: S3 bucket modification
+    (event=%ct.name user=%ct.user srcip=%ct.srcip account=%ct.accountid)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, s3, storage]
+
+# --- Database Resources ---
+
+- rule: Terraform Drift - RDS Modification
+  desc: >
+    Detects manual modifications to RDS instances and clusters.
+  condition: >
+    ct.name in (
+      "ModifyDBInstance", "DeleteDBInstance", "CreateDBInstance",
+      "ModifyDBCluster", "DeleteDBCluster", "CreateDBCluster",
+      "ModifyDBParameterGroup", "ModifyDBSubnetGroup"
+    ) and ct.error = ""
+  output: >
+    Terraform drift detected: RDS modification
+    (event=%ct.name user=%ct.user region=%ct.region srcip=%ct.srcip)
   priority: WARNING
   source: aws_cloudtrail
   tags: [terraform, drift, rds, database]
 
-- rule: AWS Lambda Function Modification
-  desc: Detect Lambda function changes
+- rule: Terraform Drift - DynamoDB Modification
+  desc: >
+    Detects manual modifications to DynamoDB tables.
   condition: >
-    ct.name in ("UpdateFunctionCode", "UpdateFunctionConfiguration",
-    "DeleteFunction", "CreateFunction")
+    ct.name in (
+      "UpdateTable", "DeleteTable", "CreateTable",
+      "UpdateContinuousBackups", "UpdateTimeToLive",
+      "TagResource", "UntagResource"
+    ) and ct.error = ""
   output: >
-    AWS Lambda modification detected (event=%ct.name user=%ct.user region=%ct.region)
+    Terraform drift detected: DynamoDB modification
+    (event=%ct.name user=%ct.user region=%ct.region srcip=%ct.srcip)
   priority: WARNING
   source: aws_cloudtrail
-  tags: [terraform, drift, lambda]
+  tags: [terraform, drift, dynamodb, database]
+
+# --- Security Resources (CRITICAL priority) ---
+
+- rule: Terraform Drift - IAM Modification
+  desc: >
+    Detects manual modifications to IAM policies and roles.
+    Marked as CRITICAL because IAM changes can have severe security implications.
+  condition: >
+    ct.name in (
+      "PutRolePolicy", "DeleteRolePolicy", "UpdateAssumeRolePolicy",
+      "PutUserPolicy", "DeleteUserPolicy", "CreateRole", "DeleteRole",
+      "AttachRolePolicy", "DetachRolePolicy", "AttachUserPolicy",
+      "DetachUserPolicy", "CreatePolicy", "DeletePolicy",
+      "CreatePolicyVersion", "CreateUser", "DeleteUser"
+    ) and ct.error = ""
+  output: >
+    CRITICAL Terraform drift detected: IAM modification
+    (event=%ct.name user=%ct.user srcip=%ct.srcip account=%ct.accountid)
+  priority: CRITICAL
+  source: aws_cloudtrail
+  tags: [terraform, drift, iam, security]
+
+- rule: Terraform Drift - Security Group Modification
+  desc: >
+    Detects manual modifications to security group rules.
+    Marked as CRITICAL because SG changes directly affect network security.
+  condition: >
+    ct.name in (
+      "AuthorizeSecurityGroupIngress", "RevokeSecurityGroupIngress",
+      "AuthorizeSecurityGroupEgress", "RevokeSecurityGroupEgress",
+      "CreateSecurityGroup", "DeleteSecurityGroup",
+      "ModifySecurityGroupRules"
+    ) and ct.error = ""
+  output: >
+    CRITICAL Terraform drift detected: Security Group modification
+    (event=%ct.name user=%ct.user region=%ct.region srcip=%ct.srcip)
+  priority: CRITICAL
+  source: aws_cloudtrail
+  tags: [terraform, drift, security-group, security, network]
+
+- rule: Terraform Drift - KMS Key Modification
+  desc: >
+    Detects manual modifications to KMS keys and key policies.
+  condition: >
+    ct.name in (
+      "PutKeyPolicy", "DisableKey", "EnableKey", "ScheduleKeyDeletion",
+      "CreateAlias", "DeleteAlias", "UpdateAlias"
+    ) and ct.error = ""
+  output: >
+    CRITICAL Terraform drift detected: KMS key modification
+    (event=%ct.name user=%ct.user region=%ct.region srcip=%ct.srcip)
+  priority: CRITICAL
+  source: aws_cloudtrail
+  tags: [terraform, drift, kms, security]
+
+# --- Networking Resources ---
+
+- rule: Terraform Drift - VPC Modification
+  desc: >
+    Detects manual modifications to VPC and subnet configurations.
+  condition: >
+    ct.name in (
+      "ModifyVpcAttribute", "DeleteVpc", "CreateVpc",
+      "ModifySubnetAttribute", "DeleteSubnet", "CreateSubnet",
+      "CreateRoute", "DeleteRoute", "ReplaceRoute",
+      "AssociateRouteTable", "DisassociateRouteTable",
+      "CreateInternetGateway", "DeleteInternetGateway",
+      "AttachInternetGateway", "DetachInternetGateway",
+      "CreateNatGateway", "DeleteNatGateway"
+    ) and ct.error = ""
+  output: >
+    Terraform drift detected: VPC/Network modification
+    (event=%ct.name user=%ct.user region=%ct.region srcip=%ct.srcip)
+  priority: WARNING
+  source: aws_cloudtrail
+  tags: [terraform, drift, vpc, network]

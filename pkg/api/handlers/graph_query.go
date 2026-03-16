@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
 	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
 	log "github.com/sirupsen/logrus"
 )
@@ -33,18 +34,14 @@ func (h *GraphQueryHandler) GetNode(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if node == nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "Node not found",
-		})
+		respondError(w, http.StatusNotFound, "Node not found")
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data":    node,
+	json.NewEncoder(w).Encode(models.APIResponse{
+		Success: true,
+		Data:    node,
 	})
 }
 
@@ -56,21 +53,18 @@ func (h *GraphQueryHandler) GetNodesByLabel(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 
 	if label == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "label parameter is required",
-		})
+		respondError(w, http.StatusBadRequest, "label parameter is required")
 		return
 	}
 
 	db := h.graphStore.GetGraphDB()
 	nodes := db.GetNodesByLabel(label)
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
+	json.NewEncoder(w).Encode(models.APIResponse{
+		Success: true,
+		Data: map[string]interface{}{
 			"label": label,
 			"count": len(nodes),
 			"nodes": nodes,
@@ -87,11 +81,7 @@ func (h *GraphQueryHandler) GetPath(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if fromID == "" || toID == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "from and to parameters are required",
-		})
+		respondError(w, http.StatusBadRequest, "from and to parameters are required")
 		return
 	}
 
@@ -99,18 +89,16 @@ func (h *GraphQueryHandler) GetPath(w http.ResponseWriter, r *http.Request) {
 	path, err := db.FindPath(fromID, toID)
 
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   err.Error(),
-		})
+		log.Debugf("Path not found from %s to %s: %v", fromID, toID, err)
+		respondError(w, http.StatusNotFound, "No path found between the specified nodes")
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
+	json.NewEncoder(w).Encode(models.APIResponse{
+		Success: true,
+		Data: map[string]interface{}{
 			"from":   fromID,
 			"to":     toID,
 			"path":   path,
@@ -132,21 +120,18 @@ func (h *GraphQueryHandler) GetImpactRadius(w http.ResponseWriter, r *http.Reque
 
 	depth, err := strconv.Atoi(depthStr)
 	if err != nil || depth < 1 || depth > 10 {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "depth must be between 1 and 10",
-		})
+		respondError(w, http.StatusBadRequest, "depth must be between 1 and 10")
 		return
 	}
 
 	db := h.graphStore.GetGraphDB()
 	result := db.FindImpactRadius(nodeID, depth)
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
+	json.NewEncoder(w).Encode(models.APIResponse{
+		Success: true,
+		Data: map[string]interface{}{
 			"node_id":        nodeID,
 			"depth":          depth,
 			"affected_count": len(result.Nodes),
@@ -169,23 +154,19 @@ func (h *GraphQueryHandler) GetDependencies(w http.ResponseWriter, r *http.Reque
 
 	depth, err := strconv.Atoi(depthStr)
 	if err != nil || depth < 1 || depth > 10 {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "depth must be between 1 and 10",
-		})
+		respondError(w, http.StatusBadRequest, "depth must be between 1 and 10")
 		return
 	}
 
 	db := h.graphStore.GetGraphDB()
-	log.Infof("[GetDependencies Handler] Received GraphDB instance: %p, calling FindDependencies(%s, %d)", db, nodeID, depth)
+	log.Debugf("FindDependencies(%s, %d)", nodeID, depth)
 	dependencies := db.FindDependencies(nodeID, depth)
-	log.Infof("[GetDependencies Handler] FindDependencies returned %d dependencies", len(dependencies))
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
+	json.NewEncoder(w).Encode(models.APIResponse{
+		Success: true,
+		Data: map[string]interface{}{
 			"node_id":      nodeID,
 			"depth":        depth,
 			"count":        len(dependencies),
@@ -203,27 +184,21 @@ func (h *GraphQueryHandler) GetDependents(w http.ResponseWriter, r *http.Request
 		depthStr = "5"
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
 	depth, err := strconv.Atoi(depthStr)
 	if err != nil || depth < 1 || depth > 10 {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "depth must be between 1 and 10",
-		})
+		respondError(w, http.StatusBadRequest, "depth must be between 1 and 10")
 		return
 	}
 
 	db := h.graphStore.GetGraphDB()
-	log.Infof("[GetDependents Handler] Received GraphDB instance: %p, calling FindDependents(%s, %d)", db, nodeID, depth)
+	log.Debugf("FindDependents(%s, %d)", nodeID, depth)
 	dependents := db.FindDependents(nodeID, depth)
-	log.Infof("[GetDependents Handler] FindDependents returned %d dependents", len(dependents))
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
+	json.NewEncoder(w).Encode(models.APIResponse{
+		Success: true,
+		Data: map[string]interface{}{
 			"node_id":    nodeID,
 			"depth":      depth,
 			"count":      len(dependents),
@@ -240,25 +215,20 @@ func (h *GraphQueryHandler) GetCriticalNodes(w http.ResponseWriter, r *http.Requ
 		minStr = "3"
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
 	min, err := strconv.Atoi(minStr)
 	if err != nil || min < 1 {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "min must be a positive integer",
-		})
+		respondError(w, http.StatusBadRequest, "min must be a positive integer")
 		return
 	}
 
 	db := h.graphStore.GetGraphDB()
 	criticalNodes := db.FindCriticalPaths(min)
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
+	json.NewEncoder(w).Encode(models.APIResponse{
+		Success: true,
+		Data: map[string]interface{}{
 			"min_dependents": min,
 			"count":          len(criticalNodes),
 			"critical_nodes": criticalNodes,
@@ -276,9 +246,9 @@ func (h *GraphQueryHandler) GetNeighbors(w http.ResponseWriter, r *http.Request)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
+	json.NewEncoder(w).Encode(models.APIResponse{
+		Success: true,
+		Data: map[string]interface{}{
 			"node_id":   nodeID,
 			"count":     len(neighbors),
 			"neighbors": neighbors,
@@ -297,8 +267,6 @@ func (h *GraphQueryHandler) GetRelationships(w http.ResponseWriter, r *http.Requ
 
 	db := h.graphStore.GetGraphDB()
 
-	w.Header().Set("Content-Type", "application/json")
-
 	var relationships []*graph.Relationship
 
 	switch direction {
@@ -311,18 +279,15 @@ func (h *GraphQueryHandler) GetRelationships(w http.ResponseWriter, r *http.Requ
 		incoming := db.GetIncomingRelationships(nodeID)
 		relationships = append(outgoing, incoming...)
 	default:
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "direction must be 'outgoing', 'incoming', or 'both'",
-		})
+		respondError(w, http.StatusBadRequest, "direction must be 'outgoing', 'incoming', or 'both'")
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
+	json.NewEncoder(w).Encode(models.APIResponse{
+		Success: true,
+		Data: map[string]interface{}{
 			"node_id":       nodeID,
 			"direction":     direction,
 			"count":         len(relationships),
@@ -354,9 +319,9 @@ func (h *GraphQueryHandler) GetGraphStats(w http.ResponseWriter, r *http.Request
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
+	json.NewEncoder(w).Encode(models.APIResponse{
+		Success: true,
+		Data: map[string]interface{}{
 			"node_count":            db.NodeCount(),
 			"relationship_count":    db.RelationshipCount(),
 			"nodes_by_label":        labelCounts,
@@ -376,14 +341,8 @@ func (h *GraphQueryHandler) MatchPattern(w http.ResponseWriter, r *http.Request)
 		EndFilter   map[string]interface{} `json:"end_filter"`
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "Invalid request body",
-		})
+		respondError(w, http.StatusBadRequest, "Invalid request body. Expected JSON with start_labels, rel_type, end_labels fields.")
 		return
 	}
 
@@ -397,10 +356,11 @@ func (h *GraphQueryHandler) MatchPattern(w http.ResponseWriter, r *http.Request)
 	db := h.graphStore.GetGraphDB()
 	matches := db.Match(pattern)
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
+	json.NewEncoder(w).Encode(models.APIResponse{
+		Success: true,
+		Data: map[string]interface{}{
 			"pattern": pattern,
 			"count":   len(matches),
 			"matches": matches,
