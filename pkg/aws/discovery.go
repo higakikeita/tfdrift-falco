@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2Types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	log "github.com/sirupsen/logrus"
 
@@ -19,12 +19,12 @@ import (
 
 // DiscoveryClient handles AWS resource discovery
 type DiscoveryClient struct {
-	region         string
-	ec2Client      *ec2.Client
-	rdsClient      *rds.Client
-	eksClient      *eks.Client
-	elasticache    *elasticache.Client
-	elbClient      *elasticloadbalancingv2.Client
+	region      string
+	ec2Client   *ec2.Client
+	rdsClient   *rds.Client
+	eksClient   *eks.Client
+	elasticache *elasticache.Client
+	elbClient   *elasticloadbalancingv2.Client
 }
 
 // DiscoveredResource represents a resource found in AWS
@@ -52,11 +52,11 @@ type DriftResult struct {
 
 // ResourceDiff represents differences in a single resource
 type ResourceDiff struct {
-	ResourceID         string                 `json:"resource_id"`
-	ResourceType       string                 `json:"resource_type"`
-	TerraformState     map[string]interface{} `json:"terraform_state"`
-	ActualState        map[string]interface{} `json:"actual_state"`
-	Differences        []FieldDiff            `json:"differences"`
+	ResourceID     string                 `json:"resource_id"`
+	ResourceType   string                 `json:"resource_type"`
+	TerraformState map[string]interface{} `json:"terraform_state"`
+	ActualState    map[string]interface{} `json:"actual_state"`
+	Differences    []FieldDiff            `json:"differences"`
 }
 
 // FieldDiff represents a difference in a specific field
@@ -207,10 +207,10 @@ func (d *DiscoveryClient) discoverSubnets(ctx context.Context) ([]*DiscoveredRes
 			Name:   getTagValue(subnet.Tags, "Name"),
 			Region: d.region,
 			Attributes: map[string]interface{}{
-				"vpc_id":                       aws.ToString(subnet.VpcId),
-				"cidr_block":                   aws.ToString(subnet.CidrBlock),
-				"availability_zone":            aws.ToString(subnet.AvailabilityZone),
-				"map_public_ip_on_launch":      subnet.MapPublicIpOnLaunch,
+				"vpc_id":                          aws.ToString(subnet.VpcId),
+				"cidr_block":                      aws.ToString(subnet.CidrBlock),
+				"availability_zone":               aws.ToString(subnet.AvailabilityZone),
+				"map_public_ip_on_launch":         subnet.MapPublicIpOnLaunch,
 				"assign_ipv6_address_on_creation": subnet.AssignIpv6AddressOnCreation,
 			},
 			Tags: tags,
@@ -264,13 +264,13 @@ func (d *DiscoveryClient) discoverEC2Instances(ctx context.Context) ([]*Discover
 				Name:   getTagValue(instance.Tags, "Name"),
 				Region: d.region,
 				Attributes: map[string]interface{}{
-					"instance_type":      string(instance.InstanceType),
-					"subnet_id":          aws.ToString(instance.SubnetId),
-					"vpc_id":             aws.ToString(instance.VpcId),
-					"availability_zone":  aws.ToString(instance.Placement.AvailabilityZone),
-					"private_ip":         aws.ToString(instance.PrivateIpAddress),
-					"public_ip":          aws.ToString(instance.PublicIpAddress),
-					"state":              string(instance.State.Name),
+					"instance_type":     string(instance.InstanceType),
+					"subnet_id":         aws.ToString(instance.SubnetId),
+					"vpc_id":            aws.ToString(instance.VpcId),
+					"availability_zone": aws.ToString(instance.Placement.AvailabilityZone),
+					"private_ip":        aws.ToString(instance.PrivateIpAddress),
+					"public_ip":         aws.ToString(instance.PublicIpAddress),
+					"state":             string(instance.State.Name),
 				},
 				Tags: tags,
 			})

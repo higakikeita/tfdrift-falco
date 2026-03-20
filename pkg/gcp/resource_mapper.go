@@ -278,9 +278,9 @@ func initializeEventMapping() map[string]string {
 		"dns.changes.create": "google_dns_record_set",
 
 		// Memorystore (Redis)
-		"google.cloud.redis.v1.CloudRedis.CreateInstance": "google_redis_instance",
-		"google.cloud.redis.v1.CloudRedis.DeleteInstance": "google_redis_instance",
-		"google.cloud.redis.v1.CloudRedis.UpdateInstance": "google_redis_instance",
+		"google.cloud.redis.v1.CloudRedis.CreateInstance":  "google_redis_instance",
+		"google.cloud.redis.v1.CloudRedis.DeleteInstance":  "google_redis_instance",
+		"google.cloud.redis.v1.CloudRedis.UpdateInstance":  "google_redis_instance",
 		"google.cloud.redis.v1.CloudRedis.UpgradeInstance": "google_redis_instance",
 
 		// Cloud Spanner - Instances
