@@ -2,7 +2,7 @@
 
 **Real-time Terraform Drift Detection powered by Falco**
 
-[![Version](https://img.shields.io/badge/version-0.5.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
+[![Version](https://img.shields.io/badge/version-0.6.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
@@ -16,22 +16,18 @@
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
-> 🎉 **v0.5.0+ Released!** (2026-01-10) - **Massive UI Improvements**!
-> - **Storybook-Driven Development** - 30x faster feedback loop (2 min → 4 sec)
-> - **28 AWS Official Icons** integrated from aws-icons package
-> - **Enhanced VPC/Subnet Hierarchy** - Dramatically improved visibility
-> - **Drift Detection Dashboard** - Complete implementation with mock data
-> - **Draggable Display Options** - Filters, layout switcher, legend
-> - [📊 Details](STATUS_REPORT_2026-01-10.md) | [📘 Storybook](http://localhost:6006/) | [🗺️ Roadmap](PROJECT_ROADMAP.md)
+> 🌐 **v0.6.0 Released!** (2026-03-20) - **Expanded Multi-Cloud Coverage**!
+> - **AWS: 40+ services, 500+ events** — 10 new services (EFS, Cognito, AppSync, MSK, OpenSearch, CodePipeline, CodeBuild, CodeDeploy, GuardDuty, AWS Config)
+> - **GCP: 27+ services, 170+ events** — 15 new services (Cloud Armor, DNS, Redis, Spanner, Artifact Registry, Monitoring, Logging, Dataproc, Cloud Build, and more)
+> - Comprehensive conflict resolution for 15+ ambiguous event names
+> - [📝 CHANGELOG](CHANGELOG.md#060---2026-03-20) | [🗺️ Roadmap](PROJECT_ROADMAP.md)
 >
-> 🌐 **v0.5.0** (2025-12-17) - **Multi-Cloud Support (GCP)**!
-> - GCP Audit Logs integration with 100+ event mappings across 12+ services
-> - GCS backend support for Terraform state
-> - [See Release Notes](https://github.com/higakikeita/tfdrift-falco/releases/tag/v0.5.0) | [📝 CHANGELOG](CHANGELOG.md#050---2025-12-17)
+> 🎉 **v0.5.0+** (2026-01-10) - **UI Improvements & GCP Support**!
+> - Storybook-Driven Development, 28 AWS Official Icons, GCP Audit Logs integration
+> - [📊 Details](STATUS_REPORT_2026-01-10.md)
 >
 > 🎯 **v0.4.1** - **Webhook Integration**!
 > - Send drift events to Slack, Teams, PagerDuty, or any custom API
-> - Automatic retries, timeout handling
 
 **[English]** | [日本語 (Japanese)](README.ja.md)
 
@@ -548,7 +544,10 @@ That's why placing Falco between your infrastructure means:
 
 ## 📋 Supported AWS Services
 
-TFDrift-Falco v0.5.0 monitors **411 CloudTrail events** across 23 AWS services:
+TFDrift-Falco v0.6.0 monitors **500+ CloudTrail events** across 40+ AWS services:
+
+<details>
+<summary><b>View all 40+ AWS services</b></summary>
 
 | Service | Events | Coverage | Priority |
 |---------|--------|----------|----------|
@@ -562,43 +561,74 @@ TFDrift-Falco v0.5.0 monitors **411 CloudTrail events** across 23 AWS services:
 | **EC2** 💻 | 17 | Instances, AMIs, EBS Volumes, Snapshots, Network Interfaces | High |
 | **ElastiCache** 🗄️ | 16 | Cache Clusters, Replication Groups, Parameter Groups, User Groups | High |
 | **SageMaker** 🤖 | 16 | Endpoints, Training Jobs, Model Packages, Notebook Instances | High |
+| **Cognito** 🔑 | 15 | User Pools, Clients, Domains, Identity Pools, Resource Servers | High |
 | **DynamoDB** 📊 | 14 | Tables, PITR, Backups, Global Tables, Streams, Monitoring | High |
 | **Lambda** ⚡ | 13 | Functions, Event Sources, Permissions, Concurrency, Aliases, Versions | High |
 | **Kinesis** 🌊 | 13 | Streams, Consumers, Firehose, Analytics Applications | Medium |
 | **EKS** ☸️ | 12 | Clusters, Node Groups, Addons, Fargate Profiles | High |
+| **GuardDuty** 🕵️ | 11 | Detectors, Filters, IP Sets, Threat Intel Sets | Medium |
+| **MSK (Kafka)** 📨 | 11 | Clusters, Configurations, Broker Management | Medium |
 | **Auto Scaling** 📈 | 10 | ASGs, Launch Configurations, Policies, Scheduled Actions | Medium |
 | **CloudFormation** 📚 | 10 | Stacks, Stack Sets, Change Sets | High |
 | **KMS** 🔐 | 10 | Keys, Aliases, Rotation, Deletion, Key Policies | Critical |
+| **CodePipeline** 🔄 | 9 | Pipelines, Webhooks, Stage Transitions | Medium |
+| **EFS** 📁 | 9 | File Systems, Mount Targets, Access Points, Policies | Medium |
+| **AppSync** 📡 | 9 | GraphQL APIs, Resolvers, Datasources | Medium |
 | **ECS** 🐳 | 8 | Services, Task Definitions, Clusters, Capacity Providers | High |
 | **WAF/WAFv2** 🛡️ | 8 | Web ACLs, Rule Groups, IP Sets, Regex Pattern Sets | High |
+| **AWS Config** ⚙️ | 8 | Configuration Recorders, Delivery Channels, Config Rules | Medium |
+| **OpenSearch** 🔍 | 7 | Domains, VPC Endpoints, Configurations | Medium |
 | **AWS Backup** 💾 | 7 | Backup Plans, Backup Vaults, Recovery Points, Backup Jobs | Medium |
+| **CodeBuild** 🏗️ | 6 | Projects, Report Groups | Medium |
 | **Step Functions** 🔄 | 5 | State Machines, Executions, Tags | Medium |
+| **CodeDeploy** 🚀 | 5 | Applications, Deployment Groups, Configs | Medium |
 | **AWS Glue** 🔗 | 5 | Databases, Tables, Jobs, Crawlers | Medium |
 | **EventBridge** 📡 | 4 | Rules, Targets, Event Buses | Medium |
+| **Transfer Family** 📂 | 3 | SFTP/FTP Servers | Low |
 | **ECR** 📦 | 1 | Repository Policies | Medium |
 
-**Total**: 411 events across 23 services | See [AWS Resource Coverage Analysis](./docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for details
+</details>
+
+**Total**: 500+ events across 40+ services | See [AWS Resource Coverage Analysis](./docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for details
 
 ## 📋 Supported GCP Services
 
-TFDrift-Falco v0.5.0 monitors **100+ GCP Audit Log events** across 12+ services:
+TFDrift-Falco v0.6.0 monitors **170+ GCP Audit Log events** across 27+ services:
+
+<details>
+<summary><b>View all 27+ GCP services</b></summary>
 
 | Service | Events | Coverage | Priority |
 |---------|--------|----------|----------|
-| **Compute Engine** 💻 | 30+ | Instances, Disks, Machine Types, Metadata, Networks, Firewalls | Critical |
+| **Compute Engine** 💻 | 40+ | Instances, Disks, Networks, Firewalls, Security Policies, URL Maps, Forwarding Rules, SSL Certs | Critical |
 | **Cloud Storage** 🗄️ | 15+ | Buckets, Objects, IAM Bindings, ACLs, Lifecycle | High |
 | **Cloud SQL** 🗃️ | 10+ | Instances, Databases, Users, Backups | High |
 | **GKE** ☸️ | 10+ | Clusters, Node Pools, Workloads | High |
 | **Cloud Run** 🏃 | 8+ | Services, Revisions, IAM Policies | High |
 | **IAM** ✅ | 8+ | Service Accounts, Roles, Bindings, Keys | Critical |
 | **VPC/Networking** 🔒 | 10+ | Firewalls, Routes, Subnets, Peering | Critical |
-| **Cloud Functions** ⚡ | 5+ | Functions, Triggers, IAM Policies | Medium |
-| **BigQuery** 📊 | 5+ | Datasets, Tables, IAM Policies | Medium |
-| **Pub/Sub** 📨 | 5+ | Topics, Subscriptions, IAM Policies | Medium |
-| **KMS** 🔐 | 5+ | Keys, KeyRings, IAM Policies | Critical |
-| **Secret Manager** 🔒 | 3+ | Secrets, Versions, IAM Policies | High |
+| **Cloud Monitoring** 📊 | 6 | Alert Policies, Notification Channels | High |
+| **Cloud Logging** 📝 | 6 | Sinks, Log Metrics | High |
+| **Cloud Spanner** 🗃️ | 6 | Instances, Databases | High |
+| **Cloud DNS** 🌐 | 5 | Managed Zones, Record Sets | Medium |
+| **Cloud Functions** ⚡ | 5+ | Functions (v1+v2), Triggers | Medium |
+| **BigQuery** 📊 | 5+ | Datasets, Tables | Medium |
+| **Pub/Sub** 📨 | 5+ | Topics, Subscriptions | Medium |
+| **KMS** 🔐 | 5+ | Keys, KeyRings | Critical |
+| **Memorystore (Redis)** 🗄️ | 4 | Redis Instances | Medium |
+| **Secret Manager** 🔒 | 3+ | Secrets, Versions | High |
+| **Artifact Registry** 📦 | 3 | Repositories | Medium |
+| **Cloud Scheduler** ⏰ | 3 | Jobs | Low |
+| **Cloud Tasks** 📋 | 3 | Queues | Low |
+| **Filestore** 📁 | 3 | Instances | Low |
+| **Dataproc** ⚙️ | 3 | Clusters | Medium |
+| **Cloud Build** 🏗️ | 3 | Build Triggers | Medium |
+| **Workflows** 🔄 | 3 | Workflow Definitions | Low |
+| **VPC Service Controls** 🛡️ | 3 | Service Perimeters | Medium |
 
-**Total**: 100+ events across 12+ services | See [GCP Setup Guide](./docs/gcp-setup.md) for configuration details
+</details>
+
+**Total**: 170+ events across 27+ services | See [GCP Setup Guide](./docs/gcp-setup.md) for configuration details
 
 ## 🏗️ Architecture
 

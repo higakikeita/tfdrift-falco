@@ -240,6 +240,118 @@ func initializeEventMapping() map[string]string {
 		// Compute Engine - SSL Certificates
 		"compute.sslCertificates.insert": "google_compute_ssl_certificate",
 		"compute.sslCertificates.delete": "google_compute_ssl_certificate",
+
+		// ========== NEW SERVICES (v0.6.0) ==========
+
+		// Compute Engine - Security Policies (Cloud Armor)
+		"compute.securityPolicies.insert": "google_compute_security_policy",
+		"compute.securityPolicies.delete": "google_compute_security_policy",
+		"compute.securityPolicies.patch":  "google_compute_security_policy",
+
+		// Compute Engine - Router NAT (note: compute.routers.insert already mapped to google_compute_router above)
+		// NAT is configured as part of the router resource in GCP
+
+		// Compute Engine - Global Forwarding Rules
+		"compute.globalForwardingRules.insert": "google_compute_global_forwarding_rule",
+		"compute.globalForwardingRules.delete": "google_compute_global_forwarding_rule",
+
+		// Compute Engine - URL Maps
+		"compute.urlMaps.insert": "google_compute_url_map",
+		"compute.urlMaps.delete": "google_compute_url_map",
+		"compute.urlMaps.patch":  "google_compute_url_map",
+
+		// Compute Engine - Target HTTPS Proxies
+		"compute.targetHttpsProxies.insert": "google_compute_target_https_proxy",
+		"compute.targetHttpsProxies.delete": "google_compute_target_https_proxy",
+
+		// Compute Engine - Managed SSL Certificates
+		"compute.managedSslCertificates.insert": "google_compute_managed_ssl_certificate",
+		"compute.managedSslCertificates.delete": "google_compute_managed_ssl_certificate",
+
+		// Cloud DNS - Managed Zones
+		"dns.managedZones.create": "google_dns_managed_zone",
+		"dns.managedZones.delete": "google_dns_managed_zone",
+		"dns.managedZones.update": "google_dns_managed_zone",
+		"dns.managedZones.patch":  "google_dns_managed_zone",
+
+		// Cloud DNS - Record Sets
+		"dns.changes.create": "google_dns_record_set",
+
+		// Memorystore (Redis)
+		"google.cloud.redis.v1.CloudRedis.CreateInstance": "google_redis_instance",
+		"google.cloud.redis.v1.CloudRedis.DeleteInstance": "google_redis_instance",
+		"google.cloud.redis.v1.CloudRedis.UpdateInstance": "google_redis_instance",
+		"google.cloud.redis.v1.CloudRedis.UpgradeInstance": "google_redis_instance",
+
+		// Cloud Spanner - Instances
+		"google.spanner.admin.instance.v1.InstanceAdmin.CreateInstance": "google_spanner_instance",
+		"google.spanner.admin.instance.v1.InstanceAdmin.DeleteInstance": "google_spanner_instance",
+		"google.spanner.admin.instance.v1.InstanceAdmin.UpdateInstance": "google_spanner_instance",
+
+		// Cloud Spanner - Databases
+		"google.spanner.admin.database.v1.DatabaseAdmin.CreateDatabase": "google_spanner_database",
+		"google.spanner.admin.database.v1.DatabaseAdmin.DropDatabase":   "google_spanner_database",
+		"google.spanner.admin.database.v1.DatabaseAdmin.UpdateDatabase": "google_spanner_database",
+
+		// Artifact Registry
+		"google.devtools.artifactregistry.v1.ArtifactRegistry.CreateRepository": "google_artifact_registry_repository",
+		"google.devtools.artifactregistry.v1.ArtifactRegistry.DeleteRepository": "google_artifact_registry_repository",
+		"google.devtools.artifactregistry.v1.ArtifactRegistry.UpdateRepository": "google_artifact_registry_repository",
+
+		// Cloud Scheduler
+		"google.cloud.scheduler.v1.CloudScheduler.CreateJob": "google_cloud_scheduler_job",
+		"google.cloud.scheduler.v1.CloudScheduler.DeleteJob": "google_cloud_scheduler_job",
+		"google.cloud.scheduler.v1.CloudScheduler.UpdateJob": "google_cloud_scheduler_job",
+
+		// Cloud Tasks
+		"google.cloud.tasks.v2.CloudTasks.CreateQueue": "google_cloud_tasks_queue",
+		"google.cloud.tasks.v2.CloudTasks.DeleteQueue": "google_cloud_tasks_queue",
+		"google.cloud.tasks.v2.CloudTasks.UpdateQueue": "google_cloud_tasks_queue",
+
+		// Filestore
+		"google.cloud.filestore.v1.CloudFilestoreManager.CreateInstance": "google_filestore_instance",
+		"google.cloud.filestore.v1.CloudFilestoreManager.DeleteInstance": "google_filestore_instance",
+		"google.cloud.filestore.v1.CloudFilestoreManager.UpdateInstance": "google_filestore_instance",
+
+		// Cloud Logging - Sinks
+		"google.logging.v2.ConfigServiceV2.CreateSink": "google_logging_project_sink",
+		"google.logging.v2.ConfigServiceV2.DeleteSink": "google_logging_project_sink",
+		"google.logging.v2.ConfigServiceV2.UpdateSink": "google_logging_project_sink",
+
+		// Cloud Logging - Metrics
+		"google.logging.v2.MetricsServiceV2.CreateLogMetric": "google_logging_metric",
+		"google.logging.v2.MetricsServiceV2.DeleteLogMetric": "google_logging_metric",
+		"google.logging.v2.MetricsServiceV2.UpdateLogMetric": "google_logging_metric",
+
+		// Cloud Monitoring - Alert Policies
+		"google.monitoring.v3.AlertPolicyService.CreateAlertPolicy": "google_monitoring_alert_policy",
+		"google.monitoring.v3.AlertPolicyService.DeleteAlertPolicy": "google_monitoring_alert_policy",
+		"google.monitoring.v3.AlertPolicyService.UpdateAlertPolicy": "google_monitoring_alert_policy",
+
+		// Cloud Monitoring - Notification Channels
+		"google.monitoring.v3.NotificationChannelService.CreateNotificationChannel": "google_monitoring_notification_channel",
+		"google.monitoring.v3.NotificationChannelService.DeleteNotificationChannel": "google_monitoring_notification_channel",
+		"google.monitoring.v3.NotificationChannelService.UpdateNotificationChannel": "google_monitoring_notification_channel",
+
+		// Dataproc - Clusters
+		"google.cloud.dataproc.v1.ClusterController.CreateCluster": "google_dataproc_cluster",
+		"google.cloud.dataproc.v1.ClusterController.DeleteCluster": "google_dataproc_cluster",
+		"google.cloud.dataproc.v1.ClusterController.UpdateCluster": "google_dataproc_cluster",
+
+		// Cloud Build - Triggers
+		"google.devtools.cloudbuild.v1.CloudBuild.CreateBuildTrigger": "google_cloudbuild_trigger",
+		"google.devtools.cloudbuild.v1.CloudBuild.DeleteBuildTrigger": "google_cloudbuild_trigger",
+		"google.devtools.cloudbuild.v1.CloudBuild.UpdateBuildTrigger": "google_cloudbuild_trigger",
+
+		// Workflows
+		"google.cloud.workflows.v1.Workflows.CreateWorkflow": "google_workflows_workflow",
+		"google.cloud.workflows.v1.Workflows.DeleteWorkflow": "google_workflows_workflow",
+		"google.cloud.workflows.v1.Workflows.UpdateWorkflow": "google_workflows_workflow",
+
+		// VPC Service Controls
+		"google.identity.accesscontextmanager.v1.AccessContextManager.CreateServicePerimeter": "google_access_context_manager_service_perimeter",
+		"google.identity.accesscontextmanager.v1.AccessContextManager.DeleteServicePerimeter": "google_access_context_manager_service_perimeter",
+		"google.identity.accesscontextmanager.v1.AccessContextManager.UpdateServicePerimeter": "google_access_context_manager_service_perimeter",
 	}
 }
 
