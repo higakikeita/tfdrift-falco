@@ -143,6 +143,18 @@ func (s *Server) setupRouter() {
 			statsHandler := handlers.NewStatsHandler(s.graphStore)
 			r.Get("/stats", statsHandler.GetStats)
 
+			// Analytics endpoints (v0.6.0 - Dashboard)
+			analyticsHandler := handlers.NewAnalyticsHandler(s.graphStore)
+			r.Get("/analytics/summary", analyticsHandler.GetSummary)
+			r.Get("/analytics/timeline", analyticsHandler.GetTimeline)
+			r.Get("/analytics/breakdown", analyticsHandler.GetBreakdown)
+
+			// Config endpoints (v0.6.0 - Dashboard)
+			configHandler := handlers.NewConfigHandler(s.cfg)
+			r.Get("/config", configHandler.GetConfig)
+			r.Get("/version", configHandler.GetVersion)
+			r.Post("/config/webhooks/test", configHandler.TestWebhook)
+
 			// Discovery endpoints (AWS resource discovery and drift detection)
 			discoveryHandler := handlers.NewDiscoveryHandler(s.stateManager)
 			r.Get("/discovery/scan", discoveryHandler.DiscoverAWSResources)
