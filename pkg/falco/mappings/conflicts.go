@@ -60,6 +60,9 @@ func ResolveEventSourceConflict(eventName string, eventSource string) string {
 		}
 
 	case "CreateCluster", "DeleteCluster", "ModifyCluster", "RebootCluster", "ResizeCluster":
+		if eventSource == "kafka.amazonaws.com" {
+			return "aws_msk_cluster"
+		}
 		if eventSource == "eks.amazonaws.com" {
 			return "aws_eks_cluster"
 		}
@@ -83,6 +86,101 @@ func ResolveEventSourceConflict(eventName string, eventSource string) string {
 			return "aws_backup_vault_policy"
 		}
 		// Add more services as needed
+		return "unknown"
+
+	// New conflicts for v0.6.0 expanded services
+	case "CreateDomain", "DeleteDomain":
+		if eventSource == "es.amazonaws.com" || eventSource == "opensearch.amazonaws.com" {
+			return "aws_opensearch_domain"
+		}
+		return "unknown"
+
+	case "CreatePipeline", "DeletePipeline", "UpdatePipeline":
+		if eventSource == "codepipeline.amazonaws.com" {
+			return "aws_codepipeline"
+		}
+		return "unknown"
+
+	case "CreateProject", "DeleteProject", "UpdateProject":
+		if eventSource == "codebuild.amazonaws.com" {
+			return "aws_codebuild_project"
+		}
+		return "unknown"
+
+	case "CreateWebhook", "DeleteWebhook", "UpdateWebhook":
+		if eventSource == "codebuild.amazonaws.com" {
+			return "aws_codebuild_webhook"
+		}
+		if eventSource == "codepipeline.amazonaws.com" {
+			return "aws_codepipeline_webhook"
+		}
+		return "unknown"
+
+	case "CreateServer", "DeleteServer", "UpdateServer":
+		if eventSource == "transfer.amazonaws.com" {
+			return "aws_transfer_server"
+		}
+		return "unknown"
+
+	case "CreateUser", "DeleteUser", "UpdateUser":
+		if eventSource == "transfer.amazonaws.com" {
+			return "aws_transfer_user"
+		}
+		if eventSource == "cognito-idp.amazonaws.com" {
+			return "unknown" // User management, not Terraform resource
+		}
+		// Default to IAM for backward compatibility
+		return ""
+
+	case "CreateConfiguration", "DeleteConfiguration":
+		if eventSource == "kafka.amazonaws.com" {
+			return "aws_msk_configuration"
+		}
+		return "unknown"
+
+	case "CreateDetector", "DeleteDetector", "UpdateDetector":
+		if eventSource == "guardduty.amazonaws.com" {
+			return "aws_guardduty_detector"
+		}
+		return "unknown"
+
+	case "CreateFilter", "DeleteFilter", "UpdateFilter":
+		if eventSource == "guardduty.amazonaws.com" {
+			return "aws_guardduty_filter"
+		}
+		return "unknown"
+
+	case "CreateIPSet", "DeleteIPSet", "UpdateIPSet":
+		if eventSource == "guardduty.amazonaws.com" {
+			return "aws_guardduty_ipset"
+		}
+		if eventSource == "wafv2.amazonaws.com" {
+			return "aws_wafv2_ip_set"
+		}
+		return "unknown"
+
+	case "CreateFileSystem", "DeleteFileSystem", "UpdateFileSystem":
+		if eventSource == "elasticfilesystem.amazonaws.com" {
+			return "aws_efs_file_system"
+		}
+		return "unknown"
+
+	case "CreateApplication", "DeleteApplication":
+		if eventSource == "codedeploy.amazonaws.com" {
+			return "aws_codedeploy_app"
+		}
+		if eventSource == "kinesisanalytics.amazonaws.com" {
+			return "aws_kinesis_analytics_application"
+		}
+		return "unknown"
+
+	case "CreateApiKey", "DeleteApiKey":
+		if eventSource == "appsync.amazonaws.com" {
+			return "aws_appsync_api_key"
+		}
+		if eventSource == "apigateway.amazonaws.com" {
+			return "aws_api_gateway_api_key"
+		}
 		return "unknown"
 	}
 

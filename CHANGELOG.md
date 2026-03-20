@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-03-20
+
+### 🌐 Expanded Multi-Cloud Service Coverage
+
+Major expansion of supported cloud services across AWS and GCP, significantly increasing drift detection coverage.
+
+#### Added
+
+##### AWS - 10 New Services (+100 event mappings)
+- **EFS (Elastic File System)** - File systems, mount targets, access points, policies
+- **Cognito** - User pools, clients, domains, identity pools, resource servers
+- **AppSync** - GraphQL APIs, resolvers, datasources
+- **MSK (Managed Streaming for Kafka)** - Clusters, configurations, broker management
+- **OpenSearch** - Domains, VPC endpoints, domain configurations
+- **CodePipeline** - Pipelines, webhooks, stage transitions
+- **CodeBuild** - Projects, report groups
+- **CodeDeploy** - Applications, deployment groups, deployment configs
+- **Transfer Family** - SFTP/FTP servers
+- **GuardDuty** - Detectors, filters, IP sets, threat intel sets
+- **AWS Config** - Configuration recorders, delivery channels, config rules
+
+##### GCP - 15 New Services (+70 event mappings)
+- **Cloud Armor** - Security policies (compute.securityPolicies)
+- **Cloud DNS** - Managed zones, record sets
+- **Memorystore (Redis)** - Redis instances
+- **Cloud Spanner** - Instances, databases
+- **Artifact Registry** - Repositories
+- **Cloud Scheduler** - Jobs
+- **Cloud Tasks** - Queues
+- **Filestore** - Instances
+- **Cloud Logging** - Sinks, log metrics
+- **Cloud Monitoring** - Alert policies, notification channels
+- **Dataproc** - Clusters
+- **Cloud Build** - Build triggers
+- **Workflows** - Workflow definitions
+- **VPC Service Controls** - Service perimeters
+- **Compute Engine (LB)** - Global forwarding rules, URL maps, HTTPS proxies, managed SSL certs
+
+##### Conflict Resolution
+- Added comprehensive event source disambiguation for 15+ conflicting event names
+- MSK, OpenSearch, CodePipeline, CodeBuild, CodeDeploy, Transfer Family, GuardDuty, EFS, Cognito, AppSync handled correctly
+
+#### Changed
+- AWS total coverage: 30+ → **40+ services**, 400+ → **500+ events**
+- GCP total coverage: 12+ → **27+ services**, 100+ → **170+ events**
+
+#### Technical Details
+- Files modified: `pkg/falco/mappings/other_services.go`, `pkg/falco/mappings/conflicts.go`, `pkg/falco/event_parser.go`, `pkg/gcp/resource_mapper.go`
+- All existing tests pass with no regressions
+- +404 lines of new mapping and conflict resolution code
+
 ## [0.5.0+] - 2026-01-10
 
 ### 🎨 UI Improvements - Storybook-Driven Development

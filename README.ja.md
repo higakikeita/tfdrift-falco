@@ -2,7 +2,7 @@
 
 **Falcoを活用したリアルタイムTerraformドリフト検知**
 
-[![Version](https://img.shields.io/badge/version-0.5.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
+[![Version](https://img.shields.io/badge/version-0.6.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
@@ -16,11 +16,14 @@
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
-> 🎉 **v0.5.0 リリース!** - **マルチクラウド対応**! GCP Audit Logs統合で12以上のサービスにわたる100以上のイベントマッピング。Terraform StateのGCSバックエンドサポート。[リリースノートを見る](https://github.com/higakikeita/tfdrift-falco/releases/tag/v0.5.0)
+> 🌐 **v0.6.0 リリース!** (2026-03-20) - **マルチクラウドカバレッジ大幅拡張**!
+> - **AWS: 40+サービス、500+イベント** — EFS, Cognito, AppSync, MSK, OpenSearch, CodePipeline, CodeBuild, GuardDuty等10新サービス追加
+> - **GCP: 27+サービス、170+イベント** — Cloud Armor, DNS, Redis, Spanner, Artifact Registry, Monitoring等15新サービス追加
+> - [📝 CHANGELOG](CHANGELOG.md#060---2026-03-20) | [🗺️ ロードマップ](PROJECT_ROADMAP.md)
 >
-> 🎯 **v0.4.1** - **Webhook統合**! Slack、Teams、PagerDuty、またはカスタムAPIにドリフトイベントを送信。自動リトライ、タイムアウト処理対応。
+> 🎉 **v0.5.0** - **マルチクラウド対応 + UI改善**! GCP Audit Logs統合、Storybook-Driven Development
 >
-> 🚀 **v0.4.0** - **構造化イベント出力** SIEM/SOAR統合向け! JSON出力（NDJSON）、イベント駆動型アーキテクチャ。
+> 🎯 **v0.4.1** - **Webhook統合**! Slack、Teams、PagerDuty対応
 
 [English](README.md) | **[日本語]**
 

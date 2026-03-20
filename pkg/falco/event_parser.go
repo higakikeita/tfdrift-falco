@@ -548,6 +548,78 @@ func (s *Subscriber) isRelevantEvent(eventName string) bool {
 		"DeleteBackupVault":             true,
 		"PutBackupVaultAccessPolicy":    true,
 		"DeleteBackupVaultAccessPolicy": true,
+
+		// ========== NEW SERVICES (v0.6.0) ==========
+
+		// EFS - Elastic File System
+		"CreateFileSystem":       true,
+		"DeleteFileSystem":       true,
+		"UpdateFileSystem":       true,
+		"CreateMountTarget":      true,
+		"DeleteMountTarget":      true,
+		"CreateAccessPoint":      true,
+		"DeleteAccessPoint":      true,
+		"PutFileSystemPolicy":    true,
+		"DeleteFileSystemPolicy": true,
+
+		// Cognito - User Pools
+		"CreateUserPool":       true,
+		"DeleteUserPool":       true,
+		"UpdateUserPool":       true,
+		"CreateUserPoolClient": true,
+		"DeleteUserPoolClient": true,
+		"UpdateUserPoolClient": true,
+		"CreateUserPoolDomain": true,
+		"DeleteUserPoolDomain": true,
+		"CreateIdentityPool":   true,
+		"DeleteIdentityPool":   true,
+		"UpdateIdentityPool":   true,
+
+		// AppSync - GraphQL
+		"CreateGraphqlApi": true,
+		"DeleteGraphqlApi": true,
+		"UpdateGraphqlApi": true,
+		"CreateResolver":   true,
+		"DeleteResolver":   true,
+		"UpdateResolver":   true,
+
+		// MSK - Managed Kafka
+		"UpdateClusterConfiguration": true,
+		"UpdateBrokerCount":          true,
+		"UpdateBrokerStorage":        true,
+		"UpdateBrokerType":           true,
+		"UpdateClusterKafkaVersion":  true,
+
+		// OpenSearch
+		"CreateDomain":       true,
+		"DeleteDomain":       true,
+		"UpdateDomainConfig": true,
+
+		// CodePipeline
+		"CreatePipeline": true,
+		"DeletePipeline": true,
+		"UpdatePipeline": true,
+
+		// CodeBuild
+		"CreateProject": true,
+		"DeleteProject": true,
+		"UpdateProject": true,
+
+		// CodeDeploy
+		"CreateDeploymentGroup": true,
+		"DeleteDeploymentGroup": true,
+		"UpdateDeploymentGroup": true,
+
+		// GuardDuty
+		"CreateDetector": true,
+		"DeleteDetector": true,
+		"UpdateDetector": true,
+
+		// AWS Config
+		"PutConfigurationRecorder":    true,
+		"DeleteConfigurationRecorder": true,
+		"PutConfigRule":               true,
+		"DeleteConfigRule":            true,
 	}
 
 	return relevantEvents[eventName]
