@@ -101,7 +101,7 @@ go test -race ./...
 
 ```bash
 # Copy example config
-cp examples/config.yaml config.yaml
+cp config.yaml.example config.yaml
 
 # Edit config.yaml with your settings
 vim config.yaml
