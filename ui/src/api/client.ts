@@ -211,6 +211,14 @@ class APIClient {
     });
   }
 
+  // Config API
+  async testWebhook(url: string) {
+    return this.request('/config/webhooks/test', {
+      method: 'POST',
+      body: JSON.stringify({ url }),
+    });
+  }
+
   // Discovery API
   async scanAWSResources(region: string = 'us-east-1') {
     return this.request(`/discovery/scan?region=${region}`);
