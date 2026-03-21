@@ -1,6 +1,16 @@
 // Package types defines core data structures used throughout TFDrift-Falco.
 package types
 
+// EventStatus represents the status of a drift event
+type EventStatus string
+
+const (
+	EventStatusOpen         EventStatus = "open"
+	EventStatusAcknowledged EventStatus = "acknowledged"
+	EventStatusIgnored      EventStatus = "ignored"
+	EventStatusResolved     EventStatus = "resolved"
+)
+
 // Event represents a cloud event that might indicate drift
 type Event struct {
 	Provider     string
@@ -10,6 +20,10 @@ type Event struct {
 	UserIdentity UserIdentity
 	Changes      map[string]interface{}
 	RawEvent     interface{}
+	Timestamp    string      // ISO 8601 timestamp
+	Severity     string      // critical, high, medium, low
+	Status       EventStatus // open, acknowledged, ignored, resolved
+	StatusReason string      // reason for status change (e.g., ignore reason)
 
 	// AWS-specific fields
 	Region string // AWS Region (optional)

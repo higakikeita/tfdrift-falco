@@ -107,3 +107,17 @@ code {
   background: hsl(var(--card));
   border-color: hsl(var(--border));
 }
+
+/* Slide-in animation for detail panel */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.25s ease-out;
+}

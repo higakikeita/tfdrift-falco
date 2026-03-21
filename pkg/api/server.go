@@ -133,6 +133,7 @@ func (s *Server) setupRouter() {
 			eventsHandler := handlers.NewEventsHandler(s.graphStore)
 			r.Get("/events", eventsHandler.GetEvents)
 			r.Get("/events/{id}", eventsHandler.GetEvent)
+			r.Patch("/events/{id}", eventsHandler.UpdateEventStatus)
 
 			// Drifts endpoints (Phase 2)
 			driftsHandler := handlers.NewDriftsHandler(s.graphStore)

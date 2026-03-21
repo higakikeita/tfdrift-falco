@@ -49,6 +49,8 @@ export interface DriftAlert {
   alert_type: string;
 }
 
+export type EventStatus = 'open' | 'acknowledged' | 'ignored' | 'resolved';
+
 export interface FalcoEvent {
   id: string;
   provider: string;
@@ -60,7 +62,22 @@ export interface FalcoEvent {
   region: string;
   project_id: string;
   service_name: string;
+  timestamp: string;
+  severity: string;
+  status: EventStatus;
+  status_reason: string;
   raw_event?: unknown;
+  related_drifts?: RelatedDrift[];
+}
+
+export interface RelatedDrift {
+  severity: string;
+  attribute: string;
+  old_value: unknown;
+  new_value: unknown;
+  matched_rules: string[];
+  timestamp: string;
+  alert_type: string;
 }
 
 export interface StateMetadata {
