@@ -2,7 +2,7 @@
 
 **Real-time Terraform Drift Detection powered by Falco**
 
-[![Version](https://img.shields.io/badge/version-0.6.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
+[![Version](https://img.shields.io/badge/version-0.7.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
@@ -16,19 +16,20 @@
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
-> 🌐 **v0.6.0 Released!** (2026-03-20) - **Dashboard UI + Expanded Multi-Cloud Coverage**!
-> - **Dashboard UI** — React web dashboard with real-time events, topology graphs, dark/light theme, and graph export (PNG/SVG/JSON)
-> - **AWS: 40+ services, 500+ events** — 10 new services (EFS, Cognito, AppSync, MSK, OpenSearch, CodePipeline, CodeBuild, CodeDeploy, GuardDuty, AWS Config)
-> - **GCP: 27+ services, 170+ events** — 15 new services (Cloud Armor, DNS, Redis, Spanner, Artifact Registry, Monitoring, Logging, Dataproc, Cloud Build, and more)
-> - Comprehensive conflict resolution for 15+ ambiguous event names
-> - [📝 CHANGELOG](CHANGELOG.md#060---2026-03-20) | [🗺️ Roadmap](PROJECT_ROADMAP.md)
+> 🎨 **v0.7.0 Released!** (2026-03-22) - **Dashboard UI: Events, Notifications, Settings**!
+> - **Event management** — Filter, sort, paginate events with status workflow (acknowledge/ignore/resolve) and JSON diff viewer
+> - **Real-time notifications** — SSE-connected notification panel with severity-based toasts
+> - **Graph export** — PNG (2x), SVG, JSON export from topology view
+> - **Settings page** — Webhooks CRUD, drift rules, cloud providers, general settings
+> - **Dark/light theme** — System-wide theme toggle with toast notifications
+> - [📝 CHANGELOG](CHANGELOG.md#070---2026-03-22) | [📋 Versioning Policy](VERSIONING.md)
 >
-> 🎉 **v0.5.0+** (2026-01-10) - **UI Improvements & GCP Support**!
-> - Storybook-Driven Development, 28 AWS Official Icons, GCP Audit Logs integration
-> - [📊 Details](STATUS_REPORT_2026-01-10.md)
+> 🌐 **v0.6.0** (2026-03-20) - **Expanded Multi-Cloud Coverage**!
+> - AWS: 40+ services, 500+ events | GCP: 27+ services, 170+ events
+> - [📝 CHANGELOG](CHANGELOG.md#060---2026-03-20)
 >
-> 🎯 **v0.4.1** - **Webhook Integration**!
-> - Send drift events to Slack, Teams, PagerDuty, or any custom API
+> 🎉 **v0.5.0** (2026-01-10) - **GCP Support & UI Improvements**!
+> - GCP Audit Logs, Storybook-Driven Development, 28 AWS Official Icons
 
 **[English]** | [日本語 (Japanese)](README.ja.md)
 
