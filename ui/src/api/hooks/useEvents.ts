@@ -1,12 +1,18 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient, type PaginatedResponse } from '../client';
-import type { FalcoEvent } from '../types';
+import type { FalcoEvent, EventStatus } from '../types';
 
 interface EventsParams {
   page?: number;
   limit?: number;
   severity?: string;
   provider?: string;
+  status?: string;
+  search?: string;
+  from?: string;
+  to?: string;
+  sort?: string;
+  order?: string;
 }
 
 export const useEvents = (params?: EventsParams) => {
@@ -29,5 +35,27 @@ export const useEvent = (id: string) => {
       return data as FalcoEvent;
     },
     enabled: !!id,
+  });
+};
+
+export const useUpdateEventStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      status,
+      reason,
+    }: {
+      id: string;
+      status: EventStatus;
+      reason?: string;
+    }) => {
+      return apiClient.updateEventStatus(id, status, reason);
+    },
+    onSuccess: () => {
+      // Invalidate events queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+    },
   });
 };

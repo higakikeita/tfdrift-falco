@@ -77,6 +77,33 @@ func (s *Store) GetUnmanaged() []types.UnmanagedResourceAlert {
 	return result
 }
 
+// UpdateEventStatus updates the status of an event by resource ID
+func (s *Store) UpdateEventStatus(resourceID string, status types.EventStatus, reason string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.events {
+		if s.events[i].ResourceID == resourceID {
+			s.events[i].Status = status
+			s.events[i].StatusReason = reason
+			return true
+		}
+	}
+	return false
+}
+
+// GetEventByID returns a single event by resource ID
+func (s *Store) GetEventByID(resourceID string) (*types.Event, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, event := range s.events {
+		if event.ResourceID == resourceID {
+			e := event // copy
+			return &e, true
+		}
+	}
+	return nil, false
+}
+
 // Clear clears all data from the store
 func (s *Store) Clear() {
 	s.mu.Lock()

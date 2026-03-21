@@ -102,12 +102,24 @@ class APIClient {
     limit?: number;
     severity?: string;
     provider?: string;
+    status?: string;
+    search?: string;
+    from?: string;
+    to?: string;
+    sort?: string;
+    order?: string;
   }) {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.limit) searchParams.append('limit', params.limit.toString());
     if (params?.severity) searchParams.append('severity', params.severity);
     if (params?.provider) searchParams.append('provider', params.provider);
+    if (params?.status) searchParams.append('status', params.status);
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.from) searchParams.append('from', params.from);
+    if (params?.to) searchParams.append('to', params.to);
+    if (params?.sort) searchParams.append('sort', params.sort);
+    if (params?.order) searchParams.append('order', params.order);
 
     const query = searchParams.toString();
     return this.request(`/events${query ? `?${query}` : ''}`);
@@ -115,6 +127,13 @@ class APIClient {
 
   async getEvent(id: string) {
     return this.request(`/events/${id}`);
+  }
+
+  async updateEventStatus(id: string, status: string, reason?: string) {
+    return this.request(`/events/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, reason }),
+    });
   }
 
   // Drifts API
