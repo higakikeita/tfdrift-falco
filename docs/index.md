@@ -1,8 +1,10 @@
 # TFDrift-Falco Documentation
 
-Welcome to the official documentation for **TFDrift-Falco**, a real-time multi-cloud Terraform drift detection system powered by Falco.
+Welcome to the official documentation for **TFDrift-Falco**, a real-time multi-cloud Terraform drift detection system with an integrated React Dashboard UI.
 
-> **Version:** v0.5.0+ | **Status:** Production Ready | **Providers:** AWS + GCP
+> **Version:** v0.6.0 | **Status:** Production Ready | **Providers:** AWS (40+ services) + GCP (27+ services)
+>
+> **New in v0.6.0:** Dashboard UI • Expanded Service Coverage (500+ AWS events, 170+ GCP events) • REST API Server with WebSocket/SSE Streaming
 
 ---
 
@@ -19,34 +21,63 @@ TFDrift-Falco detects when your cloud infrastructure changes outside of Terrafor
 
 ## Key Features
 
-### 🌐 Multi-Cloud Support (v0.5.0+)
+### 🎨 Dashboard UI (v0.6.0+)
 
-#### AWS Coverage
-Supports **203+ CloudTrail events** across **19 AWS services**:
-- **Compute:** EC2, Lambda, Auto Scaling
-- **Networking:** VPC, Security Groups, ELB/ALB
-- **Storage:** S3
-- **Databases:** RDS, Aurora, DynamoDB
-- **Security:** IAM, KMS
-- **Containers:** ECS, EKS, ECR
-- **Serverless:** API Gateway
-- **DNS & CDN:** Route53, CloudFront
+**React web interface for real-time drift monitoring:**
+- Real-time event stream with live updates
+- Interactive topology graphs with relationship visualization
+- Drift details panel with change history and remediation
+- Statistics dashboard with service metrics
+- Dark/Light theme support
+- Graph export (PNG, SVG, JSON)
+
+Access at: **http://localhost:3000**
+
+### 🌐 Multi-Cloud Support (40+ AWS services, 27+ GCP services)
+
+#### AWS Coverage (v0.6.0)
+Supports **500+ CloudTrail events** across **40+ AWS services**:
+- **Compute:** EC2, Lambda, Auto Scaling, ECS, EKS, ECR
+- **Networking:** VPC, Security Groups, ELB/ALB, Route53, CloudFront, EFS
+- **Storage:** S3, EBS
+- **Databases:** RDS, Aurora, DynamoDB, ElastiCache
+- **Security:** IAM, KMS, GuardDuty, AWS Config
+- **DevOps:** CodePipeline, CodeBuild, CodeDeploy
 - **Messaging:** SNS, SQS
+- **and 13 more services...**
 
 [View AWS Service Coverage →](services/index.md)
 
-#### GCP Coverage (v0.5.0+)
-Supports **100+ Audit Log events** across **12+ GCP services**:
-- **Compute:** Compute Engine, Disks
-- **Networking:** VPC, Firewall, Routes, Routers
+#### GCP Coverage (v0.6.0)
+Supports **170+ Audit Log events** across **27+ GCP services**:
+- **Compute:** Compute Engine, Disks, Cloud Run
+- **Networking:** VPC, Firewall, Routes, Cloud Armor, Cloud DNS
 - **Storage:** Cloud Storage
-- **Databases:** Cloud SQL
+- **Databases:** Cloud SQL, Spanner, Cloud Firestore
 - **Security:** IAM, KMS, Secret Manager
-- **Containers:** GKE, Cloud Run
-- **Serverless:** Cloud Functions
-- **Data & Analytics:** BigQuery, Pub/Sub
+- **DevOps:** Cloud Build, Artifact Registry
+- **Data & Analytics:** BigQuery, Pub/Sub, Dataproc
+- **and 19 more services...**
 
 [View GCP Service Coverage →](services/gcp/index.md)
+
+### 🔌 API Server with Real-time Streaming (v0.6.0+)
+
+**REST API Server on port 8080:**
+- REST endpoints for querying graph, events, and drifts
+- WebSocket streaming for real-time drift alerts
+- Server-Sent Events (SSE) for lightweight real-time updates
+- In-memory causal graph store with relationship tracking
+- Graph export capabilities (PNG, SVG, JSON)
+
+**Endpoints:**
+```
+REST API:   http://localhost:8080/api/v1
+WebSocket:  ws://localhost:8080/ws
+SSE Stream: http://localhost:8080/api/v1/stream
+```
+
+[REST API Documentation →](api/rest-api.md) | [WebSocket Documentation →](api/websocket.md) | [SSE Documentation →](api/sse.md)
 
 ### ⚡ Real-time Detection
 
@@ -54,6 +85,7 @@ Supports **100+ Audit Log events** across **12+ GCP services**:
 - Asynchronous audit log processing (CloudTrail, GCP Audit Logs)
 - Parallel multi-cloud service detection
 - Event-driven architecture with Falco
+- Real-time Dashboard UI updates via WebSocket/SSE
 
 ### 🔐 Security-Focused
 
@@ -93,7 +125,26 @@ Supports **100+ Audit Log events** across **12+ GCP services**:
 
 ### Installation
 
-#### AWS Setup
+#### Quick Start (5 minutes, v0.6.0)
+```bash
+# Clone the repository
+git clone https://github.com/higakikeita/tfdrift-falco.git
+cd tfdrift-falco
+
+# Run quick start script
+./quick-start.sh
+
+# Launch with Docker Compose
+docker compose up -d
+
+# Access Dashboard
+# Dashboard:  http://localhost:3000
+# API Server: http://localhost:8080
+```
+
+[Full Quickstart Guide →](quickstart.md)
+
+#### AWS Setup (Manual)
 ```bash
 # Clone the repository
 git clone https://github.com/higakikeita/tfdrift-falco.git
@@ -101,6 +152,10 @@ cd tfdrift-falco
 
 # Deploy Falco with cloudtrail plugin
 kubectl apply -f deployments/falco/
+
+# Deploy API Server & Dashboard
+kubectl apply -f deployments/api/
+kubectl apply -f deployments/ui/
 
 # Configure TFDrift for AWS
 vim config.yaml  # Configure AWS provider and S3 state
@@ -173,13 +228,26 @@ providers:
 │    Rules    │ Severity: WARNING
 └──────┬──────┘
        │
-       ├───────────────┐
-       ▼               ▼
-┌─────────────┐ ┌─────────────┐
-│   Grafana   │ │   Alerting  │
-│  Dashboard  │ │ (Slack/PD)  │
-└─────────────┘ └─────────────┘
+       ├───────────────┬──────────────┐
+       ▼               ▼              ▼
+┌─────────────┐ ┌──────────────┐ ┌──────────┐
+│   Grafana   │ │ API Server   │ │ Alerting │
+│  Dashboard  │ │ + Graph Store│ │(Slack/PD)│
+│  (Legacy)   │ │ (Chi Router) │ └──────────┘
+└─────────────┘ └──────┬───────┘
+                       │
+                    WS/SSE
+                       │
+                       ▼
+                ┌──────────────┐
+                │   Dashboard  │
+                │ (React 19+   │
+                │  Tailwind)   │
+                └──────────────┘
+                    :3000
 ```
+
+**New in v0.6.0:** React Dashboard UI + API Server with real-time WebSocket/SSE streaming
 
 [Learn More About Architecture →](architecture.md)
 
@@ -264,9 +332,14 @@ providers:
 - [All GCP Services →](services/gcp/index.md)
 
 ### Release Notes
-- [v0.5.0 - Multi-Cloud Support](release-notes/v0.5.0.md) - **Latest (2025-12-17)**
+- [v0.6.0 - Dashboard UI + Expanded Services](release-notes/v0.6.0.md) - **Latest (2026-03-20)**
+  - React Dashboard UI with real-time event streaming
+  - Topology graph visualization with export capabilities
+  - Expanded AWS coverage (40+ services, 500+ events)
+  - Expanded GCP coverage (27+ services, 170+ events)
+  - REST API Server with WebSocket/SSE streaming
+- [v0.5.0 - Multi-Cloud Support](release-notes/v0.5.0.md) - (2025-12-17)
 - [v0.2.0-beta](release-notes/v0.2.0-beta.md)
-- [v0.3.0 (planned)](release-notes/v0.3.0.md)
 - [Architecture Changes](release-notes/architecture-changes.md)
 
 ---

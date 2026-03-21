@@ -1,6 +1,8 @@
-# Quickstart Guide
+# Quickstart Guide (v0.6.0)
 
-Get TFDrift-Falco up and running in 30 minutes.
+Get TFDrift-Falco up and running in 5 minutes with Dashboard UI.
+
+> **New in v0.6.0:** React Dashboard UI with real-time event streaming, topology graphs, and graph export!
 
 ---
 
@@ -294,7 +296,98 @@ Make another manual change and verify Slack notification.
 
 ---
 
+## Step 11: Access the Dashboard UI (v0.6.0+)
+
+The React Dashboard UI provides real-time visualization of drift events and topology graphs.
+
+### Dashboard URL
+
+```
+http://localhost:3000
+```
+
+### Dashboard Features
+
+- **Real-time Event Stream** - Live feed of detected drift events
+- **Topology Graph** - Visual representation of drift relationships and causality
+- **Drift Details** - Click any event to see full details, change history, and remediation steps
+- **Statistics** - Service-level metrics and time-series analytics
+- **Dark/Light Theme** - Toggle between themes in settings
+- **Export** - Download topology graphs (PNG, SVG) and data (JSON)
+
+### API Server
+
+The API Server runs on port `:8080` and provides REST endpoints plus WebSocket/SSE streaming.
+
+```
+REST API:   http://localhost:8080/api/v1
+WebSocket:  ws://localhost:8080/ws
+SSE Stream: http://localhost:8080/api/v1/stream
+Health:     http://localhost:8080/health
+```
+
+**Check API Health:**
+
+```bash
+curl http://localhost:8080/health
+# Expected response:
+# {"success":true,"data":{"status":"ok","timestamp":"2025-03-20T10:30:00Z"}}
+```
+
+**Fetch Graph Data:**
+
+```bash
+curl http://localhost:8080/api/v1/graph
+# Returns entire causal graph with nodes and edges
+```
+
+See [REST API Documentation →](api/rest-api.md) for complete endpoint reference.
+
+---
+
 ## Troubleshooting
+
+### Dashboard Not Loading
+
+**Symptom:** Cannot access http://localhost:3000
+
+**Solution:**
+```bash
+# Check if UI is running
+docker ps | grep ui
+# or for local run:
+# ps aux | grep vite
+
+# Check logs
+docker logs <ui_container_id>
+
+# Verify API connectivity
+curl http://localhost:8080/health
+
+# Ensure API server is accessible from dashboard
+# Update API URL in dashboard settings if needed
+```
+
+### API Server Not Responding
+
+**Symptom:** Cannot reach http://localhost:8080
+
+**Solution:**
+```bash
+# Check if API server is running
+docker ps | grep tfdrift-api
+# or:
+# ps aux | grep "api\|tfdrift"
+
+# Check API logs
+docker logs <api_container_id>
+
+# Verify port binding
+netstat -tuln | grep 8080
+
+# Restart API server if needed
+docker restart <api_container_id>
+```
 
 ### TFDrift Detector Not Starting
 
