@@ -1,0 +1,144 @@
+---
+title: "v0.5.0: GCP Audit Logs & Multi-Provider Architecture"
+description: "Google Cloud Platform support with 100+ events, GCS backend, and multi-cloud infrastructure monitoring"
+date: "2026-01-10"
+author: "Keita Higaki"
+tags: ["release", "gcp", "multi-cloud", "audit-logs"]
+---
+
+# 🚀 TFDrift-Falco v0.5.0: Multi-Cloud Arrives
+
+**Release Date**: January 10, 2026
+
+**Major milestone**: TFDrift-Falco scales beyond AWS to support Google Cloud Platform (GCP) with comprehensive audit log integration.
+
+## 🎯 Multi-Cloud Vision
+
+v0.5.0 brings TFDrift-Falco to the next level:
+
+1. **AWS Leadership** - Maintain our 400+ event AWS coverage
+2. **GCP Parity** - Launch with 100+ GCP events across 12+ services
+3. **Extensible Foundation** - Architecture ready for Azure, Kubernetes, and beyond
+
+## 🌩️ What's New
+
+### 100+ GCP Events with Falco gcpaudit Plugin
+
+Full integration with Falco's GCP Audit Log parser:
+
+- **100+ events** across **12+ GCP services**
+- Resource detail extraction (project ID, zone, region)
+- User identity correlation (principal email, service accounts)
+- Change tracking with request/response capture
+- Comprehensive validation and error handling
+
+### GCS Backend for Terraform State
+
+Load and compare Terraform state directly from Google Cloud Storage:
+
+```yaml
+providers:
+  gcp:
+    enabled: true
+    projects:
+      - my-gcp-project-123
+    state:
+      backend: "gcs"
+      gcs_bucket: "my-terraform-state"
+      gcs_prefix: "prod/terraform.tfstate"
+```
+
+Supports:
+- Application Default Credentials (ADC)
+- Service account key files
+- Multi-bucket configurations
+
+### Multi-Provider Architecture
+
+Event routing based on cloud provider:
+
+- `aws_cloudtrail` → AWS parser
+- `gcpaudit` → GCP parser
+- Extensible design for future providers
+
+All events flow through a unified drift detection engine, enabling side-by-side monitoring of AWS and GCP infrastructure.
+
+### Storybook-Driven UI Development
+
+Interactive component library for faster dashboard development:
+
+```bash
+npm run storybook
+# Visit http://localhost:6006
+# Browse UI components in isolation
+# Test dark/light theme support
+```
+
+Perfect foundation for upcoming dashboard UI in v0.7.
+
+## 🎬 Quick Start
+
+Enable GCP support in your config:
+
+```yaml
+providers:
+  gcp:
+    enabled: true
+    projects:
+      - my-gcp-project-123
+    state:
+      backend: "gcs"
+      gcs_bucket: "my-terraform-state"
+      gcs_prefix: "prod/terraform.tfstate"
+```
+
+Or use the quick-start script:
+
+```bash
+./scripts/gcp-quick-start.sh
+```
+
+## 📊 Service Coverage
+
+| Service | Events | Coverage |
+|---------|--------|----------|
+| Compute Engine | 30+ | Instances, Disks, Networks |
+| Cloud Storage | 15+ | Buckets, Objects, IAM |
+| Cloud SQL | 10+ | Instances, Databases |
+| GKE | 10+ | Clusters, Node Pools |
+| Cloud Run | 8+ | Services, Revisions |
+| IAM | 8+ | Service Accounts, Roles |
+| VPC/Networking | 10+ | Firewalls, Routes |
+| Cloud Functions | 5+ | Functions, Triggers |
+| BigQuery | 5+ | Datasets, Tables |
+| Pub/Sub | 5+ | Topics, Subscriptions |
+| KMS | 5+ | Keys, KeyRings |
+| Secret Manager | 3+ | Secrets, Versions |
+
+## 🔒 Security & Compliance
+
+- **Falco Rule Integration** - Use Falco rules to detect critical GCP changes
+- **Audit Trail** - Full audit logs for compliance (SOC2, PCI-DSS, HIPAA, GDPR)
+- **Multi-Project Monitoring** - Centralized monitoring across GCP projects
+
+## 📚 Documentation
+
+- **GCP Setup Guide** - 3,600+ lines with troubleshooting
+- **Architecture v1.1** - Multi-cloud patterns and best practices
+- **GCP Services Coverage** - Complete service mapping reference
+
+## 🧪 Testing
+
+- **34 GCP parser tests** (100% pass rate)
+- Integration tests for multi-provider scenarios
+- Resource type mapping validation
+
+## 🤝 Contributors
+
+Special thanks to the Falco community for the gcpaudit plugin, making GCP audit log integration seamless!
+
+---
+
+**TFDrift-Falco v0.5.0** - Multi-Cloud Drift Detection for AWS & GCP
+
+*500 AWS Events • 100 GCP Events • Unified Multi-Cloud Engine • Production Ready*
