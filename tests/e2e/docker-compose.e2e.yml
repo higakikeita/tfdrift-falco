@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Falco for E2E testing
   falco:
