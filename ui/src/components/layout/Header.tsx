@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
-import { Bell, Search, ChevronRight, Sun, Moon } from 'lucide-react';
+import { Search, ChevronRight, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
+import { NotificationPanel } from '../notifications/NotificationPanel';
 
 const routeTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -60,11 +61,8 @@ export function Header() {
           {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </button>
 
-        {/* Notifications */}
-        <button className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
-        </button>
+        {/* Notifications — real-time via SSE (#16) */}
+        <NotificationPanel />
 
         {/* User avatar */}
         <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
