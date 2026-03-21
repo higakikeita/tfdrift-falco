@@ -6,6 +6,7 @@ import { useEvents, useUpdateEventStatus } from '../api/hooks/useEvents';
 import { mockDriftEvents } from '../mocks/eventData';
 import type { DriftFilters, DriftEvent } from '../types/drift';
 import type { FalcoEvent, EventStatus } from '../api/types';
+import { toast } from '../stores/toastStore';
 
 /**
  * Adapt a FalcoEvent (API shape) to DriftEvent (UI shape) so existing
@@ -107,7 +108,23 @@ export function EventsPage() {
 
   const handleStatusChange = useCallback(
     (id: string, status: EventStatus, reason?: string) => {
-      updateStatus.mutate({ id, status, reason });
+      updateStatus.mutate(
+        { id, status, reason },
+        {
+          onSuccess: () => {
+            const labels: Record<string, string> = {
+              acknowledged: 'Acknowledged',
+              ignored: 'Ignored',
+              resolved: 'Resolved',
+              open: 'Reopened',
+            };
+            toast.success(`Event ${labels[status] || status}`, `Status updated for ${id}`);
+          },
+          onError: () => {
+            toast.error('Status update failed', 'Please try again.');
+          },
+        }
+      );
     },
     [updateStatus]
   );
