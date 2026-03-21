@@ -16,7 +16,8 @@
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
-> 🌐 **v0.6.0 Released!** (2026-03-20) - **Expanded Multi-Cloud Coverage**!
+> 🌐 **v0.6.0 Released!** (2026-03-20) - **Dashboard UI + Expanded Multi-Cloud Coverage**!
+> - **Dashboard UI** — React web dashboard with real-time events, topology graphs, dark/light theme, and graph export (PNG/SVG/JSON)
 > - **AWS: 40+ services, 500+ events** — 10 new services (EFS, Cognito, AppSync, MSK, OpenSearch, CodePipeline, CodeBuild, CodeDeploy, GuardDuty, AWS Config)
 > - **GCP: 27+ services, 170+ events** — 15 new services (Cloud Armor, DNS, Redis, Spanner, Artifact Registry, Monitoring, Logging, Dataproc, Cloud Build, and more)
 > - Comprehensive conflict resolution for 15+ ambiguous event names
@@ -182,42 +183,67 @@ docker-compose up -d
 
 ### 📡 REST API Endpoints
 
-- `GET /api/v1/graph` - Causal graph (Cytoscape format)
-- `GET /api/v1/drifts` - Drift alerts list (with filtering)
-- `GET /api/v1/events` - Falco events list
+**Query Endpoints:**
+- `GET /api/v1/graph` - Causal graph (JSON format for topology visualization)
+- `GET /api/v1/graph/export?format=png|svg|json` - Export graph in multiple formats
+- `GET /api/v1/events` - Drift events list with filtering, sorting, pagination
+- `GET /api/v1/events/{id}` - Get event details with JSON diff
+- `GET /api/v1/drifts` - Drift alerts summary (deprecated, use /events)
+- `GET /api/v1/stats` - Dashboard statistics and metrics
 - `GET /api/v1/state` - Terraform state overview
-- `GET /api/v1/stats` - Statistics
 - `GET /health` - Health check
+
+**Management Endpoints:**
+- `PATCH /api/v1/events/{id}` - Update event status or notes
+- `GET /api/v1/webhooks` - List configured webhooks
+- `POST /api/v1/webhooks` - Create new webhook
+- `DELETE /api/v1/webhooks/{id}` - Remove webhook
+- `GET /api/v1/rules` - List detection rules
+- `GET /api/v1/providers` - List configured cloud providers
+
+**Streaming:**
+- `GET /api/v1/stream` - Server-Sent Events (SSE) for real-time notifications
+- `WS /ws` - WebSocket for bidirectional real-time communication
 
 **Details:** [API Documentation](docs/API.md)
 
 ### 🌐 React Web UI
 
-![TFDrift UI](https://via.placeholder.com/800x400?text=TFDrift+Web+UI)
+A modern, feature-rich dashboard for monitoring and managing Terraform drift detection with real-time updates and beautiful visualizations.
 
-#### Three View Modes
+#### Dashboard Pages
 
-1. **📊 Graph View** - Causal relationship visualization
-   - React Flow with official AWS/Kubernetes icons
-   - Interactive node operations
-   - Hierarchical, Dagre, Force-directed, Circular layouts
+1. **📊 Dashboard Page** - Overview and statistics
+   - Real-time drift event counts and summaries
+   - Provider breakdown and severity distribution
+   - Quick access to recent events and top resources
 
-2. **📋 Table View** - Drift event history
-   - 100+ events list display
-   - Filtering (severity, provider, search)
-   - Sort functions (latest, severity order)
-   - Detail panel (before/after values, user info, CloudTrail)
+2. **📋 Events Page** - Drift event history with advanced filtering
+   - Event list with pagination and sorting
+   - Filters: severity, provider, time range, search
+   - Detailed panel showing JSON diff (before/after values)
+   - User identity and CloudTrail context
+   - Real-time SSE notifications with severity-based toasts
 
-3. **⚡ Split View** - Graph + Table simultaneous display (Recommended)
-   - Left: Causal relationship graph
-   - Right: Drift history table + detail panel
+3. **🔗 Topology Page** - Causal relationship visualization
+   - React Flow with AWS/GCP service icons
+   - Interactive graph with Dagre layout
+   - Graph export (PNG, SVG, JSON formats)
+   - Node operations and filtering
+
+4. **⚙️ Settings Page** - Configuration and management
+   - **Webhooks Tab** — Configure drift notification webhooks
+   - **Rules Tab** — Manage detection rules
+   - **Providers Tab** — AWS/GCP account and credentials
+   - **General Tab** — Application settings
 
 **Key Features:**
-- 🎯 **Official Icons** - AWS React Icons + Kubernetes official SVG
-- 📊 **Real-time Filtering** - Severity, provider, resource type
-- ⚡ **WebSocket/SSE Ready** - Real-time notifications (prepared)
-- 🔍 **Large-scale Graph Support** - 1000+ nodes (LOD, Clustering ready)
-- 📱 **Responsive Design** - Tailwind CSS
+- 🎯 **Real-time Updates** — Server-Sent Events (SSE) integration for live notifications
+- 🎨 **Dark/Light Theme** — Full theme toggle support
+- 📊 **Advanced Filtering** — Filter by severity, provider, resource type
+- 📥 **Graph Export** — Export topology as PNG, SVG, or JSON
+- 📱 **Responsive Design** — Mobile-friendly Tailwind CSS UI
+- 🔔 **Toast Notifications** — Severity-based alert styling
 
 #### Development Environment
 
@@ -541,6 +567,8 @@ That's why placing Falco between your infrastructure means:
 - 🎨 **Extensible Rules** - Define custom Falco rules in YAML
 - 🐳 **Container-Ready** - Run as a sidecar or standalone container
 - 📊 **Production-Ready** - Comprehensive load testing and monitoring framework
+- 📈 **Web Dashboard UI** - React dashboard with real-time events, topology visualization, and dark/light theme
+- 🔌 **Real-time WebSocket/SSE** - Live event streaming with severity-based notifications
 
 ## 📋 Supported AWS Services
 
@@ -654,11 +682,20 @@ graph TB
     K --> M[Discord]
     K --> N[Webhook]
 
+    I --> O[API Server<br/>REST API]
+    O --> P[SSE Broadcaster]
+    P --> Q[React Dashboard UI]
+
+    O --> R[(Graph Store<br/>Events DB)]
+
     style E fill:#4A90E2
     style G fill:#FFA500
     style I fill:#50C878
     style B fill:#00B4AB
     style B2 fill:#00B4AB
+    style O fill:#7B68EE
+    style Q fill:#FF6B6B
+    style P fill:#FFD700
 ```
 
 ### Components
@@ -670,6 +707,9 @@ graph TB
 | **Drift Engine** | Compares IaC definitions with runtime changes |
 | **Context Enricher** | Adds user identity, resource tags, change history |
 | **Notifier** | Sends alerts to configured channels |
+| **API Server** | REST API for event queries, configuration management, and graph operations |
+| **SSE Broadcaster** | Real-time event streaming to connected web clients |
+| **React Dashboard UI** | Web interface for monitoring drift events, topology visualization, and settings management |
 
 ## 📊 Code Quality & Testing
 
@@ -755,7 +795,7 @@ docker logs -f tfdrift-falco
 
 ```bash
 # Download latest release
-curl -LO https://github.com/keitahigaki/tfdrift-falco/releases/latest/download/tfdrift-linux-amd64
+curl -LO https://github.com/higakikeita/tfdrift-falco/releases/latest/download/tfdrift-linux-amd64
 chmod +x tfdrift-linux-amd64
 sudo mv tfdrift-linux-amd64 /usr/local/bin/tfdrift
 ```
@@ -763,7 +803,7 @@ sudo mv tfdrift-linux-amd64 /usr/local/bin/tfdrift
 #### Option 2: Build from Source
 
 ```bash
-git clone https://github.com/keitahigaki/tfdrift-falco.git
+git clone https://github.com/higakikeita/tfdrift-falco.git
 cd tfdrift-falco
 go build -o tfdrift ./cmd/tfdrift
 ```
@@ -1253,8 +1293,12 @@ See the **[AWS Coverage Roadmap](./docs/AWS_COVERAGE_ROADMAP.md)** for detailed 
 - [ ] Azure Blob backend support
 - [ ] Custom rule DSL
 
-### Phase 3: Advanced Features
-- [ ] Web dashboard UI
+### Phase 3: Advanced Features (✅ Dashboard UI Complete - v0.6.0)
+- [x] **Web dashboard UI** - React dashboard with Dashboard, Events, Topology, Settings pages
+  - Real-time SSE notifications with severity-based toasts
+  - Graph export (PNG, SVG, JSON)
+  - Dark/light theme toggle
+  - Events filtering, sorting, pagination with detail panel
 - [ ] Machine learning-based anomaly detection
 - [ ] Auto-remediation actions
 - [ ] Policy-as-Code integration (OPA/Rego)
@@ -1275,7 +1319,7 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for det
 
 ```bash
 # Clone repository
-git clone https://github.com/keitahigaki/tfdrift-falco.git
+git clone https://github.com/higakikeita/tfdrift-falco.git
 cd tfdrift-falco
 
 # Install dependencies
@@ -1325,7 +1369,22 @@ tfdrift-falco/
 │   ├── detector/          # Drift detection engine
 │   ├── notifier/          # Notification handlers
 │   ├── config/            # Configuration management
-│   └── enricher/          # Context enrichment
+│   ├── enricher/          # Context enrichment
+│   ├── api/               # REST API server and handlers
+│   │   ├── server.go
+│   │   ├── handlers.go
+│   │   └── middleware.go
+│   └── graph/             # Graph store and topology operations
+│       ├── store.go
+│       └── export.go
+├── ui/                    # React web dashboard
+│   ├── src/
+│   │   ├── pages/         # Dashboard, Events, Topology, Settings
+│   │   ├── components/    # Reusable UI components
+│   │   ├── hooks/         # Custom React hooks
+│   │   └── services/      # API client services
+│   ├── public/
+│   └── package.json
 ├── docs/                  # Documentation
 ├── examples/              # Example configurations
 ├── tests/                 # Integration tests
@@ -1360,7 +1419,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Contact
 
 - Author: Keita Higaki
-- GitHub: [@keitahigaki](https://github.com/keitahigaki)
+- GitHub: [@higakikeita](https://github.com/higakikeita)
 - X (Twitter): [@keitah0322](https://x.com/keitah0322)
 - Qiita: [@keitah](https://qiita.com/keitah)
 
