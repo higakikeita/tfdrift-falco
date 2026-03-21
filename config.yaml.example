@@ -50,11 +50,18 @@ providers:
       # Optional: explicit credentials file
       # credentials_file: "/path/to/service-account-key.json"
 
-  # Azure Configuration (future)
+  # Azure Configuration (v0.7.0+)
   azure:
     enabled: false
     subscriptions:
       - "subscription-id-1"
+      - "subscription-id-2"
+    state:
+      backend: "azurerm"
+      azure_resource_group: "terraform-state-rg"
+      azure_storage_account: "tfstate"
+      azure_container_name: "tfstate"
+      azure_key: "prod/terraform.tfstate"
 
 # Falco Integration (Required for TFDrift-Falco)
 # You must have Falco 0.35+ installed with:

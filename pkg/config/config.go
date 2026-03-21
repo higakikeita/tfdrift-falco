@@ -22,8 +22,9 @@ type Config struct {
 
 // ProvidersConfig contains cloud provider settings
 type ProvidersConfig struct {
-	AWS AWSConfig `yaml:"aws"`
-	GCP GCPConfig `yaml:"gcp"`
+	AWS   AWSConfig   `yaml:"aws"`
+	GCP   GCPConfig   `yaml:"gcp"`
+	Azure AzureConfig `yaml:"azure"`
 }
 
 // AWSConfig contains AWS-specific settings
@@ -46,6 +47,12 @@ type TerraformStateConfig struct {
 	// GCS backend settings
 	GCSBucket string `yaml:"gcs_bucket" mapstructure:"gcs_bucket"`
 	GCSPrefix string `yaml:"gcs_prefix" mapstructure:"gcs_prefix"`
+
+	// Azure Blob backend settings
+	AzureResourceGroup  string `yaml:"azure_resource_group" mapstructure:"azure_resource_group"`
+	AzureStorageAccount string `yaml:"azure_storage_account" mapstructure:"azure_storage_account"`
+	AzureContainerName  string `yaml:"azure_container_name" mapstructure:"azure_container_name"`
+	AzureKey            string `yaml:"azure_key" mapstructure:"azure_key"`
 }
 
 // GCPConfig contains GCP-specific settings
@@ -53,6 +60,13 @@ type GCPConfig struct {
 	Enabled  bool                 `yaml:"enabled"`
 	Projects []string             `yaml:"projects"`
 	State    TerraformStateConfig `yaml:"state"`
+}
+
+// AzureConfig contains Azure-specific settings
+type AzureConfig struct {
+	Enabled       bool                 `yaml:"enabled"`
+	Subscriptions []string             `yaml:"subscriptions"`
+	State         TerraformStateConfig `yaml:"state"`
 }
 
 // FalcoConfig contains Falco integration settings
@@ -156,7 +170,7 @@ func Load(path string) (*Config, error) {
 
 // Validate validates the configuration
 func (c *Config) Validate() error {
-	if !c.Providers.AWS.Enabled && !c.Providers.GCP.Enabled {
+	if !c.Providers.AWS.Enabled && !c.Providers.GCP.Enabled && !c.Providers.Azure.Enabled {
 		return fmt.Errorf("at least one provider must be enabled")
 	}
 

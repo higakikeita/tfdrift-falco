@@ -1,0 +1,163 @@
+# Falco Rules for Azure Terraform Drift Detection
+# These rules detect manual changes to Terraform-managed Azure resources
+# Requires Azure Activity Logs plugin for Falco enabled
+
+- rule: Azure VM Modification
+  desc: Detect Azure Virtual Machine modifications
+  condition: >
+    azure.operationName in (
+      "Microsoft.Compute/virtualMachines/write",
+      "Microsoft.Compute/virtualMachines/delete",
+      "Microsoft.Compute/virtualMachines/start/action",
+      "Microsoft.Compute/virtualMachines/deallocate/action",
+      "Microsoft.Compute/virtualMachines/restart/action"
+    )
+  output: >
+    Azure VM modification detected (operation=%azure.operationName caller=%azure.caller resourceGroup=%azure.resourceGroup)
+  priority: WARNING
+  source: azureaudit
+  tags: [terraform, drift, azure, compute]
+
+- rule: Azure Network Security Group Modification
+  desc: Detect Azure NSG modifications
+  condition: >
+    azure.operationName in (
+      "Microsoft.Network/networkSecurityGroups/write",
+      "Microsoft.Network/networkSecurityGroups/delete",
+      "Microsoft.Network/networkSecurityGroups/securityRules/write",
+      "Microsoft.Network/networkSecurityGroups/securityRules/delete"
+    )
+  output: >
+    Azure NSG modified (operation=%azure.operationName caller=%azure.caller)
+  priority: CRITICAL
+  source: azureaudit
+  tags: [terraform, drift, azure, network, security]
+
+- rule: Azure Key Vault Operations
+  desc: Detect Azure Key Vault modifications
+  condition: >
+    azure.operationName in (
+      "Microsoft.KeyVault/vaults/write",
+      "Microsoft.KeyVault/vaults/delete",
+      "Microsoft.KeyVault/vaults/secrets/write",
+      "Microsoft.KeyVault/vaults/keys/write"
+    )
+  output: >
+    Azure Key Vault operation detected (operation=%azure.operationName caller=%azure.caller subscriptionId=%azure.subscriptionId)
+  priority: CRITICAL
+  source: azureaudit
+  tags: [terraform, drift, azure, security, keyvault]
+
+- rule: Azure Role Assignment Changes
+  desc: Detect Azure role assignment modifications
+  condition: >
+    azure.operationName in (
+      "Microsoft.Authorization/roleAssignments/write",
+      "Microsoft.Authorization/roleAssignments/delete"
+    )
+  output: >
+    Azure role assignment changed (operation=%azure.operationName caller=%azure.caller)
+  priority: CRITICAL
+  source: azureaudit
+  tags: [terraform, drift, azure, iam, security]
+
+- rule: Azure Storage Account Modification
+  desc: Detect Azure Storage Account modifications
+  condition: >
+    azure.operationName in (
+      "Microsoft.Storage/storageAccounts/write",
+      "Microsoft.Storage/storageAccounts/delete",
+      "Microsoft.Storage/storageAccounts/blobServices/containers/write",
+      "Microsoft.Storage/storageAccounts/blobServices/containers/delete"
+    )
+  output: >
+    Azure Storage modification detected (operation=%azure.operationName caller=%azure.caller)
+  priority: WARNING
+  source: azureaudit
+  tags: [terraform, drift, azure, storage]
+
+- rule: Azure Network Modification
+  desc: Detect Azure Virtual Network and subnet modifications
+  condition: >
+    azure.operationName in (
+      "Microsoft.Network/virtualNetworks/write",
+      "Microsoft.Network/virtualNetworks/delete",
+      "Microsoft.Network/virtualNetworks/subnets/write",
+      "Microsoft.Network/virtualNetworks/subnets/delete"
+    )
+  output: >
+    Azure network modified (operation=%azure.operationName caller=%azure.caller resourceGroup=%azure.resourceGroup)
+  priority: WARNING
+  source: azureaudit
+  tags: [terraform, drift, azure, network]
+
+- rule: Azure Load Balancer Modification
+  desc: Detect Azure Load Balancer modifications
+  condition: >
+    azure.operationName in (
+      "Microsoft.Network/loadBalancers/write",
+      "Microsoft.Network/loadBalancers/delete",
+      "Microsoft.Network/applicationGateways/write",
+      "Microsoft.Network/applicationGateways/delete"
+    )
+  output: >
+    Azure load balancer modified (operation=%azure.operationName caller=%azure.caller)
+  priority: WARNING
+  source: azureaudit
+  tags: [terraform, drift, azure, network, loadbalancer]
+
+- rule: Azure Database Modification
+  desc: Detect Azure database modifications
+  condition: >
+    azure.operationName in (
+      "Microsoft.Sql/servers/write",
+      "Microsoft.Sql/servers/delete",
+      "Microsoft.Sql/servers/databases/write",
+      "Microsoft.Sql/servers/databases/delete",
+      "Microsoft.DocumentDB/databaseAccounts/write",
+      "Microsoft.DocumentDB/databaseAccounts/delete"
+    )
+  output: >
+    Azure database modification detected (operation=%azure.operationName caller=%azure.caller)
+  priority: WARNING
+  source: azureaudit
+  tags: [terraform, drift, azure, database]
+
+- rule: Azure Kubernetes Service Modification
+  desc: Detect AKS cluster modifications
+  condition: >
+    azure.operationName in (
+      "Microsoft.ContainerService/managedClusters/write",
+      "Microsoft.ContainerService/managedClusters/delete"
+    )
+  output: >
+    Azure AKS modification detected (operation=%azure.operationName caller=%azure.caller)
+  priority: WARNING
+  source: azureaudit
+  tags: [terraform, drift, azure, kubernetes, container]
+
+- rule: Azure Firewall Modification
+  desc: Detect Azure Firewall modifications
+  condition: >
+    azure.operationName in (
+      "Microsoft.Network/azureFirewalls/write",
+      "Microsoft.Network/azureFirewalls/delete"
+    )
+  output: >
+    Azure Firewall modified (operation=%azure.operationName caller=%azure.caller)
+  priority: CRITICAL
+  source: azureaudit
+  tags: [terraform, drift, azure, network, security, firewall]
+
+- rule: Azure Policy Assignment Changes
+  desc: Detect Azure Policy assignment modifications
+  condition: >
+    azure.operationName in (
+      "Microsoft.Authorization/policyAssignments/write",
+      "Microsoft.Authorization/policyAssignments/delete"
+    )
+  output: >
+    Azure policy assignment changed (operation=%azure.operationName caller=%azure.caller)
+  priority: WARNING
+  source: azureaudit
+  tags: [terraform, drift, azure, policy]

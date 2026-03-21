@@ -4,6 +4,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/falcosecurity/client-go/pkg/api/outputs"
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -40,6 +42,126 @@ func NewAuditParser() *AuditParser {
 		mapper:      mapper,
 		relevantOps: relevantOps,
 	}
+}
+
+// Parse converts a Falco output response into a TFDrift event for drift detection.
+//
+// The method performs the following operations:
+//   - Validates the response is from the azureaudit source
+//   - Extracts Azure operation name (e.g., "Microsoft.Compute/virtualMachines/write")
+//   - Filters irrelevant events (read-only operations, non-infrastructure changes)
+//   - Maps the operation to a Terraform resource type (e.g., "azurerm_linux_virtual_machine")
+//   - Extracts resource identifiers, subscription, and resource group
+//   - Parses event-specific changes from the audit log
+//
+// Parameters:
+//   - res: Falco output response containing Azure audit log data
+//
+// Returns:
+//   - *types.Event: Parsed drift detection event, or nil if:
+//   - Response is nil
+//   - Source is not "azureaudit"
+//   - Event is not relevant for drift detection
+//   - Required fields are missing
+//   - No resource mapping exists for the event type
+func (p *AuditParser) Parse(res *outputs.Response) *types.Event {
+	// Handle nil response
+	if res == nil {
+		log.Warn("Received nil response")
+		return nil
+	}
+
+	// Check if this is an Azure Audit Log event
+	if res.Source != "azureaudit" {
+		return nil
+	}
+
+	// Parse output fields
+	fields := res.OutputFields
+
+	// Extract Azure operation name (equivalent to CloudTrail event name)
+	operationName, ok := fields["azure.operationName"]
+	if !ok || operationName == "" {
+		log.Warnf("Missing azure.operationName in Falco output")
+		return nil
+	}
+
+	// Check if this is a relevant event for drift detection
+	if !p.isRelevantOperation(operationName) {
+		log.Debugf("Operation %s is not relevant for drift detection", operationName)
+		return nil
+	}
+
+	// Check if the operation succeeded
+	status := getAzureStringField(fields, "azure.status")
+	if status != "" && status != "Succeeded" && status != "Started" {
+		log.Debugf("Operation %s failed or not applicable (status: %s)", operationName, status)
+		return nil
+	}
+
+	// Map to Terraform resource type
+	resourceType := p.mapper.MapOperationToResource(operationName)
+	if resourceType == "" {
+		log.Debugf("No mapping for Azure operation: %s", operationName)
+		return nil
+	}
+
+	// Extract resource information
+	resourceID := getAzureStringField(fields, "azure.resourceId")
+	caller := getAzureStringField(fields, "azure.caller")
+	subscriptionID := getAzureStringField(fields, "azure.subscriptionId")
+	resourceGroup := getAzureStringField(fields, "azure.resourceGroup")
+
+	// Extract resource name from resource ID
+	resourceName := extractResourceName(resourceID)
+
+	// Extract user identity
+	userIdentity := types.UserIdentity{
+		Type:     "User",
+		UserName: caller,
+	}
+
+	// Extract changes based on operation type
+	changes := p.extractChanges(operationName, fields)
+
+	return &types.Event{
+		Provider:       "azure",
+		EventName:      operationName,
+		ResourceType:   resourceType,
+		ResourceID:     resourceName,
+		SubscriptionID: subscriptionID,
+		ResourceGroup:  resourceGroup,
+		UserIdentity:   userIdentity,
+		Changes:        changes,
+		RawEvent:       res,
+	}
+}
+
+// extractChanges extracts attribute changes from Azure Audit Log
+func (p *AuditParser) extractChanges(operationName string, fields map[string]string) map[string]interface{} {
+	changes := make(map[string]interface{})
+
+	// Determine change type based on operation
+	if strings.HasSuffix(operationName, "/delete") {
+		changes["_action"] = "delete"
+	} else if strings.HasSuffix(operationName, "/write") {
+		changes["_action"] = "create"
+	}
+
+	// Extract relevant request/response data if available
+	if properties, ok := fields["azure.properties"]; ok && properties != "" {
+		changes["properties"] = properties
+	}
+
+	return changes
+}
+
+// getAzureStringField safely gets a string field from Falco output fields
+func getAzureStringField(fields map[string]string, key string) string {
+	if val, ok := fields[key]; ok {
+		return val
+	}
+	return ""
 }
 
 // ParseEvent parses an Azure Activity Log event and returns drift event data

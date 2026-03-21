@@ -31,6 +31,10 @@ type Event struct {
 	// GCP-specific fields
 	ProjectID   string // GCP Project ID (optional)
 	ServiceName string // GCP Service Name (e.g., compute.googleapis.com) (optional)
+
+	// Azure-specific fields
+	SubscriptionID string // Azure Subscription ID (optional)
+	ResourceGroup  string // Azure Resource Group (optional)
 }
 
 // UserIdentity represents the identity of the user who made the change
