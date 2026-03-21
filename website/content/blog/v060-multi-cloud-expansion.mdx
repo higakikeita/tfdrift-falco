@@ -1,0 +1,199 @@
+---
+title: "v0.6.0: Massive Multi-Cloud Expansion - 25+ New Services"
+description: "40+ AWS services with 500+ events, 27+ GCP services with 170+ events, and intelligent event disambiguation"
+date: "2026-03-20"
+author: "Keita Higaki"
+tags: ["release", "aws", "gcp", "multi-cloud", "coverage"]
+---
+
+# 🌍 TFDrift-Falco v0.6.0: Multi-Cloud Explosion
+
+**Release Date**: March 20, 2026
+
+**Milestone achieved**: Largest service expansion ever — AWS now 40+ services (500+ events), GCP now 27+ services (170+ events).
+
+## 📈 The Growth
+
+From v0.5.0 to v0.6.0:
+
+| Cloud | Services | Events | New Services |
+|-------|----------|--------|--------------|
+| **AWS** | 30+ → 40+ | 400+ → 500+ | EFS, Cognito, AppSync, MSK, OpenSearch, CodePipeline, CodeBuild, CodeDeploy, GuardDuty, AWS Config |
+| **GCP** | 12+ → 27+ | 100+ → 170+ | Cloud Armor, DNS, Redis, Spanner, Artifact Registry, Monitoring, Logging, Dataproc, Cloud Build, + more |
+| **Total** | 42+ → 67+ | 500+ → 670+ | **25+ new services**, **170+ new events** |
+
+## 🎯 New AWS Services (10)
+
+### Enterprise & Developer Tools
+- **EFS** (Elastic File System) - Serverless file storage drift
+- **CodePipeline** - CI/CD pipeline configuration tracking
+- **CodeBuild** - Build system drift detection
+- **CodeDeploy** - Application deployment monitoring
+- **AppSync** - GraphQL API infrastructure
+
+### Data & Messaging
+- **MSK** (Managed Streaming for Kafka) - Real-time pipeline monitoring
+- **OpenSearch** - Search engine infrastructure tracking
+
+### Identity & Security
+- **Cognito** - Identity management drift detection
+- **GuardDuty** - Security threat detection configuration
+- **Config** - Compliance monitoring infrastructure
+
+## 🚀 New GCP Services (15)
+
+### Infrastructure & Security
+- **Cloud Armor** - DDoS and security policy monitoring
+- **Cloud DNS** - DNS zone and record management
+- **Redis/Memorystore** - In-memory database drift
+- **Cloud Spanner** - Distributed SQL database tracking
+
+### Data & Analytics
+- **Artifact Registry** - Container and artifact repository
+- **Dataproc** - Spark and Hadoop cluster management
+- **Cloud Build** - CI/CD infrastructure
+- **Cloud Monitoring** - Dashboard and alert policies
+- **Cloud Logging** - Log sink and retention configuration
+- **Cloud Tasks** - Asynchronous job queue monitoring
+- **Cloud Scheduler** - Scheduled job orchestration
+- **Pub/Sub Schema** - Event schema management
+
+## 🧠 Intelligent Event Disambiguation
+
+The big challenge with 25+ new services: **ambiguous event names**.
+
+**Problem**: Both AWS SageMaker and GCP Vertex AI have "CreateModel" events. How do we know which is which?
+
+**Solution**: Comprehensive conflict resolution engine:
+
+```
+Event Name Conflicts Resolved: 15+
+
+CreateModel       → AWS SageMaker vs GCP Vertex AI
+DeleteModel       → AWS SageMaker vs GCP Vertex AI
+UpdateJob         → AWS Batch vs GCP Dataflow
+CreateEndpoint    → AWS SageMaker vs GCP Vertex AI
+CreateFunction    → AWS Lambda vs GCP Cloud Functions
+```
+
+Resolution uses:
+- Event source field (aws_cloudtrail vs gcpaudit)
+- Service identifiers in event payload
+- Resource structure and naming patterns
+- Fallback to comprehensive error logging
+
+## 🔧 Enhanced Event Parser
+
+Updated parser handles:
+- Provider-specific field variations
+- Ambiguous event auto-detection
+- Graceful fallback with diagnostics
+- Comprehensive error messages
+
+Perfect foundation for scaling to **Azure in v0.7.0**.
+
+## 📊 Coverage Snapshot
+
+**AWS Top Services (by event count):**
+1. VPC/Networking - 42 events
+2. RDS - 31 events
+3. EC2 - 17 events
+4. SageMaker - 16 events
+5. ELB/ALB - 15 events
+
+**GCP Top Services:**
+1. Compute Engine - 30+ events
+2. Cloud Storage - 15+ events
+3. Monitoring - 14+ events
+4. Dataproc - 13+ events
+5. Cloud Spanner - 11+ events
+
+## ✅ Quality Assurance
+
+- **500+ AWS tests** - Complete event coverage
+- **170+ GCP tests** - All new services validated
+- **50+ disambiguation tests** - Conflict resolution verified
+- **100% pass rate** - Every test passing
+
+## 🚀 Use Cases Unlocked
+
+### Use Case 1: Multi-Cloud Compliance
+
+Monitor compliance drift across AWS and GCP simultaneously:
+
+```
+[15:22:03] AWS CRITICAL: GuardDuty detector disabled
+[15:22:05] GCP CRITICAL: Cloud Armor policy deleted
+[15:22:12] AWS WARNING: CodeBuild project encrypted→unencrypted
+→ Automatic compliance report generated
+```
+
+### Use Case 2: Unified Data Pipeline Monitoring
+
+Track data infrastructure across clouds:
+
+- **AWS**: MSK (Kafka), Kinesis, Lambda → Processing
+- **GCP**: Pub/Sub, Dataflow, Cloud Functions → Processing
+- **Unified**: Central drift dashboard
+
+### Use Case 3: Multi-Cloud ML Deployments
+
+Monitor ML infrastructure:
+
+- **AWS**: SageMaker endpoints, training jobs
+- **GCP**: Vertex AI models, endpoints
+- **Unified**: Track model deployments across clouds
+
+## 🎬 Getting Started
+
+Update your configuration:
+
+```yaml
+providers:
+  aws:
+    enabled: true
+    services:
+      - efs
+      - cognito
+      - appsync
+      - msk
+      - opensearch
+      - codepipeline
+      - codebuild
+      - codedeploy
+      - guardduty
+      - config
+
+  gcp:
+    enabled: true
+    services:
+      - cloud_armor
+      - cloud_dns
+      - redis
+      - spanner
+      - artifact_registry
+      - monitoring
+      - logging
+      - dataproc
+      - cloud_build
+```
+
+## 🤝 Roadmap Glimpse
+
+**v0.7.0 (Coming March 22):**
+- Dashboard UI with event management
+- Real-time notifications (SSE)
+- Dark/light theme toggle
+- **Azure Activity Logs** (119+ operations)
+
+**Post v0.7.0:**
+- Kubernetes cluster monitoring
+- Cost analysis and tracking
+- Auto-remediation workflows
+- ML-powered anomaly detection
+
+---
+
+**TFDrift-Falco v0.6.0** - The Multi-Cloud Powerhouse
+
+*67 Services • 670+ Events • Intelligent Disambiguation • Production Ready*

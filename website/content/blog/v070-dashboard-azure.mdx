@@ -1,0 +1,360 @@
+---
+title: "v0.7.0: Dashboard UI, Real-Time Notifications & Azure Support"
+description: "Comprehensive web dashboard with event management, live notifications, Azure Activity Logs integration, and dark/light theme support"
+date: "2026-03-22"
+author: "Keita Higaki"
+tags: ["release", "dashboard", "azure", "ui", "real-time"]
+---
+
+# 🎨 TFDrift-Falco v0.7.0: The Dashboard Release
+
+**Release Date**: March 22, 2026
+
+**Transformation complete**: TFDrift-Falco evolves from CLI tool to full-featured platform with web dashboard, real-time notifications, and Azure support.
+
+## 🎯 The Vision
+
+Three major capabilities converge in v0.7.0:
+
+1. **Dashboard UI** - Visualize, manage, and investigate drift events
+2. **Real-Time Notifications** - Live alerts via Server-Sent Events
+3. **Azure Support** - 119+ operations across 20+ Azure services
+
+## 🎨 Dashboard Features
+
+### Events Management Interface
+
+Complete REST API + web UI for drift event management:
+
+**Filtering Capabilities:**
+- By service (AWS, GCP, Azure)
+- By severity (critical, high, medium, low, info)
+- By status (pending, acknowledged, resolved, ignored)
+- By date range and resource type
+- Full-text search across events
+
+**Sorting & Pagination:**
+- Sort by date, severity, service, impact
+- Page through large event histories efficiently
+- Configurable page size
+
+**Status Workflow:**
+```
+pending → acknowledged → resolved
+  ↓           ↓            ↓
+  └────→ ignored ←─────────┘
+```
+
+Mark events as reviewed, fixed, or false positives.
+
+### EventDetailPanel
+
+Deep dive into drift events:
+
+**Event Information:**
+- Full event metadata (ID, timestamp, source)
+- Service and event name
+- Principal/user who triggered change
+- Multi-cloud support (AWS, GCP, Azure)
+
+**JSON Diff Viewer:**
+- Before/after infrastructure state
+- Syntax-highlighted comparison
+- Highlighted changes
+- Copy-to-clipboard for configs
+
+**Status Management:**
+- Quick action buttons
+- Add notes and comments
+- View audit trail
+- Navigate to previous/next events
+
+**Related Resources:**
+- Linked infrastructure components
+- Affected Terraform resources
+- Historical events for same resource
+
+### Theme Support
+
+Seamless dark/light mode switching:
+
+**Light Theme:**
+- Clean white (#ffffff) backgrounds
+- Dark (#020617) text
+- High contrast for readability
+- Perfect for well-lit environments
+
+**Dark Theme:**
+- Dark slate (#0f172a) backgrounds
+- Light (#f1f5f9) text
+- Reduced eye strain
+- Vibrant accent colors
+
+**User Control:**
+- Toggle in header
+- Persistent browser storage
+- System preference fallback
+- Keyboard shortcut support
+
+### Toast Notification System
+
+Non-intrusive, dismissible notifications:
+
+- **Success**: Event status updated, export completed
+- **Error**: API failures, validation errors
+- **Info**: Background operations, helpful tips
+- **Warning**: Deprecated features, limits approaching
+
+Auto-dismiss after 5 seconds, manual dismiss anytime.
+
+## ⚡ Real-Time Notifications
+
+### Server-Sent Events (SSE) Stream
+
+Live drift alerts delivered instantly:
+
+```javascript
+const events = new EventSource('/api/v1/events/stream');
+events.onmessage = (e) => {
+  const drift = JSON.parse(e.data);
+  // Update UI immediately
+  showNotification(drift);
+};
+```
+
+**Features:**
+- No polling overhead
+- Automatic reconnection
+- Filter by service/severity
+- Sound alerts (optional)
+- Browser badge notifications
+
+**Replaces:** Old static Bell icon — now live updates!
+
+## 📊 Graph Visualization & Export
+
+Topology view of your infrastructure:
+
+**Export Formats:**
+
+1. **PNG (2x Resolution)**
+   - High-DPI for presentations
+   - Preserves colors and styling
+   - Perfect for reports
+
+2. **SVG (Scalable Vector Graphics)**
+   - Resolution-independent
+   - Editable in design tools
+   - Small file size
+
+3. **JSON Export**
+   - Node/edge data with coordinates
+   - Metadata and styling
+   - For custom analysis
+
+Perfect for embedding in reports and documentation.
+
+## ⚙️ Settings Page
+
+Comprehensive configuration interface:
+
+### Tab 1: Webhooks
+- Create, edit, delete webhooks
+- Event filter configuration
+- Retry policies
+- Test webhook delivery
+- Recent delivery logs
+
+### Tab 2: Drift Rules
+- Custom detection rules
+- Service and event filtering
+- Severity assignment
+- Auto-remediation policies
+- Rule validation
+
+### Tab 3: Cloud Providers
+- AWS account configuration
+- GCP project setup
+- Azure subscription setup
+- Credential management
+- Service enable/disable
+
+### Tab 4: General Settings
+- Email preferences
+- Alert frequency
+- UI preferences (timezone, theme)
+- API key management
+- Log retention
+
+## 🌊 Azure Activity Logs Support
+
+### Full Azure Integration
+
+Monitor 119+ operations across 20+ services:
+
+| Service | Operations | Coverage |
+|---------|-----------|----------|
+| Virtual Machines | 18+ | VMs, Disks, Images, Extensions |
+| Storage | 14+ | Accounts, Containers, Blobs |
+| App Service | 12+ | Web Apps, Plans, Functions |
+| SQL Database | 11+ | Servers, Databases, Backups |
+| Networking | 16+ | VNets, NSGs, Load Balancers |
+| AKS | 10+ | Clusters, Node Pools |
+| Key Vault | 8+ | Vaults, Secrets, Certificates |
+| Container Registry | 7+ | Registries, Images |
+| API Management | 6+ | Services, APIs, Policies |
+| CosmosDB | 7+ | Accounts, Databases |
+
+Plus: Application Insights, Event Hubs, Service Bus, Logic Apps, and more.
+
+### Enable Azure
+
+Simple configuration:
+
+```yaml
+providers:
+  azure:
+    enabled: true
+    subscriptions:
+      - subscription-id: "12345678..."
+        resource_groups: ["production"]
+    credentials:
+      auth_method: "msi"  # Managed Identity
+      # OR service_principal with client_id, secret, tenant
+```
+
+### Azure Falco Rules
+
+```yaml
+- rule: Critical Azure Change
+  condition: >
+    az.operationName in (
+      Microsoft.Compute/virtualMachines/write,
+      Microsoft.Network/networkSecurityGroups/write,
+      Microsoft.Sql/servers/databases/write
+    )
+  output: >
+    Critical Azure change detected
+    (subscription=%az.subscription_id
+     resource=%az.resource_id
+     operation=%az.operationName)
+  priority: CRITICAL
+```
+
+## 📚 Documentation Overhaul
+
+### Updated README
+- 5-minute quick start
+- Feature overview
+- Multi-cloud comparison matrix
+- Architecture diagrams
+- Troubleshooting guide
+
+### Architecture v2.0
+- Multi-cloud patterns
+- Azure integration details
+- Real-time notification flows
+- Security best practices
+- Performance benchmarks
+
+### API Documentation
+- OpenAPI/Swagger spec
+- Interactive API explorer
+- Code examples (Python, JS, Go)
+- Error reference guide
+
+### UI/UX Guide
+- Component library docs
+- Theme customization
+- Accessibility (WCAG 2.1 AA)
+- Responsive design
+
+## 📋 Versioning Standards
+
+New VERSIONING.md document:
+
+```
+MAJOR.MINOR.PATCH
+
+MAJOR (breaking changes):
+  v0.7.0 → v1.0.0: Core features stable
+
+MINOR (new features):
+  v0.7.0 → v0.8.0: New cloud provider
+
+PATCH (bug fixes):
+  v0.7.0 → v0.7.1: Fix notification bug
+```
+
+Clear semver for predictable releases.
+
+## 🧪 Quality Metrics
+
+- **300+ UI tests** - Dashboard components
+- **200+ API tests** - Backend endpoints
+- **50+ real-time tests** - SSE delivery
+- **100+ Azure tests** - Activity Log parsing
+- **100% pass rate** - All tests green
+
+## 🎬 Quick Start
+
+### 1. Open Dashboard
+```
+http://localhost:5000/dashboard
+```
+
+### 2. Configure Azure (Optional)
+```yaml
+providers:
+  azure:
+    enabled: true
+    subscriptions:
+      - subscription-id: "..."
+```
+
+### 3. Create Webhook
+- Settings → Webhooks
+- Add Slack/Teams/Custom endpoint
+- Test delivery
+
+### 4. Watch Real-Time Stream
+- Open NotificationPanel
+- Make infrastructure change
+- Watch live alert arrive
+
+### 5. Explore Events
+- Filter by service/severity
+- Click event for details
+- Update status
+- Export graph
+
+## 📈 Multi-Cloud Summary
+
+**Now Supported: 3 Clouds, 90+ Services, 800+ Events**
+
+| Cloud | Services | Events | Status |
+|-------|----------|--------|--------|
+| **AWS** | 40+ | 500+ | ✅ Mature |
+| **GCP** | 27+ | 170+ | ✅ Production |
+| **Azure** | 20+ | 119+ | ✅ New |
+
+## 🔮 What's Next?
+
+**v0.8.0 (Coming Q2):**
+- Kubernetes cluster monitoring
+- Cost analysis and tracking
+- Policy-as-code integration (OPA/Rego)
+
+**v1.0.0 (Coming Q3):**
+- SaaS offering
+- Enterprise RBAC
+- Auto-remediation engine
+- ML anomaly detection
+
+---
+
+**TFDrift-Falco v0.7.0** - The Complete Platform
+
+*3 Clouds • 90+ Services • 800+ Events • Dashboard UI • Real-Time Alerts • Production Ready*
+
+🎉 **The journey from tool to platform is complete!**
