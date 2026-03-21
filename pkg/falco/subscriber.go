@@ -6,6 +6,7 @@ import (
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
 	"github.com/falcosecurity/client-go/pkg/client"
+	"github.com/keitahigaki/tfdrift-falco/pkg/azure"
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/gcp"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
@@ -16,18 +17,20 @@ import (
 
 // Subscriber subscribes to Falco outputs via gRPC
 type Subscriber struct {
-	cfg        config.FalcoConfig
-	client     *client.Client
-	grpcConn   *grpc.ClientConn
-	isInsecure bool
-	gcpParser  *gcp.AuditParser // GCP Audit Log parser
+	cfg         config.FalcoConfig
+	client      *client.Client
+	grpcConn    *grpc.ClientConn
+	isInsecure  bool
+	gcpParser   *gcp.AuditParser   // GCP Audit Log parser
+	azureParser *azure.AuditParser // Azure Audit Log parser
 }
 
 // NewSubscriber creates a new Falco subscriber
 func NewSubscriber(cfg config.FalcoConfig) (*Subscriber, error) {
 	return &Subscriber{
-		cfg:       cfg,
-		gcpParser: gcp.NewAuditParser(),
+		cfg:         cfg,
+		gcpParser:   gcp.NewAuditParser(),
+		azureParser: azure.NewAuditParser(),
 	}, nil
 }
 

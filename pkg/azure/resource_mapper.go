@@ -232,5 +232,85 @@ func initializeOperationMapping() map[string]string {
 		// Resource Groups
 		"Microsoft.Resources/subscriptions/resourceGroups/write":  "azurerm_resource_group",
 		"Microsoft.Resources/subscriptions/resourceGroups/delete": "azurerm_resource_group",
+
+		// ========== Analytics & Data ==========
+
+		// Event Hubs
+		"Microsoft.EventHub/namespaces/write":  "azurerm_eventhub_namespace",
+		"Microsoft.EventHub/namespaces/delete": "azurerm_eventhub_namespace",
+		"Microsoft.EventHub/namespaces/eventhubs/write":  "azurerm_eventhub",
+		"Microsoft.EventHub/namespaces/eventhubs/delete": "azurerm_eventhub",
+
+		// Service Bus
+		"Microsoft.ServiceBus/namespaces/write":  "azurerm_servicebus_namespace",
+		"Microsoft.ServiceBus/namespaces/delete": "azurerm_servicebus_namespace",
+		"Microsoft.ServiceBus/namespaces/queues/write":  "azurerm_servicebus_queue",
+		"Microsoft.ServiceBus/namespaces/queues/delete": "azurerm_servicebus_queue",
+		"Microsoft.ServiceBus/namespaces/topics/write":  "azurerm_servicebus_topic",
+		"Microsoft.ServiceBus/namespaces/topics/delete": "azurerm_servicebus_topic",
+
+		// Data Factory
+		"Microsoft.DataFactory/factories/write":  "azurerm_data_factory",
+		"Microsoft.DataFactory/factories/delete": "azurerm_data_factory",
+
+		// Synapse Analytics
+		"Microsoft.Synapse/workspaces/write":  "azurerm_synapse_workspace",
+		"Microsoft.Synapse/workspaces/delete": "azurerm_synapse_workspace",
+
+		// ========== Integration ==========
+
+		// API Management
+		"Microsoft.ApiManagement/service/write":  "azurerm_api_management",
+		"Microsoft.ApiManagement/service/delete": "azurerm_api_management",
+
+		// Logic Apps
+		"Microsoft.Logic/workflows/write":  "azurerm_logic_app_workflow",
+		"Microsoft.Logic/workflows/delete": "azurerm_logic_app_workflow",
+
+		// ========== DevOps ==========
+
+		// Application Insights
+		"Microsoft.Insights/components/write":  "azurerm_application_insights",
+		"Microsoft.Insights/components/delete": "azurerm_application_insights",
+
+		// Diagnostic Settings
+		"Microsoft.Insights/diagnosticSettings/write":  "azurerm_monitor_diagnostic_setting",
+		"Microsoft.Insights/diagnosticSettings/delete": "azurerm_monitor_diagnostic_setting",
+
+		// ========== Additional Networking ==========
+
+		// VPN Gateways
+		"Microsoft.Network/virtualNetworkGateways/write":  "azurerm_virtual_network_gateway",
+		"Microsoft.Network/virtualNetworkGateways/delete": "azurerm_virtual_network_gateway",
+
+		// Express Route
+		"Microsoft.Network/expressRouteCircuits/write":  "azurerm_express_route_circuit",
+		"Microsoft.Network/expressRouteCircuits/delete": "azurerm_express_route_circuit",
+
+		// NAT Gateway
+		"Microsoft.Network/natGateways/write":  "azurerm_nat_gateway",
+		"Microsoft.Network/natGateways/delete": "azurerm_nat_gateway",
+
+		// Private Endpoints
+		"Microsoft.Network/privateEndpoints/write":  "azurerm_private_endpoint",
+		"Microsoft.Network/privateEndpoints/delete": "azurerm_private_endpoint",
+
+		// Firewall
+		"Microsoft.Network/azureFirewalls/write":  "azurerm_firewall",
+		"Microsoft.Network/azureFirewalls/delete": "azurerm_firewall",
+
+		// WAF Policy
+		"Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/write":  "azurerm_web_application_firewall_policy",
+		"Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/delete": "azurerm_web_application_firewall_policy",
+
+		// ========== Additional Security ==========
+
+		// Policy Assignments
+		"Microsoft.Authorization/policyAssignments/write":  "azurerm_policy_assignment",
+		"Microsoft.Authorization/policyAssignments/delete": "azurerm_policy_assignment",
+
+		// Locks
+		"Microsoft.Authorization/locks/write":  "azurerm_management_lock",
+		"Microsoft.Authorization/locks/delete": "azurerm_management_lock",
 	}
 }
