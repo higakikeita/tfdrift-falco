@@ -1,7 +1,7 @@
 # TFDrift-Falco Project Roadmap
 
 **作成日**: 2026-01-10
-**現在バージョン**: v0.5.0+
+**現在バージョン**: v0.7.0
 **ビジョン**: Real-time, Multi-Cloud Terraform Drift Detection with Security Context
 
 ---

@@ -47,7 +47,7 @@ func (h *ConfigHandler) GetVersion(w http.ResponseWriter, r *http.Request) {
 	log.Debug("GET /api/v1/version")
 
 	version := map[string]interface{}{
-		"version":       "0.6.0",
+		"version":       "0.7.0",
 		"supported_aws": "40+ services, 500+ events",
 		"supported_gcp": "27+ services, 170+ events",
 	}

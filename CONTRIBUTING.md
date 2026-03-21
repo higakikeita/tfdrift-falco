@@ -12,6 +12,7 @@ First off, thank you for considering contributing to TFDrift-Falco! It's people 
 - [Testing Guidelines](#testing-guidelines)
 - [Commit Messages](#commit-messages)
 - [Pull Request Process](#pull-request-process)
+- [Versioning](#versioning)
 - [Community](#community)
 
 ## Code of Conduct
@@ -443,6 +444,10 @@ Brief description of changes
 - Write clear PR descriptions
 - Link related issues
 - Be responsive to feedback
+
+## Versioning
+
+This project follows [Semantic Versioning](https://semver.org/). See [VERSIONING.md](VERSIONING.md) for the full versioning policy, including rules for patch/minor/major bumps and the criteria for reaching v1.0.0.
 
 ## Community
 

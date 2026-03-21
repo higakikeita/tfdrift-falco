@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-03-22
+
+### 🎨 Dashboard UI & Real-time Notifications
+
+Major release adding a fully functional React dashboard with real-time event management, graph visualization export, and comprehensive settings management.
+
+#### Added
+
+##### Events Management (PR #39)
+- **Events API expansion** — Filtering (severity, provider, status, search, time range), sorting, pagination
+- **Event status workflow** — open → acknowledged/ignored/resolved → reopen via PATCH endpoint
+- **EventDetailPanel** — Slide-over panel with JSON diff viewer, user identity, status actions, navigation
+- **JsonDiff component** — LCS-based line-level diff with syntax highlighting
+
+##### Dashboard UI Enhancements (PR #40)
+- **Dark/light theme toggle** — System-wide theme switching with Sun/Moon icons in header
+- **Toast notification system** — Zustand-based store with 4 severity types, auto-dismiss, dark mode
+- **Docker Compose fix** — Removed deprecated `version` field from 5 compose files
+- **Detector tests** — Table-driven tests with 16 test scenarios for pkg/detector
+
+##### Real-time Notifications & Export (PR #41)
+- **NotificationPanel** — SSE-connected notification dropdown with live/offline status, unread count badge, severity-colored alerts, auto-toast for critical/high events
+- **GraphExportButton** — PNG (2x scale), SVG vector, and JSON data export with toast feedback
+- **Settings page** — 4 functional tabs:
+  - Webhooks: CRUD with event type filters, enable/disable, test button
+  - Rules: CRUD drift rules with severity, resource types, watched attributes
+  - Providers: AWS/GCP/Azure cards with enable/disable and region config
+  - General: Dry run, auto-import, require approval toggles, polling interval
+- **testWebhook API client method** for webhook URL validation
+
+##### Documentation Overhaul (PR #42)
+- **README.md** — Updated React Web UI section, API endpoints, architecture diagram, roadmap, project structure
+- **README.ja.md** — Synced all changes in natural Japanese
+- **docs/ site** — Updated architecture.md, quickstart.md, overview.md, index.md for v0.7.0
+- Fixed GitHub username references (keitahigaki → higakikeita)
+
+#### Changed
+- Events page now uses real API with fallback to mock data
+- Header Bell button replaced with live NotificationPanel
+- TopologyPage includes graph export functionality
+- Architecture diagram includes API Server, SSE Broadcaster, React Dashboard UI
+
+#### Technical Details
+- PRs: #39, #40, #41, #42
+- Frontend: 6 new components, 784+ lines of new UI code
+- Backend: Events API expansion, PATCH endpoint, event status management
+- Tests: 12 event handler tests, 16 detector test scenarios
+
 ## [0.6.0] - 2026-03-20
 
 ### 🌐 Expanded Multi-Cloud Service Coverage
