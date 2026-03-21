@@ -206,7 +206,7 @@ docker-compose up -d
 - `GET /api/v1/stream` - Server-Sent Events (SSE) for real-time notifications
 - `WS /ws` - WebSocket for bidirectional real-time communication
 
-**Details:** [API Documentation](docs/API.md)
+**Details:** [API Documentation](docs/api/README.md)
 
 ### 🌐 React Web UI
 
@@ -1039,7 +1039,7 @@ Recommendation:
 
 ### Slack Notification
 
-![Slack Alert Example](docs/images/slack-example.png)
+TFDrift-Falco can send real-time drift detection alerts to Slack channels, enabling your team to respond immediately to infrastructure changes.
 
 ```
 🚨 Drift Detected: aws_instance.webserver
@@ -1057,7 +1057,7 @@ CloudTrail EventID: a1b2c3d4-5678-90ab-cdef-1234567890ab
 
 ## 🧪 Use Cases
 
-For detailed configuration examples, alert patterns, and integration guides, see the [Use Cases Documentation](docs/USE_CASES.md).
+For detailed configuration examples, alert patterns, and integration guides, see the [Use Cases Documentation](docs/use-cases.md).
 
 ### 1. Security & Compliance 🔒
 **Detect unauthorized infrastructure changes in real-time**
@@ -1109,7 +1109,7 @@ For detailed configuration examples, alert patterns, and integration guides, see
 
 ---
 
-📚 **For detailed use cases, configuration examples, and integration patterns, see [Use Cases Documentation](docs/USE_CASES.md).**
+📚 **For detailed use cases, configuration examples, and integration patterns, see [Use Cases Documentation](docs/use-cases.md).**
 
 ## 📘 Best Practices
 
@@ -1145,7 +1145,7 @@ Common issues and solutions:
 
 ---
 
-📚 **For detailed configuration examples, troubleshooting, and performance tuning, see [Best Practices Documentation](docs/BEST_PRACTICES.md).**
+📚 **For detailed configuration examples, troubleshooting, and performance tuning, see [Best Practices Documentation](docs/best-practices.md).**
 
 ## 🧩 Integration Examples
 
@@ -1260,7 +1260,7 @@ TFDrift-Falco → JSON Logs → Promtail → Loki → Grafana Dashboards
 
 ## 🗺️ Roadmap
 
-See the **[AWS Coverage Roadmap](./docs/AWS_COVERAGE_ROADMAP.md)** for detailed service expansion plans.
+See the **[AWS Coverage Roadmap](./docs/aws-coverage-roadmap.md)** for detailed service expansion plans.
 
 ### Phase 1: MVP (✅ Complete - v0.2.0-beta)
 - [x] AWS CloudTrail integration
@@ -1339,7 +1339,7 @@ go test -race ./...
 make build
 
 # Run locally
-./tfdrift --config examples/config.yaml
+./tfdrift --config config.yaml.example
 ```
 
 ### Security Scanning
@@ -1354,7 +1354,7 @@ Run local security scans:
 ./scripts/security-scan.sh
 ```
 
-See [SECURITY.md](.github/SECURITY.md) for security policy and reporting vulnerabilities.
+See [SECURITY.md](SECURITY.md) for security policy and reporting vulnerabilities.
 
 ### Project Structure
 
