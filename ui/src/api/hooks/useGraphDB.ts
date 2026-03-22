@@ -2,19 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../client';
 
 /**
- * GraphDB Statistics Hook
- */
-export const useGraphStats = () => {
-  return useQuery({
-    queryKey: ['graphdb', 'stats'],
-    queryFn: async () => {
-      return await apiClient.getGraphStats();
-    },
-    refetchInterval: 30000, // Refetch every 30 seconds
-  });
-};
-
-/**
  * Get Node by ID Hook
  */
 export const useNode = (nodeId: string, enabled: boolean = true) => {
@@ -35,23 +22,6 @@ export const useNodeNeighbors = (nodeId: string, enabled: boolean = true) => {
     queryKey: ['graphdb', 'neighbors', nodeId],
     queryFn: async () => {
       return await apiClient.getNodeNeighbors(nodeId);
-    },
-    enabled: enabled && !!nodeId,
-  });
-};
-
-/**
- * Get Node Relationships Hook
- */
-export const useNodeRelationships = (
-  nodeId: string,
-  direction?: 'incoming' | 'outgoing' | 'all',
-  enabled: boolean = true
-) => {
-  return useQuery({
-    queryKey: ['graphdb', 'relationships', nodeId, direction],
-    queryFn: async () => {
-      return await apiClient.getNodeRelationships(nodeId, direction);
     },
     enabled: enabled && !!nodeId,
   });
@@ -105,19 +75,6 @@ export const useDependents = (
       return await apiClient.getDependents(nodeId, depth);
     },
     enabled: enabled && !!nodeId,
-  });
-};
-
-/**
- * Get Critical Nodes Hook
- */
-export const useCriticalNodes = (min: number = 3) => {
-  return useQuery({
-    queryKey: ['graphdb', 'critical', min],
-    queryFn: async () => {
-      return await apiClient.getCriticalNodes(min);
-    },
-    refetchInterval: 30000, // Refetch every 30 seconds
   });
 };
 

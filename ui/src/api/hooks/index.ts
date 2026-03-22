@@ -1,8 +1,13 @@
 // Export all API hooks
-export * from './useGraph';
-export * from './useDrifts';
-export * from './useEvents';
-export * from './useState';
-export * from './useStats';
-export * from './useGraphDB';
-export * from './useDiscovery';
+export { useGraph, useNodes, useEdges } from './useGraph';
+export { useEvent, useEvents, useUpdateEventStatus } from './useEvents';
+export { useState } from './useState';
+export {
+  useNode,
+  useNodeNeighbors,
+  useImpactRadius,
+  useDependencies,
+  useDependents,
+  usePatternMatch
+} from './useGraphDB';
+export { useDriftSummary, useTriggerDriftDetection } from './useDiscovery';
