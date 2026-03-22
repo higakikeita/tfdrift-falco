@@ -165,8 +165,8 @@ func TestRateLimiter_SeparateClientsIndependent(t *testing.T) {
 func TestRateLimiter_DefaultValues(t *testing.T) {
 	rl := NewRateLimiter(RateLimitConfig{
 		Enabled:        true,
-		RequestsPerMin: 0,  // Should default to 60
-		BurstSize:      0,  // Should default to 10
+		RequestsPerMin: 0, // Should default to 60
+		BurstSize:      0, // Should default to 10
 	})
 	defer rl.Stop()
 

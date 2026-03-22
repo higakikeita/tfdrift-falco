@@ -446,9 +446,13 @@ jobs:
 
       - name: Upload Snyk results to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('snyk.sarif') != ''
         with:
           sarif_file: snyk.sarif
+
+      - name: Snyk SARIF fallback notice
+        if: always() && hashFiles('snyk.sarif') == ''
+        run: echo "::notice::Snyk SARIF file not generated. This can happen when running in Docker container mode. Scan results are still available in the Snyk dashboard."
 
   security-gosec:
     name: GoSec Security Scanner

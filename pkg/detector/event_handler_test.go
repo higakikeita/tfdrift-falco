@@ -25,13 +25,13 @@ func TestHandleEvent_TableDriven(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name      string
-		rules     []config.DriftRule
-		event     types.Event
+		name        string
+		rules       []config.DriftRule
+		event       types.Event
 		expectPanic bool
 	}{
 		{
-			name:  "drift_detected_with_matching_rule",
+			name: "drift_detected_with_matching_rule",
 			rules: []config.DriftRule{
 				{
 					Name:              "instance-type-change",
@@ -90,7 +90,7 @@ func TestHandleEvent_TableDriven(t *testing.T) {
 			expectPanic: false,
 		},
 		{
-			name:  "drift_with_no_matching_rules",
+			name: "drift_with_no_matching_rules",
 			rules: []config.DriftRule{
 				{
 					Name:              "sg-ingress",
@@ -110,7 +110,7 @@ func TestHandleEvent_TableDriven(t *testing.T) {
 			expectPanic: false,
 		},
 		{
-			name:  "event_with_raw_event_timestamp",
+			name: "event_with_raw_event_timestamp",
 			rules: []config.DriftRule{
 				{
 					Name:              "instance-type-change",
@@ -127,14 +127,14 @@ func TestHandleEvent_TableDriven(t *testing.T) {
 				Changes:      map[string]interface{}{"instance_type": "t3.xlarge"},
 				UserIdentity: types.UserIdentity{Type: "AssumedRole", UserName: "deploy-role"},
 				RawEvent: map[string]interface{}{
-					"eventTime": "2026-03-21T10:00:00Z",
+					"eventTime":   "2026-03-21T10:00:00Z",
 					"eventSource": "ec2.amazonaws.com",
 				},
 			},
 			expectPanic: false,
 		},
 		{
-			name:  "event_with_invalid_raw_event_type",
+			name: "event_with_invalid_raw_event_type",
 			rules: []config.DriftRule{
 				{
 					Name:              "instance-type-change",
@@ -181,7 +181,7 @@ func TestHandleEvent_TableDriven(t *testing.T) {
 			expectPanic: false,
 		},
 		{
-			name:  "multiple_changes_with_mixed_rules",
+			name: "multiple_changes_with_mixed_rules",
 			rules: []config.DriftRule{
 				{
 					Name:              "instance-type-change",

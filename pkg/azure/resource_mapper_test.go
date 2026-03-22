@@ -17,9 +17,9 @@ func TestResourceMapper_MapOperationToResource(t *testing.T) {
 	mapper := NewResourceMapper()
 
 	tests := []struct {
-		name          string
-		operation     string
-		expectedType  string
+		name         string
+		operation    string
+		expectedType string
 	}{
 		// Compute
 		{"VM Write", "Microsoft.Compute/virtualMachines/write", "azurerm_linux_virtual_machine"},

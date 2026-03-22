@@ -46,10 +46,10 @@ type APIKeyEntry struct {
 
 // RateLimitConfig contains rate limiting settings
 type RateLimitConfig struct {
-	Enabled          bool `yaml:"enabled" mapstructure:"enabled"`
-	RequestsPerMin   int  `yaml:"requests_per_minute" mapstructure:"requests_per_minute"`
-	BurstSize        int  `yaml:"burst_size" mapstructure:"burst_size"`
-	CleanupInterval  string `yaml:"cleanup_interval" mapstructure:"cleanup_interval"`
+	Enabled         bool   `yaml:"enabled" mapstructure:"enabled"`
+	RequestsPerMin  int    `yaml:"requests_per_minute" mapstructure:"requests_per_minute"`
+	BurstSize       int    `yaml:"burst_size" mapstructure:"burst_size"`
+	CleanupInterval string `yaml:"cleanup_interval" mapstructure:"cleanup_interval"`
 }
 
 // ProvidersConfig contains cloud provider settings

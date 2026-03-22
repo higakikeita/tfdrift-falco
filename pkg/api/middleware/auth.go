@@ -28,18 +28,18 @@ const (
 
 // AuthInfo contains the authenticated identity information stored in request context.
 type AuthInfo struct {
-	Method string // "jwt" or "api_key"
-	Subject string // user ID or API key name
-	Scopes []string // authorized scopes (future use)
+	Method  string   // "jwt" or "api_key"
+	Subject string   // user ID or API key name
+	Scopes  []string // authorized scopes (future use)
 }
 
 // AuthConfig holds authentication configuration.
 type AuthConfig struct {
-	Enabled    bool     `yaml:"enabled" mapstructure:"enabled"`
-	JWTSecret  string   `yaml:"jwt_secret" mapstructure:"jwt_secret"`
-	JWTIssuer  string   `yaml:"jwt_issuer" mapstructure:"jwt_issuer"`
-	JWTExpiry  string   `yaml:"jwt_expiry" mapstructure:"jwt_expiry"` // e.g. "24h"
-	APIKeys    []APIKeyEntry `yaml:"api_keys" mapstructure:"api_keys"`
+	Enabled   bool          `yaml:"enabled" mapstructure:"enabled"`
+	JWTSecret string        `yaml:"jwt_secret" mapstructure:"jwt_secret"`
+	JWTIssuer string        `yaml:"jwt_issuer" mapstructure:"jwt_issuer"`
+	JWTExpiry string        `yaml:"jwt_expiry" mapstructure:"jwt_expiry"` // e.g. "24h"
+	APIKeys   []APIKeyEntry `yaml:"api_keys" mapstructure:"api_keys"`
 }
 
 // APIKeyEntry represents a configured API key.
