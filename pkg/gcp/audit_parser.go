@@ -25,6 +25,7 @@ import (
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/keitahigaki/tfdrift-falco/pkg/util"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -371,10 +372,7 @@ func (p *AuditParser) extractChanges(methodName string, fields map[string]string
 
 // getStringField safely gets a string field from Falco output fields
 func getStringField(fields map[string]string, key string) string {
-	if val, ok := fields[key]; ok {
-		return val
-	}
-	return ""
+	return util.GetStringField(fields, key)
 }
 
 // ValidateEvent performs validation on parsed event
