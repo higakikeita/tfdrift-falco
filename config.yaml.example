@@ -79,6 +79,29 @@ falco:
   # key_file: "/path/to/client-key.pem"
   # ca_root_file: "/path/to/ca-root.pem"
 
+# API Server Configuration (v0.8.0+)
+api:
+  # Authentication
+  auth:
+    enabled: false  # Set to true to require authentication
+    jwt_secret: "CHANGE-ME-to-a-secure-random-string-at-least-32-chars"
+    jwt_issuer: "tfdrift-falco"
+    jwt_expiry: "24h"  # Token expiration (Go duration: 1h, 24h, 168h)
+
+    # Pre-configured API keys (optional)
+    # api_keys:
+    #   - name: "ci-pipeline"
+    #     key: "tfd_your-api-key-here"
+    #     scopes: ["read"]
+    #     created_at: "2026-03-22T00:00:00Z"
+
+  # Rate Limiting
+  rate_limit:
+    enabled: false  # Set to true to enable rate limiting
+    requests_per_minute: 60  # Max requests per minute per client
+    burst_size: 10  # Max burst size
+    cleanup_interval: "5m"  # How often to clean up expired entries
+
 # Drift Detection Rules
 drift_rules:
   # EC2 Instance Rules
