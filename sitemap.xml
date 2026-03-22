@@ -201,6 +201,38 @@
          <lastmod>2026-03-22</lastmod>
     </url>
     <url>
+         <loc>https://higakikeita.github.io/tfdrift-falco/adr/</loc>
+         <lastmod>2026-03-22</lastmod>
+    </url>
+    <url>
+         <loc>https://higakikeita.github.io/tfdrift-falco/adr/000-use-adrs/</loc>
+         <lastmod>2026-03-22</lastmod>
+    </url>
+    <url>
+         <loc>https://higakikeita.github.io/tfdrift-falco/adr/001-event-driven-falco-grpc/</loc>
+         <lastmod>2026-03-22</lastmod>
+    </url>
+    <url>
+         <loc>https://higakikeita.github.io/tfdrift-falco/adr/002-in-memory-graph-store/</loc>
+         <lastmod>2026-03-22</lastmod>
+    </url>
+    <url>
+         <loc>https://higakikeita.github.io/tfdrift-falco/adr/003-multi-cloud-provider-abstraction/</loc>
+         <lastmod>2026-03-22</lastmod>
+    </url>
+    <url>
+         <loc>https://higakikeita.github.io/tfdrift-falco/adr/004-dual-auth-jwt-apikey/</loc>
+         <lastmod>2026-03-22</lastmod>
+    </url>
+    <url>
+         <loc>https://higakikeita.github.io/tfdrift-falco/adr/005-sse-websocket-realtime/</loc>
+         <lastmod>2026-03-22</lastmod>
+    </url>
+    <url>
+         <loc>https://higakikeita.github.io/tfdrift-falco/adr/template/</loc>
+         <lastmod>2026-03-22</lastmod>
+    </url>
+    <url>
          <loc>https://higakikeita.github.io/tfdrift-falco/api/</loc>
          <lastmod>2026-03-22</lastmod>
     </url>
