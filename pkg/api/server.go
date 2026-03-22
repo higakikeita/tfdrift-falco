@@ -113,6 +113,11 @@ func (s *Server) setupRouter() {
 	healthHandler := handlers.NewHealthHandler(s.version)
 	r.Get("/health", healthHandler.GetHealth)
 
+	// Swagger UI (no auth required)
+	swaggerHandler := handlers.NewSwaggerHandler()
+	r.Get("/api/docs", swaggerHandler.ServeUI)
+	r.Get("/api/docs/openapi.yaml", swaggerHandler.ServeSpec)
+
 	// API v1 routes
 	r.Route("/api/v1", func(r chi.Router) {
 		// Public endpoints (no auth required)
@@ -219,6 +224,7 @@ func (s *Server) Start(ctx context.Context) error {
 	log.Infof("API base URL: http://localhost%s/api/v1", addr)
 	log.Infof("WebSocket URL: ws://localhost%s/ws", addr)
 	log.Infof("SSE Stream URL: http://localhost%s/api/v1/stream", addr)
+	log.Infof("API Docs: http://localhost%s/api/docs", addr)
 
 	// Start the server in a goroutine
 	go func() {
