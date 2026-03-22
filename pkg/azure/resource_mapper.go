@@ -236,14 +236,14 @@ func initializeOperationMapping() map[string]string {
 		// ========== Analytics & Data ==========
 
 		// Event Hubs
-		"Microsoft.EventHub/namespaces/write":  "azurerm_eventhub_namespace",
-		"Microsoft.EventHub/namespaces/delete": "azurerm_eventhub_namespace",
+		"Microsoft.EventHub/namespaces/write":            "azurerm_eventhub_namespace",
+		"Microsoft.EventHub/namespaces/delete":           "azurerm_eventhub_namespace",
 		"Microsoft.EventHub/namespaces/eventhubs/write":  "azurerm_eventhub",
 		"Microsoft.EventHub/namespaces/eventhubs/delete": "azurerm_eventhub",
 
 		// Service Bus
-		"Microsoft.ServiceBus/namespaces/write":  "azurerm_servicebus_namespace",
-		"Microsoft.ServiceBus/namespaces/delete": "azurerm_servicebus_namespace",
+		"Microsoft.ServiceBus/namespaces/write":         "azurerm_servicebus_namespace",
+		"Microsoft.ServiceBus/namespaces/delete":        "azurerm_servicebus_namespace",
 		"Microsoft.ServiceBus/namespaces/queues/write":  "azurerm_servicebus_queue",
 		"Microsoft.ServiceBus/namespaces/queues/delete": "azurerm_servicebus_queue",
 		"Microsoft.ServiceBus/namespaces/topics/write":  "azurerm_servicebus_topic",

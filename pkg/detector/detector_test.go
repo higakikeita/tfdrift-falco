@@ -11,11 +11,11 @@ import (
 // TestNew_TableDriven covers various initialization scenarios using table-driven tests
 func TestNew_TableDriven(t *testing.T) {
 	tests := []struct {
-		name            string
-		cfg             *config.Config
-		wantErr         bool
-		wantImporter    bool
-		wantApproval    bool
+		name         string
+		cfg          *config.Config
+		wantErr      bool
+		wantImporter bool
+		wantApproval bool
 	}{
 		{
 			name: "basic_success_no_auto_import",
