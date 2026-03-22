@@ -1,0 +1,40 @@
+# TFDrift-Falco Code Owners
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* @higakikeita
+
+# Backend (Go)
+/pkg/ @higakikeita
+/cmd/ @higakikeita
+/go.mod @higakikeita
+/go.sum @higakikeita
+
+# Cloud provider integrations
+/pkg/falco/ @higakikeita
+/pkg/gcp/ @higakikeita
+/pkg/azure/ @higakikeita
+
+# API & middleware
+/pkg/api/ @higakikeita
+
+# Frontend (React/TypeScript)
+/ui/ @higakikeita
+
+# Infrastructure & deployment
+/charts/ @higakikeita
+/docker-compose*.yml @higakikeita
+/Dockerfile @higakikeita
+
+# CI/CD
+/.github/workflows/ @higakikeita
+
+# Documentation
+/docs/ @higakikeita
+/README.md @higakikeita
+/README.ja.md @higakikeita
+/CHANGELOG.md @higakikeita
+
+# Configuration & project governance
+/.github/CODEOWNERS @higakikeita
+/config.yaml.example @higakikeita

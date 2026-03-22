@@ -1,0 +1,66 @@
+# EditorConfig — https://editorconfig.org
+root = true
+
+# Default settings for all files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Go files — tabs per gofmt convention
+[*.go]
+indent_style = tab
+indent_size = 4
+
+# Makefiles require tabs
+[Makefile]
+indent_style = tab
+indent_size = 4
+
+[*.mk]
+indent_style = tab
+indent_size = 4
+
+# YAML files
+[*.{yml,yaml}]
+indent_size = 2
+
+# JSON files
+[*.json]
+indent_size = 2
+
+# TypeScript / JavaScript / JSX / TSX
+[*.{ts,tsx,js,jsx}]
+indent_size = 2
+
+# CSS / SCSS
+[*.{css,scss}]
+indent_size = 2
+
+# HTML
+[*.html]
+indent_size = 2
+
+# Markdown — trailing whitespace can be significant
+[*.md]
+trim_trailing_whitespace = false
+
+# Shell scripts
+[*.sh]
+indent_size = 2
+
+# Dockerfile
+[Dockerfile*]
+indent_size = 4
+
+# Helm templates
+[charts/**.yaml]
+indent_size = 2
+
+# Go module files
+[go.{mod,sum}]
+indent_style = tab
+indent_size = 4
