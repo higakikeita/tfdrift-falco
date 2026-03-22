@@ -193,9 +193,17 @@ func (m *Manager) sendFalcoOutput(alert *types.DriftAlert) error {
 		},
 	}
 
-	// TODO: Send to Falco gRPC endpoint or write to stdout
+	// Falco integration stub - intentionally a no-op until Falco gRPC integration is fully implemented.
+	// Future implementation will send events to Falco gRPC endpoint or write to Falco output file.
 	jsonData, _ := json.MarshalIndent(falcoEvent, "", "  ")
-	log.Info(string(jsonData))
+	log.WithFields(log.Fields{
+		"alert_type":    "drift",
+		"resource_type": alert.ResourceType,
+		"resource_name": alert.ResourceName,
+		"severity":      alert.Severity,
+	}).Info("Falco output event logged (Falco gRPC integration not yet implemented)")
+	// Log the full event structure for debugging
+	log.Debug("Falco event: " + string(jsonData))
 
 	return nil
 }

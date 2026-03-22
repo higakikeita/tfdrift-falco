@@ -124,7 +124,12 @@ func (am *ApprovalManager) PromptForApproval(_ context.Context, request *Approva
 
 	if approved {
 		request.Status = ApprovalApproved
-		request.ApprovedBy = "console-user" // TODO: Get actual user
+		// Extract user from request context or fall back to request's UserIdentity
+		approvedBy := request.UserIdentity
+		if approvedBy == "" {
+			approvedBy = "anonymous"
+		}
+		request.ApprovedBy = approvedBy
 		request.ApprovedAt = time.Now()
 		fmt.Println("✅ Import approved!")
 	} else {

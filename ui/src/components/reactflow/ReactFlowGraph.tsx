@@ -159,8 +159,10 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
     const handleNodeDependencies = (event: Event) => {
       const customEvent = event as CustomEvent;
       const { nodeId } = customEvent.detail;
-      // TODO: Fetch dependencies from API and highlight them
-      // For now, just open the detail panel
+      // Feature: Fetch dependencies from API and highlight them in the graph.
+      // This requires implementing an API endpoint that returns node dependencies and updating the highlighting logic.
+      // Currently opens the detail panel to allow users to view node information manually.
+      // See: https://github.com/higakikeita/tfdrift-falco/issues/XX
       const node = initialNodes.find(n => n.id === nodeId);
       if (node) {
         setSelectedNode(node);
@@ -170,8 +172,11 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
     const handleNodeImpact = (event: Event) => {
       const customEvent = event as CustomEvent;
       const { nodeId } = customEvent.detail;
-      // TODO: Fetch impact radius from API and highlight
-      // For now, just open the detail panel
+      // Feature: Fetch impact radius from API and highlight all affected nodes.
+      // This requires implementing an impact analysis endpoint that calculates which resources would be affected
+      // by changes to this node, then updating the highlighting logic to show the impact radius.
+      // Currently opens the detail panel to allow users to view node information manually.
+      // See: https://github.com/higakikeita/tfdrift-falco/issues/XX
       const node = initialNodes.find(n => n.id === nodeId);
       if (node) {
         setSelectedNode(node);

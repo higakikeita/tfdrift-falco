@@ -3,6 +3,8 @@ package websocket
 import (
 	"encoding/json"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -10,13 +12,41 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func getAllowedOrigins() []string {
+	originsStr := os.Getenv("WEBSOCKET_ALLOWED_ORIGINS")
+	if originsStr == "" {
+		// Default to * (all origins) for development
+		return []string{"*"}
+	}
+	// Parse comma-separated list of allowed origins
+	var origins []string
+	for _, origin := range strings.Split(originsStr, ",") {
+		if trimmed := strings.TrimSpace(origin); trimmed != "" {
+			origins = append(origins, trimmed)
+		}
+	}
+	return origins
+}
+
+func checkOriginAllowed(origin string, allowedOrigins []string) bool {
+	for _, allowed := range allowedOrigins {
+		if allowed == "*" || allowed == origin {
+			return true
+		}
+	}
+	return false
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		// Allow all origins for development
-		// TODO: Restrict origins in production
-		return true
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			return true // Allow requests without Origin header (same-origin)
+		}
+		allowedOrigins := getAllowedOrigins()
+		return checkOriginAllowed(origin, allowedOrigins)
 	},
 }
 
