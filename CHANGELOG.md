@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-03-22
+
+### 🔒 Enterprise Foundation
+
+Major release establishing enterprise-grade security, API documentation, Kubernetes deployment, and operational readiness.
+
+#### Added
+
+##### API Authentication & Authorization (PR #53)
+- **JWT Authentication** — HMAC-SHA256 tokens via `golang-jwt/jwt/v5`, configurable issuer and expiry
+- **API Key Authentication** — `X-API-Key` header with `tfd_` prefixed keys, constant-time comparison
+- **Auth Management Endpoints** — Token generation, API key CRUD (create/list/revoke)
+- **Scoped Access Control** — Per-key scopes for fine-grained authorization
+- **20 unit tests** covering JWT validation, API key lifecycle, edge cases
+
+##### API Rate Limiting (PR #53)
+- **Token Bucket Algorithm** — Per-client rate limiting by IP or authenticated identity
+- **Standard Headers** — `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`, `Retry-After`
+- **Configurable Limits** — Requests per minute, burst size, cleanup interval
+- **8 unit tests** covering rate limiting behavior
+
+##### OpenAPI 3.0 Specification & Swagger UI (PR #54)
+- **886-line OpenAPI 3.0 spec** covering all 37 API endpoints across 12 tags
+- **Swagger UI** embedded at `/api/docs` via Go embed (CDN v5.11.0)
+- **Complete schema definitions** — APIResponse, PaginatedResponse, Event, DriftAlert, GraphNode/Edge, etc.
+
+##### Kubernetes Helm Chart (PR #55)
+- **Production-ready Helm chart** with `values.yaml` covering image, service, ingress, resources, autoscaling
+- **Security hardened** — Non-root container, read-only filesystem, dropped capabilities
+- **HPA v2** with CPU/memory scaling targets
+- **NetworkPolicy** — Ingress from namespaces, egress to DNS/Falco/HTTPS
+- **ServiceMonitor** — Prometheus Operator integration
+- **Secret management** — JWT secret with `existingSecret` support
+- **ServiceAccount** with IRSA/Workload Identity annotation support
+
+##### Operations Runbook (PR #56)
+- **460-line comprehensive runbook** at `docs/operations/runbook.md`
+- **5 incident playbooks** — API Down, High Memory, Falco Connection Lost, Cloud Auth Failure, Rate Limiting
+- **Troubleshooting decision trees** and common log message reference
+- **Scaling guidelines** — Vertical and horizontal scaling procedures
+- **Maintenance procedures** — Rolling update, config change, key rotation
+
+##### Frontend Test Coverage Expansion (PR #57)
+- **14 new test files** (10 → 26 total) covering stores, components, pages, and utilities
+- **Store tests** — sidebarStore (toggle, setCollapsed), toastStore (add/remove/clear, helpers)
+- **Component tests** — Header, Sidebar, EventTable, EventFilters, GraphExportButton, SeverityChart, TimelineChart, ThemeToggle, ConnectionStatus
+- **Page tests** — DashboardPage, EventsPage, SettingsPage smoke tests
+- **Utility tests** — graphClustering, graphConverter import verification
+
+#### Changed
+- API Server now applies rate limiting globally and authentication on all non-public routes
+- `/health` and `/version` endpoints are public (no auth required)
+- SSE stream and all `/api/v1/*` routes require authentication when enabled
+- Middleware chain: RequestID → RealIP → Logger → Recoverer → CORS → RateLimiter → Auth → Timeout
+
+#### Dependencies
+- Added `github.com/golang-jwt/jwt/v5 v5.3.1`
+
+#### Technical Details
+- PRs: #53, #54, #55, #56, #57
+- Issues closed: #47, #48, #49, #50, #51, #52
+- Backend: 2 new middleware packages (~500 lines), auth handler (~155 lines)
+- Infrastructure: Helm chart (12 templates), OpenAPI spec (886 lines), runbook (460 lines)
+- Frontend: 14 new test files (677 lines)
+
 ## [0.7.0] - 2026-03-22
 
 ### 🎨 Dashboard UI & Real-time Notifications
