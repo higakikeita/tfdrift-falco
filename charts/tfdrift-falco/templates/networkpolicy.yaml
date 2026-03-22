@@ -1,0 +1,47 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "tfdrift-falco.fullname" . }}
+  labels:
+    {{- include "tfdrift-falco.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "tfdrift-falco.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow HTTP traffic from within the cluster
+    - ports:
+        - port: {{ .Values.config.port }}
+          protocol: TCP
+      {{- if .Values.networkPolicy.ingressNamespaces }}
+      from:
+        {{- range .Values.networkPolicy.ingressNamespaces }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ . }}
+        {{- end }}
+      {{- end }}
+  egress:
+    # Allow DNS resolution
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # Allow Falco gRPC
+    - ports:
+        - port: {{ .Values.config.falco.port }}
+          protocol: TCP
+      to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.falcoNamespace }}
+    # Allow HTTPS (cloud API access)
+    - ports:
+        - port: 443
+          protocol: TCP
+{{- end }}

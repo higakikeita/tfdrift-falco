@@ -1,0 +1,201 @@
+# Default values for tfdrift-falco
+# Override these values for your environment
+
+# -- Number of replicas
+replicaCount: 1
+
+image:
+  # -- Container image repository
+  repository: ghcr.io/higakikeita/tfdrift-falco
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+  # -- Image tag (defaults to Chart appVersion)
+  tag: ""
+
+# -- Image pull secrets for private registries
+imagePullSecrets: []
+# -- Override the chart name
+nameOverride: ""
+# -- Override the full release name
+fullnameOverride: ""
+
+serviceAccount:
+  # -- Create a ServiceAccount
+  create: true
+  # -- Annotations for the ServiceAccount (e.g., for IRSA/Workload Identity)
+  annotations: {}
+  # -- ServiceAccount name (auto-generated if empty)
+  name: ""
+
+# -- Pod annotations
+podAnnotations: {}
+
+# -- Pod security context
+podSecurityContext:
+  fsGroup: 1000
+
+# -- Container security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  # -- Service type
+  type: ClusterIP
+  # -- API server port
+  port: 8080
+
+ingress:
+  # -- Enable ingress
+  enabled: false
+  # -- Ingress class name
+  className: ""
+  # -- Ingress annotations
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: tfdrift-falco.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  # -- TLS configuration
+  tls: []
+  #  - secretName: tfdrift-falco-tls
+  #    hosts:
+  #      - tfdrift-falco.example.com
+
+# -- Resource requests and limits
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  # -- Enable HPA
+  enabled: false
+  # -- Minimum replicas
+  minReplicas: 1
+  # -- Maximum replicas
+  maxReplicas: 5
+  # -- Target CPU utilization percentage
+  targetCPUUtilizationPercentage: 80
+  # -- Target memory utilization percentage
+  targetMemoryUtilizationPercentage: 80
+
+# -- Node selector
+nodeSelector: {}
+
+# -- Tolerations
+tolerations: []
+
+# -- Affinity rules
+affinity: {}
+
+# TFDrift-Falco configuration
+config:
+  # -- API server port (must match service.port)
+  port: 8080
+
+  # -- Log level (debug, info, warning, error)
+  logLevel: info
+
+  # -- Log format (json, text)
+  logFormat: json
+
+  # Authentication settings
+  auth:
+    # -- Enable API authentication
+    enabled: true
+    # -- JWT signing secret (use existingSecret in production)
+    jwtSecret: ""
+    # -- JWT issuer
+    jwtIssuer: "tfdrift-falco"
+    # -- JWT token expiry
+    jwtExpiry: "24h"
+
+  # Rate limiting settings
+  rateLimit:
+    # -- Enable rate limiting
+    enabled: true
+    # -- Requests per minute per client
+    requestsPerMinute: 60
+    # -- Burst size
+    burstSize: 10
+
+  # Falco integration
+  falco:
+    # -- Falco gRPC hostname
+    hostname: "falco"
+    # -- Falco gRPC port
+    port: 5060
+
+  # Cloud providers
+  providers:
+    aws:
+      # -- Enable AWS provider
+      enabled: true
+      # -- AWS regions to monitor
+      regions:
+        - us-east-1
+      state:
+        # -- Terraform state backend (local, s3)
+        backend: "s3"
+        # -- S3 bucket for Terraform state
+        s3Bucket: ""
+        # -- S3 key for Terraform state
+        s3Key: ""
+        # -- S3 region for Terraform state
+        s3Region: "us-east-1"
+
+    gcp:
+      # -- Enable GCP provider
+      enabled: false
+      # -- GCP project IDs
+      projects: []
+      state:
+        backend: "gcs"
+        gcsBucket: ""
+        gcsPrefix: ""
+
+    azure:
+      # -- Enable Azure provider
+      enabled: false
+      # -- Azure subscription IDs
+      subscriptions: []
+      state:
+        backend: "azurerm"
+        resourceGroup: ""
+        storageAccount: ""
+        containerName: ""
+        key: ""
+
+# -- Existing secret for sensitive values (jwt_secret, api_keys)
+# Secret should contain: jwt-secret
+existingSecret: ""
+
+# Network policy
+networkPolicy:
+  # -- Enable network policy
+  enabled: false
+  # -- Allow ingress from these namespaces
+  ingressNamespaces: []
+  # -- Allow egress to Falco namespace
+  falcoNamespace: "falco"
+
+# ServiceMonitor for Prometheus
+serviceMonitor:
+  # -- Enable ServiceMonitor (requires Prometheus Operator)
+  enabled: false
+  # -- Scrape interval
+  interval: 30s
+  # -- Additional labels for the ServiceMonitor
+  labels: {}
