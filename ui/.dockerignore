@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+.env*
+*.md
+*.test.tsx
+*.test.ts
+*.spec.tsx
+*.spec.ts
+__tests__/
+__mocks__/
+.storybook/
+storybook-static/

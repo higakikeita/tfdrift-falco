@@ -79,7 +79,6 @@ jobs:
       # ===== Lint (from lint.yml) =====
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v4
-        continue-on-error: true
         with:
           version: latest
           args: --timeout=5m
@@ -100,7 +99,6 @@ jobs:
         run: |
           go install honnef.co/go/tools/cmd/staticcheck@latest
           staticcheck ./...
-        continue-on-error: true
 
       - name: Check go mod tidy
         run: |
@@ -171,11 +169,9 @@ jobs:
       # ===== Lint =====
       - name: Run ESLint
         run: npm run lint
-        continue-on-error: true
 
       - name: Run TypeScript compiler
         run: npx tsc -b --noEmit
-        continue-on-error: true
 
       # ===== Test =====
       - name: Run unit tests
