@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tfdrift-falco.fullname" . }}-config
+  labels:
+    {{- include "tfdrift-falco.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    providers:
+      aws:
+        enabled: {{ .Values.config.providers.aws.enabled }}
+        regions:
+          {{- toYaml .Values.config.providers.aws.regions | nindent 10 }}
+        state:
+          backend: {{ .Values.config.providers.aws.state.backend | quote }}
+          {{- if .Values.config.providers.aws.state.s3Bucket }}
+          s3_bucket: {{ .Values.config.providers.aws.state.s3Bucket | quote }}
+          {{- end }}
+          {{- if .Values.config.providers.aws.state.s3Key }}
+          s3_key: {{ .Values.config.providers.aws.state.s3Key | quote }}
+          {{- end }}
+          {{- if .Values.config.providers.aws.state.s3Region }}
+          s3_region: {{ .Values.config.providers.aws.state.s3Region | quote }}
+          {{- end }}
+      gcp:
+        enabled: {{ .Values.config.providers.gcp.enabled }}
+        {{- if .Values.config.providers.gcp.projects }}
+        projects:
+          {{- toYaml .Values.config.providers.gcp.projects | nindent 10 }}
+        {{- end }}
+        state:
+          backend: {{ .Values.config.providers.gcp.state.backend | quote }}
+          {{- if .Values.config.providers.gcp.state.gcsBucket }}
+          gcs_bucket: {{ .Values.config.providers.gcp.state.gcsBucket | quote }}
+          {{- end }}
+          {{- if .Values.config.providers.gcp.state.gcsPrefix }}
+          gcs_prefix: {{ .Values.config.providers.gcp.state.gcsPrefix | quote }}
+          {{- end }}
+      azure:
+        enabled: {{ .Values.config.providers.azure.enabled }}
+        {{- if .Values.config.providers.azure.subscriptions }}
+        subscriptions:
+          {{- toYaml .Values.config.providers.azure.subscriptions | nindent 10 }}
+        {{- end }}
+        state:
+          backend: {{ .Values.config.providers.azure.state.backend | quote }}
+          {{- if .Values.config.providers.azure.state.resourceGroup }}
+          azure_resource_group: {{ .Values.config.providers.azure.state.resourceGroup | quote }}
+          {{- end }}
+          {{- if .Values.config.providers.azure.state.storageAccount }}
+          azure_storage_account: {{ .Values.config.providers.azure.state.storageAccount | quote }}
+          {{- end }}
+          {{- if .Values.config.providers.azure.state.containerName }}
+          azure_container_name: {{ .Values.config.providers.azure.state.containerName | quote }}
+          {{- end }}
+          {{- if .Values.config.providers.azure.state.key }}
+          azure_key: {{ .Values.config.providers.azure.state.key | quote }}
+          {{- end }}
+    falco:
+      enabled: true
+      hostname: {{ .Values.config.falco.hostname | quote }}
+      port: {{ .Values.config.falco.port }}
+    api:
+      auth:
+        enabled: {{ .Values.config.auth.enabled }}
+        jwt_issuer: {{ .Values.config.auth.jwtIssuer | quote }}
+        jwt_expiry: {{ .Values.config.auth.jwtExpiry | quote }}
+      rate_limit:
+        enabled: {{ .Values.config.rateLimit.enabled }}
+        requests_per_minute: {{ .Values.config.rateLimit.requestsPerMinute }}
+        burst_size: {{ .Values.config.rateLimit.burstSize }}
+    logging:
+      level: {{ .Values.config.logLevel | quote }}
+      format: {{ .Values.config.logFormat | quote }}

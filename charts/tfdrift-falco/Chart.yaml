@@ -1,0 +1,21 @@
+apiVersion: v2
+name: tfdrift-falco
+description: Real-time, multi-cloud Terraform drift detection with Falco integration
+type: application
+version: 0.1.0
+appVersion: "0.8.0"
+keywords:
+  - terraform
+  - drift-detection
+  - falco
+  - security
+  - multi-cloud
+  - aws
+  - gcp
+  - azure
+home: https://github.com/higakikeita/tfdrift-falco
+sources:
+  - https://github.com/higakikeita/tfdrift-falco
+maintainers:
+  - name: Keita Higaki
+    url: https://github.com/higakikeita
