@@ -6,8 +6,9 @@ CI/CD workflows for TFDrift-Falco. All workflows run on GitHub Actions.
 
 | Workflow | File | Trigger | Purpose |
 |----------|------|---------|---------|
-| **CI/CD Pipeline** | `ci.yml` | Push/PR/Schedule | Build, test, lint, security scan (backend + frontend) |
-| **Snyk Security** | `snyk-security.yml` | Schedule/Manual | Comprehensive Snyk scans (OSS, SAST, IaC, Container, License) |
+| **CI/CD Pipeline** | `ci.yml` | Push/PR/Release | Build & test (Go, React, Docker, Integration) |
+| **Security Scanning** | `security.yml` | Push/PR/Schedule/Manual | Unified security (Snyk 5 types + GoSec + Nancy) |
+| **Benchmarks** | `benchmark.yml` | Label/Manual/Main | Performance benchmarks with baseline tracking |
 | **Sysdig Scan** | `sysdig-scan.yml` | PR (Dockerfile changes)/Manual | Container image vulnerability scanning |
 | **E2E Tests** | `e2e.yml` | Manual/Schedule/Label | End-to-end tests with real AWS & Falco |
 | **Publish GHCR** | `publish-ghcr.yml` | Tag/Release/Manual | Build and publish Docker images to GHCR |
@@ -15,9 +16,9 @@ CI/CD workflows for TFDrift-Falco. All workflows run on GitHub Actions.
 | **Deploy Storybook** | `ui-storybook.yml` | Push to main/Manual | Build and deploy Storybook to GitHub Pages |
 | **Website Security** | `website-security.yml` | Push (website/**)/Schedule | npm audit + Snyk scan for website |
 
-## ci.yml — Main Pipeline
+## ci.yml — Build & Test Only
 
-The primary CI workflow. Runs on every push and PR.
+The primary CI workflow. Runs on every push and PR. **Focuses on build and test only** — security scans moved to `security.yml`.
 
 **Jobs:**
 
@@ -28,32 +29,64 @@ The primary CI workflow. Runs on every push and PR.
 | `frontend` | Node build, lint (ESLint, tsc), test (Vitest) with coverage | Yes (tests, build) |
 | `docker` | Multi-platform Docker builds (amd64, arm64) | No |
 | `integration` | Integration tests with mocked dependencies | No |
-| `snyk-open-source` | Snyk OSS scan (Go + npm dependencies) | No |
-| `snyk-code` | Snyk Code SAST (source code security) | No |
-| `snyk-iac` | Snyk IaC (Terraform, Helm, Dockerfile) | No |
-| `snyk-container` | Snyk Container (Docker image scan, main only) | No |
-| `security-gosec` | GoSec security scanner | No |
-| `security-nancy` | Nancy dependency checker | No |
-| `benchmark` | Performance benchmarks (label-triggered) | No |
 
-## snyk-security.yml — Dedicated Snyk Dashboard
+**Triggers:**
+- Push to `main` or `develop`
+- Pull requests to `main` or `develop`
+- Release (published)
+- Manual dispatch (`workflow_dispatch`)
 
-Runs weekly and on-demand. Provides detailed vulnerability reports.
+## security.yml — Unified Security Scanning
 
-**Scan types** (selectable via manual dispatch):
-- `open-source` — Go & npm dependency SCA with PR comments
-- `code` — SAST scanning with SARIF upload
-- `iac` — Terraform, Helm charts, Dockerfiles
-- `container` — Docker image scanning
-- `license` — Dependency license compliance
-- `all` — Run everything
+All security scans in one place. Runs independently so failures don't block CI/CD.
+
+**Jobs & Scan Types** (all use `continue-on-error: true`):
+
+| Job | Type | Triggers | PR Comment? |
+|-----|------|----------|------------|
+| `snyk-open-source` | SCA (Go + npm deps) | Push/PR/Schedule | Yes |
+| `snyk-code` | SAST (source code) | Push/PR/Schedule | Yes |
+| `snyk-iac` | IaC (Terraform, Helm, Docker) | Push/PR/Schedule | Yes |
+| `snyk-container` | Container (Docker image) | Push/PR/Schedule | Yes |
+| `snyk-license` | License compliance | Push/PR/Schedule | No |
+| `gosec` | Go security scanner | Push/PR/Schedule | Yes |
+| `nancy` | Go dependency checker | Push/PR/Schedule | No |
+
+**Triggers:**
+- Push to `main` or `develop`
+- All pull requests to `main` or `develop`
+- Weekly schedule: Monday 6 AM UTC
+- Manual dispatch with `scan_type` selector (all/snyk/gosec/nancy)
+
+**Key Features:**
+- Unified severity thresholds (medium for OSS/IaC, high for container)
+- All jobs upload SARIF to GitHub Security tab
+- Path-based filtering on push/PR (only run relevant scans)
+- Schedule runs everything
+- PR comments summarize findings
+- No impact on build status
+
+## benchmark.yml — Performance Tracking
+
+Isolates performance benchmarks from the main CI pipeline. Runs on label, manual dispatch, or main branch updates.
+
+**Jobs:**
+
+| Job | Purpose | Trigger |
+|-----|---------|---------|
+| `benchmark` | Run benchmarks, compare vs baseline, track regressions | Label (`benchmark`), Manual dispatch, Push to main |
+
+**Baseline Tracking:**
+- On push to main: Auto-commits new baseline
+- On PR with `benchmark` label: Compares vs base branch
+- Detects >20% performance regressions and warns (non-blocking)
 
 ## Required Secrets
 
 | Secret | Used By | Status |
 |--------|---------|--------|
-| `SNYK_TOKEN` | ci.yml, snyk-security.yml, website-security.yml | **Configured** |
-| `SNYK_ORG_ID` | ci.yml, snyk-security.yml | **Configured** |
+| `SNYK_TOKEN` | security.yml, website-security.yml | **Configured** |
+| `SNYK_ORG_ID` | security.yml | **Configured** |
 | `SYSDIG_SECURE_API_TOKEN` | sysdig-scan.yml | **Configured** |
 | `E2E_AWS_ACCESS_KEY_ID` | e2e.yml | Optional (E2E only) |
 | `E2E_AWS_SECRET_ACCESS_KEY` | e2e.yml | Optional (E2E only) |
@@ -86,14 +119,32 @@ snyk iac test terraform/     # IaC scan
 cd tests/e2e && make all
 ```
 
+## Workflow Architecture Notes
+
+### Separation of Concerns
+- **ci.yml**: Build + test only (fast, blocking)
+- **security.yml**: All security scans (independent, non-blocking, informational)
+- **benchmark.yml**: Performance tracking (separate triggers, baseline managed)
+
+### Security Scanning Details
+- All Snyk + GoSec + Nancy jobs use `continue-on-error: true` — they're informational only
+- No security scan failures will block PRs or builds
+- All jobs upload SARIF to GitHub Security tab
+- PR comments provide quick summary
+- Schedule (Monday 6 AM UTC) runs comprehensive scans with no path filtering
+
 ## Troubleshooting
 
 **Backend tests failing**: Run `make test` locally, check for race conditions with `make test-race`.
 
 **Frontend tests failing**: Run `cd ui && npm test`. Common issue: missing mock exports for lucide-react icons or hooks (useSSE, useTheme).
 
-**Snyk scan issues**: Verify `SNYK_TOKEN` and `SNYK_ORG_ID` secrets are set. All Snyk jobs use `continue-on-error: true` so failures are non-blocking.
+**Security scans not showing in GitHub**: Check that the workflow has permission `security-events: write`. All scans upload SARIF under distinct categories (snyk-oss-go, snyk-code, gosec, etc.).
+
+**Snyk scans taking too long**: They run in parallel and are non-blocking. Set manual dispatch `scan_type` to reduce scope (e.g., `snyk` runs only Snyk jobs, `gosec` runs only GoSec).
 
 **Sysdig scan issues**: See [SYSDIG_SETUP.md](SYSDIG_SETUP.md) for setup. Requires `SYSDIG_SECURE_API_TOKEN`.
 
 **E2E tests**: Require real AWS credentials. Estimated cost ~$0.10-0.50/run. Run on-demand with `run-e2e` label.
+
+**Benchmark degradation warnings**: False positives are possible. Review the PR comments for details and re-run if needed.
