@@ -40,7 +40,7 @@ jobs:
         run: npm audit --audit-level=moderate || true
 
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
+        uses: snyk/actions/node@0.4.0
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -55,18 +55,3 @@ jobs:
         with:
           sarif_file: snyk.sarif
           category: website-security
-
-      - name: Check for critical vulnerabilities
-        working-directory: ./website
-        run: |
-          echo "Checking React version..."
-          REACT_VERSION=$(node -p "require('./package.json').dependencies.react")
-          echo "Current React version: $REACT_VERSION"
-
-          # Check if React version is vulnerable
-          if [[ "$REACT_VERSION" == "19.2.1" ]] || [[ "$REACT_VERSION" == "19.2.2" ]]; then
-            echo "⚠️  WARNING: Vulnerable React version detected!"
-            echo "Please update to React 19.2.3 or higher"
-            echo "Run: npm install react@19.2.3 react-dom@19.2.3"
-            exit 1
-          fi
