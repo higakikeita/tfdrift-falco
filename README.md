@@ -4,32 +4,16 @@
 
 [![Version](https://img.shields.io/badge/version-0.8.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
+[![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
-[![Docker](https://img.shields.io/badge/Docker-GHCR-2496ED?logo=docker)](https://ghcr.io/higakikeita/tfdrift-falco)
-[![Docker Pulls](https://img.shields.io/badge/dynamic/json?url=https://ghcr.io/v2/higakikeita/tfdrift-falco/manifests/latest&label=pulls&query=$.name&color=2496ED&logo=docker)](https://github.com/higakikeita/tfdrift-falco/pkgs/container/tfdrift-falco)
-[![Test](https://github.com/higakikeita/tfdrift-falco/actions/workflows/test.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/test.yml)
-[![Lint](https://github.com/higakikeita/tfdrift-falco/actions/workflows/lint.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/lint.yml)
-[![Security](https://github.com/higakikeita/tfdrift-falco/actions/workflows/security.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/security.yml)
+[![CI](https://github.com/higakikeita/tfdrift-falco/actions/workflows/ci.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/ci.yml)
+[![Snyk Security](https://github.com/higakikeita/tfdrift-falco/actions/workflows/snyk-security.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/snyk-security.yml)
 [![Publish GHCR](https://github.com/higakikeita/tfdrift-falco/actions/workflows/publish-ghcr.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/publish-ghcr.yml)
-[![Coverage](https://img.shields.io/badge/coverage-85.0%25-brightgreen)](https://github.com/higakikeita/tfdrift-falco)
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
-> 🎨 **v0.7.0 Released!** (2026-03-22) - **Dashboard UI: Events, Notifications, Settings**!
-> - **Event management** — Filter, sort, paginate events with status workflow (acknowledge/ignore/resolve) and JSON diff viewer
-> - **Real-time notifications** — SSE-connected notification panel with severity-based toasts
-> - **Graph export** — PNG (2x), SVG, JSON export from topology view
-> - **Settings page** — Webhooks CRUD, drift rules, cloud providers, general settings
-> - **Dark/light theme** — System-wide theme toggle with toast notifications
-> - [📝 CHANGELOG](CHANGELOG.md#070---2026-03-22) | [📋 Versioning Policy](VERSIONING.md)
->
-> 🌐 **v0.6.0** (2026-03-20) - **Expanded Multi-Cloud Coverage**!
-> - AWS: 40+ services, 500+ events | GCP: 27+ services, 170+ events
-> - [📝 CHANGELOG](CHANGELOG.md#060---2026-03-20)
->
-> 🎉 **v0.5.0** (2026-01-10) - **GCP Support & UI Improvements**!
-> - GCP Audit Logs, Storybook-Driven Development, 28 AWS Official Icons
+> **v0.8.0** (2026-03-22) — Enterprise foundation: JWT/API Key auth, rate limiting, OpenAPI 3.0, Helm chart, Snyk full suite
+> - [📝 CHANGELOG](CHANGELOG.md#080---2026-03-22) | [📋 Versioning Policy](VERSIONING.md)
 
 **[English]** | [日本語 (Japanese)](README.ja.md)
 
@@ -286,12 +270,13 @@ kubectl apply -f k8s/
 
 ### 📦 CI/CD
 
-GitHub Actions workflows included:
-- ✅ Backend tests (Go)
-- ✅ Frontend tests (React)
-- ✅ Docker multi-platform builds (amd64, arm64)
-- ✅ Security scanning (Trivy + Gosec)
-- ✅ Codecov integration
+GitHub Actions workflows:
+- ✅ Backend build, lint, test (Go 1.24, golangci-lint, staticcheck)
+- ✅ Frontend build, lint, test (Node 20, ESLint, Vitest)
+- ✅ Docker multi-platform builds (amd64, arm64) → GHCR
+- ✅ Security scanning (Snyk OSS/Code/IaC/Container, GoSec, Nancy)
+- ✅ Codecov coverage tracking
+- ✅ Sysdig container security scanning
 
 **Details:** [Deployment Guide](docs/deployment.md)
 
@@ -725,12 +710,12 @@ TFDrift-Falco maintains high code quality standards with comprehensive testing a
 
 ### Code Quality Tools
 
+- ✅ **Snyk** (Full Suite): OSS dependency scan, Code SAST, IaC misconfig, Container scan, License compliance
 - ✅ **golangci-lint**: Static analysis with 15+ linters enabled
-- ✅ **Snyk**: Dependency vulnerability scanning (weekly)
-- ✅ **GoSec**: Security-focused static analysis
-- ✅ **Nancy**: Go dependency checker
-- ✅ **go vet**: Official Go static analyzer
-- ✅ **staticcheck**: Advanced Go linter
+- ✅ **GoSec**: Security-focused Go static analysis
+- ✅ **Nancy**: Go dependency vulnerability checker (Sonatype)
+- ✅ **Sysdig**: Container image vulnerability scanning
+- ✅ **go vet** / **staticcheck**: Official Go analyzers
 
 ### Architecture Quality
 
@@ -780,7 +765,7 @@ docker logs -f tfdrift-falco
 
 ### Prerequisites
 
-- Go 1.21 or later (for building from source)
+- Go 1.24 or later (for building from source)
 - **Falco 0.35+** with CloudTrail plugin (AWS) or gcpaudit plugin (GCP) - [AWS Setup](docs/falco-setup.md) | [GCP Setup](docs/gcp-setup.md)
 - Terraform 1.0+
 - AWS CLI configured (for AWS support) or gcloud CLI configured (for GCP support)

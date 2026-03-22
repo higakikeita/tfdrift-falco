@@ -115,7 +115,6 @@ jobs:
       # ===== Test (from test.yml) =====
       - name: Run tests with coverage
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
-        continue-on-error: true
 
       - name: Generate coverage report
         run: go tool cover -func=coverage.out
@@ -181,11 +180,9 @@ jobs:
       # ===== Test =====
       - name: Run unit tests
         run: npm test -- --passWithNoTests
-        continue-on-error: true
 
       - name: Run tests with coverage
         run: npm run test:coverage
-        continue-on-error: true
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -199,7 +196,6 @@ jobs:
       # ===== Build =====
       - name: Build for production
         run: npm run build
-        continue-on-error: true
         env:
           NODE_ENV: production
 

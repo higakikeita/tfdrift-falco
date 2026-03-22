@@ -1,9 +1,6 @@
 name: Snyk Security Dashboard
 
 on:
-  # Run on PRs for delta scanning
-  pull_request:
-    branches: [main, develop]
   # Weekly full scan
   schedule:
     - cron: '0 6 * * 1'
@@ -42,7 +39,6 @@ jobs:
     if: |
       github.event.inputs.scan_type == 'all' ||
       github.event.inputs.scan_type == 'open-source' ||
-      github.event_name == 'pull_request' ||
       github.event_name == 'schedule'
 
     steps:
@@ -121,7 +117,7 @@ jobs:
           fi
 
       - name: Comment PR with results
-        if: github.event_name == 'pull_request' && always()
+        if: always()
         uses: actions/github-script@v7
         with:
           script: |
@@ -190,7 +186,6 @@ jobs:
     if: |
       github.event.inputs.scan_type == 'all' ||
       github.event.inputs.scan_type == 'code' ||
-      github.event_name == 'pull_request' ||
       github.event_name == 'schedule'
 
     steps:
@@ -233,7 +228,7 @@ jobs:
           fi
 
       - name: Comment PR
-        if: github.event_name == 'pull_request' && always()
+        if: always()
         uses: actions/github-script@v7
         with:
           script: |
@@ -274,7 +269,6 @@ jobs:
     if: |
       github.event.inputs.scan_type == 'all' ||
       github.event.inputs.scan_type == 'iac' ||
-      github.event_name == 'pull_request' ||
       github.event_name == 'schedule'
 
     steps:
@@ -354,7 +348,7 @@ jobs:
           done
 
       - name: Comment PR
-        if: github.event_name == 'pull_request' && always()
+        if: always()
         uses: actions/github-script@v7
         with:
           script: |
