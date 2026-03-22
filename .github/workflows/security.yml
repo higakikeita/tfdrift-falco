@@ -155,14 +155,14 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Upload Snyk OSS SARIF (Go)
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always() && hashFiles('snyk-oss-go.sarif') != ''
         with:
           sarif_file: snyk-oss-go.sarif
           category: snyk-oss-go
 
       - name: Upload Snyk OSS SARIF (npm)
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always() && hashFiles('snyk-oss-npm.sarif') != ''
         with:
           sarif_file: snyk-oss-npm.sarif
@@ -262,7 +262,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Upload Snyk Code SARIF
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always() && hashFiles('snyk-code.sarif') != ''
         with:
           sarif_file: snyk-code.sarif
@@ -367,21 +367,21 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Upload Snyk IaC SARIF (Terraform)
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always() && hashFiles('snyk-iac-tf.sarif') != ''
         with:
           sarif_file: snyk-iac-tf.sarif
           category: snyk-iac-terraform
 
       - name: Upload Snyk IaC SARIF (Helm)
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always() && hashFiles('snyk-iac-helm.sarif') != ''
         with:
           sarif_file: snyk-iac-helm.sarif
           category: snyk-iac-helm
 
       - name: Upload Snyk IaC SARIF (Dockerfile)
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always() && hashFiles('snyk-iac-docker.sarif') != ''
         with:
           sarif_file: snyk-iac-docker.sarif
@@ -491,7 +491,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Upload Snyk Container SARIF
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always() && hashFiles('snyk-container.sarif') != ''
         with:
           sarif_file: snyk-container.sarif
@@ -641,7 +641,7 @@ jobs:
           args: '-fmt sarif -out gosec.sarif -exclude-generated ./...'
 
       - name: Upload Gosec results to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always() && hashFiles('gosec.sarif') != ''
         with:
           sarif_file: gosec.sarif
