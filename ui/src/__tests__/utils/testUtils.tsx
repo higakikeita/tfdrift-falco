@@ -9,7 +9,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactFlowProvider } from 'reactflow';
 import type { Drift, DriftChange } from '@/types/drift';
-import type { FalcoEvent } from '@/types/falco';
+import type { FalcoEvent } from '@/api/types';
 import type { CytoscapeNode, CytoscapeEdge } from '@/types/graph';
 import type { Severity } from '@/types/common';
 
