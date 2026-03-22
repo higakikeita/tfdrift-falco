@@ -21,6 +21,13 @@ vi.mock('lucide-react', () => ({
 }));
 
 vi.mock('../../api/sse', () => ({
+  useSSE: () => ({
+    isConnected: true,
+    lastEvent: null,
+    events: [],
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+  }),
   sseClient: {
     connect: vi.fn(),
     disconnect: vi.fn(),
@@ -29,7 +36,11 @@ vi.mock('../../api/sse', () => ({
   },
 }));
 
-import Header from './Header';
+vi.mock('../../hooks/useTheme', () => ({
+  useTheme: () => ({ theme: 'light', setTheme: vi.fn(), toggleTheme: vi.fn() }),
+}));
+
+import { Header } from './Header';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },

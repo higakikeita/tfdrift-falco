@@ -14,7 +14,7 @@ vi.mock('recharts', () => ({
   Area: () => <div data-testid="area" />,
 }));
 
-import TimelineChart from './TimelineChart';
+import { TimelineChart } from './TimelineChart';
 
 const mockData = [
   { date: '03/20', aws: 5, gcp: 3 },

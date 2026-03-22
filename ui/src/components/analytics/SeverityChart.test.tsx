@@ -15,14 +15,14 @@ vi.mock('recharts', () => ({
   CartesianGrid: () => <div data-testid="grid" />,
 }));
 
-import SeverityChart from './SeverityChart';
+import { SeverityChart } from './SeverityChart';
 
-const mockData = {
-  critical: 5,
-  high: 10,
-  medium: 15,
-  low: 20,
-};
+const mockData = [
+  { name: 'Critical', value: 5, fill: '#ef4444' },
+  { name: 'High', value: 10, fill: '#f97316' },
+  { name: 'Medium', value: 15, fill: '#eab308' },
+  { name: 'Low', value: 20, fill: '#3b82f6' },
+];
 
 describe('SeverityChart', () => {
   it('should render without crashing', () => {

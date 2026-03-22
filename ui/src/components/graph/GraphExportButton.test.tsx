@@ -1,11 +1,15 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 
-vi.mock('lucide-react', () => new Proxy({}, {
-  get: (_, name) => () => <div data-testid={`icon-${String(name)}`} />,
+vi.mock('lucide-react', () => ({
+  Download: () => <div data-testid="icon-Download" />,
+  Image: () => <div data-testid="icon-Image" />,
+  FileCode: () => <div data-testid="icon-FileCode" />,
+  FileJson: () => <div data-testid="icon-FileJson" />,
+  ChevronDown: () => <div data-testid="icon-ChevronDown" />,
 }));
 
-import GraphExportButton from './GraphExportButton';
+import { GraphExportButton } from './GraphExportButton';
 
 describe('GraphExportButton', () => {
   it('should render without crashing', () => {
