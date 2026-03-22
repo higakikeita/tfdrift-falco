@@ -105,3 +105,4 @@ After `1.0.0`, standard semver applies strictly:
 | `v0.5.0` | 2026-01 | GCP Audit Logs, UI improvements |
 | `v0.6.0` | 2026-03-20 | Multi-cloud expansion (AWS 500+, GCP 170+) |
 | `v0.7.0` | 2026-03-22 | Dashboard UI: events mgmt, notifications, graph export, settings |
+| `v0.8.0` | 2026-03-22 | Enterprise foundation: JWT/API Key auth, rate limiting, OpenAPI, Helm chart, runbook |
