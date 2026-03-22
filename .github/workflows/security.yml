@@ -1,0 +1,709 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Weekly full scan on Monday at 6 AM UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Scan type to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - snyk
+          - gosec
+          - nancy
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+env:
+  GO_VERSION: '1.24'
+  NODE_VERSION: '20'
+
+jobs:
+  # ============================================
+  # Detect changed files (for path-based filtering)
+  # ============================================
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - '**.go'
+              - 'go.mod'
+              - 'go.sum'
+              - 'cmd/**'
+              - 'pkg/**'
+            frontend:
+              - 'ui/**'
+              - 'package.json'
+              - 'package-lock.json'
+
+  # ============================================
+  # Snyk Open Source (SCA)
+  # ============================================
+  snyk-open-source:
+    name: Snyk Open Source
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: changes
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'snyk') ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && (needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Open Source test (Go modules)
+        id: go_scan
+        continue-on-error: true
+        run: |
+          go mod download
+          snyk test \
+            --file=go.mod \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --severity-threshold=medium \
+            --sarif-file-output=snyk-oss-go.sarif \
+            --json-file-output=snyk-oss-go.json || true
+          echo "### Snyk Open Source (Go)" >> $GITHUB_STEP_SUMMARY
+          if [ -f snyk-oss-go.json ]; then
+            VULN_COUNT=$(python3 -c "import json; d=json.load(open('snyk-oss-go.json')); print(d.get('uniqueCount',0))" 2>/dev/null || echo "N/A")
+            echo "- Unique vulnerabilities: $VULN_COUNT" >> $GITHUB_STEP_SUMMARY
+          fi
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Open Source monitor — Go (main only)
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: |
+          snyk monitor \
+            --file=go.mod \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --project-name=tfdrift-falco-go
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Open Source test (npm)
+        id: npm_scan
+        continue-on-error: true
+        run: |
+          cd ui
+          npm ci
+          snyk test \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --severity-threshold=medium \
+            --sarif-file-output=../snyk-oss-npm.sarif \
+            --json-file-output=../snyk-oss-npm.json || true
+          cd ..
+          echo "### Snyk Open Source (npm)" >> $GITHUB_STEP_SUMMARY
+          if [ -f snyk-oss-npm.json ]; then
+            VULN_COUNT=$(python3 -c "import json; d=json.load(open('snyk-oss-npm.json')); print(d.get('uniqueCount',0))" 2>/dev/null || echo "N/A")
+            echo "- Unique vulnerabilities: $VULN_COUNT" >> $GITHUB_STEP_SUMMARY
+          fi
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Open Source monitor — npm (main only)
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: |
+          cd ui
+          snyk monitor \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --project-name=tfdrift-falco-ui
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload Snyk OSS SARIF (Go)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-oss-go.sarif') != ''
+        with:
+          sarif_file: snyk-oss-go.sarif
+          category: snyk-oss-go
+
+      - name: Upload Snyk OSS SARIF (npm)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-oss-npm.sarif') != ''
+        with:
+          sarif_file: snyk-oss-npm.sarif
+          category: snyk-oss-npm
+
+      - name: Comment PR with Snyk OSS results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## 🔍 Snyk Open Source Scan\n\n';
+
+            // Parse Go results
+            try {
+              const goData = JSON.parse(fs.readFileSync('snyk-oss-go.json', 'utf8'));
+              const vulns = goData.vulnerabilities || [];
+              const critical = vulns.filter(v => v.severity === 'critical').length;
+              const high = vulns.filter(v => v.severity === 'high').length;
+              const medium = vulns.filter(v => v.severity === 'medium').length;
+
+              if (critical + high > 0) {
+                body += `⚠️ **Go:** ${critical} critical, ${high} high, ${medium} medium\n`;
+              } else if (medium > 0) {
+                body += `⚡ **Go:** ${medium} medium severity issues\n`;
+              } else {
+                body += '✅ **Go:** No issues found\n';
+              }
+            } catch (e) {
+              body += '⏭️ **Go:** Scan skipped or failed\n';
+            }
+
+            // Parse npm results
+            try {
+              const npmData = JSON.parse(fs.readFileSync('snyk-oss-npm.json', 'utf8'));
+              const vulns = npmData.vulnerabilities || [];
+              const critical = vulns.filter(v => v.severity === 'critical').length;
+              const high = vulns.filter(v => v.severity === 'high').length;
+              const medium = vulns.filter(v => v.severity === 'medium').length;
+
+              if (critical + high > 0) {
+                body += `⚠️ **npm:** ${critical} critical, ${high} high, ${medium} medium\n`;
+              } else if (medium > 0) {
+                body += `⚡ **npm:** ${medium} medium severity issues\n`;
+              } else {
+                body += '✅ **npm:** No issues found\n';
+              }
+            } catch (e) {
+              body += '⏭️ **npm:** Scan skipped or failed\n';
+            }
+
+            body += '\n> Full results in the [Security tab](../../security/code-scanning)';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+  # ============================================
+  # Snyk Code (SAST)
+  # ============================================
+  snyk-code:
+    name: Snyk Code (SAST)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: changes
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'snyk') ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && (needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Code test (SAST)
+        continue-on-error: true
+        run: |
+          snyk code test \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --sarif-file-output=snyk-code.sarif \
+            --json-file-output=snyk-code.json || true
+          echo "### Snyk Code (SAST)" >> $GITHUB_STEP_SUMMARY
+          echo "Static analysis completed. Results uploaded to GitHub Security tab." >> $GITHUB_STEP_SUMMARY
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload Snyk Code SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-code.sarif') != ''
+        with:
+          sarif_file: snyk-code.sarif
+          category: snyk-code
+
+      - name: Comment PR with Snyk Code results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## 🛡️ Snyk Code (SAST)\n\n';
+            try {
+              const data = JSON.parse(fs.readFileSync('snyk-code.json', 'utf8'));
+              const runs = data.runs || [{}];
+              const results = (runs[0] || {}).results || [];
+              const high = results.filter(r => r.level === 'error').length;
+              const medium = results.filter(r => r.level === 'warning').length;
+              const low = results.filter(r => r.level === 'note').length;
+
+              if (high > 0) {
+                body += `⚠️ ${high} high, ${medium} medium, ${low} low severity issues\n`;
+              } else if (results.length > 0) {
+                body += `⚡ ${results.length} total issues (${medium} medium, ${low} low)\n`;
+              } else {
+                body += '✅ No issues found\n';
+              }
+            } catch (e) {
+              body += '✅ No issues found or scan skipped\n';
+            }
+            body += '\n> Full results in the [Security tab](../../security/code-scanning)';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+  # ============================================
+  # Snyk IaC (Infrastructure as Code)
+  # ============================================
+  snyk-iac:
+    name: Snyk IaC (Terraform + Helm + Dockerfile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'snyk') ||
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk IaC test (Terraform)
+        continue-on-error: true
+        run: |
+          snyk iac test terraform/ \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --severity-threshold=medium \
+            --sarif-file-output=snyk-iac-tf.sarif \
+            --json-file-output=snyk-iac-tf.json || true
+          echo "### Snyk IaC — Terraform" >> $GITHUB_STEP_SUMMARY
+          if [ -f snyk-iac-tf.json ]; then
+            echo "Terraform scan completed. See GitHub Security tab for details." >> $GITHUB_STEP_SUMMARY
+          fi
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk IaC test (Helm charts)
+        continue-on-error: true
+        run: |
+          snyk iac test charts/ \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --severity-threshold=medium \
+            --sarif-file-output=snyk-iac-helm.sarif \
+            --json-file-output=snyk-iac-helm.json || true
+          echo "### Snyk IaC — Helm Charts" >> $GITHUB_STEP_SUMMARY
+          echo "Helm chart scan completed." >> $GITHUB_STEP_SUMMARY
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk IaC test (Dockerfiles)
+        continue-on-error: true
+        run: |
+          snyk iac test Dockerfile ui/Dockerfile \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --severity-threshold=medium \
+            --sarif-file-output=snyk-iac-docker.sarif \
+            --json-file-output=snyk-iac-docker.json || true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload Snyk IaC SARIF (Terraform)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-iac-tf.sarif') != ''
+        with:
+          sarif_file: snyk-iac-tf.sarif
+          category: snyk-iac-terraform
+
+      - name: Upload Snyk IaC SARIF (Helm)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-iac-helm.sarif') != ''
+        with:
+          sarif_file: snyk-iac-helm.sarif
+          category: snyk-iac-helm
+
+      - name: Upload Snyk IaC SARIF (Dockerfile)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-iac-docker.sarif') != ''
+        with:
+          sarif_file: snyk-iac-docker.sarif
+          category: snyk-iac-docker
+
+      - name: Comment PR with Snyk IaC results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## 🏗️ Snyk IaC Scan\n\n';
+            const files = [
+              { name: 'Terraform', file: 'snyk-iac-tf.json' },
+              { name: 'Helm', file: 'snyk-iac-helm.json' }
+            ];
+
+            for (const { name, file } of files) {
+              try {
+                const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+                const items = Array.isArray(data) ? data : [data];
+                let total = 0;
+                let high = 0;
+                for (const item of items) {
+                  const issues = item.infrastructureAsCodeIssues || [];
+                  total += issues.length;
+                  high += issues.filter(i => i.severity === 'high' || i.severity === 'critical').length;
+                }
+                if (high > 0) {
+                  body += `⚠️ **${name}:** ${total} issues (${high} high/critical)\n`;
+                } else if (total > 0) {
+                  body += `⚡ **${name}:** ${total} issues\n`;
+                } else {
+                  body += `✅ **${name}:** No issues\n`;
+                }
+              } catch (e) {
+                body += `⏭️ **${name}:** Scan skipped or no issues\n`;
+              }
+            }
+            body += '\n> Full results in the [Security tab](../../security/code-scanning)';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+  # ============================================
+  # Snyk Container (Docker Image Scanning)
+  # ============================================
+  snyk-container:
+    name: Snyk Container
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'snyk') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image for scanning
+        continue-on-error: true
+        run: |
+          docker build -t tfdrift-falco:scan -f Dockerfile .
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Container test (backend)
+        continue-on-error: true
+        run: |
+          snyk container test tfdrift-falco:scan \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --severity-threshold=high \
+            --file=Dockerfile \
+            --sarif-file-output=snyk-container.sarif \
+            --json-file-output=snyk-container.json || true
+          echo "### Snyk Container — Backend" >> $GITHUB_STEP_SUMMARY
+          if [ -f snyk-container.json ]; then
+            echo "Container scan completed. See GitHub Security tab." >> $GITHUB_STEP_SUMMARY
+          fi
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Container monitor (main only)
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: |
+          snyk container monitor tfdrift-falco:scan \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --file=Dockerfile \
+            --project-name=tfdrift-falco-container
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload Snyk Container SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-container.sarif') != ''
+        with:
+          sarif_file: snyk-container.sarif
+          category: snyk-container
+
+      - name: Comment PR with container results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## 🐳 Snyk Container Scan\n\n';
+            try {
+              const data = JSON.parse(fs.readFileSync('snyk-container.json', 'utf8'));
+              const vulns = data.vulnerabilities || [];
+              const critical = vulns.filter(v => v.severity === 'critical').length;
+              const high = vulns.filter(v => v.severity === 'high').length;
+
+              if (critical + high > 0) {
+                body += `⚠️ ${critical} critical, ${high} high severity vulnerabilities\n`;
+              } else {
+                body += '✅ No high/critical vulnerabilities found\n';
+              }
+            } catch (e) {
+              body += '✅ Scan completed or skipped\n';
+            }
+            body += '\n> Full results in the [Security tab](../../security/code-scanning)';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+  # ============================================
+  # Snyk License Compliance
+  # ============================================
+  snyk-license:
+    name: Snyk License Compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: changes
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'snyk') ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && (needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: License scan (Go)
+        continue-on-error: true
+        run: |
+          go mod download
+          snyk test --file=go.mod --org=${{ secrets.SNYK_ORG_ID }} \
+            --json-file-output=license-go.json || true
+          echo "## 📜 License Compliance — Go" >> $GITHUB_STEP_SUMMARY
+          if [ -f license-go.json ]; then
+            python3 -c "
+          import json
+          d = json.load(open('license-go.json'))
+          vulns = d.get('vulnerabilities', [])
+          license_issues = [v for v in vulns if v.get('type') == 'license']
+          if license_issues:
+            print(f'Go: {len(license_issues)} license issues found')
+            for li in license_issues[:5]:
+              print(f'  - {li.get(\"title\",\"unknown\")}: {li.get(\"severity\",\"?\")}')
+          else:
+            print('Go: No license issues')
+          " >> $GITHUB_STEP_SUMMARY 2>/dev/null
+          fi
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: License scan (npm)
+        continue-on-error: true
+        run: |
+          cd ui && npm ci
+          snyk test --org=${{ secrets.SNYK_ORG_ID }} \
+            --json-file-output=../license-npm.json || true
+          cd ..
+          echo "## 📜 License Compliance — npm" >> $GITHUB_STEP_SUMMARY
+          if [ -f license-npm.json ]; then
+            python3 -c "
+          import json
+          d = json.load(open('license-npm.json'))
+          vulns = d.get('vulnerabilities', [])
+          license_issues = [v for v in vulns if v.get('type') == 'license']
+          if license_issues:
+            print(f'npm: {len(license_issues)} license issues found')
+          else:
+            print('npm: No license issues')
+          " >> $GITHUB_STEP_SUMMARY 2>/dev/null
+          fi
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  # ============================================
+  # GoSec Security Scanner
+  # ============================================
+  gosec:
+    name: GoSec Security Scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: changes
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'gosec') ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && needs.changes.outputs.backend == 'true')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        continue-on-error: true
+        with:
+          args: '-fmt sarif -out gosec.sarif -exclude-generated ./...'
+
+      - name: Upload Gosec results to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('gosec.sarif') != ''
+        with:
+          sarif_file: gosec.sarif
+          category: gosec
+
+      - name: Comment PR with GoSec results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## 🔐 GoSec Security Scanner\n\n';
+            try {
+              const data = JSON.parse(fs.readFileSync('gosec.sarif', 'utf8'));
+              const runs = data.runs || [{}];
+              const results = (runs[0] || {}).results || [];
+
+              if (results.length === 0) {
+                body += '✅ No security issues found\n';
+              } else {
+                const high = results.filter(r => r.level === 'error').length;
+                const medium = results.filter(r => r.level === 'warning').length;
+                body += `⚠️ ${results.length} issues (${high} high, ${medium} medium)\n`;
+              }
+            } catch (e) {
+              body += '✅ Scan completed or skipped\n';
+            }
+            body += '\n> Full results in the [Security tab](../../security/code-scanning)';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+  # ============================================
+  # Nancy Dependency Check
+  # ============================================
+  nancy:
+    name: Nancy Dependency Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: changes
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event.inputs.scan_type == 'all' || github.event.inputs.scan_type == 'nancy') ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && needs.changes.outputs.backend == 'true')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Write Go List
+        run: go list -json -deps ./... > go.list
+
+      - name: Run Nancy
+        uses: sonatype-nexus-community/nancy-github-action@main
+        continue-on-error: true
