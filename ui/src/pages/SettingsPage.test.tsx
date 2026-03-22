@@ -3,8 +3,15 @@ import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 
-vi.mock('lucide-react', () => new Proxy({}, {
-  get: (_, name) => () => <div data-testid={`icon-${String(name)}`} />,
+vi.mock('lucide-react', () => ({
+  Plus: () => <div data-testid="icon-Plus" />,
+  Trash2: () => <div data-testid="icon-Trash2" />,
+  TestTube: () => <div data-testid="icon-TestTube" />,
+  Save: () => <div data-testid="icon-Save" />,
+  Webhook: () => <div data-testid="icon-Webhook" />,
+  Shield: () => <div data-testid="icon-Shield" />,
+  Cloud: () => <div data-testid="icon-Cloud" />,
+  Settings: () => <div data-testid="icon-Settings" />,
 }));
 
 vi.mock('../api/client', () => ({
@@ -14,7 +21,7 @@ vi.mock('../api/client', () => ({
   },
 }));
 
-import SettingsPage from './SettingsPage';
+import { SettingsPage } from './SettingsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, gcTime: 0 } },

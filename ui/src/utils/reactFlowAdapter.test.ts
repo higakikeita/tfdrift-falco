@@ -81,7 +81,7 @@ describe('reactFlowAdapter', () => {
         type: 'custom',
         data: {
           label: 'IAM Role',
-          type: 'aws_iam_role',
+          type: 'iam_role',
           severity: 'high'
         }
       });

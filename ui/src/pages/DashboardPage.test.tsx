@@ -3,8 +3,11 @@ import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 
-vi.mock('lucide-react', () => new Proxy({}, {
-  get: (_, name) => () => <div data-testid={`icon-${String(name)}`} />,
+vi.mock('lucide-react', () => ({
+  Activity: () => <div data-testid="icon-Activity" />,
+  AlertTriangle: () => <div data-testid="icon-AlertTriangle" />,
+  CheckCircle: () => <div data-testid="icon-CheckCircle" />,
+  Cloud: () => <div data-testid="icon-Cloud" />,
 }));
 
 vi.mock('../api/client', () => ({
@@ -22,7 +25,7 @@ vi.mock('../api/sse', () => ({
   sseClient: { connect: vi.fn(), disconnect: vi.fn(), on: vi.fn(), off: vi.fn() },
 }));
 
-import DashboardPage from './DashboardPage';
+import { DashboardPage } from './DashboardPage';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, gcTime: 0 } },

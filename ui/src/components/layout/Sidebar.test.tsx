@@ -14,9 +14,10 @@ vi.mock('lucide-react', () => ({
   ChevronRight: () => <div data-testid="chevron-right" />,
   GitCompare: () => <div data-testid="git-compare" />,
   Activity: () => <div data-testid="activity-icon" />,
+  Shield: () => <div data-testid="shield-icon" />,
 }));
 
-import Sidebar from './Sidebar';
+import { Sidebar } from './Sidebar';
 
 const renderSidebar = () => {
   return render(

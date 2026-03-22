@@ -271,9 +271,9 @@ func extractResourceName(resourceID string) string {
 
 // extractResourceGroup extracts the resource group from an Azure resource ID
 func extractResourceGroup(resourceID string) string {
-	parts := strings.Split(strings.ToLower(resourceID), "/")
+	parts := strings.Split(resourceID, "/")
 	for i, part := range parts {
-		if part == "resourcegroups" && i+1 < len(parts) {
+		if strings.EqualFold(part, "resourcegroups") && i+1 < len(parts) {
 			return parts[i+1]
 		}
 	}
@@ -282,9 +282,9 @@ func extractResourceGroup(resourceID string) string {
 
 // extractSubscriptionID extracts the subscription ID from an Azure resource ID
 func extractSubscriptionID(resourceID string) string {
-	parts := strings.Split(strings.ToLower(resourceID), "/")
+	parts := strings.Split(resourceID, "/")
 	for i, part := range parts {
-		if part == "subscriptions" && i+1 < len(parts) {
+		if strings.EqualFold(part, "subscriptions") && i+1 < len(parts) {
 			return parts[i+1]
 		}
 	}

@@ -2,11 +2,13 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-vi.mock('lucide-react', () => new Proxy({}, {
-  get: (_, name) => () => <div data-testid={`icon-${String(name)}`} />,
+vi.mock('lucide-react', () => ({
+  ArrowUpDown: () => <div data-testid="icon-ArrowUpDown" />,
+  ChevronLeft: () => <div data-testid="icon-ChevronLeft" />,
+  ChevronRight: () => <div data-testid="icon-ChevronRight" />,
 }));
 
-import EventTable from './EventTable';
+import { EventTable } from './EventTable';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -16,35 +18,39 @@ const mockEvents = [
   {
     id: 'evt-1',
     provider: 'aws',
-    event_name: 'ModifySecurityGroupRules',
-    resource_type: 'aws_security_group',
-    resource_id: 'sg-12345',
-    user_identity: 'admin',
     timestamp: '2026-03-22T10:00:00Z',
     severity: 'critical',
-    status: 'open',
+    resourceType: 'aws_security_group',
+    resourceId: 'sg-12345',
+    resourceName: 'SecurityGroup-1',
+    changeType: 'modified',
+    attribute: 'ingress_rules',
+    oldValue: null,
+    newValue: null,
+    userIdentity: { type: 'IAMUser', userName: 'admin', arn: 'arn:aws:iam::123456789:user/admin', accountId: '123456789' },
     region: 'us-east-1',
-    service_name: 'EC2',
   },
   {
     id: 'evt-2',
     provider: 'gcp',
-    event_name: 'compute.firewalls.patch',
-    resource_type: 'google_compute_firewall',
-    resource_id: 'fw-allow-ssh',
-    user_identity: 'user@project.iam.gserviceaccount.com',
     timestamp: '2026-03-22T09:00:00Z',
     severity: 'high',
-    status: 'acknowledged',
+    resourceType: 'google_compute_firewall',
+    resourceId: 'fw-allow-ssh',
+    resourceName: 'firewall-allow-ssh',
+    changeType: 'modified',
+    attribute: 'source_ranges',
+    oldValue: null,
+    newValue: null,
+    userIdentity: { type: 'ServiceAccount', userName: 'user@project.iam.gserviceaccount.com', arn: '', accountId: '' },
     region: 'us-central1',
-    service_name: 'Compute Engine',
   },
 ];
 
-const renderTable = (events = mockEvents, onSelect = vi.fn()) => {
+const renderTable = (events = mockEvents, onEventClick = vi.fn()) => {
   return render(
     <QueryClientProvider client={queryClient}>
-      <EventTable events={events} onSelectEvent={onSelect} />
+      <EventTable events={events} onEventClick={onEventClick} />
     </QueryClientProvider>
   );
 };

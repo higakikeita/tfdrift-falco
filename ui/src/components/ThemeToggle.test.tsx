@@ -6,7 +6,15 @@ vi.mock('lucide-react', () => ({
   Moon: () => <div data-testid="moon-icon" />,
 }));
 
-import ThemeToggle from './ThemeToggle';
+vi.mock('../hooks/useTheme', () => ({
+  useTheme: () => ({
+    theme: 'light',
+    setTheme: vi.fn(),
+    toggleTheme: vi.fn(),
+  }),
+}));
+
+import { ThemeToggle } from './ThemeToggle';
 
 describe('ThemeToggle', () => {
   it('should render without crashing', () => {
