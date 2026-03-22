@@ -1,4 +1,4 @@
-.PHONY: build test clean install lint fmt help
+.PHONY: build test clean install lint fmt help setup-hooks
 
 # Variables
 BINARY_NAME=tfdrift
@@ -183,6 +183,14 @@ run-dry: build
 	@echo "Running $(BINARY_NAME) in dry-run mode..."
 	$(BUILD_DIR)/$(BINARY_NAME) --config examples/config.yaml --dry-run
 
+## setup-hooks: Install pre-commit hooks
+setup-hooks:
+	@echo "Installing pre-commit hooks..."
+	@which pre-commit > /dev/null || (echo "pre-commit not installed. Run: pip install pre-commit" && exit 1)
+	pre-commit install
+	pre-commit install --hook-type commit-msg
+	@echo "Pre-commit hooks installed!"
+
 ## init: Initialize development environment
 init:
 	@echo "Initializing development environment..."
@@ -190,6 +198,8 @@ init:
 	@echo "Installing development tools..."
 	$(GO) install golang.org/x/tools/cmd/goimports@latest
 	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@echo "Setting up pre-commit hooks (if pre-commit is available)..."
+	@which pre-commit > /dev/null && $(MAKE) setup-hooks || echo "pre-commit not found, skipping hooks setup"
 	@echo "Development environment ready!"
 
 ## check: Run all checks (fmt, lint, test)
