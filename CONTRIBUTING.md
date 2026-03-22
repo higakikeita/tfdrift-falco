@@ -66,13 +66,31 @@ git remote add upstream https://github.com/higakikeita/tfdrift-falco.git
 ### 2. Install Dependencies
 
 ```bash
-# Download Go dependencies
-go mod download
+# Initialize development environment (deps + tools + hooks)
+make init
 
-# Install development tools
+# Or manually:
+go mod download
 go install golang.org/x/tools/cmd/goimports@latest
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 ```
+
+### 2b. Set Up Pre-commit Hooks (Recommended)
+
+Pre-commit hooks enforce code quality and conventional commit messages automatically:
+
+```bash
+# Install pre-commit (if not already installed)
+pip install pre-commit
+
+# Install hooks (done automatically by `make init` if pre-commit is available)
+make setup-hooks
+```
+
+This installs hooks for:
+- Trailing whitespace, end-of-file fixes, YAML/JSON validation
+- Go formatting (`gofmt`), vetting (`go vet`), module tidying
+- Conventional commit message validation (commit-msg hook)
 
 ### 3. Build the Project
 
@@ -339,8 +357,16 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 - `docs:` Documentation changes
 - `style:` Code style changes (formatting, etc.)
 - `refactor:` Code refactoring
+- `perf:` Performance improvement
 - `test:` Adding or updating tests
-- `chore:` Build process or auxiliary tool changes
+- `build:` Build system or external dependencies
+- `ci:` CI/CD configuration
+- `chore:` Maintenance tasks
+- `revert:` Revert a previous commit
+- `deps:` Dependency updates
+- `release:` Release commits
+
+Commit messages are validated by pre-commit hooks (see [commitlint.config.js](commitlint.config.js)).
 
 ### Examples
 
