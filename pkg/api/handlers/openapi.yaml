@@ -1,0 +1,886 @@
+openapi: "3.0.3"
+info:
+  title: TFDrift-Falco API
+  description: |
+    Real-time, multi-cloud Terraform drift detection API with Falco integration.
+    Supports AWS CloudTrail, GCP Audit Logs, and Azure Activity Logs.
+  version: "0.8.0"
+  contact:
+    name: Keita Higaki
+    url: https://github.com/higakikeita/tfdrift-falco
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Local development
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Events
+    description: Cloud change event management
+  - name: Drifts
+    description: Terraform drift alerts
+  - name: Stats
+    description: System statistics
+  - name: Analytics
+    description: Dashboard analytics
+  - name: Graph
+    description: Resource dependency graph
+  - name: Graph Query
+    description: Advanced graph queries (Neo4j-style)
+  - name: State
+    description: Terraform state management
+  - name: Discovery
+    description: AWS resource discovery and drift detection
+  - name: Config
+    description: Configuration and version
+  - name: Auth
+    description: Authentication and API key management
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    APIResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          description: Response payload (varies by endpoint)
+        error:
+          $ref: "#/components/schemas/APIError"
+
+    APIError:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        details:
+          type: string
+
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+        provider:
+          type: string
+          enum: [aws, gcp, azure]
+        event_name:
+          type: string
+        resource_type:
+          type: string
+        resource_id:
+          type: string
+        user_identity:
+          type: string
+        changes:
+          type: object
+        region:
+          type: string
+        project_id:
+          type: string
+        service_name:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        severity:
+          type: string
+          enum: [critical, high, medium, low]
+        status:
+          type: string
+          enum: [open, acknowledged, ignored, resolved]
+        status_reason:
+          type: string
+
+    DriftAlert:
+      type: object
+      properties:
+        id:
+          type: string
+        severity:
+          type: string
+          enum: [critical, high, medium, low]
+        resource_type:
+          type: string
+        resource_name:
+          type: string
+        resource_id:
+          type: string
+        attribute:
+          type: string
+        old_value:
+          type: string
+        new_value:
+          type: string
+        user_identity:
+          type: string
+        matched_rules:
+          type: array
+          items:
+            type: string
+        timestamp:
+          type: string
+          format: date-time
+        alert_type:
+          type: string
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    TokenRequest:
+      type: object
+      required: [subject]
+      properties:
+        subject:
+          type: string
+
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        expires_in:
+          type: string
+
+    CreateAPIKeyRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+
+    CreateAPIKeyResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        key:
+          type: string
+          description: Only returned at creation time
+        scopes:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+
+    APIKeyInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        prefix:
+          type: string
+          description: Masked key value
+        scopes:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+
+    GraphNode:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            label:
+              type: string
+            type:
+              type: string
+            resource_type:
+              type: string
+            resource_name:
+              type: string
+            severity:
+              type: string
+            metadata:
+              type: object
+
+    GraphEdge:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            source:
+              type: string
+            target:
+              type: string
+            label:
+              type: string
+            type:
+              type: string
+            relationship:
+              type: string
+
+    UpdateEventStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [open, acknowledged, ignored, resolved]
+        reason:
+          type: string
+          description: Required when status is "ignored"
+
+    WebhookTestRequest:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
+
+    GraphMatchRequest:
+      type: object
+      properties:
+        start_labels:
+          type: array
+          items:
+            type: string
+        rel_type:
+          type: string
+        end_labels:
+          type: array
+          items:
+            type: string
+        end_filter:
+          type: object
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      security: []
+      responses:
+        "200":
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /api/v1/health:
+    get:
+      tags: [Health]
+      summary: Health check (API prefix)
+      security: []
+      responses:
+        "200":
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /api/v1/version:
+    get:
+      tags: [Config]
+      summary: Get API version
+      security: []
+      responses:
+        "200":
+          description: Version information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIResponse"
+
+  /api/v1/events:
+    get:
+      tags: [Events]
+      summary: List events
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: severity
+          in: query
+          schema: { type: string, enum: [critical, high, medium, low] }
+        - name: provider
+          in: query
+          schema: { type: string, enum: [aws, gcp, azure] }
+        - name: status
+          in: query
+          schema: { type: string, enum: [open, acknowledged, ignored, resolved] }
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          schema: { type: string, format: date-time }
+        - name: sort
+          in: query
+          schema: { type: string }
+        - name: order
+          in: query
+          schema: { type: string, enum: [asc, desc] }
+      responses:
+        "200":
+          description: Paginated list of events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponse"
+        "401":
+          description: Unauthorized
+
+  /api/v1/events/{id}:
+    get:
+      tags: [Events]
+      summary: Get event by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIResponse"
+        "404":
+          description: Event not found
+    patch:
+      tags: [Events]
+      summary: Update event status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEventStatusRequest"
+      responses:
+        "200":
+          description: Updated event
+        "400":
+          description: Invalid status or missing reason
+        "404":
+          description: Event not found
+
+  /api/v1/drifts:
+    get:
+      tags: [Drifts]
+      summary: List drift alerts
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: severity
+          in: query
+          schema: { type: string, enum: [critical, high, medium, low] }
+        - name: resource_type
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Paginated list of drift alerts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponse"
+
+  /api/v1/drifts/{id}:
+    get:
+      tags: [Drifts]
+      summary: Get drift alert by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Drift alert details
+        "404":
+          description: Drift alert not found
+
+  /api/v1/stats:
+    get:
+      tags: [Stats]
+      summary: Get system statistics
+      responses:
+        "200":
+          description: System statistics including graph, drifts, events, and severity breakdown
+
+  /api/v1/analytics/summary:
+    get:
+      tags: [Analytics]
+      summary: Get analytics summary
+      responses:
+        "200":
+          description: Summary with total events, severity counts, providers, resolved rate
+
+  /api/v1/analytics/timeline:
+    get:
+      tags: [Analytics]
+      summary: Get event timeline (7-day)
+      responses:
+        "200":
+          description: Array of daily event counts by provider
+
+  /api/v1/analytics/breakdown:
+    get:
+      tags: [Analytics]
+      summary: Get event breakdown
+      responses:
+        "200":
+          description: Breakdown by provider, service, and severity
+
+  /api/v1/graph:
+    get:
+      tags: [Graph]
+      summary: Get full graph (Cytoscape format)
+      responses:
+        "200":
+          description: Full graph with nodes and edges arrays
+
+  /api/v1/graph/nodes:
+    get:
+      tags: [Graph]
+      summary: List graph nodes
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        "200":
+          description: Paginated list of graph nodes
+
+  /api/v1/graph/edges:
+    get:
+      tags: [Graph]
+      summary: List graph edges
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        "200":
+          description: Paginated list of graph edges
+
+  /api/v1/graph/nodes/{id}:
+    get:
+      tags: [Graph Query]
+      summary: Get node by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Node details
+        "404":
+          description: Node not found
+
+  /api/v1/graph/path:
+    get:
+      tags: [Graph Query]
+      summary: Find path between nodes
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema: { type: string }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Path with nodes and length
+        "400":
+          description: Missing from/to parameters
+
+  /api/v1/graph/impact/{id}:
+    get:
+      tags: [Graph Query]
+      summary: Get impact radius of a node
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: depth
+          in: query
+          schema: { type: integer, default: 3, minimum: 1, maximum: 10 }
+      responses:
+        "200":
+          description: Affected nodes within depth
+
+  /api/v1/graph/dependencies/{id}:
+    get:
+      tags: [Graph Query]
+      summary: Get node dependencies
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: depth
+          in: query
+          schema: { type: integer, default: 5, minimum: 1, maximum: 10 }
+      responses:
+        "200":
+          description: Dependency tree
+
+  /api/v1/graph/dependents/{id}:
+    get:
+      tags: [Graph Query]
+      summary: Get node dependents
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: depth
+          in: query
+          schema: { type: integer, default: 5, minimum: 1, maximum: 10 }
+      responses:
+        "200":
+          description: Dependent nodes
+
+  /api/v1/graph/critical:
+    get:
+      tags: [Graph Query]
+      summary: Get critical nodes (high dependency count)
+      parameters:
+        - name: min
+          in: query
+          schema: { type: integer, default: 3 }
+          description: Minimum dependent count threshold
+      responses:
+        "200":
+          description: List of critical nodes
+
+  /api/v1/graph/neighbors/{id}:
+    get:
+      tags: [Graph Query]
+      summary: Get node neighbors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Adjacent nodes
+
+  /api/v1/graph/relationships/{id}:
+    get:
+      tags: [Graph Query]
+      summary: Get node relationships
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: direction
+          in: query
+          schema: { type: string, enum: [outgoing, incoming, both], default: both }
+      responses:
+        "200":
+          description: Node relationships
+
+  /api/v1/graph/stats:
+    get:
+      tags: [Graph Query]
+      summary: Get graph statistics
+      responses:
+        "200":
+          description: Node and relationship counts by type
+
+  /api/v1/graph/match:
+    post:
+      tags: [Graph Query]
+      summary: Match graph pattern
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GraphMatchRequest"
+      responses:
+        "200":
+          description: Pattern matching results
+
+  /api/v1/state:
+    get:
+      tags: [State]
+      summary: Get Terraform state summary
+      responses:
+        "200":
+          description: State metadata (version, serial, resource count)
+
+  /api/v1/state/resources:
+    get:
+      tags: [State]
+      summary: List Terraform resources
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: Paginated list of Terraform resources
+
+  /api/v1/state/resource/{id}:
+    get:
+      tags: [State]
+      summary: Get Terraform resource by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Resource details
+        "404":
+          description: Resource not found
+
+  /api/v1/discovery/scan:
+    get:
+      tags: [Discovery]
+      summary: Discover AWS resources
+      parameters:
+        - name: region
+          in: query
+          schema: { type: string, default: us-east-1 }
+      responses:
+        "200":
+          description: Discovered AWS resources
+
+  /api/v1/discovery/drift:
+    get:
+      tags: [Discovery]
+      summary: Detect drift between Terraform and AWS
+      parameters:
+        - name: region
+          in: query
+          schema: { type: string, default: us-east-1 }
+      responses:
+        "200":
+          description: Drift detection results (unmanaged, missing, modified)
+
+  /api/v1/discovery/drift/summary:
+    get:
+      tags: [Discovery]
+      summary: Get drift detection summary
+      parameters:
+        - name: region
+          in: query
+          schema: { type: string, default: us-east-1 }
+      responses:
+        "200":
+          description: Drift summary with counts and breakdown by type
+
+  /api/v1/config:
+    get:
+      tags: [Config]
+      summary: Get current configuration (safe subset)
+      responses:
+        "200":
+          description: Provider and notification configuration
+
+  /api/v1/config/webhooks/test:
+    post:
+      tags: [Config]
+      summary: Test webhook URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookTestRequest"
+      responses:
+        "200":
+          description: Webhook test result
+        "400":
+          description: Invalid URL
+
+  /api/v1/stream:
+    get:
+      tags: [Events]
+      summary: Server-Sent Events stream
+      description: Real-time event stream via SSE. Sends drift events, notifications, and system events.
+      responses:
+        "200":
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /ws:
+    get:
+      tags: [Events]
+      summary: WebSocket connection
+      description: Real-time bidirectional communication for live graph updates and event notifications.
+      responses:
+        "101":
+          description: WebSocket upgrade
+
+  /api/v1/auth/token:
+    post:
+      tags: [Auth]
+      summary: Generate JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRequest"
+      responses:
+        "200":
+          description: JWT token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/APIResponse"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/TokenResponse"
+        "400":
+          description: Invalid request
+
+  /api/v1/auth/api-keys:
+    get:
+      tags: [Auth]
+      summary: List API keys (masked)
+      responses:
+        "200":
+          description: List of API keys with masked values
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/APIResponse"
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/APIKeyInfo"
+    post:
+      tags: [Auth]
+      summary: Create API key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAPIKeyRequest"
+      responses:
+        "201":
+          description: Created API key (key shown only once)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/APIResponse"
+                  - properties:
+                      data:
+                        $ref: "#/components/schemas/CreateAPIKeyResponse"
+        "400":
+          description: Invalid request
+    delete:
+      tags: [Auth]
+      summary: Revoke API key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+      responses:
+        "200":
+          description: API key revoked
+        "404":
+          description: API key not found
