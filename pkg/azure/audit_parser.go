@@ -6,6 +6,7 @@ import (
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/keitahigaki/tfdrift-falco/pkg/util"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -158,10 +159,7 @@ func (p *AuditParser) extractChanges(operationName string, fields map[string]str
 
 // getAzureStringField safely gets a string field from Falco output fields
 func getAzureStringField(fields map[string]string, key string) string {
-	if val, ok := fields[key]; ok {
-		return val
-	}
-	return ""
+	return util.GetStringField(fields, key)
 }
 
 // ParseEvent parses an Azure Activity Log event and returns drift event data
@@ -251,42 +249,24 @@ type DriftEvent struct {
 }
 
 func getStringField(m map[string]interface{}, key string) string {
-	if v, ok := m[key]; ok {
-		if s, ok := v.(string); ok {
-			return s
-		}
-	}
-	return ""
+	return util.GetInterfaceStringField(m, key)
 }
 
 // extractResourceName extracts the resource name from an Azure resource ID
 // e.g., "/subscriptions/.../resourceGroups/myRG/providers/Microsoft.Compute/virtualMachines/myVM" -> "myVM"
 func extractResourceName(resourceID string) string {
-	parts := strings.Split(resourceID, "/")
-	if len(parts) > 0 {
-		return parts[len(parts)-1]
+	if name := util.ExtractLastPathSegment(resourceID); name != "" {
+		return name
 	}
 	return resourceID
 }
 
 // extractResourceGroup extracts the resource group from an Azure resource ID
 func extractResourceGroup(resourceID string) string {
-	parts := strings.Split(resourceID, "/")
-	for i, part := range parts {
-		if strings.EqualFold(part, "resourcegroups") && i+1 < len(parts) {
-			return parts[i+1]
-		}
-	}
-	return ""
+	return util.ExtractPathSegment(resourceID, "resourcegroups")
 }
 
 // extractSubscriptionID extracts the subscription ID from an Azure resource ID
 func extractSubscriptionID(resourceID string) string {
-	parts := strings.Split(resourceID, "/")
-	for i, part := range parts {
-		if strings.EqualFold(part, "subscriptions") && i+1 < len(parts) {
-			return parts[i+1]
-		}
-	}
-	return ""
+	return util.ExtractPathSegment(resourceID, "subscriptions")
 }
