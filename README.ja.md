@@ -1224,14 +1224,36 @@ make build
 
 ### セキュリティスキャン
 
-すべてのコミットで複数のセキュリティツールが実行されます:
-- **Snyk**: 依存関係の脆弱性スキャン
-- **GoSec**: Goコードセキュリティ監査
-- **Nancy**: OSS依存関係スキャナー
+**Snyk** フルスイートと追加ツールによる包括的セキュリティスキャン:
+
+| スキャン種別 | ツール | 検査対象 | トリガー |
+|-------------|--------|---------|---------|
+| **Open Source (SCA)** | Snyk OSS | Go & npm依存関係の脆弱性 | push/PR毎 |
+| **SAST** | Snyk Code | ソースコードのセキュリティ問題（インジェクション、XSS等） | push/PR毎 |
+| **IaC** | Snyk IaC | Terraform、Helmチャート、Dockerfileの設定不備 | push/PR毎 |
+| **Container** | Snyk Container | DockerイメージのOS・ライブラリ脆弱性 | mainブランチ + 週次 |
+| **License** | Snyk License | 依存関係のライセンスコンプライアンス | 週次 |
+| **Go Security** | GoSec | Go固有のセキュリティパターン | push/PR毎 |
+| **Dependency** | Nancy | OSS脆弱性DB（Sonatype） | push/PR毎 |
+
+全SARIF結果はGitHub **Security** タブに統合表示されます。
 
 ローカルセキュリティスキャン実行:
 ```bash
-./scripts/security-scan.sh
+# Snyk CLIインストール
+npm install -g snyk && snyk auth
+
+# Open Sourceスキャン
+snyk test --file=go.mod
+
+# SASTスキャン
+snyk code test
+
+# IaCスキャン
+snyk iac test terraform/ charts/ Dockerfile
+
+# Containerスキャン（Docker必要）
+docker build -t tfdrift-falco:scan . && snyk container test tfdrift-falco:scan --file=Dockerfile
 ```
 
 セキュリティポリシーと脆弱性報告については[SECURITY.md](SECURITY.md)を参照してください。
