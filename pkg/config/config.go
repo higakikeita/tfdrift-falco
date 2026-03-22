@@ -17,7 +17,39 @@ type Config struct {
 	Notifications NotificationsConfig `yaml:"notifications"`
 	Logging       LoggingConfig       `yaml:"logging"`
 	AutoImport    AutoImportConfig    `yaml:"auto_import"`
+	API           APIConfig           `yaml:"api"`
 	DryRun        bool                `yaml:"-"`
+}
+
+// APIConfig contains API server settings
+type APIConfig struct {
+	Auth      AuthConfig      `yaml:"auth"`
+	RateLimit RateLimitConfig `yaml:"rate_limit"`
+}
+
+// AuthConfig contains authentication settings
+type AuthConfig struct {
+	Enabled   bool          `yaml:"enabled" mapstructure:"enabled"`
+	JWTSecret string        `yaml:"jwt_secret" mapstructure:"jwt_secret"`
+	JWTIssuer string        `yaml:"jwt_issuer" mapstructure:"jwt_issuer"`
+	JWTExpiry string        `yaml:"jwt_expiry" mapstructure:"jwt_expiry"`
+	APIKeys   []APIKeyEntry `yaml:"api_keys" mapstructure:"api_keys"`
+}
+
+// APIKeyEntry represents a configured API key
+type APIKeyEntry struct {
+	Name      string   `yaml:"name" mapstructure:"name"`
+	Key       string   `yaml:"key" mapstructure:"key"`
+	Scopes    []string `yaml:"scopes" mapstructure:"scopes"`
+	CreatedAt string   `yaml:"created_at" mapstructure:"created_at"`
+}
+
+// RateLimitConfig contains rate limiting settings
+type RateLimitConfig struct {
+	Enabled          bool `yaml:"enabled" mapstructure:"enabled"`
+	RequestsPerMin   int  `yaml:"requests_per_minute" mapstructure:"requests_per_minute"`
+	BurstSize        int  `yaml:"burst_size" mapstructure:"burst_size"`
+	CleanupInterval  string `yaml:"cleanup_interval" mapstructure:"cleanup_interval"`
 }
 
 // ProvidersConfig contains cloud provider settings
