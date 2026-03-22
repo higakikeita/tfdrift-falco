@@ -1344,14 +1344,36 @@ make build
 
 ### Security Scanning
 
-Multiple security tools run on every commit:
-- **Snyk**: Dependency vulnerability scanning
-- **GoSec**: Go code security audit
-- **Nancy**: OSS dependency scanner
+Comprehensive security scanning powered by **Snyk** (full suite) and additional tools:
+
+| Scan Type | Tool | What It Checks | Trigger |
+|-----------|------|----------------|---------|
+| **Open Source (SCA)** | Snyk OSS | Go & npm dependency vulnerabilities | Every push/PR |
+| **SAST** | Snyk Code | Source code security issues (injection, XSS, etc.) | Every push/PR |
+| **IaC** | Snyk IaC | Terraform, Helm charts, Dockerfiles misconfigurations | Every push/PR |
+| **Container** | Snyk Container | Docker image OS & library vulnerabilities | Main branch + weekly |
+| **License** | Snyk License | Dependency license compliance | Weekly |
+| **Go Security** | GoSec | Go-specific security patterns | Every push/PR |
+| **Dependency** | Nancy | OSS vulnerability database (Sonatype) | Every push/PR |
+
+All SARIF results are uploaded to the GitHub **Security** tab for unified visibility.
 
 Run local security scans:
 ```bash
-./scripts/security-scan.sh
+# Install Snyk CLI
+npm install -g snyk && snyk auth
+
+# Open Source scan
+snyk test --file=go.mod
+
+# SAST scan
+snyk code test
+
+# IaC scan
+snyk iac test terraform/ charts/ Dockerfile
+
+# Container scan (requires Docker)
+docker build -t tfdrift-falco:scan . && snyk container test tfdrift-falco:scan --file=Dockerfile
 ```
 
 See [SECURITY.md](SECURITY.md) for security policy and reporting vulnerabilities.

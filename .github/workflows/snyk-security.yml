@@ -1,0 +1,554 @@
+name: Snyk Security Dashboard
+
+on:
+  # Run on PRs for delta scanning
+  pull_request:
+    branches: [main, develop]
+  # Weekly full scan
+  schedule:
+    - cron: '0 6 * * 1'
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Scan type to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - open-source
+          - code
+          - iac
+          - container
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+env:
+  GO_VERSION: '1.24'
+  NODE_VERSION: '20'
+  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+  SNYK_ORG: ${{ secrets.SNYK_ORG_ID }}
+
+jobs:
+  # ===== Snyk Open Source — Dependency Vulnerabilities =====
+  open-source:
+    name: "Open Source (SCA)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: |
+      github.event.inputs.scan_type == 'all' ||
+      github.event.inputs.scan_type == 'open-source' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'schedule'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Go dependencies scan
+        id: go_scan
+        continue-on-error: true
+        run: |
+          go mod download
+          snyk test --file=go.mod --org=$SNYK_ORG \
+            --json-file-output=go-results.json 2>&1 | tee go-scan.txt
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+
+      - name: npm dependencies scan
+        id: npm_scan
+        continue-on-error: true
+        run: |
+          cd ui && npm ci
+          snyk test --org=$SNYK_ORG \
+            --json-file-output=../npm-results.json 2>&1 | tee ../npm-scan.txt
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+
+      - name: Generate scan summary
+        if: always()
+        run: |
+          echo "## 🔍 Snyk Open Source Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Go results
+          echo "### Go Dependencies (go.mod)" >> $GITHUB_STEP_SUMMARY
+          if [ -f go-results.json ]; then
+            CRITICAL=$(python3 -c "import json; d=json.load(open('go-results.json')); print(sum(1 for v in d.get('vulnerabilities',[]) if v.get('severity')=='critical'))" 2>/dev/null || echo "?")
+            HIGH=$(python3 -c "import json; d=json.load(open('go-results.json')); print(sum(1 for v in d.get('vulnerabilities',[]) if v.get('severity')=='high'))" 2>/dev/null || echo "?")
+            MEDIUM=$(python3 -c "import json; d=json.load(open('go-results.json')); print(sum(1 for v in d.get('vulnerabilities',[]) if v.get('severity')=='medium'))" 2>/dev/null || echo "?")
+            LOW=$(python3 -c "import json; d=json.load(open('go-results.json')); print(sum(1 for v in d.get('vulnerabilities',[]) if v.get('severity')=='low'))" 2>/dev/null || echo "?")
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            echo "| Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+            echo "| Low | $LOW |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No results generated." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # npm results
+          echo "### npm Dependencies (ui/package.json)" >> $GITHUB_STEP_SUMMARY
+          if [ -f npm-results.json ]; then
+            CRITICAL=$(python3 -c "import json; d=json.load(open('npm-results.json')); print(sum(1 for v in d.get('vulnerabilities',[]) if v.get('severity')=='critical'))" 2>/dev/null || echo "?")
+            HIGH=$(python3 -c "import json; d=json.load(open('npm-results.json')); print(sum(1 for v in d.get('vulnerabilities',[]) if v.get('severity')=='high'))" 2>/dev/null || echo "?")
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No results generated." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## 🔍 Snyk Open Source Scan\n\n';
+
+            // Parse Go results
+            try {
+              const goData = JSON.parse(fs.readFileSync('go-results.json', 'utf8'));
+              const vulns = goData.vulnerabilities || [];
+              const critical = vulns.filter(v => v.severity === 'critical').length;
+              const high = vulns.filter(v => v.severity === 'high').length;
+              const medium = vulns.filter(v => v.severity === 'medium').length;
+
+              if (critical + high > 0) {
+                body += `⚠️ **Go:** ${critical} critical, ${high} high, ${medium} medium\n`;
+              } else if (medium > 0) {
+                body += `⚡ **Go:** ${medium} medium severity issues\n`;
+              } else {
+                body += '✅ **Go:** No issues found\n';
+              }
+            } catch (e) {
+              body += '⏭️ **Go:** Scan skipped or failed\n';
+            }
+
+            // Parse npm results
+            try {
+              const npmData = JSON.parse(fs.readFileSync('npm-results.json', 'utf8'));
+              const vulns = npmData.vulnerabilities || [];
+              const critical = vulns.filter(v => v.severity === 'critical').length;
+              const high = vulns.filter(v => v.severity === 'high').length;
+
+              if (critical + high > 0) {
+                body += `⚠️ **npm:** ${critical} critical, ${high} high\n`;
+              } else {
+                body += '✅ **npm:** No issues found\n';
+              }
+            } catch (e) {
+              body += '⏭️ **npm:** Scan skipped or failed\n';
+            }
+
+            body += '\n> Full results in the [Security tab](../../security/code-scanning)';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+      - name: Upload scan artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snyk-oss-results
+          path: |
+            go-results.json
+            npm-results.json
+          retention-days: 30
+
+  # ===== Snyk Code — SAST =====
+  code:
+    name: "Code (SAST)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: |
+      github.event.inputs.scan_type == 'all' ||
+      github.event.inputs.scan_type == 'code' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'schedule'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Snyk Code scan
+        continue-on-error: true
+        run: |
+          snyk code test --org=$SNYK_ORG \
+            --sarif-file-output=snyk-code.sarif \
+            --json-file-output=snyk-code.json 2>&1 | tee code-scan.txt
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-code.sarif') != ''
+        with:
+          sarif_file: snyk-code.sarif
+          category: snyk-code-sast
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## 🛡️ Snyk Code (SAST) Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f snyk-code.json ]; then
+            ISSUES=$(python3 -c "
+          import json
+          try:
+            d = json.load(open('snyk-code.json'))
+            runs = d.get('runs', [{}])
+            results = runs[0].get('results', []) if runs else []
+            print(len(results))
+          except: print('?')
+          " 2>/dev/null || echo "?")
+            echo "Issues found: $ISSUES" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Scan completed. Check Security tab for details." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## 🛡️ Snyk Code (SAST)\n\n';
+            try {
+              const data = JSON.parse(fs.readFileSync('snyk-code.json', 'utf8'));
+              const runs = data.runs || [{}];
+              const results = (runs[0] || {}).results || [];
+              const high = results.filter(r => r.level === 'error').length;
+              const medium = results.filter(r => r.level === 'warning').length;
+              const low = results.filter(r => r.level === 'note').length;
+
+              if (high > 0) {
+                body += `⚠️ ${high} high, ${medium} medium, ${low} low severity issues\n`;
+              } else if (results.length > 0) {
+                body += `⚡ ${results.length} total issues (${medium} medium, ${low} low)\n`;
+              } else {
+                body += '✅ No issues found\n';
+              }
+            } catch (e) {
+              body += '✅ No issues found or scan skipped\n';
+            }
+            body += '\n> Full results in the [Security tab](../../security/code-scanning)';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+  # ===== Snyk IaC — Infrastructure as Code =====
+  iac:
+    name: "IaC (Terraform + Helm + Docker)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: |
+      github.event.inputs.scan_type == 'all' ||
+      github.event.inputs.scan_type == 'iac' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'schedule'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Scan Terraform files
+        continue-on-error: true
+        run: |
+          snyk iac test terraform/ \
+            --org=$SNYK_ORG \
+            --severity-threshold=low \
+            --sarif-file-output=snyk-iac-tf.sarif \
+            --json-file-output=snyk-iac-tf.json || true
+
+      - name: Scan Helm charts
+        continue-on-error: true
+        run: |
+          snyk iac test charts/ \
+            --org=$SNYK_ORG \
+            --severity-threshold=low \
+            --sarif-file-output=snyk-iac-helm.sarif \
+            --json-file-output=snyk-iac-helm.json || true
+
+      - name: Scan Dockerfiles
+        continue-on-error: true
+        run: |
+          snyk iac test Dockerfile ui/Dockerfile \
+            --org=$SNYK_ORG \
+            --severity-threshold=low \
+            --sarif-file-output=snyk-iac-docker.sarif || true
+
+      - name: Upload SARIF (Terraform)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-iac-tf.sarif') != ''
+        with:
+          sarif_file: snyk-iac-tf.sarif
+          category: snyk-iac-terraform
+
+      - name: Upload SARIF (Helm)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-iac-helm.sarif') != ''
+        with:
+          sarif_file: snyk-iac-helm.sarif
+          category: snyk-iac-helm
+
+      - name: Upload SARIF (Dockerfile)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-iac-docker.sarif') != ''
+        with:
+          sarif_file: snyk-iac-docker.sarif
+          category: snyk-iac-docker
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## 🏗️ Snyk IaC Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          for f in snyk-iac-tf.json snyk-iac-helm.json; do
+            if [ -f "$f" ]; then
+              NAME=$(echo "$f" | sed 's/snyk-iac-//' | sed 's/.json//')
+              ISSUES=$(python3 -c "
+          import json
+          try:
+            data = json.load(open('$f'))
+            if isinstance(data, list):
+              total = sum(len(d.get('infrastructureAsCodeIssues', [])) for d in data)
+            else:
+              total = len(data.get('infrastructureAsCodeIssues', []))
+            print(total)
+          except: print('?')
+          " 2>/dev/null || echo "?")
+              echo "- **$NAME**: $ISSUES issues" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## 🏗️ Snyk IaC Scan\n\n';
+            const files = [
+              { name: 'Terraform', file: 'snyk-iac-tf.json' },
+              { name: 'Helm', file: 'snyk-iac-helm.json' }
+            ];
+
+            for (const { name, file } of files) {
+              try {
+                const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+                const items = Array.isArray(data) ? data : [data];
+                let total = 0;
+                let high = 0;
+                for (const item of items) {
+                  const issues = item.infrastructureAsCodeIssues || [];
+                  total += issues.length;
+                  high += issues.filter(i => i.severity === 'high' || i.severity === 'critical').length;
+                }
+                if (high > 0) {
+                  body += `⚠️ **${name}:** ${total} issues (${high} high/critical)\n`;
+                } else if (total > 0) {
+                  body += `⚡ **${name}:** ${total} issues\n`;
+                } else {
+                  body += `✅ **${name}:** No issues\n`;
+                }
+              } catch (e) {
+                body += `⏭️ **${name}:** Scan skipped or no issues\n`;
+              }
+            }
+            body += '\n> Full results in the [Security tab](../../security/code-scanning)';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snyk-iac-results
+          path: snyk-iac-*.json
+          retention-days: 30
+
+  # ===== Snyk Container — Docker Image Scanning =====
+  container:
+    name: "Container (Docker Image)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: |
+      github.event.inputs.scan_type == 'all' ||
+      github.event.inputs.scan_type == 'container' ||
+      github.event_name == 'schedule'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build Docker image
+        run: docker build -t tfdrift-falco:scan -f Dockerfile .
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Scan container image
+        continue-on-error: true
+        run: |
+          snyk container test tfdrift-falco:scan \
+            --org=$SNYK_ORG \
+            --file=Dockerfile \
+            --severity-threshold=medium \
+            --sarif-file-output=snyk-container.sarif \
+            --json-file-output=snyk-container.json || true
+
+      - name: Monitor container (main only)
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: |
+          snyk container monitor tfdrift-falco:scan \
+            --org=$SNYK_ORG \
+            --file=Dockerfile \
+            --project-name=tfdrift-falco-container
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-container.sarif') != ''
+        with:
+          sarif_file: snyk-container.sarif
+          category: snyk-container
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## 🐳 Snyk Container Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f snyk-container.json ]; then
+            python3 -c "
+          import json
+          d = json.load(open('snyk-container.json'))
+          vulns = d.get('vulnerabilities', [])
+          by_sev = {}
+          for v in vulns:
+            s = v.get('severity', 'unknown')
+            by_sev[s] = by_sev.get(s, 0) + 1
+          unique = d.get('uniqueCount', len(vulns))
+          base = d.get('docker', {}).get('baseImage', 'unknown')
+          print(f'Base image: {base}')
+          print(f'Unique vulnerabilities: {unique}')
+          for s in ['critical','high','medium','low']:
+            if s in by_sev:
+              print(f'  {s}: {by_sev[s]}')
+          " >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "See artifacts for details." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snyk-container-results
+          path: snyk-container.json
+          retention-days: 30
+
+  # ===== License Compliance =====
+  license:
+    name: "License Compliance"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: |
+      github.event.inputs.scan_type == 'all' ||
+      github.event_name == 'schedule'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: License scan (Go)
+        continue-on-error: true
+        run: |
+          go mod download
+          snyk test --file=go.mod --org=$SNYK_ORG \
+            --json-file-output=license-go.json || true
+          echo "## 📜 License Compliance" >> $GITHUB_STEP_SUMMARY
+          if [ -f license-go.json ]; then
+            python3 -c "
+          import json
+          d = json.load(open('license-go.json'))
+          vulns = d.get('vulnerabilities', [])
+          license_issues = [v for v in vulns if v.get('type') == 'license']
+          if license_issues:
+            print(f'Go: {len(license_issues)} license issues found')
+            for li in license_issues[:5]:
+              print(f'  - {li.get(\"title\",\"unknown\")}: {li.get(\"severity\",\"?\")}')
+          else:
+            print('Go: No license issues')
+          " >> $GITHUB_STEP_SUMMARY 2>/dev/null
+          fi
+
+      - name: License scan (npm)
+        continue-on-error: true
+        run: |
+          cd ui && npm ci
+          snyk test --org=$SNYK_ORG \
+            --json-file-output=../license-npm.json || true
+          cd ..
+          if [ -f license-npm.json ]; then
+            python3 -c "
+          import json
+          d = json.load(open('license-npm.json'))
+          vulns = d.get('vulnerabilities', [])
+          license_issues = [v for v in vulns if v.get('type') == 'license']
+          if license_issues:
+            print(f'npm: {len(license_issues)} license issues found')
+          else:
+            print('npm: No license issues')
+          " >> $GITHUB_STEP_SUMMARY 2>/dev/null
+          fi

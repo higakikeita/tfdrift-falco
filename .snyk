@@ -1,0 +1,25 @@
+# Snyk Policy File
+# https://docs.snyk.io/manage-risk/policies/the-.snyk-file
+version: v1.25.0
+
+# Patches to apply to vulnerable dependencies
+patch: {}
+
+# Ignore rules for vulnerabilities
+# Format: SNYK-ID:
+#   - '*':
+#       reason: <reason>
+#       expires: <YYYY-MM-DD>
+ignore: {}
+
+# Exclude paths from scanning
+exclude:
+  global:
+    # Test fixtures and example configs
+    - tests/e2e/**
+    - tests/benchmark/**
+    - examples/**
+    # Generated files
+    - ui/dist/**
+    - bin/**
+    - coverage.*

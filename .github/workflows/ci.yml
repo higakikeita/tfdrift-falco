@@ -409,18 +409,19 @@ jobs:
             });
 
   # ============================================
-  # Security Scans
+  # Security Scans — Snyk (Full Suite)
   # ============================================
-  security-snyk:
-    name: Snyk Security Scan
+
+  # 1) Snyk Open Source — dependency vulnerability scanning
+  snyk-open-source:
+    name: Snyk Open Source (Go)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: changes
     if: |
       github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
-      (needs.changes.outputs.backend == 'true' && github.event_name != 'pull_request') ||
-      (needs.changes.outputs.backend == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+      needs.changes.outputs.backend == 'true'
 
     steps:
       - name: Checkout code
@@ -435,24 +436,269 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/golang@master
-        continue-on-error: true
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high --sarif-file-output=snyk.sarif --file=go.mod
-          command: test
 
-      - name: Upload Snyk results to GitHub Code Scanning
+      - name: Snyk Open Source test (Go modules)
+        continue-on-error: true
+        run: |
+          snyk test \
+            --file=go.mod \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --severity-threshold=medium \
+            --sarif-file-output=snyk-oss.sarif \
+            --json-file-output=snyk-oss.json || true
+          echo "### Snyk Open Source Summary" >> $GITHUB_STEP_SUMMARY
+          if [ -f snyk-oss.json ]; then
+            VULN_COUNT=$(python3 -c "import json; d=json.load(open('snyk-oss.json')); print(d.get('uniqueCount',0))" 2>/dev/null || echo "N/A")
+            echo "- Unique vulnerabilities: $VULN_COUNT" >> $GITHUB_STEP_SUMMARY
+          fi
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Open Source monitor (track on dashboard)
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: |
+          snyk monitor \
+            --file=go.mod \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --project-name=tfdrift-falco-go
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Open Source test (npm)
+        continue-on-error: true
+        run: |
+          cd ui
+          npm ci
+          snyk test \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --severity-threshold=medium \
+            --sarif-file-output=../snyk-oss-npm.sarif || true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk npm monitor (track on dashboard)
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: |
+          cd ui
+          snyk monitor \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --project-name=tfdrift-falco-ui
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload Snyk OSS SARIF (Go)
         uses: github/codeql-action/upload-sarif@v3
-        if: always() && hashFiles('snyk.sarif') != ''
+        if: always() && hashFiles('snyk-oss.sarif') != ''
         with:
-          sarif_file: snyk.sarif
+          sarif_file: snyk-oss.sarif
+          category: snyk-oss-go
 
-      - name: Snyk SARIF fallback notice
-        if: always() && hashFiles('snyk.sarif') == ''
-        run: echo "::notice::Snyk SARIF file not generated. This can happen when running in Docker container mode. Scan results are still available in the Snyk dashboard."
+      - name: Upload Snyk OSS SARIF (npm)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-oss-npm.sarif') != ''
+        with:
+          sarif_file: snyk-oss-npm.sarif
+          category: snyk-oss-npm
+
+  # 2) Snyk Code — SAST (Static Application Security Testing)
+  snyk-code:
+    name: Snyk Code (SAST)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: changes
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      needs.changes.outputs.backend == 'true' ||
+      needs.changes.outputs.frontend == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Code test (SAST)
+        continue-on-error: true
+        run: |
+          snyk code test \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --sarif-file-output=snyk-code.sarif || true
+          echo "### Snyk Code (SAST) Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Static analysis completed. Results uploaded to GitHub Security tab." >> $GITHUB_STEP_SUMMARY
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload Snyk Code SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-code.sarif') != ''
+        with:
+          sarif_file: snyk-code.sarif
+          category: snyk-code
+
+  # 3) Snyk IaC — Infrastructure as Code scanning
+  snyk-iac:
+    name: Snyk IaC (Terraform + Helm)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk IaC test (Terraform)
+        continue-on-error: true
+        run: |
+          snyk iac test terraform/ \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --severity-threshold=medium \
+            --sarif-file-output=snyk-iac-tf.sarif \
+            --json-file-output=snyk-iac-tf.json || true
+          echo "### Snyk IaC — Terraform" >> $GITHUB_STEP_SUMMARY
+          if [ -f snyk-iac-tf.json ]; then
+            echo "Terraform scan completed. See GitHub Security tab for details." >> $GITHUB_STEP_SUMMARY
+          fi
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk IaC test (Helm charts)
+        continue-on-error: true
+        run: |
+          snyk iac test charts/ \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --severity-threshold=medium \
+            --sarif-file-output=snyk-iac-helm.sarif || true
+          echo "### Snyk IaC — Helm Charts" >> $GITHUB_STEP_SUMMARY
+          echo "Helm chart scan completed." >> $GITHUB_STEP_SUMMARY
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk IaC test (Dockerfiles)
+        continue-on-error: true
+        run: |
+          snyk iac test Dockerfile ui/Dockerfile \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --severity-threshold=medium \
+            --sarif-file-output=snyk-iac-docker.sarif || true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload Snyk IaC SARIF (Terraform)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-iac-tf.sarif') != ''
+        with:
+          sarif_file: snyk-iac-tf.sarif
+          category: snyk-iac-terraform
+
+      - name: Upload Snyk IaC SARIF (Helm)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-iac-helm.sarif') != ''
+        with:
+          sarif_file: snyk-iac-helm.sarif
+          category: snyk-iac-helm
+
+      - name: Upload Snyk IaC SARIF (Dockerfile)
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-iac-docker.sarif') != ''
+        with:
+          sarif_file: snyk-iac-docker.sarif
+          category: snyk-iac-docker
+
+  # 4) Snyk Container — Docker image vulnerability scanning
+  snyk-container:
+    name: Snyk Container
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [changes, docker]
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image for scanning
+        run: |
+          docker build -t tfdrift-falco:scan -f Dockerfile .
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Container test (backend)
+        continue-on-error: true
+        run: |
+          snyk container test tfdrift-falco:scan \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --severity-threshold=high \
+            --file=Dockerfile \
+            --sarif-file-output=snyk-container.sarif \
+            --json-file-output=snyk-container.json || true
+          echo "### Snyk Container — Backend" >> $GITHUB_STEP_SUMMARY
+          if [ -f snyk-container.json ]; then
+            echo "Container scan completed. See GitHub Security tab." >> $GITHUB_STEP_SUMMARY
+          fi
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Container monitor (track on dashboard)
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: |
+          snyk container monitor tfdrift-falco:scan \
+            --org=${{ secrets.SNYK_ORG_ID }} \
+            --file=Dockerfile \
+            --project-name=tfdrift-falco-container
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload Snyk Container SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-container.sarif') != ''
+        with:
+          sarif_file: snyk-container.sarif
+          category: snyk-container
+
+  # ============================================
+  # Security Scans — Other Tools
+  # ============================================
 
   security-gosec:
     name: GoSec Security Scanner
