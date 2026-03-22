@@ -34,6 +34,13 @@ docker-compose-falco-test.yaml
 *.tfstate.backup
 *.tfvars
 
+# Backup files
+*.backup
+
+# Reports and session summaries
+SESSION_SUMMARY.md
+*_REPORT_*.md
+
 # Exception: Allow testdata files for testing
 !**/testdata/*.tfstate
 !**/testdata/*.tfstate.backup
