@@ -107,7 +107,7 @@ func (m *Manager) formatSlackMessage(alert *types.DriftAlert) []map[string]inter
 				},
 				{
 					"type": "mrkdwn",
-					"text": fmt.Sprintf("*Changed:*\n`%v` → `%v`", alert.OldValue, alert.NewValue),
+					"text": fmt.Sprintf("*Changed:*\n`%v` â `%v`", alert.OldValue, alert.NewValue),
 				},
 				{
 					"type": "mrkdwn",
@@ -195,7 +195,10 @@ func (m *Manager) sendFalcoOutput(alert *types.DriftAlert) error {
 
 	// Falco integration stub - intentionally a no-op until Falco gRPC integration is fully implemented.
 	// Future implementation will send events to Falco gRPC endpoint or write to Falco output file.
-	jsonData, _ := json.MarshalIndent(falcoEvent, "", "  ")
+	jsonData, err := json.MarshalIndent(falcoEvent, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal Falco event: %w", err)
+	}
 	log.WithFields(log.Fields{
 		"alert_type":    "drift",
 		"resource_type": alert.ResourceType,

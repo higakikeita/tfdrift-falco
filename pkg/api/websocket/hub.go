@@ -63,25 +63,36 @@ func (h *Hub) Run() {
 			h.mu.Lock()
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
-				close(client.send)
+				client.CloseOnce()
 				log.Infof("WebSocket client unregistered: %s (total: %d)", client.id, len(h.clients))
 			}
 			h.mu.Unlock()
 
 		case message := <-h.broadcast:
+			// FIX: Collect clients to remove under RLock, then remove under Lock
 			h.mu.RLock()
+			var toRemove []*Client
 			for client := range h.clients {
-				// Only send to clients subscribed to this message type
-				// For now, send to all clients
 				select {
 				case client.send <- message:
 				default:
-					// Client's send buffer is full, close it
-					close(client.send)
-					delete(h.clients, client)
+					// Client's send buffer is full, mark for removal
+					toRemove = append(toRemove, client)
 				}
 			}
 			h.mu.RUnlock()
+
+			// Remove stale clients under write lock
+			if len(toRemove) > 0 {
+				h.mu.Lock()
+				for _, client := range toRemove {
+					if _, ok := h.clients[client]; ok {
+						delete(h.clients, client)
+						client.CloseOnce()
+					}
+				}
+				h.mu.Unlock()
+			}
 
 		case event := <-h.eventCh:
 			// Broadcast event to all connected clients

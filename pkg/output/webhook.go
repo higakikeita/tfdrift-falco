@@ -129,7 +129,10 @@ func (w *WebhookOutput) send(jsonData []byte) error {
 
 	// Check status code
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(resp.Body)
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return fmt.Errorf("webhook returned status %d (failed to read body: %v)", resp.StatusCode, readErr)
+		}
 		return fmt.Errorf("webhook returned status %d: %s", resp.StatusCode, string(body))
 	}
 
