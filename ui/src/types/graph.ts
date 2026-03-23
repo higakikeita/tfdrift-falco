@@ -2,7 +2,7 @@
 /**
  * TFDrift-Falco Graph Types
  *
- * å æé¢ä¿ã°ã©ãã®ãã¼ãã»ã¨ãã¸ã»ã°ã©ãå¨ä½ã®åå®ç¾©
+ * Node/edge data types and graph definition types
  */
 
 export const NodeType = {
