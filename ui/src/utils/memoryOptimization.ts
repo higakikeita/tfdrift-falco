@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/set-state-in-effect, react-hooks/purity */
+/* eslint-disable react-hooks/purity */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Memory Optimization Utilities
@@ -158,6 +158,7 @@ export function useAnimationFrame(callback: () => void, dependencies: any[]) {
   useEffect(() => {
     const frameId = requestAnimationFrame(callback);
     return () => cancelAnimationFrame(frameId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, dependencies);
 }
 
