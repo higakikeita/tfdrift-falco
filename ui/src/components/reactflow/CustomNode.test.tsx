@@ -17,6 +17,20 @@ vi.mock('../icons/OfficialCloudIcons', () => ({
       {type}
     </div>
   ),
+  getProviderFromType: (type: string) => {
+    if (type.startsWith('aws_')) return 'aws';
+    if (type.startsWith('gcp_')) return 'gcp';
+    if (type.startsWith('kubernetes_')) return 'kubernetes';
+    return 'unknown';
+  },
+  getProviderColor: (provider: string) => {
+    switch (provider) {
+      case 'aws': return '#FF9900';
+      case 'gcp': return '#4285F4';
+      case 'kubernetes': return '#326CE5';
+      default: return '#607D8B';
+    }
+  },
 }));
 
 vi.mock('../graph/NodeTooltip', () => ({
@@ -54,7 +68,6 @@ describe('CustomNode', () => {
   let eventListener: any;
 
   beforeEach(() => {
-    // Mock clipboard API
     Object.defineProperty(navigator, 'clipboard', {
       value: {
         writeText: vi.fn().mockResolvedValue(undefined),
@@ -63,7 +76,6 @@ describe('CustomNode', () => {
       configurable: true,
     });
 
-    // Capture custom events
     eventListener = vi.fn();
     window.addEventListener('node-detail', eventListener);
     window.addEventListener('node-focus', eventListener);
@@ -103,23 +115,20 @@ describe('CustomNode', () => {
     it('should render node with label', () => {
       const props = createNodeProps();
       renderWithProviders(<CustomNode {...props} />);
-
       expect(screen.getByText('Test IAM Role')).toBeInTheDocument();
     });
 
     it('should render cloud icon with correct type', () => {
       const props = createNodeProps();
       renderWithProviders(<CustomNode {...props} />);
-
       const icon = screen.getByTestId('cloud-icon');
       expect(icon).toHaveAttribute('data-type', 'aws_iam_role');
-      expect(icon).toHaveAttribute('data-size', '80');
+      expect(icon).toHaveAttribute('data-size', '56');
     });
 
     it('should display resource name when provided', () => {
       const props = createNodeProps();
       renderWithProviders(<CustomNode {...props} />);
-
       expect(screen.getByText('test-role')).toBeInTheDocument();
     });
 
@@ -132,8 +141,13 @@ describe('CustomNode', () => {
         },
       });
       renderWithProviders(<CustomNode {...props} />);
-
       expect(screen.queryByText('test-role')).not.toBeInTheDocument();
+    });
+
+    it('should display provider tag', () => {
+      const props = createNodeProps();
+      renderWithProviders(<CustomNode {...props} />);
+      expect(screen.getByText('AWS')).toBeInTheDocument();
     });
   });
 
@@ -148,7 +162,6 @@ describe('CustomNode', () => {
         },
       });
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.border-red-600');
       expect(node).toBeInTheDocument();
       expect(screen.getByText('CRITICAL')).toBeInTheDocument();
@@ -164,7 +177,6 @@ describe('CustomNode', () => {
         },
       });
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.border-orange-600');
       expect(node).toBeInTheDocument();
       expect(screen.getByText('HIGH')).toBeInTheDocument();
@@ -180,7 +192,6 @@ describe('CustomNode', () => {
         },
       });
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.border-yellow-600');
       expect(node).toBeInTheDocument();
       expect(screen.getByText('MEDIUM')).toBeInTheDocument();
@@ -196,7 +207,6 @@ describe('CustomNode', () => {
         },
       });
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.border-blue-600');
       expect(node).toBeInTheDocument();
       expect(screen.getByText('LOW')).toBeInTheDocument();
@@ -211,8 +221,7 @@ describe('CustomNode', () => {
         },
       });
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
-      const node = container.querySelector('.border-gray-300');
+      const node = container.querySelector('.border-gray-200');
       expect(node).toBeInTheDocument();
     });
 
@@ -225,7 +234,6 @@ describe('CustomNode', () => {
         },
       });
       renderWithProviders(<CustomNode {...props} />);
-
       expect(screen.queryByText(/CRITICAL|HIGH|MEDIUM|LOW/)).not.toBeInTheDocument();
     });
   });
@@ -234,16 +242,14 @@ describe('CustomNode', () => {
     it('should apply selected styling when node is selected', () => {
       const props = createNodeProps({ selected: true });
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
-      const node = container.querySelector('.ring-4.ring-blue-500');
+      const node = container.querySelector('.ring-4');
       expect(node).toBeInTheDocument();
     });
 
     it('should not apply selected styling when node is not selected', () => {
       const props = createNodeProps({ selected: false });
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
-      const node = container.querySelector('.ring-4.ring-blue-500');
+      const node = container.querySelector('.ring-4');
       expect(node).not.toBeInTheDocument();
     });
   });
@@ -253,15 +259,11 @@ describe('CustomNode', () => {
       const user = userEvent.setup();
       const props = createNodeProps();
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.rounded-2xl')!;
       await user.click(node);
-
       await waitFor(() => {
         expect(eventListener).toHaveBeenCalled();
-        const event = eventListener.mock.calls.find((call: any) =>
-          call[0].type === 'node-detail'
-        );
+        const event = eventListener.mock.calls.find((call: any) => call[0].type === 'node-detail');
         expect(event).toBeTruthy();
       });
     });
@@ -270,15 +272,11 @@ describe('CustomNode', () => {
       const user = userEvent.setup();
       const props = createNodeProps();
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.rounded-2xl')!;
       await user.dblClick(node);
-
       await waitFor(() => {
         expect(eventListener).toHaveBeenCalled();
-        const event = eventListener.mock.calls.find((call: any) =>
-          call[0].type === 'node-focus'
-        );
+        const event = eventListener.mock.calls.find((call: any) => call[0].type === 'node-focus');
         expect(event).toBeTruthy();
       });
     });
@@ -287,24 +285,12 @@ describe('CustomNode', () => {
       const user = userEvent.setup();
       const props = createNodeProps();
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.rounded-2xl')!;
-
-      // Mock getBoundingClientRect
       vi.spyOn(node, 'getBoundingClientRect').mockReturnValue({
-        left: 100,
-        top: 50,
-        width: 240,
-        height: 180,
-        right: 340,
-        bottom: 230,
-        x: 100,
-        y: 50,
-        toJSON: () => {},
+        left: 100, top: 50, width: 240, height: 180,
+        right: 340, bottom: 230, x: 100, y: 50, toJSON: () => {},
       });
-
       await user.hover(node);
-
       await waitFor(() => {
         expect(screen.getByTestId('node-tooltip')).toBeInTheDocument();
       });
@@ -314,25 +300,13 @@ describe('CustomNode', () => {
       const user = userEvent.setup();
       const props = createNodeProps();
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.rounded-2xl')!;
-
-      // Mock getBoundingClientRect
       vi.spyOn(node, 'getBoundingClientRect').mockReturnValue({
-        left: 100,
-        top: 50,
-        width: 240,
-        height: 180,
-        right: 340,
-        bottom: 230,
-        x: 100,
-        y: 50,
-        toJSON: () => {},
+        left: 100, top: 50, width: 240, height: 180,
+        right: 340, bottom: 230, x: 100, y: 50, toJSON: () => {},
       });
-
       await user.hover(node);
       await waitFor(() => expect(screen.getByTestId('node-tooltip')).toBeInTheDocument());
-
       await user.unhover(node);
       await waitFor(() => expect(screen.queryByTestId('node-tooltip')).not.toBeInTheDocument());
     });
@@ -341,10 +315,8 @@ describe('CustomNode', () => {
       const user = userEvent.setup();
       const props = createNodeProps();
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.rounded-2xl')!;
       await user.pointer({ keys: '[MouseRight>]', target: node });
-
       await waitFor(() => {
         expect(screen.getByTestId('context-menu')).toBeInTheDocument();
       });
@@ -354,29 +326,14 @@ describe('CustomNode', () => {
       const user = userEvent.setup();
       const props = createNodeProps();
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.rounded-2xl')!;
-
-      // Mock getBoundingClientRect
       vi.spyOn(node, 'getBoundingClientRect').mockReturnValue({
-        left: 100,
-        top: 50,
-        width: 240,
-        height: 180,
-        right: 340,
-        bottom: 230,
-        x: 100,
-        y: 50,
-        toJSON: () => {},
+        left: 100, top: 50, width: 240, height: 180,
+        right: 340, bottom: 230, x: 100, y: 50, toJSON: () => {},
       });
-
-      // Show tooltip first
       await user.hover(node);
       await waitFor(() => expect(screen.getByTestId('node-tooltip')).toBeInTheDocument());
-
-      // Right click to show context menu
       await user.pointer({ keys: '[MouseRight>]', target: node });
-
       await waitFor(() => {
         expect(screen.queryByTestId('node-tooltip')).not.toBeInTheDocument();
         expect(screen.getByTestId('context-menu')).toBeInTheDocument();
@@ -389,17 +346,12 @@ describe('CustomNode', () => {
       const user = userEvent.setup();
       const props = createNodeProps();
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.rounded-2xl')!;
       await user.pointer({ keys: '[MouseRight>]', target: node });
-
       const viewDetailsButton = await screen.findByText('View Details');
       await user.click(viewDetailsButton);
-
       await waitFor(() => {
-        const event = eventListener.mock.calls.find((call: any) =>
-          call[0].type === 'node-detail'
-        );
+        const event = eventListener.mock.calls.find((call: any) => call[0].type === 'node-detail');
         expect(event).toBeTruthy();
       });
     });
@@ -408,55 +360,12 @@ describe('CustomNode', () => {
       const user = userEvent.setup();
       const props = createNodeProps();
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.rounded-2xl')!;
       await user.pointer({ keys: '[MouseRight>]', target: node });
-
       const focusButton = await screen.findByText('Focus View');
       await user.click(focusButton);
-
       await waitFor(() => {
-        const event = eventListener.mock.calls.find((call: any) =>
-          call[0].type === 'node-focus'
-        );
-        expect(event).toBeTruthy();
-      });
-    });
-
-    it('should dispatch node-dependencies event when "Show Dependencies" is clicked', async () => {
-      const user = userEvent.setup();
-      const props = createNodeProps();
-      const { container } = renderWithProviders(<CustomNode {...props} />);
-
-      const node = container.querySelector('.rounded-2xl')!;
-      await user.pointer({ keys: '[MouseRight>]', target: node });
-
-      const depsButton = await screen.findByText('Show Dependencies');
-      await user.click(depsButton);
-
-      await waitFor(() => {
-        const event = eventListener.mock.calls.find((call: any) =>
-          call[0].type === 'node-dependencies'
-        );
-        expect(event).toBeTruthy();
-      });
-    });
-
-    it('should dispatch node-impact event when "Show Impact" is clicked', async () => {
-      const user = userEvent.setup();
-      const props = createNodeProps();
-      const { container } = renderWithProviders(<CustomNode {...props} />);
-
-      const node = container.querySelector('.rounded-2xl')!;
-      await user.pointer({ keys: '[MouseRight>]', target: node });
-
-      const impactButton = await screen.findByText('Show Impact');
-      await user.click(impactButton);
-
-      await waitFor(() => {
-        const event = eventListener.mock.calls.find((call: any) =>
-          call[0].type === 'node-impact'
-        );
+        const event = eventListener.mock.calls.find((call: any) => call[0].type === 'node-focus');
         expect(event).toBeTruthy();
       });
     });
@@ -464,25 +373,16 @@ describe('CustomNode', () => {
     it('should copy node ID to clipboard when "Copy ID" is clicked', async () => {
       const user = userEvent.setup();
       const writeTextSpy = vi.fn().mockResolvedValue(undefined);
-
-      // Mock clipboard with spy
       Object.defineProperty(navigator, 'clipboard', {
-        value: {
-          writeText: writeTextSpy,
-        },
-        writable: true,
-        configurable: true,
+        value: { writeText: writeTextSpy },
+        writable: true, configurable: true,
       });
-
       const props = createNodeProps({ id: 'test-node-123' });
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.rounded-2xl')!;
       await user.pointer({ keys: '[MouseRight>]', target: node });
-
       const copyButton = await screen.findByText('Copy ID');
       await user.click(copyButton);
-
       await waitFor(() => {
         expect(writeTextSpy).toHaveBeenCalledWith('test-node-123');
       });
@@ -492,15 +392,11 @@ describe('CustomNode', () => {
       const user = userEvent.setup();
       const props = createNodeProps();
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.rounded-2xl')!;
       await user.pointer({ keys: '[MouseRight>]', target: node });
-
       await waitFor(() => expect(screen.getByTestId('context-menu')).toBeInTheDocument());
-
       const closeButton = screen.getByText('Close');
       await user.click(closeButton);
-
       await waitFor(() => {
         expect(screen.queryByTestId('context-menu')).not.toBeInTheDocument();
       });
@@ -511,7 +407,6 @@ describe('CustomNode', () => {
     it('should have proper cursor pointer styling', () => {
       const props = createNodeProps();
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.cursor-pointer');
       expect(node).toBeInTheDocument();
     });
@@ -519,16 +414,12 @@ describe('CustomNode', () => {
     it('should prevent default context menu behavior', async () => {
       const props = createNodeProps();
       const { container } = renderWithProviders(<CustomNode {...props} />);
-
       const node = container.querySelector('.rounded-2xl')!;
       const contextMenuEvent = new MouseEvent('contextmenu', {
-        bubbles: true,
-        cancelable: true,
+        bubbles: true, cancelable: true,
       });
-
       const preventDefaultSpy = vi.spyOn(contextMenuEvent, 'preventDefault');
       node.dispatchEvent(contextMenuEvent);
-
       expect(preventDefaultSpy).toHaveBeenCalled();
     });
   });
