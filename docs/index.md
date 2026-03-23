@@ -2,9 +2,9 @@
 
 Welcome to the official documentation for **TFDrift-Falco**, a real-time multi-cloud Terraform drift detection system with an integrated React Dashboard UI.
 
-> **Version:** v0.6.0 | **Status:** Production Ready | **Providers:** AWS (40+ services) + GCP (27+ services)
+> **Version:** v0.6.1 | **Status:** Production Ready | **Providers:** AWS (40+ services) + GCP (27+ services)
 >
-> **New in v0.6.0:** Dashboard UI • Expanded Service Coverage (500+ AWS events, 170+ GCP events) • REST API Server with WebSocket/SSE Streaming
+> **New in v0.6.1:** Unified Icon System • Why Falco? Page • Storybook at /storybook/ | **New in v0.6.0:** Dashboard UI • Expanded Service Coverage (500+ AWS events, 170+ GCP events) • REST API Server with WebSocket/SSE Streaming
 
 ---
 
@@ -32,6 +32,18 @@ TFDrift-Falco detects when your cloud infrastructure changes outside of Terrafor
 - Graph export (PNG, SVG, JSON)
 
 Access at: **http://localhost:3000**
+
+
+### 📖 Why Falco? (v0.6.1+)
+
+**Explore the design philosophy behind TFDrift-Falco:**
+- Interactive "Why Falco?" page on the Vercel-hosted UI
+- Comparison of Terraform plan-based vs event-driven drift detection
+- Architecture story: from blueprint to real-time witness
+
+Access at: **[tfdrift-falco.vercel.app](https://tfdrift-falco.vercel.app)** (click "Why Falco?" toggle)
+
+[Read the full story →](WHY_FALCO_STORY.md)
 
 ### 🌐 Multi-Cloud Support (40+ AWS services, 27+ GCP services)
 
@@ -245,9 +257,15 @@ providers:
                 │  Tailwind)   │
                 └──────────────┘
                     :3000
+
+    Docs: higakikeita.github.io/tfdrift-falco/
+    Storybook: .../tfdrift-falco/storybook/
+    Vercel UI: tfdrift-falco.vercel.app
 ```
 
-**New in v0.6.0:** React Dashboard UI + API Server with real-time WebSocket/SSE streaming
+**New in v0.6.1:** Unified icon system + Why Falco? page + Unified docs deployment
+
+**v0.6.0:** React Dashboard UI + API Server with real-time WebSocket/SSE streaming
 
 [Learn More About Architecture →](architecture.md)
 
@@ -332,7 +350,12 @@ providers:
 - [All GCP Services →](services/gcp/index.md)
 
 ### Release Notes
-- [v0.6.0 - Dashboard UI + Expanded Services](release-notes/v0.6.0.md) - **Latest (2026-03-20)**
+- [v0.6.1 - Unified Icons & Why Falco?](release-notes/v0.6.1.md) - **Latest (2026-03-23)**
+  - Unified SVG icon system (no more mystery squares)
+  - "Why Falco?" page on Vercel UI
+  - Storybook moved to /storybook/ path
+  - MkDocs + Storybook unified deployment
+- [v0.6.0 - Dashboard UI + Expanded Services](release-notes/v0.6.0.md) - (2026-03-20)
   - React Dashboard UI with real-time event streaming
   - Topology graph visualization with export capabilities
   - Expanded AWS coverage (40+ services, 500+ events)
