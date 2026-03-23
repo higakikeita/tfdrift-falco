@@ -318,20 +318,17 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
     });
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging) return;
-    setPanelPosition({
-      x: e.clientX - dragOffset.x,
-      y: e.clientY - dragOffset.y
-    });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
   useEffect(() => {
     if (isDragging) {
+      const handleMouseMove = (e: MouseEvent) => {
+        setPanelPosition({
+          x: e.clientX - dragOffset.x,
+          y: e.clientY - dragOffset.y
+        });
+      };
+      const handleMouseUp = () => {
+        setIsDragging(false);
+      };
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
       return () => {
