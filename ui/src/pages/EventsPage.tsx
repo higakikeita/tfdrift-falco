@@ -126,7 +126,7 @@ export function EventsPage() {
         }
       );
     },
-    [updateStatus]
+    [updateStatus, toast]
   );
 
   return (
