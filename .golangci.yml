@@ -47,7 +47,9 @@ linters-settings:
       - unusedwrite     # Unused writes to struct fields (false positives common)
 
   staticcheck:
-    checks: ["all"]
+    checks:
+      - "all"
+      - "-ST1018"  # Unicode control chars in string literals (intentional in autodetect.go)
 
   gosec:
     excludes:
@@ -65,6 +67,9 @@ linters-settings:
 
 issues:
   exclude-rules:
+    - path: pkg/aws/discovery_resources.go
+      linters: [staticcheck]
+      text: "SA4010"
     # Exclude some linters from running on tests files
     - path: _test\.go
       linters:
