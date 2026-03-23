@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { chunkArray, WeakCache, getMemoryUsage } from './memoryOptimization';
 
 describe('memoryOptimization', () => {
