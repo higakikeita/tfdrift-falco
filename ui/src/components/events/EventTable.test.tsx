@@ -9,12 +9,13 @@ vi.mock('lucide-react', () => ({
 }));
 
 import { EventTable } from './EventTable';
+import type { DriftEvent } from '../../types/drift';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
 });
 
-const mockEvents = [
+const mockEvents: DriftEvent[] = [
   {
     id: 'evt-1',
     provider: 'aws',
