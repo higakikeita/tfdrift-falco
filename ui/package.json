@@ -73,7 +73,7 @@
     "autoprefixer": "^10.4.23",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
+    "eslint-plugin-react-refresh": "^0.5.2",
     "eslint-plugin-storybook": "^10.1.11",
     "globals": "^16.5.0",
     "happy-dom": "^20.0.11",
