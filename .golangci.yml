@@ -36,6 +36,8 @@ linters-settings:
       - (*github.com/gorilla/websocket.Conn).SetWriteDeadline
       - (*github.com/gorilla/websocket.Conn).WriteMessage
       - (*github.com/gorilla/websocket.Conn).WriteJSON
+      - (*encoding/json.Encoder).Encode
+      - (net/http.ResponseWriter).Write
 
   govet:
     enable-all: true
