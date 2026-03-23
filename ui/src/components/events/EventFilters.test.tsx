@@ -7,11 +7,9 @@ vi.mock('lucide-react', () => ({
 }));
 
 import { EventFilters } from './EventFilters';
+import type { DriftFilters } from '../../types/drift';
 
-const defaultFilters = {
-  severity: '',
-  provider: '',
-  status: '',
+const defaultFilters: DriftFilters = {
   search: '',
 };
 
