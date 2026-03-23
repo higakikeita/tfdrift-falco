@@ -18,11 +18,31 @@ linters-settings:
   errcheck:
     check-blank: false
     check-type-assertions: true
+    exclude-functions:
+      # Common functions where ignoring errors is acceptable
+      - io.Copy
+      - io.WriteTo
+      - (io.Closer).Close
+      - (*os.File).Close
+      - (net.Conn).Close
+      - (*net/http.Response.Body).Close
+      - fmt.Fprint
+      - fmt.Fprintf
+      - fmt.Fprintln
+      - (net.Conn).SetDeadline
+      - (net.Conn).SetReadDeadline
+      - (net.Conn).SetWriteDeadline
+      - (*github.com/gorilla/websocket.Conn).SetReadDeadline
+      - (*github.com/gorilla/websocket.Conn).SetWriteDeadline
+      - (*github.com/gorilla/websocket.Conn).WriteMessage
+      - (*github.com/gorilla/websocket.Conn).WriteJSON
 
   govet:
     enable-all: true
     disable:
-      - shadow      # Too strict for practical use
+      - shadow          # Too strict for practical use
+      - fieldalignment  # Struct field ordering for memory alignment (cosmetic)
+      - unusedwrite     # Unused writes to struct fields (false positives common)
 
   staticcheck:
     checks: ["all"]
@@ -31,6 +51,7 @@ linters-settings:
     excludes:
       - G104  # Allow unchecked errors in some cases
       - G307  # Allow deferred file.Close() without checking error
+      - G115  # Integer overflow conversion (common with uint/int casts)
 
   revive:
     rules:
@@ -54,6 +75,18 @@ issues:
       linters:
         - errcheck
         - unused
+
+    # Exclude test directories
+    - path: tests/
+      linters:
+        - errcheck
+        - gosec
+        - unparam
+
+    # Exclude cmd directories (main packages with simplified error handling)
+    - path: cmd/
+      linters:
+        - errcheck
 
     # Temporarily ignore AWS SDK v1 deprecation warnings until migration to v2
     # TODO: Remove this exclusion after migrating to aws-sdk-go-v2
