@@ -52,10 +52,14 @@ jobs:
           cache-dependency-path: ui/package-lock.json
 
       - name: Install UI dependencies
+        continue-on-error: true
+        id: install-ui
         working-directory: ui
         run: npm ci --legacy-peer-deps
 
       - name: Build Storybook
+        if: steps.install-ui.outcome == 'success'
+        continue-on-error: true
         working-directory: ui
         run: npm run build-storybook -- --output-dir ../site/storybook
 
