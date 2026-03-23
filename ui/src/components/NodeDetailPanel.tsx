@@ -58,6 +58,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
   };
 
   // Update impact radius visualization when data changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     if (showImpact && impactNodes.length > 0 && onShowImpactRadius) {
       const nodeIds = impactNodes.map(n => n.id);
