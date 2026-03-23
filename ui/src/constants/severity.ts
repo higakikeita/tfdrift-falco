@@ -109,3 +109,34 @@ export const TIME_INTERVALS = {
   DAY: 24 * 60 * 60 * 1000,
   WEEK: 7 * 24 * 60 * 60 * 1000,
 } as const;
+
+/**
+ * Severity emoji icons for visual indicators in tables and lists.
+ */
+export const SEVERITY_ICONS: Record<SeverityLevel, string> = {
+  critical: '\u{1F6A8}',
+  high: '\u26A0\uFE0F',
+  medium: '\u26A1',
+  low: '\u2139\uFE0F',
+};
+
+/**
+ * Drift change type configuration.
+ * Used in DriftHistoryTable and drift-related components.
+ */
+export type ChangeType = 'added' | 'modified' | 'deleted';
+
+export const CHANGE_TYPE_CONFIG: Record<ChangeType, { label: string; color: string }> = {
+  added: { label: '\u8FFD\u52A0', color: 'text-green-600' },
+  modified: { label: '\u5909\u66F4', color: 'text-yellow-600' },
+  deleted: { label: '\u524A\u9664', color: 'text-red-600' },
+};
+
+/**
+ * Provider filter button colors for active state.
+ */
+export const PROVIDER_FILTER_COLORS: Record<string, { active: string; inactive: string }> = {
+  aws: { active: 'bg-orange-100 text-orange-800 border-orange-200', inactive: 'bg-white text-gray-600 border-gray-300' },
+  gcp: { active: 'bg-blue-100 text-blue-800 border-blue-200', inactive: 'bg-white text-gray-600 border-gray-300' },
+  azure: { active: 'bg-sky-100 text-sky-800 border-sky-200', inactive: 'bg-white text-gray-600 border-gray-300' },
+};
