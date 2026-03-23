@@ -38,6 +38,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
   const dependencies: Node[] = (dependenciesData as any)?.data?.dependencies || [];
   const dependents: Node[] = (dependentsData as any)?.data?.dependents || [];
   const neighbors: Node[] = (neighborsData as any)?.data?.neighbors || [];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const impactNodes: Node[] = (impactData as any)?.data?.nodes || [];
 
   const handleNodeClick = (clickedNodeId: string) => {
@@ -58,7 +59,6 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
   };
 
   // Update impact radius visualization when data changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     if (showImpact && impactNodes.length > 0 && onShowImpactRadius) {
       const nodeIds = impactNodes.map(n => n.id);
@@ -72,12 +72,12 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
       <div className="px-3 sm:px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <Network className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-          <h3 className="font-semibold text-sm sm:text-base truncate">ノード詳細</h3>
+          <h3 className="font-semibold text-sm sm:text-base truncate">ãã¼ãè©³ç´°</h3>
         </div>
         <button
           onClick={onClose}
           className="p-1 hover:bg-white/20 rounded transition-colors flex-shrink-0"
-          aria-label="閉じる"
+          aria-label="éãã"
         >
           <X className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
@@ -94,7 +94,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
                 : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
-            概要
+            æ¦è¦
           </button>
           <button
             onClick={() => setActiveTab('relationships')}
@@ -104,7 +104,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
                 : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
-            関係性
+            é¢ä¿æ§
           </button>
           <button
             onClick={() => setActiveTab('impact')}
@@ -114,7 +114,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
                 : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
-            影響範囲
+            å½±é¿ç¯å²
           </button>
         </nav>
       </div>
@@ -136,7 +136,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
         ) : node ? (
           <div className="space-y-2">
             <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1">
-              基本情報
+              åºæ¬æå ±
             </h4>
             <div className="space-y-1 text-sm">
               <div>
@@ -167,7 +167,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
             </div>
           </div>
         ) : (
-          <div className="text-sm text-gray-500 dark:text-gray-400">ノード情報が見つかりません</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">ãã¼ãæå ±ãè¦ã¤ããã¾ãã</div>
         )}
         </div>
 
@@ -182,12 +182,12 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1 flex items-center gap-2">
             <ArrowRight className="w-4 h-4 text-green-600 dark:text-green-400" />
-            依存先 (Dependencies)
+            ä¾å­å (Dependencies)
           </h4>
           {depsLoading ? (
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
               <Loader2 className="w-4 h-4 animate-spin" />
-              読み込み中...
+              èª­ã¿è¾¼ã¿ä¸­...
             </div>
           ) : dependencies.length > 0 ? (
             <div className="space-y-1">
@@ -207,7 +207,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
               ))}
             </div>
           ) : (
-            <div className="text-sm text-gray-500 dark:text-gray-400">依存先なし</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">ä¾å­åãªã</div>
           )}
         </div>
 
@@ -215,12 +215,12 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1 flex items-center gap-2">
             <ArrowLeft className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-            依存元 (Dependents)
+            ä¾å­å (Dependents)
           </h4>
           {deptsLoading ? (
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
               <Loader2 className="w-4 h-4 animate-spin" />
-              読み込み中...
+              èª­ã¿è¾¼ã¿ä¸­...
             </div>
           ) : dependents.length > 0 ? (
             <div className="space-y-1">
@@ -240,7 +240,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
               ))}
             </div>
           ) : (
-            <div className="text-sm text-gray-500 dark:text-gray-400">依存元なし</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">ä¾å­åãªã</div>
           )}
         </div>
 
@@ -248,12 +248,12 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1 flex items-center gap-2">
             <Network className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            隣接ノード (Neighbors)
+            é£æ¥ãã¼ã (Neighbors)
           </h4>
           {neighborsLoading ? (
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
               <Loader2 className="w-4 h-4 animate-spin" />
-              読み込み中...
+              èª­ã¿è¾¼ã¿ä¸­...
             </div>
           ) : neighbors.length > 0 ? (
             <div className="space-y-1">
@@ -273,12 +273,12 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
               ))}
               {neighbors.length > 10 && (
                 <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-1">
-                  ... 他 {neighbors.length - 10} 件
+                  ... ä» {neighbors.length - 10} ä»¶
                 </div>
               )}
             </div>
           ) : (
-            <div className="text-sm text-gray-500 dark:text-gray-400">隣接ノードなし</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">é£æ¥ãã¼ããªã</div>
           )}
         </div>
         </div>
@@ -294,11 +294,11 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1 flex items-center gap-2">
             <Target className="w-4 h-4 text-red-600 dark:text-red-400" />
-            インパクト半径 (Impact Radius)
+            ã¤ã³ãã¯ãåå¾ (Impact Radius)
           </h4>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <label className="text-xs text-gray-600 dark:text-gray-400">深さ:</label>
+              <label className="text-xs text-gray-600 dark:text-gray-400">æ·±ã:</label>
               <select
                 value={impactDepth}
                 onChange={(e) => setImpactDepth(Number(e.target.value))}
@@ -316,7 +316,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
                 onClick={handleShowImpact}
                 className="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-medium transition-colors"
               >
-                インパクト半径を表示
+                ã¤ã³ãã¯ãåå¾ãè¡¨ç¤º
               </button>
             ) : (
               <>
@@ -324,16 +324,16 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
                   onClick={handleHideImpact}
                   className="w-full px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm font-medium transition-colors"
                 >
-                  ハイライトを解除
+                  ãã¤ã©ã¤ããè§£é¤
                 </button>
                 {impactLoading ? (
                   <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    読み込み中...
+                    èª­ã¿è¾¼ã¿ä¸­...
                   </div>
                 ) : (
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    影響範囲: <span className="font-bold text-red-600 dark:text-red-400">{impactNodes.length}</span> ノード
+                    å½±é¿ç¯å²: <span className="font-bold text-red-600 dark:text-red-400">{impactNodes.length}</span> ãã¼ã
                   </div>
                 )}
               </>
