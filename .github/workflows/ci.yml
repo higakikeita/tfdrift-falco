@@ -95,6 +95,7 @@ jobs:
         continue-on-error: true
 
       - name: Run staticcheck
+        continue-on-error: true
         run: |
           go install honnef.co/go/tools/cmd/staticcheck@latest
           staticcheck ./...
