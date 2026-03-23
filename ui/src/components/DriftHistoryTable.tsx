@@ -6,7 +6,8 @@
 import { useState, useMemo } from 'react';
 import type { DriftEvent, DriftSeverity, ChangeType, Provider } from '../types/drift';
 import { ProviderIcon } from './icons/ProviderIcons';
-import { SEVERITY_ICONS, TIME_INTERVALS, type SeverityLevel } from '../constants';
+import { SEVERITY_ICONS, type SeverityLevel } from '../constants';
+import { formatTimestamp } from '../utils/formatTimestamp';
 
 interface DriftHistoryTableProps {
   drifts: DriftEvent[];
@@ -107,22 +108,6 @@ export default function DriftHistoryTable({ drifts, onSelectDrift }: DriftHistor
     }
     setProviderFilter(newFilter);
   };
-
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / TIME_INTERVALS.MINUTE);
-    const hours = Math.floor(diff / TIME_INTERVALS.HOUR);
-    const days = Math.floor(diff / TIME_INTERVALS.DAY);
-
-    if (minutes < 1) return 'たった今';
-    if (minutes < 60) return `${minutes}分前`;
-    if (hours < 24) return `${hours}時間前`;
-    if (days < 7) return `${days}日前`;
-    return date.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  };
-
   const stats = useMemo(() => {
     const total = filteredDrifts.length;
     const critical = filteredDrifts.filter(d => d.severity === 'critical').length;
