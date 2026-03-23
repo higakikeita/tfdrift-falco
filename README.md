@@ -81,6 +81,8 @@ graph LR
     C --> G[JSON / SIEM]
 ```
 
+> **Want to understand the philosophy behind this approach?** Read [Why Falco?](docs/why-falco.md) — a story about blueprints and witnesses.
+
 ---
 
 ## Key Features
@@ -297,6 +299,7 @@ make build
 | [Use Cases](docs/use-cases.md) | Security, compliance, cost management examples |
 | [Best Practices](docs/best-practices.md) | Production operation guide |
 | [Grafana Dashboards](dashboards/grafana/GETTING_STARTED.md) | Monitoring dashboard setup |
+| [Why Falco?](docs/why-falco.md) | The philosophy behind event-driven drift detection |
 | [Architecture](docs/architecture.md) | System design overview |
 | [CHANGELOG](CHANGELOG.md) | Version history |
 
