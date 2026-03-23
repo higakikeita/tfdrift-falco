@@ -170,20 +170,16 @@ jobs:
 
       # ===== Lint =====
       - name: Run ESLint
-        continue-on-error: true
         run: npm run lint
 
       - name: Run TypeScript compiler
-        continue-on-error: true
         run: npx tsc -b --noEmit
 
       # ===== Test =====
       - name: Run unit tests
-        continue-on-error: true
         run: npm test -- --passWithNoTests
 
       - name: Run tests with coverage
-        continue-on-error: true
         run: npm run test:coverage
 
       - name: Upload coverage to Codecov
@@ -197,7 +193,6 @@ jobs:
 
       # ===== Build =====
       - name: Build for production
-        continue-on-error: true
         run: npm run build
         env:
           NODE_ENV: production
