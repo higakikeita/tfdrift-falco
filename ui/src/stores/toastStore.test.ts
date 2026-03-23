@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { useToastStore, toast } from './toastStore';
 import { act } from '@testing-library/react';
 
