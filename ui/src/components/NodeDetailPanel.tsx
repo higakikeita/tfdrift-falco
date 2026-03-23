@@ -136,7 +136,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
         ) : node ? (
           <div className="space-y-2">
             <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1">
-              åºæ¬æå ±
+              åºæ¬æå ±
             </h4>
             <div className="space-y-1 text-sm">
               <div>
@@ -167,7 +167,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
             </div>
           </div>
         ) : (
-          <div className="text-sm text-gray-500 dark:text-gray-400">ãã¼ãæå ±ãè¦ã¤ããã¾ãã</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">ãã¼ãæå ±ãè¦ã¤ããã¾ãã</div>
         )}
         </div>
 
@@ -182,7 +182,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1 flex items-center gap-2">
             <ArrowRight className="w-4 h-4 text-green-600 dark:text-green-400" />
-            ä¾å­å (Dependencies)
+            ä¾å­å (Dependencies)
           </h4>
           {depsLoading ? (
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -207,7 +207,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
               ))}
             </div>
           ) : (
-            <div className="text-sm text-gray-500 dark:text-gray-400">ä¾å­åãªã</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">ä¾å­åãªã</div>
           )}
         </div>
 
@@ -215,7 +215,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
         <div className="space-y-2">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600 pb-1 flex items-center gap-2">
             <ArrowLeft className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-            ä¾å­å (Dependents)
+            ä¾å­å (Dependents)
           </h4>
           {deptsLoading ? (
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -240,7 +240,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
               ))}
             </div>
           ) : (
-            <div className="text-sm text-gray-500 dark:text-gray-400">ä¾å­åãªã</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">ä¾å­åãªã</div>
           )}
         </div>
 
