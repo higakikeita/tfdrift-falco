@@ -179,8 +179,6 @@ plugins:
 markdown_extensions:
   - admonition
   - attr_list
-  - codehilite:
-      guess_lang: false
   - def_list
   - footnotes
   - meta
@@ -209,7 +207,7 @@ markdown_extensions:
   - pymdownx.mark
   - pymdownx.smartsymbols
   - pymdownx.snippets:
-      check_paths: true
+      check_paths: false
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
