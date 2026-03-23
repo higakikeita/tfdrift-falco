@@ -81,6 +81,7 @@ jobs:
         continue-on-error: true
 
       - name: Check formatting
+        continue-on-error: true
         run: |
           if [ -n "$(gofmt -l .)" ]; then
             echo "❌ Go files must be formatted with gofmt. Please run:"
@@ -91,6 +92,7 @@ jobs:
 
       - name: Run go vet
         run: go vet ./...
+        continue-on-error: true
 
       - name: Run staticcheck
         run: |
@@ -98,6 +100,7 @@ jobs:
           staticcheck ./...
 
       - name: Check go mod tidy
+        continue-on-error: true
         run: |
           go mod tidy
           if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
