@@ -49,7 +49,7 @@ export function EventsPage() {
   const updateStatus = useUpdateEventStatus();
 
   // Merge API events with mock data for display
-  const apiEvents: FalcoEvent[] = apiData?.data || [];
+  const apiEvents = useMemo<FalcoEvent[]>(() => apiData?.data || [], [apiData]);
   const apiAsDrift = useMemo(() => apiEvents.map(apiEventToDriftEvent), [apiEvents]);
 
   // Use API events if available, fall back to mock data
@@ -126,6 +126,7 @@ export function EventsPage() {
         }
       );
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [updateStatus, toast]
   );
 
