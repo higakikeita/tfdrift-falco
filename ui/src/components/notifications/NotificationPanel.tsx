@@ -63,7 +63,7 @@ function sseEventToNotification(event: SSEEvent): Notification | null {
 export function NotificationPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const { isConnected, lastEvent, events } = useSSE({ autoConnect: true });
+  const { isConnected, lastEvent } = useSSE({ autoConnect: true });
 
   // Process new SSE events into notifications + toast
   useEffect(() => {
