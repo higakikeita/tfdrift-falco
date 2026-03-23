@@ -30,7 +30,11 @@ type AutoDetectResult struct {
 // 3. Check for backend "s3" configuration in .tf files (S3 backend)
 func AutoDetectTerraformState(searchPath string) (*AutoDetectResult, error) {
 	if searchPath == "" {
-		searchPath, _ = os.Getwd()
+		var err error
+		searchPath, err = os.Getwd()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get working directory: %w", err)
+		}
 	}
 
 	result := &AutoDetectResult{
@@ -51,7 +55,7 @@ func AutoDetectTerraformState(searchPath string) (*AutoDetectResult, error) {
 		result.Found = true
 		result.Backend = "local"
 		result.LocalPath = localStatePath
-		result.Message = fmt.Sprintf("✓ Detected local Terraform state: %s", localStatePath)
+		result.Message = fmt.Sprintf("â Detected local Terraform state: %s", localStatePath)
 		return result, nil
 	}
 
@@ -63,7 +67,7 @@ func AutoDetectTerraformState(searchPath string) (*AutoDetectResult, error) {
 		result.S3Bucket = s3Config.Bucket
 		result.S3Key = s3Config.Key
 		result.S3Region = s3Config.Region
-		result.Message = fmt.Sprintf("✓ Detected S3 backend: s3://%s/%s (region: %s)",
+		result.Message = fmt.Sprintf("â Detected S3 backend: s3://%s/%s (region: %s)",
 			s3Config.Bucket, s3Config.Key, s3Config.Region)
 		return result, nil
 	}
@@ -193,13 +197,13 @@ func CreateAutoConfig(result *AutoDetectResult) (*Config, error) {
 
 // PrintAutoDetectHelp prints helpful information when auto-detection fails
 func PrintAutoDetectHelp(result *AutoDetectResult) {
-	fmt.Println("\n" + strings.Repeat("━", 60))
-	fmt.Println("🔍 Terraform State Auto-Detection")
-	fmt.Println(strings.Repeat("━", 60))
+	fmt.Println("\n" + strings.Repeat("â", 60))
+	fmt.Println("ð Terraform State Auto-Detection")
+	fmt.Println(strings.Repeat("â", 60))
 	fmt.Println()
 
 	if result.Found {
-		fmt.Println("✓ " + result.Message)
+		fmt.Println("â " + result.Message)
 		fmt.Println()
 		fmt.Println("Auto-detected configuration:")
 		fmt.Printf("  Backend: %s\n", result.Backend)
@@ -211,9 +215,9 @@ func PrintAutoDetectHelp(result *AutoDetectResult) {
 			fmt.Printf("  Region:  %s\n", result.S3Region)
 		}
 	} else {
-		fmt.Println("❌ " + result.Message)
+		fmt.Println("â " + result.Message)
 		fmt.Println()
-		fmt.Println("💡 Quick Start Guide:")
+		fmt.Println("ð¡ Quick Start Guide:")
 		fmt.Println()
 		fmt.Println("  1. If you have Terraform initialized in this directory:")
 		fmt.Println("     cd path/to/terraform/directory")
@@ -239,6 +243,6 @@ func PrintAutoDetectHelp(result *AutoDetectResult) {
 		fmt.Println()
 	}
 
-	fmt.Println(strings.Repeat("━", 60))
+	fmt.Println(strings.Repeat("â", 60))
 	fmt.Println()
 }

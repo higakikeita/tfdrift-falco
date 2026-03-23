@@ -43,6 +43,9 @@ type Client struct {
 
 	// Mutex for subscription operations
 	mu sync.RWMutex
+
+	// closeOnce ensures send channel is closed exactly once, preventing double-close panics
+	closeOnce sync.Once
 }
 
 // WSMessage represents a WebSocket message
@@ -70,6 +73,13 @@ func newClient(hub *Hub, conn *websocket.Conn) *Client {
 		send:          make(chan []byte, 256),
 		subscriptions: make(map[string]bool),
 	}
+}
+
+// CloseOnce safely closes the send channel exactly once, preventing double-close panics
+func (c *Client) CloseOnce() {
+	c.closeOnce.Do(func() {
+		close(c.send)
+	})
 }
 
 // readPump pumps messages from the WebSocket connection to the hub
