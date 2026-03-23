@@ -127,6 +127,10 @@ export function createMockFalcoEvent(overrides?: Partial<FalcoEvent>): FalcoEven
     region: 'us-east-1',
     project_id: 'project-123',
     service_name: 'iam',
+    timestamp: '2024-01-01T00:00:00Z',
+    severity: 'high',
+    status: 'open' as const,
+    status_reason: '',
     ...overrides,
   };
 }

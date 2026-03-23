@@ -3,7 +3,7 @@ import { TimelineChart } from '../components/analytics/TimelineChart';
 import { SeverityChart } from '../components/analytics/SeverityChart';
 import { ServiceBreakdown } from '../components/analytics/ServiceBreakdown';
 import { TopUsersChart } from '../components/analytics/TopUsersChart';
-import { timelineData, severityData, serviceData, topUsersData, providerData } from '../mocks/analyticsData';
+import { timelineData, severityData, serviceData, topUsersData } from '../mocks/analyticsData';
 
 export function AnalyticsPage() {
   const totalEvents = severityData.reduce((s, d) => s + d.value, 0);

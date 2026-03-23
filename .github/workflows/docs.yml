@@ -1,17 +1,9 @@
+# DEPRECATED: This workflow has been replaced by deploy-pages.yml
+# which deploys MkDocs + Storybook together to avoid GitHub Pages conflicts.
+# Kept for reference. Only manual dispatch is enabled.
 name: Build & Deploy Docs
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - '.github/workflows/docs.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
   workflow_dispatch:
 
 permissions:

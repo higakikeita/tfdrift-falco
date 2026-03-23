@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('lucide-react', () => ({
@@ -9,12 +9,13 @@ vi.mock('lucide-react', () => ({
 }));
 
 import { EventTable } from './EventTable';
+import type { DriftEvent } from '../../types/drift';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
 });
 
-const mockEvents = [
+const mockEvents: DriftEvent[] = [
   {
     id: 'evt-1',
     provider: 'aws',

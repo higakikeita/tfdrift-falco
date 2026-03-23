@@ -2,7 +2,7 @@
 /**
  * TFDrift-Falco Graph Types
  *
- * 因果関係グラフのノード・エッジ・グラフ全体の型定義
+ * å æé¢ä¿ã°ã©ãã®ãã¼ãã»ã¨ãã¸ã»ã°ã©ãå¨ä½ã®åå®ç¾©
  */
 
 export const NodeType = {
@@ -20,11 +20,11 @@ export const NodeType = {
 export type NodeType = typeof NodeType[keyof typeof NodeType];
 
 export const EdgeType = {
-  CAUSED_BY: 'caused_by',        // Drift → IAM change
-  GRANTS_ACCESS: 'grants_access', // IAM → ServiceAccount
-  USED_BY: 'used_by',            // SA → Pod
-  CONTAINS: 'contains',          // Pod → Container
-  TRIGGERED: 'triggered'         // Container → Falco Event
+  CAUSED_BY: 'caused_by',        // Drift â IAM change
+  GRANTS_ACCESS: 'grants_access', // IAM â ServiceAccount
+  USED_BY: 'used_by',            // SA â Pod
+  CONTAINS: 'contains',          // Pod â Container
+  TRIGGERED: 'triggered'         // Container â Falco Event
 } as const;
 
 export type EdgeType = typeof EdgeType[keyof typeof EdgeType];
@@ -97,16 +97,18 @@ export interface BlastRadiusResult {
   graph: CausalGraph;
 }
 
-// Cytoscape.js用の型
+// Cytoscape.jsç¨ã®å
 export interface CytoscapeNode {
   data: {
     id: string;
     label: string;
-    type: NodeType;
+    type?: NodeType;
     severity?: Severity;
     resource_type: string;
-    resource_name: string;
-    metadata: Record<string, any>;
+    resource_name?: string;
+    metadata?: Record<string, any>;
+    parent?: string;
+    [key: string]: any;
   };
 }
 
@@ -116,8 +118,9 @@ export interface CytoscapeEdge {
     source: string;
     target: string;
     label: string;
-    type: EdgeType;
-    relationship: string;
+    type?: EdgeType;
+    relationship?: string;
+    [key: string]: any;
   };
 }
 
@@ -126,15 +129,15 @@ export interface CytoscapeElements {
   edges: CytoscapeEdge[];
 }
 
-// ビューモード
+// ãã¥ã¼ã¢ã¼ã
 export const ViewMode = {
-  ATTACK_VIEW: 'attack_view',   // 攻撃視点
-  OPS_VIEW: 'ops_view'          // 運用視点
+  ATTACK_VIEW: 'attack_view',   // æ»æè¦ç¹
+  OPS_VIEW: 'ops_view'          // éç¨è¦ç¹
 } as const;
 
 export type ViewMode = typeof ViewMode[keyof typeof ViewMode];
 
-// レイアウトタイプ
+// ã¬ã¤ã¢ã¦ãã¿ã¤ã
 export const LayoutType = {
   HIERARCHICAL: 'dagre',
   RADIAL: 'concentric',

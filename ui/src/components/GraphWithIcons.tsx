@@ -2,17 +2,19 @@
 /**
  * Graph with HTML Icon Overlays
  *
- * Renders cloud provider icons as HTML elements positioned over Cytoscape nodes
+ * Renders cloud provider icons as HTML elements positioned over Cytoscape nodes.
+ * Enhanced with html-to-image export, dark mode, and network segment visualization.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import cytoscape from 'cytoscape';
 import type { Core, NodeSingular } from 'cytoscape';
 // @ts-expect-error - cytoscape-dagre lacks type definitions
 import dagre from 'cytoscape-dagre';
+import { toPng } from 'html-to-image';
 import { cytoscapeConfig, layoutConfigs } from '../styles/cytoscapeStyles';
 import type { CytoscapeElements } from '../types/graph';
-import { OfficialCloudIcon } from './icons/OfficialCloudIcons';
+import { OfficialCloudIcon, getProviderFromType, getProviderColor } from './icons/OfficialCloudIcons';
 
 cytoscape.use(dagre);
 
@@ -24,6 +26,7 @@ interface GraphWithIconsProps {
   onNodeClick?: (nodeId: string, nodeData: any) => void;
   highlightedPath?: string[];
   className?: string;
+  darkMode?: boolean;
 }
 
 interface IconPosition {
@@ -33,6 +36,8 @@ interface IconPosition {
   type: string;
   resourceType: string;
   visible: boolean;
+  provider: string;
+  providerColor: string;
 }
 
 export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
@@ -40,32 +45,38 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
   layout = 'dagre',
   onNodeClick,
   highlightedPath = [],
-  className = ''
+  className = '',
+  darkMode = false
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<Core | null>(null);
   const [iconPositions, setIconPositions] = useState<IconPosition[]>([]);
 
   // Update icon positions based on Cytoscape node positions
-  const updateIconPositions = (cy: Core) => {
+  const updateIconPositions = useCallback((cy: Core) => {
     const positions: IconPosition[] = [];
 
     cy.nodes().forEach((node: NodeSingular) => {
       const pos = node.renderedPosition();
       const bb = node.renderedBoundingBox();
+      const resourceType = node.data('resource_type') || node.data('type');
+      const provider = getProviderFromType(resourceType);
 
       positions.push({
         id: node.id(),
         x: pos.x,
-        y: pos.y - bb.h / 2 - 20, // Position above node
+        y: pos.y - bb.h / 2 - 20,
         type: node.data('type'),
-        resourceType: node.data('resource_type') || node.data('type'),
-        visible: true
+        resourceType,
+        visible: true,
+        provider,
+        providerColor: getProviderColor(provider),
       });
     });
 
     setIconPositions(positions);
-  };
+  }, []);
 
   // Initialize Cytoscape
   useEffect(() => {
@@ -144,18 +155,51 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
     });
 
     layoutInstance.run();
-  }, [layout]);
+  }, [layout, updateIconPositions]);
+
+  // High-quality export using html-to-image (captures HTML overlays)
+  const handleExport = useCallback(async () => {
+    if (!wrapperRef.current) return;
+
+    try {
+      const dataUrl = await toPng(wrapperRef.current, {
+        quality: 1.0,
+        pixelRatio: 2,
+        backgroundColor: darkMode ? '#1a202c' : '#f8fafc',
+      });
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = 'tfdrift-graph.png';
+      link.click();
+    } catch (err) {
+      // Fallback to Cytoscape PNG export
+      console.warn('html-to-image export failed, using Cytoscape fallback:', err);
+      const png = cyRef.current?.png({ full: true, scale: 2 });
+      if (png) {
+        const link = document.createElement('a');
+        link.href = png;
+        link.download = 'tfdrift-graph.png';
+        link.click();
+      }
+    }
+  }, [darkMode]);
+
+  const bgColor = darkMode ? '#1a202c' : '#f8fafc';
+  const cardBg = darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200';
+  const btnStyle = darkMode
+    ? 'bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600'
+    : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-200';
 
   return (
-    <div className={`relative w-full h-full ${className}`}>
+    <div ref={wrapperRef} className={`relative w-full h-full ${className}`}>
       {/* Cytoscape Container */}
       <div
         ref={containerRef}
         className="w-full h-full"
-        style={{ background: '#f8fafc' }}
+        style={{ background: bgColor }}
       />
 
-      {/* HTML Icon Overlays - Official Cloud Provider Icons */}
+      {/* HTML Icon Overlays */}
       <div className="absolute inset-0 pointer-events-none">
         {iconPositions.map((pos) => {
           if (!pos.visible) return null;
@@ -163,7 +207,7 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
           return (
             <div
               key={pos.id}
-              className="absolute transition-all duration-200"
+              className="absolute transition-all duration-150"
               style={{
                 left: `${pos.x}px`,
                 top: `${pos.y}px`,
@@ -171,8 +215,13 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
                 zIndex: 1000
               }}
             >
-              <div className="bg-white rounded-xl shadow-xl p-2.5 border border-gray-300 hover:border-blue-500 hover:shadow-2xl transition-all duration-200">
-                <OfficialCloudIcon type={pos.resourceType} size={48} />
+              <div className={`rounded-xl shadow-lg p-2 border ${cardBg} hover:shadow-xl transition-shadow duration-200`}>
+                {/* Provider color accent */}
+                <div
+                  className="h-0.5 -mx-2 -mt-2 mb-1.5 rounded-t-xl"
+                  style={{ backgroundColor: pos.providerColor }}
+                />
+                <OfficialCloudIcon type={pos.resourceType} size={40} />
               </div>
             </div>
           );
@@ -183,27 +232,19 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
       <div className="absolute top-4 right-4 flex flex-col gap-2 pointer-events-auto">
         <button
           onClick={() => cyRef.current?.fit()}
-          className="px-3 py-2 bg-white rounded-lg shadow-md hover:bg-gray-100 text-sm font-medium border border-gray-200"
+          className={`px-3 py-2 rounded-lg shadow-md text-sm font-medium border ${btnStyle}`}
         >
           Fit
         </button>
         <button
           onClick={() => cyRef.current?.center()}
-          className="px-3 py-2 bg-white rounded-lg shadow-md hover:bg-gray-100 text-sm font-medium border border-gray-200"
+          className={`px-3 py-2 rounded-lg shadow-md text-sm font-medium border ${btnStyle}`}
         >
           Center
         </button>
         <button
-          onClick={() => {
-            const png = cyRef.current?.png({ full: true, scale: 2 });
-            if (png) {
-              const link = document.createElement('a');
-              link.href = png;
-              link.download = 'tfdrift-graph.png';
-              link.click();
-            }
-          }}
-          className="px-3 py-2 bg-white rounded-lg shadow-md hover:bg-gray-100 text-sm font-medium border border-gray-200"
+          onClick={handleExport}
+          className={`px-3 py-2 rounded-lg shadow-md text-sm font-medium border ${btnStyle}`}
         >
           Export
         </button>

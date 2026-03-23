@@ -121,7 +121,7 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
         compoundNodeIds: compoundNodes.map(n => n.id()),
         sampleChildNodes: childNodes.slice(0, 3).map(n => ({
           id: n.id(),
-          parent: n.parent().id()
+          parent: n.data('parent')
         }))
       });
 

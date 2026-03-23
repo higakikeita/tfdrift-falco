@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { GraphExportButton } from '../components/graph/GraphExportButton';
 
 export function TopologyPage() {
-  const [viewMode] = useState<'graph' | 'table'>('graph');
+  const [_viewMode] = useState<'graph' | 'table'>('graph');
 
   return (
     <div className="space-y-4 h-full flex flex-col">

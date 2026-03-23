@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Meta, StoryObj } from '@storybook/react';
 import { CytoscapeGraph } from './CytoscapeGraph';
 import {

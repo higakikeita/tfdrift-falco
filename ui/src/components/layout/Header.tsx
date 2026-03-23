@@ -3,14 +3,6 @@ import { Search, ChevronRight, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { NotificationPanel } from '../notifications/NotificationPanel';
 
-const routeTitles: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/events': 'Drift Events',
-  '/analytics': 'Analytics',
-  '/topology': 'Topology',
-  '/settings': 'Settings',
-};
-
 export function Header() {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();

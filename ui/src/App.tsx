@@ -14,6 +14,7 @@ import {
 import { LayoutType } from './types/graph';
 import type { LayoutType as LayoutTypeType } from './types/graph';
 import './App.css';
+import WhyFalcoPage from './pages/WhyFalcoPage';
 
 type DemoMode = 'simple' | 'complex' | 'blast-radius';
 
@@ -21,6 +22,7 @@ function App() {
   console.log('🚀 TFDrift-Falco App is loading...');
 
   const [demoMode, setDemoMode] = useState<DemoMode>('simple');
+  const [currentView, setCurrentView] = useState<'graph' | 'why-falco'>('graph');
   const [layout, setLayout] = useState<LayoutTypeType>(LayoutType.HIERARCHICAL);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [highlightedPath, setHighlightedPath] = useState<string[]>([]);
@@ -79,7 +81,19 @@ function App() {
             <p className="opacity-90">「なぜ」を可視化する</p>
           </div>
         </div>
+          <button
+            onClick={() => setCurrentView(currentView === 'why-falco' ? 'graph' : 'why-falco')}
+            className="px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200
+              bg-white/10 hover:bg-white/20 text-white border border-white/20"
+          >
+            {currentView === 'why-falco' ? 'Back to Graph' : 'Why Falco?'}
+          </button>
       </header>
+
+        {currentView === 'why-falco' ? (
+          <WhyFalcoPage onBack={() => setCurrentView('graph')} />
+        ) : (
+          <>
 
       {/* Control Panel */}
       <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-4 flex-wrap">
@@ -185,6 +199,8 @@ function App() {
           <li>• Switch layouts to see different perspectives</li>
         </ul>
       </div>
+          </>
+        )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 
 vi.mock('lucide-react', () => ({
   Search: () => <div data-testid="icon-Search" />,
@@ -7,11 +7,9 @@ vi.mock('lucide-react', () => ({
 }));
 
 import { EventFilters } from './EventFilters';
+import type { DriftFilters } from '../../types/drift';
 
-const defaultFilters = {
-  severity: '',
-  provider: '',
-  status: '',
+const defaultFilters: DriftFilters = {
   search: '',
 };
 

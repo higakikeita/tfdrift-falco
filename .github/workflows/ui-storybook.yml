@@ -1,12 +1,12 @@
+# DEPRECATED: This workflow has been replaced by deploy-pages.yml
+# which deploys MkDocs + Storybook together to avoid GitHub Pages conflicts.
+# Storybook is now deployed under /storybook/ path.
+# Kept for reference. Only manual dispatch is enabled.
 name: Deploy Storybook
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch: # Allow manual deployment
+  workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write

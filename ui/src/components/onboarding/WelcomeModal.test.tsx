@@ -19,6 +19,20 @@ vi.mock('lucide-react', () => ({
   Keyboard: () => <div data-testid="keyboard-icon">Keyboard</div>,
 }));
 
+
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: vi.fn((key: string) => store[key] ?? null),
+    setItem: vi.fn((key: string, value: string) => { store[key] = value; }),
+    removeItem: vi.fn((key: string) => { delete store[key]; }),
+    clear: vi.fn(() => { store = {}; }),
+    get length() { return Object.keys(store).length; },
+    key: vi.fn((i: number) => Object.keys(store)[i] ?? null),
+  };
+})();
+Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+
 describe('WelcomeModal', () => {
   const mockOnClose = vi.fn();
   const STORAGE_KEY = 'tfdrift-welcome-seen';
