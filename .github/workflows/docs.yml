@@ -75,7 +75,7 @@ jobs:
         run: mkdocs build
 
       - name: Check for broken links
-        uses: lycheeverse/lychee-action@v1
+        uses: lycheeverse/lychee-action@v2
         with:
           args: --verbose --no-progress --exclude 'fonts.gstatic.com' --exclude-path './site/PR_v0.2.0-beta' './site/**/*.html'
           fail: false  # Don't fail on broken links for now
