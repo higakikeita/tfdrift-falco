@@ -84,7 +84,7 @@ jobs:
         continue-on-error: true
         run: |
           if [ -n "$(gofmt -l .)" ]; then
-            echo "❌ Go files must be formatted with gofmt. Please run:"
+            echo "â Go files must be formatted with gofmt. Please run:"
             echo "  gofmt -w ."
             gofmt -l .
             exit 1
@@ -105,7 +105,7 @@ jobs:
         run: |
           go mod tidy
           if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
-            echo "❌ go.mod or go.sum is not up to date. Please run:"
+            echo "â go.mod or go.sum is not up to date. Please run:"
             echo "  go mod tidy"
             git diff go.mod go.sum
             exit 1
@@ -166,7 +166,7 @@ jobs:
           cache-dependency-path: ui/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       # ===== Lint =====
       - name: Run ESLint
@@ -311,7 +311,7 @@ jobs:
           if [ $? -eq 0 ]; then
             go test -v -race -coverprofile=integration-coverage.out ./...
           else
-            echo "ℹ️  Integration tests are disabled (build tags: ignore)"
+            echo "â¹ï¸  Integration tests are disabled (build tags: ignore)"
             echo "These tests require external services (Slack, Grafana, etc.)"
             echo "Skipping..."
             # Create empty coverage file to satisfy next step
@@ -369,12 +369,12 @@ jobs:
               line.includes('=== RUN') || line.includes('--- PASS') || line.includes('--- FAIL')
             );
 
-            let summary = '## 🔗 Integration Test Results\n\n';
+            let summary = '## ð Integration Test Results\n\n';
 
             if (failCount === 0) {
-              summary += '✅ **All integration tests passed!**\n\n';
+              summary += 'â **All integration tests passed!**\n\n';
             } else {
-              summary += '❌ **Some integration tests failed**\n\n';
+              summary += 'â **Some integration tests failed**\n\n';
             }
 
             summary += `- Passed: ${passCount}\n`;
