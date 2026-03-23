@@ -65,7 +65,6 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     console.log(`[SSE] Reconnecting in ${delay}ms (attempt ${reconnectCount.current}/${reconnectAttempts})`);
 
     reconnectTimeout.current = setTimeout(() => {
-      // eslint-disable-next-line react-hooks/immutability
       connect();
     }, delay);
     // eslint-disable-next-line react-hooks/exhaustive-deps
