@@ -11,7 +11,7 @@ import {
 import { cn } from '../lib/utils';
 import { toast } from '../stores/toastStore';
 import { apiClient } from '../api/client';
-import { SEVERITY_BADGE_CLASSES, PROVIDER_CONFIG } from '../constants';
+import { SEVERITY_BADGE_CLASSES, PROVIDER_CONFIG, type SeverityLevel, type ProviderKey } from '../constants';
 import { SaveButton } from '../components/ui/SaveButton';
 
 const tabs = [
@@ -237,7 +237,7 @@ function RulesTab() {
               <select
                 value={rule.severity}
                 onChange={(e) => updateRule(rule.id, { severity: e.target.value })}
-                className={cn('text-xs font-medium px-2 py-1 rounded-full border-0', SEVERITY_BADGE_CLASSES[rule.severity])}
+                className={cn('text-xs font-medium px-2 py-1 rounded-full border-0', SEVERITY_BADGE_CLASSES[rule.severity as SeverityLevel])}
               >
                 <option value="critical">Critical</option>
                 <option value="high">High</option>
@@ -302,12 +302,12 @@ function ProvidersTab() {
 
       <div className="space-y-4">
         {providers.map((p) => {
-          const info = PROVIDER_CONFIG[p.provider as keyof typeof PROVIDER_CONFIG] || { name: p.provider, color: 'bg-slate-100 text-slate-800' };
+          const info = PROVIDER_CONFIG[p.provider as ProviderKey] || { name: p.provider, shortName: p.provider.toUpperCase(), badgeClass: 'bg-slate-100 text-slate-800' };
           return (
             <div key={p.id} className="border border-slate-200 dark:border-slate-700 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <span className={cn('px-2.5 py-1 rounded-lg text-xs font-bold uppercase', info.color)}>
+                  <span className={cn('px-2.5 py-1 rounded-lg text-xs font-bold uppercase', info.badgeClass)}>
                     {p.provider}
                   </span>
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{info.name}</span>
