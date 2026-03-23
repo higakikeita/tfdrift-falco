@@ -6,7 +6,7 @@
 import { useState, useMemo } from 'react';
 import type { DriftEvent, DriftSeverity, ChangeType, Provider } from '../types/drift';
 import { ProviderIcon } from './icons/ProviderIcons';
-import { SEVERITY_ICONS, SEVERITY_ORDER, TIME_INTERVALS, type SeverityLevel } from '../constants';
+import { SEVERITY_ICONS, TIME_INTERVALS, type SeverityLevel } from '../constants';
 
 interface DriftHistoryTableProps {
   drifts: DriftEvent[];
