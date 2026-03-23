@@ -6,6 +6,7 @@
 import { useState, useMemo } from 'react';
 import type { DriftEvent, DriftSeverity, ChangeType, Provider } from '../types/drift';
 import { ProviderIcon } from './icons/ProviderIcons';
+import { SEVERITY_ICONS, SEVERITY_ORDER, TIME_INTERVALS, type SeverityLevel } from '../constants';
 
 interface DriftHistoryTableProps {
   drifts: DriftEvent[];
@@ -19,12 +20,6 @@ const severityColors: Record<DriftSeverity, string> = {
   low: 'bg-blue-100 text-blue-800 border-blue-200',
 };
 
-const severityIcons: Record<DriftSeverity, string> = {
-  critical: '🚨',
-  high: '⚠️',
-  medium: '⚡',
-  low: 'ℹ️',
-};
 
 const changeTypeColors: Record<ChangeType, string> = {
   created: 'text-green-600',
@@ -117,9 +112,9 @@ export default function DriftHistoryTable({ drifts, onSelectDrift }: DriftHistor
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
+    const minutes = Math.floor(diff / TIME_INTERVALS.MINUTE);
+    const hours = Math.floor(diff / TIME_INTERVALS.HOUR);
+    const days = Math.floor(diff / TIME_INTERVALS.DAY);
 
     if (minutes < 1) return 'たった今';
     if (minutes < 60) return `${minutes}分前`;
@@ -281,7 +276,7 @@ export default function DriftHistoryTable({ drifts, onSelectDrift }: DriftHistor
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${severityColors[drift.severity]}`}>
-                      {severityIcons[drift.severity]} {drift.severity.toUpperCase()}
+                      {SEVERITY_ICONS[drift.severity as SeverityLevel]} {drift.severity.toUpperCase()}
                     </span>
                   </td>
                   <td className="px-4 py-3">
