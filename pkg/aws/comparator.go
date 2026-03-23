@@ -195,10 +195,10 @@ func valuesEqual(a, b interface{}) bool {
 		}
 		// Try to parse string as boolean
 		if bStr == "true" {
-			return aBool == true
+			return aBool
 		}
 		if bStr == "false" {
-			return aBool == false
+			return !aBool
 		}
 	}
 

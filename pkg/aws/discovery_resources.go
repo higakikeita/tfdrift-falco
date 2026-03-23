@@ -77,16 +77,12 @@ func (d *DiscoveryClient) discoverEKSClusters(ctx context.Context) ([]*Discovere
 
 		var subnetIDs []string
 		if cluster.ResourcesVpcConfig != nil {
-			for _, subnet := range cluster.ResourcesVpcConfig.SubnetIds {
-				subnetIDs = append(subnetIDs, subnet)
-			}
+			subnetIDs = append(subnetIDs, cluster.ResourcesVpcConfig.SubnetIds...)
 		}
 
 		var securityGroupIDs []string
 		if cluster.ResourcesVpcConfig != nil {
-			for _, sg := range cluster.ResourcesVpcConfig.SecurityGroupIds {
-				securityGroupIDs = append(securityGroupIDs, sg)
-			}
+			securityGroupIDs = append(securityGroupIDs, cluster.ResourcesVpcConfig.SecurityGroupIds...)
 		}
 
 		resources = append(resources, &DiscoveredResource{
@@ -173,9 +169,7 @@ func (d *DiscoveryClient) discoverLoadBalancers(ctx context.Context) ([]*Discove
 		}
 
 		var securityGroupIDs []string
-		for _, sg := range lb.SecurityGroups {
-			securityGroupIDs = append(securityGroupIDs, sg)
-		}
+		securityGroupIDs = append(securityGroupIDs, lb.SecurityGroups...)
 
 		resources = append(resources, &DiscoveredResource{
 			ID:     aws.ToString(lb.LoadBalancerArn),
