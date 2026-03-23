@@ -27,7 +27,7 @@ export function SeverityChart({ data }: SeverityChartProps) {
               <Cell key={i} fill={entry.fill} />
             ))}
           </Pie>
-          <Tooltip formatter={(value: number) => [`${value} events (${((value / total) * 100).toFixed(0)}%)`, '']} />
+          <Tooltip formatter={(value) => { const v = Number(value); return [`${v} events (${((v / total) * 100).toFixed(0)}%)`, '']; }} />
         </PieChart>
       </ResponsiveContainer>
     </div>
