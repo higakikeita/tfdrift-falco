@@ -68,7 +68,7 @@ nav:
   # 3. User Guide - Daily Operations
   # ==========================================
   - User Guide:
-      - Basic Usage: usage.md
+      - Basic Usage: USAGE.md
       - Use Cases:
           - Overview: use-cases.md
       - Best Practices: best-practices.md
