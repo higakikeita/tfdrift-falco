@@ -41,13 +41,13 @@ jobs:
           pip install mkdocs-material mkdocs-minify-plugin
 
       - name: Build MkDocs site
-        run: mkdocs build --site-dir ./site
+        run: mkdocs build --strict --site-dir ./site
 
       # --- Storybook Build ---
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: ui/package-lock.json
 
