@@ -70,7 +70,7 @@ export function NotificationPanel() {
     if (!lastEvent) return;
     const notif = sseEventToNotification(lastEvent);
     if (!notif) return;
-
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNotifications((prev) => [notif, ...prev].slice(0, 100));
 
     // Show toast for critical/high severity
