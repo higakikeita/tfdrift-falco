@@ -53,7 +53,7 @@ jobs:
 
       - name: Install UI dependencies
         working-directory: ui
-        run: npm ci
+        run: npm install
 
       - name: Build Storybook
         working-directory: ui
