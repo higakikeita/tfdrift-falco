@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { useSidebarStore } from '../../stores/sidebarStore';
 import { act } from '@testing-library/react';
@@ -26,6 +26,20 @@ const renderSidebar = () => {
     </BrowserRouter>
   );
 };
+
+
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: vi.fn((key: string) => store[key] ?? null),
+    setItem: vi.fn((key: string, value: string) => { store[key] = value; }),
+    removeItem: vi.fn((key: string) => { delete store[key]; }),
+    clear: vi.fn(() => { store = {}; }),
+    get length() { return Object.keys(store).length; },
+    key: vi.fn((i: number) => Object.keys(store)[i] ?? null),
+  };
+})();
+Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
 describe('Sidebar', () => {
   beforeEach(() => {
