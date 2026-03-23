@@ -3,7 +3,6 @@ import {
   Plus,
   Trash2,
   TestTube,
-  Save,
   Webhook,
   Shield,
   Cloud,
@@ -12,6 +11,8 @@ import {
 import { cn } from '../lib/utils';
 import { toast } from '../stores/toastStore';
 import { apiClient } from '../api/client';
+import { SEVERITY_BADGE_CLASSES, PROVIDER_CONFIG } from '../constants';
+import { SaveButton } from '../components/ui/SaveButton';
 
 const tabs = [
   { key: 'webhooks', label: 'Webhooks', icon: Webhook },
@@ -185,9 +186,7 @@ function WebhooksTab() {
         </div>
       )}
 
-      <button className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors" onClick={() => toast.success('Settings saved')}>
-        <Save className="h-4 w-4" /> Save Webhooks
-      </button>
+      <SaveButton onClick={() => toast.success('Settings saved')} label="Save Webhooks" />
     </div>
   );
 }
@@ -214,12 +213,6 @@ function RulesTab() {
     setRules(rules.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   };
 
-  const severityBadge: Record<string, string> = {
-    critical: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-    high: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
-    medium: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-    low: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  };
 
   return (
     <div className="space-y-4">
@@ -244,7 +237,7 @@ function RulesTab() {
               <select
                 value={rule.severity}
                 onChange={(e) => updateRule(rule.id, { severity: e.target.value })}
-                className={cn('text-xs font-medium px-2 py-1 rounded-full border-0', severityBadge[rule.severity])}
+                className={cn('text-xs font-medium px-2 py-1 rounded-full border-0', SEVERITY_BADGE_CLASSES[rule.severity])}
               >
                 <option value="critical">Critical</option>
                 <option value="high">High</option>
@@ -285,9 +278,7 @@ function RulesTab() {
         ))}
       </div>
 
-      <button className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors" onClick={() => toast.success('Rules saved')}>
-        <Save className="h-4 w-4" /> Save Rules
-      </button>
+      <SaveButton onClick={() => toast.success('Rules saved')} label="Save Rules" />
     </div>
   );
 }
@@ -304,11 +295,6 @@ function ProvidersTab() {
     setProviders(providers.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   };
 
-  const providerLabels: Record<string, { name: string; color: string }> = {
-    aws: { name: 'Amazon Web Services', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' },
-    gcp: { name: 'Google Cloud Platform', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-    azure: { name: 'Microsoft Azure', color: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200' },
-  };
 
   return (
     <div className="space-y-4">
@@ -316,7 +302,7 @@ function ProvidersTab() {
 
       <div className="space-y-4">
         {providers.map((p) => {
-          const info = providerLabels[p.provider] || { name: p.provider, color: 'bg-slate-100 text-slate-800' };
+          const info = PROVIDER_CONFIG[p.provider as keyof typeof PROVIDER_CONFIG] || { name: p.provider, color: 'bg-slate-100 text-slate-800' };
           return (
             <div key={p.id} className="border border-slate-200 dark:border-slate-700 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
@@ -355,9 +341,7 @@ function ProvidersTab() {
         })}
       </div>
 
-      <button className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors" onClick={() => toast.success('Providers saved')}>
-        <Save className="h-4 w-4" /> Save Providers
-      </button>
+      <SaveButton onClick={() => toast.success('Providers saved')} label="Save Providers" />
     </div>
   );
 }
@@ -413,9 +397,7 @@ function GeneralTab() {
         </div>
       </div>
 
-      <button className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors" onClick={() => toast.success('Settings saved')}>
-        <Save className="h-4 w-4" /> Save Settings
-      </button>
+      <SaveButton onClick={() => toast.success('Settings saved')} label="Save Settings" />
     </div>
   );
 }
