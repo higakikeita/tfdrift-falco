@@ -13,6 +13,7 @@ import dagre from 'cytoscape-dagre';
 // @ts-expect-error - cytoscape-fcose lacks type definitions
 import fcose from 'cytoscape-fcose';
 import { cytoscapeConfig, layoutConfigs } from '../styles/cytoscapeStyles';
+import { AWS_SERVICE_LEGEND, DRIFT_STATUS_LEGEND } from '../constants/colors';
 import type { CytoscapeElements } from '../types/graph';
 
 type LayoutType = 'fcose' | 'dagre' | 'concentric' | 'cose' | 'grid';
@@ -531,117 +532,24 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
         <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 max-h-96 overflow-y-auto w-64">
         <h3 className="text-sm font-bold mb-2">AWS Services</h3>
         <div className="grid grid-cols-2 gap-1 text-xs">
-          {/* Compute */}
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#FF9900' }} />
-            <span className="text-[10px]">Lambda</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#ED7100' }} />
-            <span className="text-[10px]">EKS</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#FF9900' }} />
-            <span className="text-[10px]">ECS/Fargate</span>
-          </div>
-
-          {/* Database */}
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#3B48CC' }} />
-            <span className="text-[10px]">RDS</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#3B48CC' }} />
-            <span className="text-[10px]">Aurora</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#3B48CC' }} />
-            <span className="text-[10px]">DynamoDB</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#5A6EDB' }} />
-            <span className="text-[10px]">ElastiCache</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#3B48CC' }} />
-            <span className="text-[10px]">Neptune</span>
-          </div>
-
-          {/* Storage */}
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#569A31' }} />
-            <span className="text-[10px]">S3</span>
-          </div>
-
-          {/* Network */}
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#2E73B8' }} />
-            <span className="text-[10px]">VPC</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#5294CF' }} />
-            <span className="text-[10px]">Subnet</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#8C4FFF' }} />
-            <span className="text-[10px]">ALB/NLB</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#8C4FFF' }} />
-            <span className="text-[10px]">CloudFront</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#4A90E2' }} />
-            <span className="text-[10px]">IGW/NAT</span>
-          </div>
-
-          {/* Security */}
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#DD344C' }} />
-            <span className="text-[10px]">SG</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#DD344C' }} />
-            <span className="text-[10px]">IAM</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#759C3E' }} />
-            <span className="text-[10px]">KMS</span>
-          </div>
-
-          {/* Integration */}
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#945DF2' }} />
-            <span className="text-[10px]">API Gateway</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#D13212' }} />
-            <span className="text-[10px]">SNS/SQS</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#D13212' }} />
-            <span className="text-[10px]">Step Functions</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#D13212' }} />
-            <span className="text-[10px]">EventBridge</span>
-          </div>
+          {AWS_SERVICE_LEGEND.flatMap((category) =>
+            category.items.map((item) => (
+              <div key={item.label} className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
+                <span className="text-[10px]">{item.label}</span>
+              </div>
+            ))
+          )}
         </div>
         <hr className="my-2" />
         <h3 className="text-sm font-bold mb-2">Drift Status</h3>
         <div className="space-y-1 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded border-4 border-red-600" />
-            <span>Critical (Missing)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded border-4 border-orange-500" />
-            <span>High (Modified)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded border-4 border-yellow-500" />
-            <span>Medium (Unmanaged)</span>
-          </div>
+          {DRIFT_STATUS_LEGEND.map((status) => (
+            <div key={status.label} className="flex items-center gap-2">
+              <div className={`w-4 h-4 rounded border-4 ${status.borderClass}`} />
+              <span>{status.label} ({status.description})</span>
+            </div>
+          ))}
         </div>
         </div>
       )}
