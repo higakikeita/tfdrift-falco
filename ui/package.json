@@ -71,7 +71,7 @@
     "@vitest/coverage-v8": "^4.1.1",
     "@vitest/ui": "^4.0.16",
     "autoprefixer": "^10.4.23",
-    "eslint": "^9.39.1",
+    "eslint": "^10.0.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "eslint-plugin-storybook": "^10.3.3",
