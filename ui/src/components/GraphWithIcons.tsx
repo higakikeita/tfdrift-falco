@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Graph with HTML Icon Overlays
  *
@@ -23,7 +22,7 @@ type LayoutType = 'dagre' | 'concentric' | 'cose' | 'grid';
 interface GraphWithIconsProps {
   elements: CytoscapeElements;
   layout?: LayoutType;
-  onNodeClick?: (nodeId: string, nodeData: any) => void;
+  onNodeClick?: (nodeId: string, nodeData: Record<string, unknown>) => void;
   highlightedPath?: string[];
   className?: string;
   darkMode?: boolean;
@@ -94,6 +93,7 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
     cyRef.current = cy;
 
     // Apply layout
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const layoutConfig = (layoutConfigs as any)[layout];
     const layoutInstance = cy.layout(layoutConfig);
 
@@ -147,6 +147,7 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
   // Re-layout when layout type changes
   useEffect(() => {
     if (!cyRef.current) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const layoutConfig = (layoutConfigs as any)[layout];
     const layoutInstance = cyRef.current.layout(layoutConfig);
 

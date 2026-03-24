@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Custom Node Component for React Flow
  * Enhanced with provider color bands, modern card design, and hover animations
@@ -17,7 +16,7 @@ interface CustomNodeData {
   resource_type: string;
   severity?: 'critical' | 'high' | 'medium' | 'low';
   resource_name?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 const getSeverityColor = (severity?: string) => {

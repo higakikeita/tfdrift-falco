@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Custom Node Component Tests
  * Tests for React Flow custom node rendering and interactions
@@ -34,7 +33,7 @@ vi.mock('../icons/OfficialCloudIcons', () => ({
 }));
 
 vi.mock('../graph/NodeTooltip', () => ({
-  NodeTooltip: ({ data, position }: any) => (
+  NodeTooltip: ({ data, position }: { data: Record<string, unknown>; position: Record<string, unknown> }) => (
     <div data-testid="node-tooltip" data-position={JSON.stringify(position)}>
       <div>{data.label}</div>
       <div>{data.type}</div>
@@ -52,7 +51,15 @@ vi.mock('../graph/NodeContextMenu', () => ({
     onShowDependencies,
     onShowImpact,
     onCopyId,
-  }: any) => (
+  }: {
+    nodeId: string;
+    onClose: () => void;
+    onViewDetails: () => void;
+    onFocusView: () => void;
+    onShowDependencies: () => void;
+    onShowImpact: () => void;
+    onCopyId: () => void;
+  }) => (
     <div data-testid="context-menu" data-node-id={nodeId}>
       <button onClick={onViewDetails}>View Details</button>
       <button onClick={onFocusView}>Focus View</button>
@@ -65,7 +72,7 @@ vi.mock('../graph/NodeContextMenu', () => ({
 }));
 
 describe('CustomNode', () => {
-  let eventListener: any;
+  let eventListener: (event: Event) => void;
 
   beforeEach(() => {
     Object.defineProperty(navigator, 'clipboard', {
@@ -263,7 +270,10 @@ describe('CustomNode', () => {
       await user.click(node);
       await waitFor(() => {
         expect(eventListener).toHaveBeenCalled();
-        const event = eventListener.mock.calls.find((call: any) => call[0].type === 'node-detail');
+        const event = eventListener.mock.calls.find((call: unknown[]) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return (call[0] as any).type === 'node-detail';
+        });
         expect(event).toBeTruthy();
       });
     });
@@ -276,7 +286,10 @@ describe('CustomNode', () => {
       await user.dblClick(node);
       await waitFor(() => {
         expect(eventListener).toHaveBeenCalled();
-        const event = eventListener.mock.calls.find((call: any) => call[0].type === 'node-focus');
+        const event = eventListener.mock.calls.find((call: unknown[]) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return (call[0] as any).type === 'node-focus';
+        });
         expect(event).toBeTruthy();
       });
     });
@@ -351,7 +364,10 @@ describe('CustomNode', () => {
       const viewDetailsButton = await screen.findByText('View Details');
       await user.click(viewDetailsButton);
       await waitFor(() => {
-        const event = eventListener.mock.calls.find((call: any) => call[0].type === 'node-detail');
+        const event = eventListener.mock.calls.find((call: unknown[]) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return (call[0] as any).type === 'node-detail';
+        });
         expect(event).toBeTruthy();
       });
     });
@@ -365,7 +381,10 @@ describe('CustomNode', () => {
       const focusButton = await screen.findByText('Focus View');
       await user.click(focusButton);
       await waitFor(() => {
-        const event = eventListener.mock.calls.find((call: any) => call[0].type === 'node-focus');
+        const event = eventListener.mock.calls.find((call: unknown[]) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return (call[0] as any).type === 'node-focus';
+        });
         expect(event).toBeTruthy();
       });
     });

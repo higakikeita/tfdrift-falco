@@ -1,11 +1,26 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Cytoscape.js Style Definitions
  *
  * TFDrift-Falco因果関係グラフのビジュアルスタイル
  */
 
-export const cytoscapeStylesheet: any[] = [
+import {
+  AWS_COMPUTE_COLORS,
+  AWS_DATABASE_COLORS,
+  AWS_STORAGE_COLORS,
+  AWS_NETWORK_COLORS,
+  AWS_SECURITY_COLORS,
+  AWS_INTEGRATION_COLORS,
+  NODE_TYPE_COLORS,
+  CYTOSCAPE_DRIFT_COLORS,
+} from '../constants/colors';
+
+interface CytoscapeStyle {
+  selector: string;
+  style: Record<string, unknown>;
+}
+
+export const cytoscapeStylesheet: CytoscapeStyle[] = [
   // ==================== デフォルトスタイル ====================
 
   // Default node style - applies to all nodes
@@ -28,7 +43,7 @@ export const cytoscapeStylesheet: any[] = [
       'text-background-padding': '3px',
       'text-background-shape': 'roundrectangle',
       'border-width': 2,
-      'border-color': '#adb5bd'
+      'border-color': CYTOSCAPE_DRIFT_COLORS.low
     }
   },
 
@@ -98,7 +113,7 @@ export const cytoscapeStylesheet: any[] = [
       'text-background-padding': '4px',
       'text-background-shape': 'roundrectangle',
       'border-width': 3,
-      'border-color': '#623CE4',
+      'border-color': NODE_TYPE_COLORS.terraformChange,
       'z-index': 100
     }
   },
@@ -133,7 +148,7 @@ export const cytoscapeStylesheet: any[] = [
   {
     selector: 'node[type="iam_role"]',
     style: {
-      'background-color': '#1c7ed6',
+      'background-color': NODE_TYPE_COLORS.iamRole,
       'label': 'data(label)',
       'shape': 'round-rectangle',
       'width': 70,
@@ -151,7 +166,7 @@ export const cytoscapeStylesheet: any[] = [
   {
     selector: 'node[type="service_account"]',
     style: {
-      'background-color': '#51cf66',
+      'background-color': NODE_TYPE_COLORS.serviceAccount,
       'label': 'data(label)',
       'shape': 'round-rectangle',
       'width': 70,
@@ -169,7 +184,7 @@ export const cytoscapeStylesheet: any[] = [
   {
     selector: 'node[type="pod"]',
     style: {
-      'background-color': '#ffd43b',
+      'background-color': NODE_TYPE_COLORS.pod,
       'label': 'data(label)',
       'shape': 'round-rectangle',
       'width': 60,
@@ -179,7 +194,7 @@ export const cytoscapeStylesheet: any[] = [
       'text-outline-color': '#fab005',
       'text-outline-width': 1,
       'border-width': 2,
-      'border-color': '#fab005'
+      'border-color': CYTOSCAPE_DRIFT_COLORS.medium
     }
   },
 
@@ -197,7 +212,7 @@ export const cytoscapeStylesheet: any[] = [
       'text-outline-color': '#e8590c',
       'text-outline-width': 1,
       'border-width': 2,
-      'border-color': '#e8590c'
+      'border-color': CYTOSCAPE_DRIFT_COLORS.high
     }
   },
 
@@ -224,7 +239,7 @@ export const cytoscapeStylesheet: any[] = [
   {
     selector: 'node[type="security_group"]',
     style: {
-      'background-color': '#9775fa',
+      'background-color': NODE_TYPE_COLORS.securityGroup,
       'label': 'data(label)',
       'shape': 'round-rectangle',
       'width': 65,
@@ -242,7 +257,7 @@ export const cytoscapeStylesheet: any[] = [
   {
     selector: 'node[type="network"]',
     style: {
-      'background-color': '#22b8cf',
+      'background-color': NODE_TYPE_COLORS.network,
       'label': 'data(label)',
       'shape': 'ellipse',
       'width': 65,
@@ -271,7 +286,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-position-y': '10px',
       'background-width': '48px',
       'background-height': '48px',
-      'border-color': '#2E73B8',
+      'border-color': AWS_NETWORK_COLORS.vpc,
       'border-width': 5,  // Thicker border for large graphs
       'border-style': 'dashed',  // Dashed border for VPC
       'shape': 'roundrectangle',
@@ -280,7 +295,7 @@ export const cytoscapeStylesheet: any[] = [
       'text-halign': 'left',
       'text-margin-x': 10,
       'text-margin-y': 10,
-      'color': '#2E73B8',
+      'color': AWS_NETWORK_COLORS.vpc,
       'font-size': '13px',
       'font-weight': 'bold',
       'text-background-color': '#ffffff',
@@ -303,7 +318,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-position-y': '8px',
       'background-width': '36px',
       'background-height': '36px',
-      'border-color': '#5294CF',
+      'border-color': AWS_NETWORK_COLORS.subnet,
       'border-width': 4,  // Thicker border
       'border-style': 'solid',  // Solid border for Subnet
       'shape': 'roundrectangle',
@@ -312,7 +327,7 @@ export const cytoscapeStylesheet: any[] = [
       'text-halign': 'left',
       'text-margin-x': 8,
       'text-margin-y': 8,
-      'color': '#2E73B8',
+      'color': AWS_NETWORK_COLORS.vpc,
       'font-size': '12px',
       'font-weight': '600',
       'text-background-color': '#ffffff',
@@ -332,7 +347,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#DD344C',
+      'border-color': AWS_SECURITY_COLORS.securityGroup,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -356,7 +371,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#ED7100',
+      'border-color': AWS_COMPUTE_COLORS.eks,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -380,7 +395,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#ED7100',
+      'border-color': AWS_COMPUTE_COLORS.eks,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -404,7 +419,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#ED7100',
+      'border-color': AWS_COMPUTE_COLORS.eks,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -427,7 +442,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#FF9900',
+      'border-color': AWS_COMPUTE_COLORS.lambda,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -451,7 +466,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#3B48CC',
+      'border-color': AWS_DATABASE_COLORS.rds,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -498,7 +513,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#8C4FFF',
+      'border-color': AWS_NETWORK_COLORS.albNlb,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -614,7 +629,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#DD344C',
+      'border-color': AWS_SECURITY_COLORS.securityGroup,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -755,7 +770,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#FF9900',
+      'border-color': AWS_COMPUTE_COLORS.lambda,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -778,7 +793,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#569A31',
+      'border-color': AWS_STORAGE_COLORS.s3,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -801,7 +816,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#3B48CC',
+      'border-color': AWS_DATABASE_COLORS.rds,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -824,7 +839,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#D13212',
+      'border-color': AWS_INTEGRATION_COLORS.snsSqs,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -847,7 +862,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#D13212',
+      'border-color': AWS_INTEGRATION_COLORS.snsSqs,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -870,7 +885,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#945DF2',
+      'border-color': AWS_INTEGRATION_COLORS.apiGateway,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -893,7 +908,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#8C4FFF',
+      'border-color': AWS_NETWORK_COLORS.albNlb,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -916,7 +931,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#D13212',
+      'border-color': AWS_INTEGRATION_COLORS.snsSqs,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -939,7 +954,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#D13212',
+      'border-color': AWS_INTEGRATION_COLORS.snsSqs,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -962,7 +977,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#3B48CC',
+      'border-color': AWS_DATABASE_COLORS.rds,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -985,7 +1000,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#FF9900',
+      'border-color': AWS_COMPUTE_COLORS.lambda,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -1008,7 +1023,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#3B48CC',
+      'border-color': AWS_DATABASE_COLORS.rds,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -1031,7 +1046,7 @@ export const cytoscapeStylesheet: any[] = [
       'background-clip': 'none',
       'background-width': '80%',
       'background-height': '80%',
-      'border-color': '#3B48CC',
+      'border-color': AWS_DATABASE_COLORS.rds,
       'color': '#2d3748',
       'text-background-color': '#ffffff',
       'text-background-opacity': 0.9,
@@ -1051,7 +1066,7 @@ export const cytoscapeStylesheet: any[] = [
     selector: 'node[severity="critical"]',
     style: {
       'border-width': 6,
-      'border-color': '#c92a2a'
+      'border-color': CYTOSCAPE_DRIFT_COLORS.critical
     }
   },
 
@@ -1060,7 +1075,7 @@ export const cytoscapeStylesheet: any[] = [
     selector: 'node[severity="high"]',
     style: {
       'border-width': 4,
-      'border-color': '#e8590c'
+      'border-color': CYTOSCAPE_DRIFT_COLORS.high
     }
   },
 
@@ -1069,7 +1084,7 @@ export const cytoscapeStylesheet: any[] = [
     selector: 'node[severity="medium"]',
     style: {
       'border-width': 2,
-      'border-color': '#fab005'
+      'border-color': CYTOSCAPE_DRIFT_COLORS.medium
     }
   },
 
@@ -1078,7 +1093,7 @@ export const cytoscapeStylesheet: any[] = [
     selector: 'node[severity="low"]',
     style: {
       'border-width': 1,
-      'border-color': '#adb5bd'
+      'border-color': CYTOSCAPE_DRIFT_COLORS.low
     }
   },
 
@@ -1177,7 +1192,7 @@ export const cytoscapeStylesheet: any[] = [
   {
     selector: '.highlighted',
     style: {
-      'background-color': '#ffd43b',
+      'background-color': NODE_TYPE_COLORS.pod,
       'line-color': '#ffd43b',
       'target-arrow-color': '#ffd43b',
       'width': 6,
@@ -1225,7 +1240,7 @@ export const cytoscapeStylesheet: any[] = [
     style: {
       'background-color': '#fa5252',
       'border-width': 8,
-      'border-color': '#c92a2a',
+      'border-color': CYTOSCAPE_DRIFT_COLORS.critical,
       'z-index': 1000
     }
   },

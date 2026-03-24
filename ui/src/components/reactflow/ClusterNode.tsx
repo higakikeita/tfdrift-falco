@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Cluster Node Component
  * Renders grouped nodes as expandable/collapsible clusters

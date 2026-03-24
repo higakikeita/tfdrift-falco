@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * React Flow Graph Component
  * High-quality graph visualization with official cloud provider icons
@@ -31,7 +30,7 @@ import type { CytoscapeElements } from '../../types/graph';
 interface ReactFlowGraphProps {
   elements: CytoscapeElements;
   layout?: 'dagre' | 'cose' | 'concentric' | 'grid' | 'network-diagram';
-  onNodeClick?: (nodeId: string, nodeData: any) => void;
+  onNodeClick?: (nodeId: string, nodeData: unknown) => void;
   highlightedPath?: string[];
   highlightedNodes?: string[];
   criticalNodes?: string[];
@@ -300,7 +299,7 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
         {/* Mini Map */}
         <MiniMap
           nodeColor={(node) => {
-            const severity = (node.data as any)?.severity;
+            const severity = (node.data as Record<string, unknown>)?.severity;
             switch (severity) {
               case 'critical': return '#ef4444';
               case 'high': return '#f97316';

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Node Detail Panel Component
  * Displays detailed information about selected nodes
@@ -16,7 +15,7 @@ interface NodeDetailPanelProps {
       resource_type: string;
       severity?: string;
       resource_name?: string;
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
     };
   } | null;
   onClose: () => void;

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * LOD (Level-of-Detail) Node Component
  * Dynamically adjusts rendering detail based on zoom level for performance optimization
@@ -21,7 +20,7 @@ interface LODNodeData {
   resource_type: string;
   severity?: 'critical' | 'high' | 'medium' | 'low';
   resource_name?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 const getSeverityColor = (severity?: string): string => {

@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/purity */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Memory Optimization Utilities
  * Performance helpers for large-scale graph rendering
@@ -58,7 +57,7 @@ export function useThrottle<T>(value: T, limit: number = 100): T {
 export function useMemoizedFilter<T>(
   items: T[],
   filterFn: (item: T) => boolean,
-  dependencies: any[] = []
+  dependencies: unknown[] = []
 ): T[] {
   return useMemo(() => {
     return items.filter(filterFn);
@@ -72,7 +71,7 @@ export function useMemoizedFilter<T>(
 export function useMemoizedSort<T>(
   items: T[],
   compareFn: (a: T, b: T) => number,
-  dependencies: any[] = []
+  dependencies: unknown[] = []
 ): T[] {
   return useMemo(() => {
     return [...items].sort(compareFn);
@@ -84,7 +83,7 @@ export function useMemoizedSort<T>(
  * Stable callback hook
  * Prevents unnecessary re-renders when passing callbacks to child components
  */
-export function useStableCallback<T extends (...args: any[]) => any>(
+export function useStableCallback<T extends (...args: unknown[]) => unknown>(
   callback: T
 ): T {
   const callbackRef = useRef(callback);
@@ -93,7 +92,7 @@ export function useStableCallback<T extends (...args: any[]) => any>(
     callbackRef.current = callback;
   }, [callback]);
 
-  return useCallback((...args: any[]) => {
+  return useCallback((...args: unknown[]) => {
     return callbackRef.current(...args);
   }, []) as T;
 }
@@ -154,7 +153,7 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
  * Batch update hook using requestAnimationFrame
  * Schedules updates for next animation frame
  */
-export function useAnimationFrame(callback: () => void, dependencies: any[]) {
+export function useAnimationFrame(callback: () => void, dependencies: unknown[]) {
   useEffect(() => {
     const frameId = requestAnimationFrame(callback);
     return () => cancelAnimationFrame(frameId);
@@ -207,7 +206,9 @@ export class WeakCache<K extends object, V> {
  * Calculate memory usage (development only)
  */
 export function getMemoryUsage(): { used: number; total: number; percentage: number } | null {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if ('memory' in performance && (performance as any).memory) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const memory = (performance as any).memory;
     return {
       used: Math.round(memory.usedJSHeapSize / 1048576), // MB
@@ -221,7 +222,7 @@ export function getMemoryUsage(): { used: number; total: number; percentage: num
 /**
  * Lazy load component with retry logic
  */
-export function lazyWithRetry<T extends React.ComponentType<any>>(
+export function lazyWithRetry<T extends React.ComponentType<Record<string, unknown>>>(
   componentImport: () => Promise<{ default: T }>,
   retries: number = 3
 ): React.LazyExoticComponent<T> {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * PatternSearchPanel - Neo4j-style pattern matching search UI
  */
@@ -15,7 +14,7 @@ interface PatternSearchPanelProps {
 interface Node {
   id: string;
   labels: string[];
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
 }
 
 const PatternSearchPanel = ({ onClose, onNodeSelect }: PatternSearchPanelProps) => {
@@ -39,7 +38,7 @@ const PatternSearchPanel = ({ onClose, onNodeSelect }: PatternSearchPanelProps) 
 
   const { data, isLoading, error } = usePatternMatch(pattern, searchEnabled);
 
-  const matches: Array<Node[]> = (data as any)?.data?.matches || [];
+  const matches: Array<Node[]> = (data as Record<string, unknown>)?.data?.matches || [];
 
   const handleSearch = () => {
     setSearchEnabled(true);

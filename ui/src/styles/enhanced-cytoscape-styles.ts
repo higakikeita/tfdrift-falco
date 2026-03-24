@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Enhanced Cytoscape Styles with Cloud Provider Icons
  *
@@ -43,7 +42,12 @@ const baseNodeStyle = {
   'transition-duration': '0.2s'
 };
 
-export const enhancedCytoscapeStylesheet: any[] = [
+interface CytoscapeStyle {
+  selector: string;
+  style: Record<string, unknown>;
+}
+
+export const enhancedCytoscapeStylesheet: CytoscapeStyle[] = [
   // ====================ノードスタイル (アイコンベース) ====================
 
   // Terraform Change
@@ -272,8 +276,9 @@ export const enhancedLayoutConfigs = {
 
   concentric: {
     name: 'concentric',
-    concentric: (node: any) => {
-      const type = node.data('type');
+    concentric: (node: Record<string, unknown>) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const type = (node as any).data('type');
       if (type === 'terraform_change') return 10;
       if (type === 'falco_event') return 1;
       return 5;

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Hierarchical Group Nodes for AWS Architecture Diagram
  * Following AWS standard architecture diagram conventions
@@ -14,7 +13,7 @@ interface GroupNodeData {
   metadata?: {
     cidr?: string;
     subnet_type?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 

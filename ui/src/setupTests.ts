@@ -2,8 +2,6 @@
  * Test Setup
  * Global test configuration and utilities
  */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 import { afterEach, beforeAll, afterAll, vi } from 'vitest';
@@ -31,6 +29,7 @@ beforeAll(() => {
 });
 
 // Mock IntersectionObserver
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 global.IntersectionObserver = class IntersectionObserver {
   constructor() {}
   disconnect() {}
@@ -42,6 +41,7 @@ global.IntersectionObserver = class IntersectionObserver {
 } as any;
 
 // Mock ResizeObserver
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 global.ResizeObserver = class ResizeObserver {
   constructor() {}
   disconnect() {}
@@ -55,7 +55,7 @@ window.scrollTo = vi.fn();
 // Suppress console errors during tests (optional)
 const originalError = console.error;
 beforeAll(() => {
-  console.error = (...args: any[]) => {
+  console.error = (...args: unknown[]) => {
     // Suppress React act() warnings
     if (
       typeof args[0] === 'string' &&

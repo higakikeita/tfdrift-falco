@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * NodeDetailPanel - Display detailed node information and relationships
  */
@@ -17,7 +16,7 @@ interface NodeDetailPanelProps {
 interface Node {
   id: string;
   labels: string[];
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
 }
 
 type TabType = 'overview' | 'relationships' | 'impact';
@@ -34,12 +33,12 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
   const { data: neighborsData, isLoading: neighborsLoading } = useNodeNeighbors(nodeId);
   const { data: impactData, isLoading: impactLoading } = useImpactRadius(nodeId, impactDepth, showImpact);
 
-  const node: Node | null = (nodeData as any)?.data?.node || null;
-  const dependencies: Node[] = (dependenciesData as any)?.data?.dependencies || [];
-  const dependents: Node[] = (dependentsData as any)?.data?.dependents || [];
-  const neighbors: Node[] = (neighborsData as any)?.data?.neighbors || [];
+  const node: Node | null = (nodeData as Record<string, unknown>)?.data?.node || null;
+  const dependencies: Node[] = (dependenciesData as Record<string, unknown>)?.data?.dependencies || [];
+  const dependents: Node[] = (dependentsData as Record<string, unknown>)?.data?.dependents || [];
+  const neighbors: Node[] = (neighborsData as Record<string, unknown>)?.data?.neighbors || [];
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const impactNodes: Node[] = (impactData as any)?.data?.nodes || [];
+  const impactNodes: Node[] = (impactData as Record<string, unknown>)?.data?.nodes || [];
 
   const handleNodeClick = (clickedNodeId: string) => {
     if (onNodeSelect) {

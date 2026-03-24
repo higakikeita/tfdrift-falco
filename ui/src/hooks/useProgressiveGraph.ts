@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Progressive Graph Loading Hook
  * Loads and renders large graphs in batches for better performance
@@ -15,7 +14,7 @@ interface ProgressiveGraphOptions {
   priorityNodeIds?: string[]; // Load these nodes first
 }
 
-interface ProgressiveGraphState<T = any> {
+interface ProgressiveGraphState<T = unknown> {
   visibleNodes: Node<T>[];
   visibleEdges: Edge[];
   isLoading: boolean;
@@ -26,7 +25,7 @@ interface ProgressiveGraphState<T = any> {
   skipToEnd: () => void;
 }
 
-export function useProgressiveGraph<T = any>(
+export function useProgressiveGraph<T = unknown>(
   allNodes: Node<T>[],
   allEdges: Edge[],
   options: ProgressiveGraphOptions = {}
@@ -197,7 +196,7 @@ export function useProgressiveEdges(
  * Hook for intelligent viewport-based loading
  * Only loads nodes within or near the current viewport
  */
-export function useViewportBasedLoading<T = any>(
+export function useViewportBasedLoading<T = unknown>(
   allNodes: Node<T>[],
   allEdges: Edge[],
   viewport: { x: number; y: number; zoom: number },

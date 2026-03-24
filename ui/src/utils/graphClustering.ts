@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Graph Clustering Utilities
  * Groups nodes by type, provider, severity, or custom criteria
@@ -6,7 +5,7 @@
 
 import type { Node, Edge } from 'reactflow';
 
-export interface ClusterNode<T = any> extends Node<T> {
+export interface ClusterNode<T = unknown> extends Node<T> {
   type: 'cluster';
   data: T & {
     clusterType: string;
@@ -28,7 +27,7 @@ export interface ClusterOptions {
 /**
  * Groups nodes into clusters based on specified criteria
  */
-export function clusterNodes<T = any>(
+export function clusterNodes<T = unknown>(
   nodes: Node<T>[],
   options: ClusterOptions
 ): { nodes: (Node<T> | ClusterNode<T>)[]; clusterMap: Map<string, string[]> } {
@@ -44,7 +43,7 @@ export function clusterNodes<T = any>(
 
   nodes.forEach(node => {
     let groupKey: string;
-    const data = node.data as any;
+    const data = node.data as Record<string, unknown>;
 
     switch (groupBy) {
       case 'type':
@@ -113,7 +112,7 @@ export function clusterNodes<T = any>(
 /**
  * Creates a cluster node from a group of nodes
  */
-function createClusterNode<T = any>(
+function createClusterNode<T = unknown>(
   clusterId: string,
   label: string,
   childNodes: Node<T>[],
@@ -125,7 +124,7 @@ function createClusterNode<T = any>(
   // Calculate severity counts
   const severityCounts: Record<string, number> = {};
   childNodes.forEach(node => {
-    const data = node.data as any;
+    const data = node.data as Record<string, unknown>;
     const severity = data?.severity || 'unknown';
     severityCounts[severity] = (severityCounts[severity] || 0) + 1;
   });
@@ -144,14 +143,22 @@ function createClusterNode<T = any>(
       label, // For compatibility
       type: 'cluster',
       resource_type: clusterType,
-    } as any,
+    } as T &
+      {
+        clusterType: string;
+        clusterLabel: string;
+        childNodeIds: string[];
+        isExpanded: boolean;
+        childCount: number;
+        severityCounts?: Record<string, number>;
+      },
   };
 }
 
 /**
  * Expands a cluster to show its child nodes
  */
-export function expandCluster<T = any>(
+export function expandCluster<T = unknown>(
   clusterId: string,
   clusterMap: Map<string, string[]>,
   allNodes: Node<T>[],
@@ -197,7 +204,7 @@ export function expandCluster<T = any>(
 /**
  * Collapses a cluster to hide its child nodes
  */
-export function collapseCluster<T = any>(
+export function collapseCluster<T = unknown>(
   clusterId: string,
   clusterMap: Map<string, string[]>,
   currentNodes: (Node<T> | ClusterNode<T>)[]
@@ -305,7 +312,7 @@ function calculateAveragePosition(nodes: Node[]): { x: number; y: number } {
 /**
  * Positions nodes in a circle around a center point
  */
-function positionNodesInCircle<T = any>(
+function positionNodesInCircle<T = unknown>(
   nodes: Node<T>[],
   center: { x: number; y: number },
   radius: number
@@ -327,7 +334,7 @@ function positionNodesInCircle<T = any>(
 /**
  * Chunks nodes for clustering
  */
-function chunkNodesForClustering<T = any>(
+function chunkNodesForClustering<T = unknown>(
   nodes: Node<T>[],
   chunkSize: number
 ): Node<T>[][] {
@@ -343,7 +350,7 @@ function chunkNodesForClustering<T = any>(
  */
 import { useState, useCallback, useMemo } from 'react';
 
-export function useGraphClustering<T = any>(
+export function useGraphClustering<T = unknown>(
   allNodes: Node<T>[],
   allEdges: Edge[],
   options: ClusterOptions

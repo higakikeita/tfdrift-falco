@@ -4,7 +4,6 @@
  * TFDrift-Falco因果関係グラフのデモ用サンプルデータ
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { CytoscapeElements } from '../types/graph';
 import { NodeType, EdgeType } from '../types/graph';
 
@@ -322,7 +321,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'region-us-west-2',
           label: 'US West 2 (Oregon)',
-          type: 'region' as any,
+          type: 'region' as const,
           resource_type: 'aws_region',
           resource_name: 'us-west-2',
           metadata: {
@@ -337,7 +336,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'vpc-prod-123',
           label: 'Production VPC',
-          type: 'vpc' as any,
+          type: 'vpc' as const,
           resource_type: 'aws_vpc',
           resource_name: 'vpc-prod-123',
           metadata: {
@@ -355,7 +354,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'az-us-west-2a',
           label: 'us-west-2a',
-          type: 'availability_zone' as any,
+          type: 'availability_zone' as const,
           resource_type: 'aws_availability_zone',
           resource_name: 'us-west-2a',
           metadata: {
@@ -372,7 +371,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'subnet-pub-2a',
           label: 'Public Subnet 2a',
-          type: 'subnet' as any,
+          type: 'subnet' as const,
           resource_type: 'aws_subnet',
           resource_name: 'subnet-pub-2a',
           metadata: {
@@ -390,7 +389,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'alb-web',
           label: 'Web ALB',
-          type: 'load_balancer' as any,
+          type: 'load_balancer' as const,
           resource_type: 'aws_lb',
           resource_name: 'web-alb',
           severity: 'low' as const,
@@ -406,7 +405,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'nat-2a',
           label: 'NAT Gateway 2a',
-          type: 'nat_gateway' as any,
+          type: 'nat_gateway' as const,
           resource_type: 'aws_nat_gateway',
           resource_name: 'nat-2a',
           severity: 'low' as const,
@@ -422,7 +421,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'subnet-priv-2a',
           label: 'Private Subnet 2a',
-          type: 'subnet' as any,
+          type: 'subnet' as const,
           resource_type: 'aws_subnet',
           resource_name: 'subnet-priv-2a',
           metadata: {
@@ -440,7 +439,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'ec2-web-1',
           label: 'Web Server 1',
-          type: 'ec2_instance' as any,
+          type: 'ec2_instance' as const,
           resource_type: 'aws_instance',
           resource_name: 'web-server-1',
           severity: 'medium' as const,
@@ -456,7 +455,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'ec2-web-2',
           label: 'Web Server 2',
-          type: 'ec2_instance' as any,
+          type: 'ec2_instance' as const,
           resource_type: 'aws_instance',
           resource_name: 'web-server-2',
           severity: 'medium' as const,
@@ -472,7 +471,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'rds-primary',
           label: 'PostgreSQL Primary',
-          type: 'rds_instance' as any,
+          type: 'rds_instance' as const,
           resource_type: 'aws_db_instance',
           resource_name: 'postgres-primary',
           severity: 'high' as const,
@@ -490,7 +489,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'az-us-west-2b',
           label: 'us-west-2b',
-          type: 'availability_zone' as any,
+          type: 'availability_zone' as const,
           resource_type: 'aws_availability_zone',
           resource_name: 'us-west-2b',
           metadata: {
@@ -507,7 +506,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'subnet-pub-2b',
           label: 'Public Subnet 2b',
-          type: 'subnet' as any,
+          type: 'subnet' as const,
           resource_type: 'aws_subnet',
           resource_name: 'subnet-pub-2b',
           metadata: {
@@ -525,7 +524,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'nat-2b',
           label: 'NAT Gateway 2b',
-          type: 'nat_gateway' as any,
+          type: 'nat_gateway' as const,
           resource_type: 'aws_nat_gateway',
           resource_name: 'nat-2b',
           severity: 'low' as const,
@@ -541,7 +540,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'subnet-priv-2b',
           label: 'Private Subnet 2b',
-          type: 'subnet' as any,
+          type: 'subnet' as const,
           resource_type: 'aws_subnet',
           resource_name: 'subnet-priv-2b',
           metadata: {
@@ -559,7 +558,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'ec2-web-3',
           label: 'Web Server 3',
-          type: 'ec2_instance' as any,
+          type: 'ec2_instance' as const,
           resource_type: 'aws_instance',
           resource_name: 'web-server-3',
           severity: 'medium' as const,
@@ -575,7 +574,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'rds-standby',
           label: 'PostgreSQL Standby',
-          type: 'rds_instance' as any,
+          type: 'rds_instance' as const,
           resource_type: 'aws_db_instance',
           resource_name: 'postgres-standby',
           severity: 'high' as const,
@@ -592,7 +591,7 @@ export function generateNetworkDiagram(): CytoscapeElements {
         data: {
           id: 'lambda-api',
           label: 'API Handler Lambda',
-          type: 'lambda_function' as any,
+          type: 'lambda_function' as const,
           resource_type: 'aws_lambda_function',
           resource_name: 'api-handler',
           severity: 'low' as const,

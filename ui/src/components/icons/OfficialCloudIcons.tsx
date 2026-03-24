@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
 // Official AWS React Icons from aws-react-icons package
@@ -40,10 +39,14 @@ interface InlineIconProps {
   className?: string;
 }
 
+interface AWSIconComponent {
+  (props: { size?: number; className?: string }): React.ReactElement;
+}
+
 // ============================================================
 // AWS Icon Mapping - Official aws-react-icons components
 // ============================================================
-const AWS_ICON_MAPPING: Record<string, React.ComponentType<any>> = {
+const AWS_ICON_MAPPING: Record<string, AWSIconComponent> = {
   // IAM
   'aws_iam_policy': ArchitectureServiceAWSIAMIdentityCenter,
   'aws_iam_role': ResourceAWSIdentityAccessManagementIAMRolesAnywhere,
