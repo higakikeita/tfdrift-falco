@@ -113,7 +113,6 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     reconnectCount.current++;
     const delay = reconnectDelay * Math.pow(2, reconnectCount.current - 1); // Exponential backoff
 
-    console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt ${reconnectCount.current}/${reconnectAttempts})`);
 
     reconnectTimeout.current = setTimeout(() => {
       connect();
@@ -132,11 +131,9 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     setError(null);
 
     try {
-      console.log('[WebSocket] Connecting to', url);
       const socket = new WebSocket(url);
 
       socket.onopen = () => {
-        console.log('[WebSocket] Connected');
         setIsConnected(true);
         setIsConnecting(false);
         setError(null);
@@ -150,7 +147,6 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
       socket.onmessage = (event) => {
         try {
           const message: WSResponse = JSON.parse(event.data);
-          console.log('[WebSocket] Message received:', message);
           setLastMessage(message);
         } catch (err) {
           console.error('[WebSocket] Failed to parse message:', err);
@@ -163,7 +159,6 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
       };
 
       socket.onclose = (event) => {
-        console.log('[WebSocket] Disconnected:', event.code, event.reason);
         setIsConnected(false);
         setIsConnecting(false);
         stopHeartbeat();
@@ -185,7 +180,6 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
 
   // Disconnect from WebSocket
   const disconnect = useCallback(() => {
-    console.log('[WebSocket] Disconnecting...');
     reconnectCount.current = reconnectAttempts; // Prevent reconnection
 
     if (reconnectTimeout.current) {

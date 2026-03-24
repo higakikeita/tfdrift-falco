@@ -62,7 +62,6 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     reconnectCount.current++;
     const delay = reconnectDelay * Math.pow(2, reconnectCount.current - 1);
 
-    console.log(`[SSE] Reconnecting in ${delay}ms (attempt ${reconnectCount.current}/${reconnectAttempts})`);
 
     reconnectTimeout.current = setTimeout(() => {
       connect();
@@ -78,7 +77,6 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
       timestamp: new Date().toISOString(),
     };
 
-    console.log('[SSE] Event received:', event);
     setLastEvent(event);
     setEvents(prev => [...prev, event].slice(-100)); // Keep last 100 events
   }, []);
@@ -94,11 +92,9 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     setError(null);
 
     try {
-      console.log('[SSE] Connecting to', url);
       const es = new EventSource(url);
 
       es.onopen = () => {
-        console.log('[SSE] Connected');
         setIsConnected(true);
         setIsConnecting(false);
         setError(null);
@@ -147,7 +143,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
 
       // Handle generic messages
       es.onmessage = (event: MessageEvent) => {
-        console.log('[SSE] Generic message:', event.data);
+        handleEvent('message', event.data);
       };
 
       es.onerror = (event) => {
@@ -173,7 +169,6 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
 
   // Disconnect from SSE stream
   const disconnect = useCallback(() => {
-    console.log('[SSE] Disconnecting...');
     reconnectCount.current = reconnectAttempts; // Prevent reconnection
 
     if (reconnectTimeout.current) {

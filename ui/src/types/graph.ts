@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * TFDrift-Falco Graph Types
  *
@@ -40,7 +39,7 @@ export interface GraphNode {
     resource_name: string;
     timestamp?: string;
     severity?: Severity;
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
   };
   style?: {
     color?: string;
@@ -57,7 +56,7 @@ export interface GraphEdge {
   label: string;
   data: {
     relationship: string;
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
   };
   style?: {
     color?: string;
@@ -106,9 +105,9 @@ export interface CytoscapeNode {
     severity?: Severity;
     resource_type: string;
     resource_name?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
     parent?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -120,7 +119,7 @@ export interface CytoscapeEdge {
     label: string;
     type?: EdgeType;
     relationship?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * CytoscapeGraph Component
  *
@@ -25,8 +24,8 @@ cytoscape.use(fcose);
 interface CytoscapeGraphProps {
   elements: CytoscapeElements;
   layout?: LayoutType;
-  onNodeClick?: (nodeId: string, nodeData: any) => void;
-  onEdgeClick?: (edgeId: string, edgeData: any) => void;
+  onNodeClick?: (nodeId: string, nodeData: unknown) => void;
+  onEdgeClick?: (edgeId: string, edgeData: unknown) => void;
   highlightedPath?: string[];
   className?: string;
 }
@@ -56,45 +55,7 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
 
   // Initialize Cytoscape
   useEffect(() => {
-    console.log('🎨 Initializing Cytoscape graph with AWS official icons...', {
-      nodesCount: elements.nodes.length,
-      edgesCount: elements.edges.length,
-      layout
-    });
-
-    if (!containerRef.current) {
-      console.error('❌ Container ref is null!');
-      return;
-    }
-
-    // Debug: Inspect node data structure BEFORE creating Cytoscape
-    const vpcNodes = elements.nodes.filter(n => n.data.resource_type === 'aws_vpc');
-    const subnetNodes = elements.nodes.filter(n => n.data.resource_type === 'aws_subnet');
-    const nodesWithParent = elements.nodes.filter(n => n.data.parent);
-
-    console.log('🔍 Pre-Cytoscape data inspection:', {
-      totalNodes: elements.nodes.length,
-      vpcCount: vpcNodes.length,
-      subnetCount: subnetNodes.length,
-      nodesWithParentCount: nodesWithParent.length,
-      sampleVPC: vpcNodes[0] ? {
-        id: vpcNodes[0].data.id,
-        resource_type: vpcNodes[0].data.resource_type,
-        hasParent: !!vpcNodes[0].data.parent,
-        parent: vpcNodes[0].data.parent
-      } : null,
-      sampleSubnets: subnetNodes.slice(0, 2).map(n => ({
-        id: n.data.id,
-        resource_type: n.data.resource_type,
-        parent: n.data.parent,
-        vpcId: n.data.metadata?.attributes?.vpc_id
-      })),
-      sampleChildResources: nodesWithParent.slice(0, 3).map(n => ({
-        id: n.data.id,
-        resource_type: n.data.resource_type,
-        parent: n.data.parent
-      }))
-    });
+    if (!containerRef.current) return;
 
     let cy;
     try {
@@ -110,27 +71,9 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
 
       cyRef.current = cy;
 
-      console.log('✅ Cytoscape instance created successfully');
-
-      // Debug: Check compound nodes
-      const compoundNodes = cy.nodes().filter(node => node.isParent());
-      const childNodes = cy.nodes().filter(node => node.isChild());
-      console.log('🔍 Compound nodes check:', {
-        totalNodes: cy.nodes().length,
-        compoundNodesCount: compoundNodes.length,
-        childNodesCount: childNodes.length,
-        compoundNodeIds: compoundNodes.map(n => n.id()),
-        sampleChildNodes: childNodes.slice(0, 3).map(n => ({
-          id: n.id(),
-          parent: n.data('parent')
-        }))
-      });
-
       // Apply initial layout
-      const layoutConfig = (layoutConfigs as any)[layout];
+      const layoutConfig = (layoutConfigs as Record<string, object>)[layout];
       cy.layout(layoutConfig).run();
-
-      console.log('✅ Layout applied successfully');
 
       // Event handlers
       cy.on('tap', 'node', (evt) => {
@@ -166,13 +109,7 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
         connectedEdges.removeClass('hover-highlight');
       });
 
-      console.log('✅ Event handlers registered');
-    } catch (error) {
-      console.error('❌ Error initializing Cytoscape:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      });
+    } catch {
       return;
     }
 
@@ -219,32 +156,13 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
   useEffect(() => {
     if (!cyRef.current) return;
 
-    // Expose useful methods
-    (window as any).cytoscapeInstance = {
-      fit: () => cyRef.current?.fit(),
-      center: () => cyRef.current?.center(),
-      zoom: (level: number) => cyRef.current?.zoom(level),
-      highlightNode: (nodeId: string) => {
-        const node = cyRef.current?.$id(nodeId);
-        node?.addClass('highlighted');
-      },
-      clearHighlights: () => {
-        cyRef.current?.elements().removeClass('highlighted');
-      },
-      exportPNG: () => {
-        return cyRef.current?.png({ full: true, scale: 2 });
-      },
-      exportJSON: () => {
-        return cyRef.current?.json();
-      }
-    };
   }, []);
 
   // Handle layout changes
   useEffect(() => {
     if (!cyRef.current) return;
 
-    const layoutConfig = (layoutConfigs as any)[layout];
+    const layoutConfig = (layoutConfigs as Record<string, object>)[layout];
     cyRef.current.layout(layoutConfig).run();
   }, [layout]);
 
@@ -261,7 +179,7 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
       // Show only nodes with severity
       cy.nodes('[!severity]').style('display', 'none');
       // Hide edges connected to hidden nodes
-      cy.edges().forEach((edge: any) => {
+      cy.edges().forEach((edge) => {
         const source = edge.source();
         const target = edge.target();
         if (source.style('display') === 'none' || target.style('display') === 'none') {
@@ -274,14 +192,14 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
         'aws_vpc', 'aws_subnet', 'aws_internet_gateway', 'aws_nat_gateway',
         'aws_route_table', 'aws_route', 'aws_security_group', 'aws_lb'
       ];
-      cy.nodes().forEach((node: any) => {
-        const resourceType = node.data('resource_type');
+      cy.nodes().forEach((node) => {
+        const resourceType = node.data('resource_type') as string;
         if (!networkTypes.includes(resourceType)) {
           node.style('display', 'none');
         }
       });
       // Hide edges connected to hidden nodes
-      cy.edges().forEach((edge: any) => {
+      cy.edges().forEach((edge) => {
         const source = edge.source();
         const target = edge.target();
         if (source.style('display') === 'none' || target.style('display') === 'none') {
@@ -289,8 +207,6 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
         }
       });
     }
-
-    console.log(`🔍 Filter mode changed to: ${filterMode}`);
   }, [filterMode]);
 
   // Handle node scale changes (using Cytoscape zoom)
@@ -305,7 +221,6 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
       renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 }
     });
 
-    console.log(`📏 Node scale adjusted to ${nodeScale}x (zoom: ${cy.zoom()})`);
   }, [nodeScale]);
 
   // Draggable panel handlers
@@ -419,7 +334,7 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
             <label className="text-xs font-semibold text-gray-700 mb-2 block">Filter</label>
             <select
               value={filterMode}
-              onChange={(e) => setFilterMode(e.target.value as any)}
+              onChange={(e) => setFilterMode(e.target.value as 'all' | 'drift-only' | 'vpc-only')}
               className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
             >
               <option value="all">All Resources</option>
@@ -494,7 +409,7 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
                     checked={currentLayout === layoutType}
                     onChange={() => {
                       setCurrentLayout(layoutType);
-                      const layoutConfig = (layoutConfigs as any)[layoutType];
+                      const layoutConfig = (layoutConfigs as Record<string, object>)[layoutType];
                       cyRef.current?.layout(layoutConfig).run();
                     }}
                     className="mr-2"
@@ -508,22 +423,6 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
             </div>
           </div>
 
-          {/* Debug Info */}
-          <div className="pt-3 border-t border-gray-200">
-            <button
-              onClick={() => {
-                console.log('📊 Current graph state:', {
-                  nodes: cyRef.current?.nodes().length,
-                  edges: cyRef.current?.edges().length,
-                  zoom: cyRef.current?.zoom(),
-                  pan: cyRef.current?.pan()
-                });
-              }}
-              className="text-xs text-blue-600 hover:underline"
-            >
-              Show Debug Info
-            </button>
-          </div>
         </div>
       )}
 

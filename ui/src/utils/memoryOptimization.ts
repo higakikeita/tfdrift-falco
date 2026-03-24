@@ -175,10 +175,6 @@ export function usePerformanceMonitor(componentName: string) {
     const endTime = performance.now();
     const duration = endTime - startTime.current;
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[${componentName}] Render #${renderCount.current} took ${duration.toFixed(2)}ms`);
-    }
-
     startTime.current = endTime;
   });
 

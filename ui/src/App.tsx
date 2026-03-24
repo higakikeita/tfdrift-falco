@@ -19,7 +19,6 @@ import WhyFalcoPage from './pages/WhyFalcoPage';
 type DemoMode = 'simple' | 'complex' | 'blast-radius';
 
 function App() {
-  console.log('🚀 TFDrift-Falco App is loading...');
 
   const [demoMode, setDemoMode] = useState<DemoMode>('simple');
   const [currentView, setCurrentView] = useState<'graph' | 'why-falco'>('graph');
@@ -45,7 +44,7 @@ function App() {
 
   const handleNodeClick = (nodeId: string, nodeData: unknown) => {
     setSelectedNodeId(nodeId);
-    console.log('Node clicked:', nodeId, nodeData);
+    void nodeData; // consumed by parent via callback
   };
 
   const handleHighlightPath = () => {

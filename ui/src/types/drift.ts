@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Drift Event Types
  * TFDrift-Falcoで検知されたドリフトイベントの型定義
@@ -64,7 +63,7 @@ export interface DriftEvent {
   sourceIP?: string;
   userAgent?: string;
   tags?: Record<string, string>;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface DriftStats {
