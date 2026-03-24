@@ -19,11 +19,9 @@
 
 ---
 
-<!-- TODO: 実際のデモGIFに差し替え
 <p align="center">
   <img src="docs/assets/demo.gif" alt="TFDrift-Falco デモ" width="800">
 </p>
--->
 
 ## 課題
 

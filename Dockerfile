@@ -50,7 +50,7 @@ WORKDIR /app
 COPY --from=builder /build/tfdrift .
 
 # Copy example config (optional)
-COPY --chown=tfdrift:tfdrift examples/config.yaml ./config.example.yaml
+COPY --chown=tfdrift:tfdrift config.yaml.example ./config.example.yaml
 
 # Switch to non-root user
 USER tfdrift

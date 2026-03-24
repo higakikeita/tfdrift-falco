@@ -47,13 +47,13 @@ export function clusterNodes<T = unknown>(
 
     switch (groupBy) {
       case 'type':
-        groupKey = data?.resource_type || data?.type || 'unknown';
+        groupKey = String(data?.resource_type || data?.type || 'unknown');
         break;
       case 'provider':
-        groupKey = extractProvider(data?.resource_type || data?.type || '');
+        groupKey = extractProvider(String(data?.resource_type || data?.type || ''));
         break;
       case 'severity':
-        groupKey = data?.severity || 'unknown';
+        groupKey = String(data?.severity || 'unknown');
         break;
       case 'custom':
         groupKey = customGroupFn ? customGroupFn(node) : 'default';
@@ -125,7 +125,7 @@ function createClusterNode<T = unknown>(
   const severityCounts: Record<string, number> = {};
   childNodes.forEach(node => {
     const data = node.data as Record<string, unknown>;
-    const severity = data?.severity || 'unknown';
+    const severity = String(data?.severity || 'unknown');
     severityCounts[severity] = (severityCounts[severity] || 0) + 1;
   });
 
@@ -143,7 +143,7 @@ function createClusterNode<T = unknown>(
       label, // For compatibility
       type: 'cluster',
       resource_type: clusterType,
-    } as T &
+    } as unknown as T &
       {
         clusterType: string;
         clusterLabel: string;

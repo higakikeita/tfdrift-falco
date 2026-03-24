@@ -13,7 +13,17 @@ export const NodeType = {
   CONTAINER: 'container',
   FALCO_EVENT: 'falco_event',
   SECURITY_GROUP: 'security_group',
-  NETWORK: 'network'
+  NETWORK: 'network',
+  // Infrastructure topology node types
+  REGION: 'region',
+  VPC: 'vpc',
+  AVAILABILITY_ZONE: 'availability_zone',
+  SUBNET: 'subnet',
+  EC2_INSTANCE: 'ec2_instance',
+  RDS_INSTANCE: 'rds_instance',
+  LAMBDA_FUNCTION: 'lambda_function',
+  LOAD_BALANCER: 'load_balancer',
+  NAT_GATEWAY: 'nat_gateway',
 } as const;
 
 export type NodeType = typeof NodeType[keyof typeof NodeType];

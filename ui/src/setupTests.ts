@@ -1,72 +1,19 @@
-/**
- * Test Setup
- * Global test configuration and utilities
- */
-import '@testing-library/jest-dom';
-import { cleanup } from '@testing-library/react';
-import { afterEach, beforeAll, afterAll, vi } from 'vitest';
 
-// Cleanup after each test
-afterEach(() => {
-  cleanup();
-});
-
-// Mock window.matchMedia (for dark mode tests)
+// localStorage / sessionStorage mock
+// zustand persist と WelcomeModal テスト用
+// jsdom では defineProperty で上書き不可のため vi.stubGlobal を使用
 beforeAll(() => {
-  Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: vi.fn().mockImplementation((query) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
-  });
-});
-
-// Mock IntersectionObserver
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  takeRecords() {
-    return [];
-  }
-  unobserve() {}
-} as any;
-
-// Mock ResizeObserver
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-global.ResizeObserver = class ResizeObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-} as any;
-
-// Mock scrollTo
-window.scrollTo = vi.fn();
-
-// Suppress console errors during tests (optional)
-const originalError = console.error;
-beforeAll(() => {
-  console.error = (...args: unknown[]) => {
-    // Suppress React act() warnings
-    if (
-      typeof args[0] === 'string' &&
-      args[0].includes('Warning: ReactDOM.render')
-    ) {
-      return;
-    }
-    originalError.call(console, ...args);
+  const createStorageMock = () => {
+    let store: Record<string, string> = {};
+    return {
+      getItem: (key: string): string | null => store[key] ?? null,
+      setItem: (key: string, value: string): void => { store[key] = String(value); },
+      removeItem: (key: string): void => { delete store[key]; },
+      clear: (): void => { store = {}; },
+      get length(): number { return Object.keys(store).length; },
+      key: (index: number): string | null => Object.keys(store)[index] ?? null,
+    };
   };
-});
-
-afterAll(() => {
-  console.error = originalError;
+  vi.stubGlobal('localStorage', createStorageMock());
+  vi.stubGlobal('sessionStorage', createStorageMock());
 });

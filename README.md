@@ -19,11 +19,9 @@
 
 ---
 
-<!-- TODO: Replace with actual demo GIF
 <p align="center">
   <img src="docs/assets/demo.gif" alt="TFDrift-Falco Demo" width="800">
 </p>
--->
 
 ## The Problem
 

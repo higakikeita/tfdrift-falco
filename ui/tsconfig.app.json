@@ -34,6 +34,11 @@
     "src/App-minimal.tsx",
     "src/App-v2.tsx",
     "src/App-test.tsx",
-    "src/App.tsx"
+    "src/App.tsx",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx",
+    "src/setupTests.ts"
   ]
 }

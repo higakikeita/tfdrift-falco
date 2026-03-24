@@ -1,6 +1,5 @@
-# DEPRECATED: This workflow has been replaced by deploy-pages.yml
-# which deploys MkDocs + Storybook together to avoid GitHub Pages conflicts.
-# Kept for reference. Only manual dispatch is enabled.
+# REMOVED: This workflow was replaced by deploy-pages.yml
+# File scheduled for deletion — see commit message for context.
 name: Build & Deploy Docs
 
 on:
