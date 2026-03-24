@@ -20,3 +20,26 @@ export type {
   ProviderKey,
   ChangeType,
 } from './severity';
+
+export {
+  AWS_COMPUTE_COLORS,
+  AWS_DATABASE_COLORS,
+  AWS_STORAGE_COLORS,
+  AWS_NETWORK_COLORS,
+  AWS_SECURITY_COLORS,
+  AWS_INTEGRATION_COLORS,
+  AWS_SERVICE_COLORS,
+  AWS_SERVICE_LEGEND,
+  DRIFT_STATUS_COLORS,
+  DRIFT_STATUS_BORDER_CLASSES,
+  DRIFT_STATUS_LEGEND,
+  CYTOSCAPE_DRIFT_COLORS,
+  NODE_TYPE_COLORS,
+  PROVIDER_COLORS,
+} from './colors';
+
+export type {
+  LegendEntry,
+  LegendCategory,
+  DriftLegendEntry,
+} from './colors';
