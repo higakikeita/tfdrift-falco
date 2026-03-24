@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/diff"
@@ -211,14 +213,28 @@ func (m *Manager) sendFalcoOutput(alert *types.DriftAlert) error {
 	return nil
 }
 
-// sendWebhook sends a generic webhook
-func (m *Manager) sendWebhook(url string, payload interface{}) error {
+// webhookClient is an HTTP client with sensible timeouts for webhook delivery.
+var webhookClient = &http.Client{
+	Timeout: 30 * time.Second,
+}
+
+// sendWebhook sends a generic webhook with HTTPS validation and timeout.
+func (m *Manager) sendWebhook(webhookURL string, payload interface{}) error {
+	// Validate URL scheme
+	parsed, err := url.Parse(webhookURL)
+	if err != nil {
+		return fmt.Errorf("invalid webhook URL: %w", err)
+	}
+	if parsed.Scheme != "https" {
+		log.Warnf("Webhook URL uses %s instead of https — consider using HTTPS in production: %s", parsed.Scheme, parsed.Host)
+	}
+
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	resp, err := webhookClient.Post(webhookURL, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to send webhook: %w", err)
 	}

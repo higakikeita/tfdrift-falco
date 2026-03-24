@@ -6,8 +6,12 @@ import (
 	"io"
 	"strings"
 
-	// TODO: Migrate to aws-sdk-go-v2 (aws-sdk-go-v1 deprecated, EOL July 31, 2025)
-	// See: https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-go-v1-on-july-31-2025/
+	// SECURITY TODO(v0.7.0): Migrate to aws-sdk-go-v2 (aws-sdk-go-v1 EOL July 31, 2025)
+	// v1 is no longer receiving security patches. Migration requires:
+	//   1. Replace aws-sdk-go imports with aws-sdk-go-v2/config, aws-sdk-go-v2/service/s3
+	//   2. Switch session.NewSession → config.LoadDefaultConfig(ctx)
+	//   3. Update S3 client initialization and API call signatures
+	// See: https://aws.github.io/aws-sdk-go-v2/docs/migrating/
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"

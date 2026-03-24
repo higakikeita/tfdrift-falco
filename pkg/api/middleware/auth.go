@@ -4,6 +4,7 @@ package middleware
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
@@ -68,7 +69,7 @@ func NewAuth(cfg AuthConfig) *Auth {
 
 	// Index API keys for O(1) lookup
 	for _, entry := range cfg.APIKeys {
-		a.apiKeys[entry.Key] = entry
+		a.apiKeys[hashAPIKey(entry.Key)] = entry
 	}
 
 	if cfg.Enabled {
@@ -154,8 +155,9 @@ func (a *Auth) validateAPIKey(key string) (*AuthInfo, error) {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	for storedKey, entry := range a.apiKeys {
-		if subtle.ConstantTimeCompare([]byte(key), []byte(storedKey)) == 1 {
+	hashedInput := hashAPIKey(key)
+	for storedHash, entry := range a.apiKeys {
+		if subtle.ConstantTimeCompare([]byte(hashedInput), []byte(storedHash)) == 1 {
 			return &AuthInfo{
 				Method:  "api_key",
 				Subject: entry.Name,
@@ -196,11 +198,17 @@ func GenerateAPIKey() (string, error) {
 	return "tfd_" + hex.EncodeToString(bytes), nil
 }
 
+// hashAPIKey returns the SHA-256 hex digest of an API key.
+func hashAPIKey(key string) string {
+	h := sha256.Sum256([]byte(key))
+	return hex.EncodeToString(h[:])
+}
+
 // AddAPIKey adds a new API key at runtime.
 func (a *Auth) AddAPIKey(entry APIKeyEntry) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	a.apiKeys[entry.Key] = entry
+	a.apiKeys[hashAPIKey(entry.Key)] = entry
 	a.config.APIKeys = append(a.config.APIKeys, entry)
 }
 
@@ -231,10 +239,10 @@ func (a *Auth) ListAPIKeys() []APIKeyInfo {
 	defer a.mu.RUnlock()
 
 	var keys []APIKeyInfo
-	for key, entry := range a.apiKeys {
+	for _, entry := range a.apiKeys {
 		keys = append(keys, APIKeyInfo{
 			Name:      entry.Name,
-			Prefix:    maskKey(key),
+			Prefix:    maskKey(entry.Key),
 			Scopes:    entry.Scopes,
 			CreatedAt: entry.CreatedAt,
 		})

@@ -223,6 +223,11 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("falco port must be specified")
 	}
 
+	// Validate JWT secret length for HS256 (minimum 32 bytes recommended)
+	if c.API.Auth.Enabled && len(c.API.Auth.JWTSecret) < 32 {
+		return fmt.Errorf("jwt_secret must be at least 32 characters for HS256 security")
+	}
+
 	return nil
 }
 
