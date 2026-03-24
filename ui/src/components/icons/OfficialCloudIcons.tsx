@@ -39,9 +39,7 @@ interface InlineIconProps {
   className?: string;
 }
 
-interface AWSIconComponent {
-  (props: { size?: number; className?: string }): React.ReactElement;
-}
+type AWSIconComponent = React.ComponentType<{ size?: number; className?: string }>;
 
 // ============================================================
 // AWS Icon Mapping - Official aws-react-icons components

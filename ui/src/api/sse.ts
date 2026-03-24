@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 
 const SSE_URL = import.meta.env.VITE_SSE_URL || 'http://localhost:8080/api/v1/stream';
 
-export type SSEEventType = 'connected' | 'drift' | 'falco' | 'state_change' | 'keep-alive';
+export type SSEEventType = 'connected' | 'drift' | 'falco' | 'state_change' | 'keep-alive' | 'message';
 
 export interface SSEEvent {
   type: SSEEventType;

@@ -5,11 +5,11 @@
  */
 
 import {
-  SiAmazon,
   SiKubernetes,
   SiTerraform
 } from 'react-icons/si';
 import {
+  FaAws,
   FaShieldAlt,
   FaKey,
   FaUsers,
@@ -52,8 +52,8 @@ const AWSIcons: Record<string, React.ComponentType<{ size?: number; className?: 
   'aws_iam_policy': FaKey,
   'aws_iam_role': FaUsers,
   'aws_security_group': FaShieldAlt,
-  'aws_lambda': SiAmazon,
-  'aws_s3': SiAmazon,
+  'aws_lambda': FaAws,
+  'aws_s3': FaAws,
   'aws_dynamodb': FaDatabase,
   'aws_ec2': FaServer,
   'aws_eks': SiKubernetes,

@@ -4,7 +4,8 @@
  */
 
 import type { DriftEvent } from '../types/drift';
-import { SiAmazon, SiGooglecloud } from 'react-icons/si';
+import { SiGooglecloud } from 'react-icons/si';
+import { FaAws } from 'react-icons/fa';
 
 interface DriftDetailPanelProps {
   drift: DriftEvent | null;
@@ -63,7 +64,7 @@ export default function DriftDetailPanel({ drift, onClose }: DriftDetailPanelPro
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              {drift.provider === 'aws' && <SiAmazon size={24} className="text-orange-500" />}
+              {drift.provider === 'aws' && <FaAws size={24} className="text-orange-500" />}
               {drift.provider === 'gcp' && <SiGooglecloud size={24} className="text-blue-500" />}
               <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">{drift.resourceName || drift.resourceId}</h3>
             </div>

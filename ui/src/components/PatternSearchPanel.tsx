@@ -38,7 +38,8 @@ const PatternSearchPanel = ({ onClose, onNodeSelect }: PatternSearchPanelProps) 
 
   const { data, isLoading, error } = usePatternMatch(pattern, searchEnabled);
 
-  const matches: Array<Node[]> = (data as Record<string, unknown>)?.data?.matches || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const matches: Array<Node[]> = (data as any)?.data?.matches || [];
 
   const handleSearch = () => {
     setSearchEnabled(true);
@@ -185,10 +186,10 @@ const PatternSearchPanel = ({ onClose, onNodeSelect }: PatternSearchPanelProps) 
                           className="flex-1 text-left px-3 py-2 bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 hover:border-purple-500 dark:hover:border-purple-400 transition-colors"
                         >
                           <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                            {node.properties.name || node.id}
+                            {String(node.properties.name ?? '') || node.id}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-                            {node.properties.type}
+                            {String(node.properties.type ?? '')}
                           </div>
                         </button>
                         {nodeIdx < match.length - 1 && (

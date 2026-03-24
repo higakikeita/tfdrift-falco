@@ -73,10 +73,10 @@ TFDrift-FalcoのGraph Viewで使用されるCytoscape.jsベースの可視化コ
     }
   },
   args: {
-    onNodeClick: (nodeId: string, nodeData: Record<string, unknown>) => {
+    onNodeClick: (nodeId: string, nodeData: unknown) => {
       console.log('Node clicked:', nodeId, nodeData);
     },
-    onEdgeClick: (edgeId: string, edgeData: Record<string, unknown>) => {
+    onEdgeClick: (edgeId: string, edgeData: unknown) => {
       console.log('Edge clicked:', edgeId, edgeData);
     }
   }
@@ -380,7 +380,7 @@ export const WithNodeClick: Story = {
   args: {
     elements: mockSmallGraph,
     layout: 'fcose',
-    onNodeClick: (nodeId: string, nodeData: Record<string, unknown>) => {
+    onNodeClick: (nodeId: string, nodeData: unknown) => {
       console.log('Node clicked:', { nodeId, nodeData });
     }
   },
@@ -402,7 +402,7 @@ export const WithEdgeClick: Story = {
   args: {
     elements: mockSmallGraph,
     layout: 'fcose',
-    onEdgeClick: (edgeId: string, edgeData: Record<string, unknown>) => {
+    onEdgeClick: (edgeId: string, edgeData: unknown) => {
       console.log('Edge clicked:', { edgeId, edgeData });
     }
   },
@@ -446,10 +446,10 @@ export const Playground: Story = {
   args: {
     elements: mockMediumGraph,
     layout: 'fcose',
-    onNodeClick: (nodeId: string, nodeData: Record<string, unknown>) => {
+    onNodeClick: (nodeId: string, nodeData: unknown) => {
       console.log('Node clicked:', { nodeId, nodeData });
     },
-    onEdgeClick: (edgeId: string, edgeData: Record<string, unknown>) => {
+    onEdgeClick: (edgeId: string, edgeData: unknown) => {
       console.log('Edge clicked:', { edgeId, edgeData });
     },
     highlightedPath: [],

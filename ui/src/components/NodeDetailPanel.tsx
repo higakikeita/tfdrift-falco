@@ -33,12 +33,16 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
   const { data: neighborsData, isLoading: neighborsLoading } = useNodeNeighbors(nodeId);
   const { data: impactData, isLoading: impactLoading } = useImpactRadius(nodeId, impactDepth, showImpact);
 
-  const node: Node | null = (nodeData as Record<string, unknown>)?.data?.node || null;
-  const dependencies: Node[] = (dependenciesData as Record<string, unknown>)?.data?.dependencies || [];
-  const dependents: Node[] = (dependentsData as Record<string, unknown>)?.data?.dependents || [];
-  const neighbors: Node[] = (neighborsData as Record<string, unknown>)?.data?.neighbors || [];
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const impactNodes: Node[] = (impactData as Record<string, unknown>)?.data?.nodes || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const node: Node | null = (nodeData as any)?.data?.node || null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dependencies: Node[] = (dependenciesData as any)?.data?.dependencies || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dependents: Node[] = (dependentsData as any)?.data?.dependents || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const neighbors: Node[] = (neighborsData as any)?.data?.neighbors || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const impactNodes: Node[] = (impactData as any)?.data?.nodes || [];
 
   const handleNodeClick = (clickedNodeId: string) => {
     if (onNodeSelect) {
@@ -144,11 +148,11 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
               </div>
               <div>
                 <span className="font-medium text-gray-600 dark:text-gray-400">Type:</span>{' '}
-                <span className="text-gray-900 dark:text-gray-100">{node.properties.type}</span>
+                <span className="text-gray-900 dark:text-gray-100">{String(node.properties.type ?? '')}</span>
               </div>
               <div>
                 <span className="font-medium text-gray-600 dark:text-gray-400">Name:</span>{' '}
-                <span className="text-gray-900 dark:text-gray-100">{node.properties.name}</span>
+                <span className="text-gray-900 dark:text-gray-100">{String(node.properties.name ?? '')}</span>
               </div>
               <div>
                 <span className="font-medium text-gray-600 dark:text-gray-400">Labels:</span>{' '}
@@ -197,10 +201,10 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
                   className="w-full text-left px-2 py-1.5 rounded bg-gray-50 dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-sm"
                 >
                   <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                    {dep.properties.name}
+                    {String(dep.properties.name ?? '')}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 truncate font-mono">
-                    {dep.properties.type}
+                    {String(dep.properties.type ?? '')}
                   </div>
                 </button>
               ))}
@@ -230,10 +234,10 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
                   className="w-full text-left px-2 py-1.5 rounded bg-gray-50 dark:bg-gray-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors text-sm"
                 >
                   <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                    {dept.properties.name}
+                    {String(dept.properties.name ?? '')}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 truncate font-mono">
-                    {dept.properties.type}
+                    {String(dept.properties.type ?? '')}
                   </div>
                 </button>
               ))}
@@ -263,10 +267,10 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
                   className="w-full text-left px-2 py-1.5 rounded bg-gray-50 dark:bg-gray-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-sm"
                 >
                   <div className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                    {neighbor.properties.name}
+                    {String(neighbor.properties.name ?? '')}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 truncate font-mono">
-                    {neighbor.properties.type}
+                    {String(neighbor.properties.type ?? '')}
                   </div>
                 </button>
               ))}

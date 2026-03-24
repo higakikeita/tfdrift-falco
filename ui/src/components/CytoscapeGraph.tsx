@@ -6,7 +6,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import cytoscape from 'cytoscape';
-import type { Core } from 'cytoscape';
+import type { Core, LayoutOptions } from 'cytoscape';
 // @ts-expect-error - cytoscape-dagre lacks type definitions
 import dagre from 'cytoscape-dagre';
 // @ts-expect-error - cytoscape-fcose lacks type definitions
@@ -72,7 +72,7 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
       cyRef.current = cy;
 
       // Apply initial layout
-      const layoutConfig = (layoutConfigs as Record<string, object>)[layout];
+      const layoutConfig = (layoutConfigs as Record<string, LayoutOptions>)[layout];
       cy.layout(layoutConfig).run();
 
       // Event handlers
@@ -162,7 +162,7 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
   useEffect(() => {
     if (!cyRef.current) return;
 
-    const layoutConfig = (layoutConfigs as Record<string, object>)[layout];
+    const layoutConfig = (layoutConfigs as Record<string, LayoutOptions>)[layout];
     cyRef.current.layout(layoutConfig).run();
   }, [layout]);
 
@@ -409,7 +409,7 @@ export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({
                     checked={currentLayout === layoutType}
                     onChange={() => {
                       setCurrentLayout(layoutType);
-                      const layoutConfig = (layoutConfigs as Record<string, object>)[layoutType];
+                      const layoutConfig = (layoutConfigs as Record<string, LayoutOptions>)[layoutType];
                       cyRef.current?.layout(layoutConfig).run();
                     }}
                     className="mr-2"
