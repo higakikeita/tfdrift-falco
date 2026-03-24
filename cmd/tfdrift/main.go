@@ -20,6 +20,7 @@ var (
 	// API server flags
 	serverMode bool
 	apiPort    int
+	demoMode   bool
 	// L1 Semi-auto mode flags
 	regionOverride      []string
 	falcoEndpoint       string
@@ -48,6 +49,7 @@ and Terraform state comparison.`,
 	// API server flags
 	rootCmd.Flags().BoolVar(&serverMode, "server", false, "run API server mode")
 	rootCmd.Flags().IntVar(&apiPort, "api-port", 8080, "API server port (default: 8080)")
+	rootCmd.Flags().BoolVar(&demoMode, "demo", false, "run in demo mode with sample data (no cloud credentials needed)")
 
 	// L1 Semi-auto mode flags (used with --auto)
 	rootCmd.Flags().StringSliceVar(&regionOverride, "region", nil, "AWS region(s) to monitor (e.g., --region us-west-2,ap-northeast-1)")

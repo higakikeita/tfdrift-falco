@@ -1,5 +1,6 @@
 # Demo overlay — runs the full stack without real cloud credentials.
 # Usage: docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
+#   or:  make demo
 #
 # This override:
 #   - Runs the backend in demo mode with sample drift events
@@ -17,11 +18,10 @@ services:
       - TFDRIFT_DEMO_MODE=true
       - TFDRIFT_FALCO_ENABLED=false
     volumes:
-      # Use example config instead of requiring user config
-      - ./config.yaml.example:/config/config.yaml:ro
-      # Remove AWS credential mount dependency
+      # Remove AWS credential mount — not needed in demo mode
       - tfdrift-data:/data
-    command: ["--server", "--api-port", "8080", "--config", "/config/config.yaml", "--demo"]
+    # --demo flag: starts API server with sample data, no config/credentials needed
+    command: ["--demo", "--api-port", "8080"]
 
   frontend:
     environment:

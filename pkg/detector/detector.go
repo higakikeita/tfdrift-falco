@@ -89,6 +89,17 @@ func New(cfg *config.Config) (*Detector, error) {
 	}, nil
 }
 
+// NewDemoDetector creates a minimal Detector for demo mode.
+// It has no Falco subscriber, state manager, or notifier —
+// just enough structure to satisfy the API server's interface.
+func NewDemoDetector() (*Detector, error) {
+	return &Detector{
+		cfg:       &config.Config{DryRun: true},
+		formatter: diff.NewFormatter(true),
+		eventCh:   make(chan types.Event, 100),
+	}, nil
+}
+
 // GetStateManager returns the state manager for API access
 func (d *Detector) GetStateManager() *terraform.StateManager {
 	return d.stateManager
