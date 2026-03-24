@@ -6,15 +6,9 @@ import (
 	"io"
 	"strings"
 
-	// SECURITY TODO(v0.7.0): Migrate to aws-sdk-go-v2 (aws-sdk-go-v1 EOL July 31, 2025)
-	// v1 is no longer receiving security patches. Migration requires:
-	//   1. Replace aws-sdk-go imports with aws-sdk-go-v2/config, aws-sdk-go-v2/service/s3
-	//   2. Switch session.NewSession → config.LoadDefaultConfig(ctx)
-	//   3. Update S3 client initialization and API call signatures
-	// See: https://aws.github.io/aws-sdk-go-v2/docs/migrating/
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -23,7 +17,7 @@ type S3Backend struct {
 	bucket string
 	key    string
 	region string
-	client *s3.S3
+	client *s3.Client
 }
 
 // S3BackendConfig contains S3 backend configuration
@@ -48,19 +42,19 @@ func NewS3Backend(cfg S3BackendConfig) (*S3Backend, error) {
 		region = "us-east-1"
 	}
 
-	// Create AWS session
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(region),
-	})
+	// Load AWS configuration (v2)
+	awsCfg, err := awsconfig.LoadDefaultConfig(context.Background(),
+		awsconfig.WithRegion(region),
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create AWS session: %w", err)
+		return nil, fmt.Errorf("failed to load AWS config: %w", err)
 	}
 
 	return &S3Backend{
 		bucket: cfg.Bucket,
 		key:    cfg.Key,
 		region: region,
-		client: s3.New(sess),
+		client: s3.NewFromConfig(awsCfg),
 	}, nil
 }
 
@@ -73,7 +67,7 @@ func (b *S3Backend) Load(ctx context.Context) ([]byte, error) {
 		Key:    aws.String(b.key),
 	}
 
-	result, err := b.client.GetObjectWithContext(ctx, input)
+	result, err := b.client.GetObject(ctx, input)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get object from S3 s3://%s/%s: %w", b.bucket, b.key, err)
 	}
