@@ -42,9 +42,8 @@ function App() {
 
   const graphData = getGraphData();
 
-  const handleNodeClick = (nodeId: string, nodeData: unknown) => {
+  const handleNodeClick = (nodeId: string, _nodeData: unknown) => {
     setSelectedNodeId(nodeId);
-    void nodeData; // consumed by parent via callback
   };
 
   const handleHighlightPath = () => {

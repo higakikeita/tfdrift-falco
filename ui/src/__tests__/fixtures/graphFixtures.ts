@@ -10,7 +10,8 @@ export const mockNode: CytoscapeNode = {
   data: {
     id: 'node1',
     label: 'Test Node',
-    type: 'aws_iam_role',
+    type: 'iam_role',
+    resource_type: 'aws_iam_role',
     severity: 'high',
     metadata: {
       arn: 'arn:aws:iam::123456789012:role/test',
@@ -23,7 +24,7 @@ export const mockEdge: CytoscapeEdge = {
     id: 'edge1',
     source: 'node1',
     target: 'node2',
-    type: 'depends_on',
+    type: 'caused_by',
     label: 'depends on',
   },
 };

@@ -1,38 +1,12 @@
 // API Type Definitions
 
-export interface CytoscapeNode {
-  data: {
-    id: string;
-    label: string;
-    type: string;
-    resourceType?: string;
-    severity?: string;
-    metadata?: Record<string, unknown>;
-  };
-}
+import type { UserIdentityAPI } from '../types/common';
+import type { CytoscapeNode, CytoscapeEdge, CytoscapeElements } from '../types/graph';
 
-export interface CytoscapeEdge {
-  data: {
-    id: string;
-    source: string;
-    target: string;
-    label?: string;
-    type?: string;
-  };
-}
+export type { CytoscapeNode, CytoscapeEdge, CytoscapeElements };
 
-export interface CytoscapeElements {
-  nodes: CytoscapeNode[];
-  edges: CytoscapeEdge[];
-}
-
-export interface UserIdentity {
-  Type: string;
-  PrincipalID: string;
-  ARN: string;
-  AccountID: string;
-  UserName: string;
-}
+/** @deprecated Use UserIdentityAPI from types/common instead */
+export type UserIdentity = UserIdentityAPI;
 
 export interface DriftAlert {
   id: string;

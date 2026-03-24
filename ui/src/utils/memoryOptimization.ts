@@ -4,6 +4,7 @@
  * Performance helpers for large-scale graph rendering
  */
 
+import * as React from 'react';
 import { useMemo, useCallback, useRef, useEffect } from 'react';
 
 /**
@@ -238,5 +239,4 @@ export function lazyWithRetry<T extends React.ComponentType<Record<string, unkno
   });
 }
 
-// Add React import at the top
-import * as React from 'react';
+// React is imported at the top of the file

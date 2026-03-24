@@ -30,10 +30,6 @@
   },
   "include": ["src"],
   "exclude": [
-    "src/App-final.tsx",
-    "src/App-minimal.tsx",
-    "src/App-v2.tsx",
-    "src/App-test.tsx",
     "src/App.tsx",
     "src/**/*.test.ts",
     "src/**/*.test.tsx",

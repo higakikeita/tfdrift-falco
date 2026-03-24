@@ -22,9 +22,9 @@ RUN npm ci --legacy-peer-deps && \
 # Copy source code
 COPY . .
 
-# Build for production (skip tsc type-check; Vite/esbuild handles transpilation)
+# Build for production
 ENV NODE_ENV=production
-RUN npx vite build
+RUN npx tsc -b && npx vite build
 
 # ============================================
 # Stage 2: Runtime stage (Nginx)

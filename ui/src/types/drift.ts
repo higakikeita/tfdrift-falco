@@ -3,11 +3,11 @@
  * TFDrift-Falcoで検知されたドリフトイベントの型定義
  */
 
-export type DriftSeverity = 'critical' | 'high' | 'medium' | 'low';
+import type { Severity, ChangeType, Provider, UserIdentity } from './common';
 
-export type ChangeType = 'created' | 'modified' | 'deleted';
-
-export type Provider = 'aws' | 'gcp' | 'azure';
+/** Alias for backward compatibility */
+export type DriftSeverity = Severity;
+export type { ChangeType, Provider, UserIdentity };
 
 /**
  * Drift Change - Individual change within a drift
@@ -34,14 +34,6 @@ export interface Drift {
   detected_at: string;
   changes: DriftChange[];
   metadata: Record<string, unknown>;
-}
-
-export interface UserIdentity {
-  type: string;
-  userName: string;
-  arn?: string;
-  accountId?: string;
-  principalId?: string;
 }
 
 export interface DriftEvent {
