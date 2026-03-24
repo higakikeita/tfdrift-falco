@@ -2,7 +2,7 @@
 
 TFDrift-Falco is a **real-time multi-cloud Terraform drift detection system** with an integrated React Dashboard UI that monitors cloud infrastructure changes (AWS, GCP) and alerts when resources drift from their Terraform-defined state.
 
-> **Version:** v0.8.0 | **Providers:** AWS (40+ services, 500+ events) + GCP (27+ services, 170+ events) | **Status:** Production Ready
+> **Version:** v{{ config.extra.project_version }} | **Providers:** AWS (40+ services, 500+ events) + GCP (27+ services, 170+ events) | **Status:** Production Ready
 >
 > **New in v0.6.0:** React Dashboard UI • Expanded Service Coverage • API Server with REST/WebSocket/SSE
 

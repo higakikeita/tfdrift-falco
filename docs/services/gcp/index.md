@@ -1,6 +1,6 @@
 # GCP Services Coverage
 
-> **Version:** v0.8.0
+> **Version:** v{{ config.extra.project_version }}
 > **Status:** Production Ready
 > **Total Events:** 500+ events
 > **Total Services:** 40+ services

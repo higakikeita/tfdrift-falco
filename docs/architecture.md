@@ -1,6 +1,6 @@
 # TFDrift-Falco Architecture
 
-> **Version:** v0.8.0 (Enterprise Foundation)
+> **Version:** v{{ config.extra.project_version }} (Enterprise Foundation)
 > **Supported Providers:** AWS (40+ services, 500+ events), Google Cloud Platform (27+ services, 170+ events)
 > **Status:** Production Ready
 

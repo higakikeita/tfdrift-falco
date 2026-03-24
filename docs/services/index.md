@@ -1,6 +1,6 @@
 # AWS Service Coverage
 
-> **Version:** v0.8.0
+> **Version:** v{{ config.extra.project_version }}
 > **Events:** 500+ CloudTrail events
 > **Services:** 40+ AWS services
 > **Status:** Production Ready

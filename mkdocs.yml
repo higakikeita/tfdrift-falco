@@ -145,20 +145,31 @@ nav:
           - Falco (AWS): falco-setup.md
           - Falco (GCP): gcp-setup.md
           - Auto-Import: auto-import-guide.md
+      - Runbook: operations/runbook.md
 
   # ==========================================
-  # 6. Development - Contributing
+  # 6. Development - Contributing & ADRs
   # ==========================================
   - Development:
       - Contributing: CONTRIBUTING.md
       - Extending: EXTENDING.md
+      - Architecture Decision Records:
+          - Overview: adr/README.md
+          - "ADR-000: Use ADRs": adr/000-use-adrs.md
+          - "ADR-001: Event-Driven Falco gRPC": adr/001-event-driven-falco-grpc.md
+          - "ADR-002: In-Memory Graph Store": adr/002-in-memory-graph-store.md
+          - "ADR-003: Multi-Cloud Provider Abstraction": adr/003-multi-cloud-provider-abstraction.md
+          - "ADR-004: Dual Auth (JWT + API Key)": adr/004-dual-auth-jwt-apikey.md
+          - "ADR-005: SSE + WebSocket Real-time": adr/005-sse-websocket-realtime.md
 
   # ==========================================
-  # 7. Release Notes - Version History
+  # 7. Release Notes - Version History (newest first)
   # ==========================================
   - Release Notes:
+      - v0.7.0 (Dashboard & Azure): release-notes/v0.7.0.md
+      - v0.6.0 (Service Expansion): release-notes/v0.6.0.md
       - v0.5.0 (Multi-Cloud): release-notes/v0.5.0.md
-      - v0.3.0 (Planned): release-notes/v0.3.0.md
+      - v0.3.0: release-notes/v0.3.0.md
       - v0.2.0-beta: release-notes/v0.2.0-beta.md
       - Architecture Changes: release-notes/architecture-changes.md
 
@@ -173,6 +184,10 @@ plugins:
   - search:
       lang: en
       separator: '[\s\-\.]+'
+  - macros:
+      # Enables {{ project_version }} in all Markdown files
+      # Value comes from extra.project_version in this file
+      module_name: null
   - minify:
       minify_html: true
 
@@ -220,6 +235,8 @@ markdown_extensions:
   - pymdownx.tilde
 
 extra:
+  # Single source of truth for version — used in docs via {{ config.extra.project_version }}
+  project_version: "0.8.0"
   version:
     provider: mike
     default: stable
@@ -232,4 +249,4 @@ extra:
     provider: google
     property: G-XXXXXXXXXX
 
-copyright: Copyright &copy; 2024-2025 Keita Higaki
+copyright: Copyright &copy; 2024-2026 Keita Higaki

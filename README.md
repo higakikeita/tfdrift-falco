@@ -91,8 +91,10 @@ graph LR
 - **User attribution** — Know *who* made each change, not just *what* changed
 - **Multi-cloud** — AWS (500+ CloudTrail events, 40+ services) and GCP (170+ Audit Log events, 27+ services)
 - **Web dashboard** — React UI with real-time SSE updates, topology graph, and dark/light theme
+- **Enterprise security** — JWT authentication, API key auth with SHA-256 hashing, per-client rate limiting
+- **API-first** — OpenAPI 3.0 spec with Swagger UI at `/api/docs`, 37 documented endpoints
 - **Flexible output** — Slack, Discord, webhooks, JSON (NDJSON), SSE, WebSocket
-- **Production-ready** — Docker/Kubernetes deployment, Prometheus metrics, Grafana dashboards
+- **Production-ready** — Helm chart, Docker Compose, Prometheus metrics, operations runbook
 
 ---
 
@@ -179,10 +181,13 @@ REST API is available at `http://localhost:8080/api/v1`:
 | `GET /api/v1/graph` | Topology graph data |
 | `GET /api/v1/stats` | Dashboard statistics |
 | `GET /api/v1/stream` | SSE real-time event stream |
+| `POST /api/v1/auth/token` | Generate JWT token |
+| `POST /api/v1/auth/api-keys` | Create / list / revoke API keys |
 | `WS /ws` | WebSocket for bidirectional communication |
-| `GET /health` | Health check |
+| `GET /api/docs` | Swagger UI (OpenAPI 3.0) |
+| `GET /health` | Health check (public, no auth) |
 
-Full API documentation: [API Reference](docs/api/README.md)
+Full API documentation: [API Reference](docs/api/README.md) | [OpenAPI Spec](docs/api/openapi.yaml)
 
 ---
 
@@ -218,7 +223,7 @@ Key services: Compute Engine, Cloud Storage, Cloud SQL, GKE, Cloud Run, IAM, VPC
 See [GCP Setup Guide](docs/gcp-setup.md) for the full list.
 </details>
 
-**Azure** support is planned.
+**Azure** support is in progress (tracking via [roadmap](docs/architecture.md)).
 
 ---
 
