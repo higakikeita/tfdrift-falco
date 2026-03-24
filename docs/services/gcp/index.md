@@ -1,9 +1,9 @@
 # GCP Services Coverage
 
-> **Version:** v0.5.0+
+> **Version:** v0.8.0
 > **Status:** Production Ready
-> **Total Events:** 100+
-> **Total Services:** 12+
+> **Total Events:** 500+ events
+> **Total Services:** 40+ services
 
 TFDrift-Falco v0.5.0 introduces comprehensive Google Cloud Platform (GCP) support, enabling real-time drift detection for GCP resources through Falco's gcpaudit plugin.
 
@@ -261,5 +261,5 @@ drift_rules:
 
 ---
 
-**Last Updated:** 2025-01-18
-**Version:** v0.5.0
+**Last Updated:** 2026-03-22
+**Version:** v0.8.0

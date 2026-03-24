@@ -1,6 +1,6 @@
 # TFDrift-Falco Architecture
 
-> **Version:** v0.6.0 (Dashboard UI + Expanded Services)
+> **Version:** v0.8.0 (Enterprise Foundation)
 > **Supported Providers:** AWS (40+ services, 500+ events), Google Cloud Platform (27+ services, 170+ events)
 > **Status:** Production Ready
 
@@ -23,7 +23,7 @@ TFDrift-Falco is designed as a **real-time, event-driven, multi-cloud drift dete
 **v0.5.0 Multi-Cloud Support:**
 - ✅ **AWS** - CloudTrail events, S3 state backend (203 events, 19 services)
 - ✅ **GCP** - Audit Logs via Falco gcpaudit plugin, GCS state backend (100+ events, 12+ services)
-- 🔄 **Azure** - Planned for future release
+- ✅ **Azure** - Supported since v0.7.0
 
 ### Design Principles
 
@@ -1337,6 +1337,6 @@ graph TB
 
 ---
 
-**Document Version:** 1.2 (v0.6.0 Dashboard & API Update)
-**Last Updated:** 2026-03-20
+**Document Version:** 1.3 (v0.8.0 Enterprise Update)
+**Last Updated:** 2026-03-22
 **Maintainer:** Keita Higaki

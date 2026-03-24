@@ -2,9 +2,9 @@
 
 Welcome to the official documentation for **TFDrift-Falco**, a real-time multi-cloud Terraform drift detection system with an integrated React Dashboard UI.
 
-> **Version:** v0.6.1 | **Status:** Production Ready | **Providers:** AWS (40+ services) + GCP (27+ services)
+> **Version:** v0.8.0 | **Status:** Production Ready | **Providers:** AWS (40+ services) + GCP (27+ services)
 >
-> **New in v0.6.1:** Unified Icon System • Why Falco? Page • Storybook at /storybook/ | **New in v0.6.0:** Dashboard UI • Expanded Service Coverage (500+ AWS events, 170+ GCP events) • REST API Server with WebSocket/SSE Streaming
+> **New in v0.8.0:** JWT Auth • Rate Limiting • Helm Chart • Operations Runbook • Enterprise Dashboard | **New in v0.6.1:** Unified Icon System • Why Falco? Page • Storybook at /storybook/ | **New in v0.6.0:** Dashboard UI • Expanded Service Coverage (500+ AWS events, 170+ GCP events) • REST API Server with WebSocket/SSE Streaming
 
 ---
 

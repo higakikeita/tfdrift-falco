@@ -1,8 +1,8 @@
 # AWS Service Coverage
 
-> **Version:** v0.5.0
-> **Events:** 411 CloudTrail events
-> **Services:** 23 AWS services
+> **Version:** v0.8.0
+> **Events:** 500+ CloudTrail events
+> **Services:** 40+ AWS services
 > **Status:** Production Ready
 
 TFDrift-Falco monitors **411 CloudTrail events** across **23 AWS services**. This page provides an overview of AWS service coverage.

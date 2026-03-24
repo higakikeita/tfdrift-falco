@@ -1,8 +1,8 @@
-# Quickstart Guide (v0.6.0)
+# Quickstart Guide (v0.8.0)
 
 Get TFDrift-Falco up and running in 5 minutes with Dashboard UI.
 
-> **New in v0.6.0:** React Dashboard UI with real-time event streaming, topology graphs, and graph export!
+> **New in v0.8.0:** JWT Authentication, Rate Limiting, Helm Chart, Enterprise Dashboard, Operations Runbook
 
 ---
 

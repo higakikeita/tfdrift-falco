@@ -384,7 +384,7 @@ done
 ```bash
 # 1. 新しいバージョンをテスト環境で検証
 kubectl set image deployment/tfdrift-falco \
-  tfdrift-falco=ghcr.io/higakikeita/tfdrift-falco:v0.6.0 \
+  tfdrift-falco=ghcr.io/higakikeita/tfdrift-falco:v0.8.0 \
   -n staging
 
 # 2. テスト環境で動作確認
@@ -392,7 +392,7 @@ kubectl logs -f deployment/tfdrift-falco -n staging
 
 # 3. 本番環境にローリングアップデート
 kubectl set image deployment/tfdrift-falco \
-  tfdrift-falco=ghcr.io/higakikeita/tfdrift-falco:v0.6.0 \
+  tfdrift-falco=ghcr.io/higakikeita/tfdrift-falco:v0.8.0 \
   -n production
 
 # 4. ロールアウト状況を監視

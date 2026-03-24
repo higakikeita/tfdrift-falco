@@ -49,4 +49,4 @@ Expected: `No vulnerabilities found.`
 
 ## AWS SDK Note
 
-The scan reports 2 vulnerabilities in `aws-sdk-go` S3 Crypto SDK, but these do NOT affect our code as we don't use client-side S3 encryption. Future releases will migrate to AWS SDK v2.
+The scan reports 2 vulnerabilities in `aws-sdk-go` S3 Crypto SDK, but these do NOT affect our code as we don't use client-side S3 encryption. Migration to AWS SDK v2 is complete in v0.8.0.

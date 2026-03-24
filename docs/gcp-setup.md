@@ -1321,7 +1321,7 @@ TFDrift-Falco processes events through these stages:
 
 **Normal Operation:**
 ```
-INFO[2025-12-17T10:30:00Z] Starting TFDrift-Falco v0.5.0
+INFO[2025-12-17T10:30:00Z] Starting TFDrift-Falco v0.8.0
 INFO[2025-12-17T10:30:01Z] Connected to Falco gRPC at localhost:5060
 INFO[2025-12-17T10:30:01Z] Loaded Terraform state for project my-project-123 (45 resources)
 INFO[2025-12-17T10:30:45Z] Received event: compute.instances.setMetadata (user@example.com)
@@ -3029,7 +3029,7 @@ curl http://localhost:8080/health
 # Expected response:
 {
   "status": "healthy",
-  "version": "v0.5.0",
+  "version": "v0.8.0",
   "uptime_seconds": 3600,
   "last_event_received": "2025-12-17T10:30:45Z",
   "falco_connection": "connected",
@@ -3327,7 +3327,7 @@ performance:
 # docker-compose.yml
 services:
   tfdrift-falco:
-    image: ghcr.io/higakikeita/tfdrift-falco:v0.5.0
+    image: ghcr.io/higakikeita/tfdrift-falco:v0.8.0
     deploy:
       resources:
         limits:
@@ -3346,7 +3346,7 @@ services:
 # docker-compose.yml
 services:
   tfdrift-falco-1:
-    image: ghcr.io/higakikeita/tfdrift-falco:v0.5.0
+    image: ghcr.io/higakikeita/tfdrift-falco:v0.8.0
     environment:
       - INSTANCE_ID=1
       - PROJECT_FILTER=project-a,project-b
@@ -3354,7 +3354,7 @@ services:
       - config-instance-1.yaml
 
   tfdrift-falco-2:
-    image: ghcr.io/higakikeita/tfdrift-falco:v0.5.0
+    image: ghcr.io/higakikeita/tfdrift-falco:v0.8.0
     environment:
       - INSTANCE_ID=2
       - PROJECT_FILTER=project-c,project-d
