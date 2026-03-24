@@ -1,0 +1,30 @@
+# Demo overlay — runs the full stack without real cloud credentials.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d
+#
+# This override:
+#   - Runs the backend in demo mode with sample drift events
+#   - Skips the Falco container (no real CloudTrail needed)
+#   - Exposes the dashboard at http://localhost:3000
+
+services:
+  # Disable Falco in demo mode — no real audit logs needed
+  falco:
+    profiles:
+      - production  # effectively skips this service in demo
+
+  backend:
+    environment:
+      - TFDRIFT_DEMO_MODE=true
+      - TFDRIFT_FALCO_ENABLED=false
+    volumes:
+      # Use example config instead of requiring user config
+      - ./config.yaml.example:/config/config.yaml:ro
+      # Remove AWS credential mount dependency
+      - tfdrift-data:/data
+    command: ["--server", "--api-port", "8080", "--config", "/config/config.yaml", "--demo"]
+
+  frontend:
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8080/api/v1
+      - VITE_WS_URL=ws://localhost:8080/ws
+      - VITE_SSE_URL=http://localhost:8080/api/v1/stream

@@ -1,207 +1,104 @@
-# TFDrift-Falco
+<p align="center">
+  <h1 align="center">TFDrift-Falco</h1>
+  <p align="center">
+    <strong>Drift is not risk. Runtime makes it real.</strong>
+  </p>
+  <p align="center">
+    Real-time Terraform drift detection powered by Falco runtime security.<br/>
+    Detect manual cloud changes in seconds — not hours — with full user attribution.
+  </p>
+  <p align="center">
+    <a href="https://github.com/higakikeita/tfdrift-falco/actions/workflows/ci.yml"><img src="https://github.com/higakikeita/tfdrift-falco/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <a href="https://codecov.io/gh/higakikeita/tfdrift-falco"><img src="https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg" alt="codecov"></a>
+    <a href="https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco"><img src="https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco" alt="Go Report Card"></a>
+    <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  </p>
+</p>
 
-**Real-time Terraform Drift Detection powered by Falco**
-
-[![CI](https://github.com/higakikeita/tfdrift-falco/actions/workflows/ci.yml/badge.svg)](https://github.com/higakikeita/tfdrift-falco/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
-[![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-**[English]** | [日本語 (Japanese)](README.ja.md)
+**[English]** | [日本語 (Japanese)](README.ja.md) | [Documentation](https://higakikeita.github.io/tfdrift-falco/)
 
 ---
 
-Someone changes a security group via the AWS Console. Within seconds, TFDrift-Falco detects it, identifies who made the change, and alerts your team — all without running `terraform plan`.
+<!-- TODO: Replace with actual demo GIF
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="TFDrift-Falco Demo" width="800">
+</p>
+-->
+
+## The Problem
+
+Someone opens the AWS Console and changes a security group. Terraform doesn't know. Your next `terraform plan` is 6 hours away. By then, the blast radius has grown.
+
+**Traditional drift detection tools poll.** They run `terraform plan` on a schedule — 15 minutes at best, hours at worst. That gap is where incidents happen.
+
+## The Solution
+
+TFDrift-Falco is **event-driven**. It hooks into Falco's real-time stream of cloud audit events (CloudTrail, GCP Audit Logs) and cross-references them against your Terraform state — **in seconds, not hours.**
 
 ```
-CloudTrail Event → Falco → TFDrift-Falco → Compare with Terraform State → Alert
+Console/CLI change → CloudTrail → Falco → TFDrift-Falco → Alert + Dashboard
+                                                  ↑
+                                          Terraform State
 ```
 
-## Quick Start
+You get not just *what* drifted, but *who* did it, *when*, and *why it matters*.
 
-### Prerequisites
+---
 
-- [Docker](https://docs.docker.com/get-docker/) and Docker Compose
-- AWS credentials configured (`aws configure` or environment variables)
-- A Terraform state file (local or S3)
-
-### 1. Clone and configure
+## Try It in 60 Seconds
 
 ```bash
 git clone https://github.com/higakikeita/tfdrift-falco.git
 cd tfdrift-falco
-
-# Interactive setup — walks you through AWS region, state backend, and notifications
-./quick-start.sh
+make demo
 ```
 
-### 2. Launch
+This spins up the full stack locally with sample data so you can explore the dashboard, API, and alerts without any cloud credentials.
 
-```bash
-docker compose up -d
-```
+> **Production setup?** Run `./quick-start.sh` for interactive configuration with your real AWS/GCP environment.
 
-### 3. Open the dashboard
+---
 
-- **Web UI**: http://localhost:3000
-- **API**: http://localhost:8080/api/v1
-- **Real-time stream**: http://localhost:8080/api/v1/stream (SSE)
+## What You Get
 
-That's it. Drift events will appear in the dashboard as they're detected.
-
-### Common commands
-
-```bash
-make start       # Start services
-make stop        # Stop services
-make logs        # View logs
-make status      # Check status
-```
-
-> For manual configuration without the setup script, see [Getting Started Guide](docs/GETTING_STARTED.md).
+| | Feature | Why it matters |
+|---|---------|----------------|
+| ⚡ | **Real-time detection** | Event-driven via Falco gRPC — no polling, no cron, sub-second latency |
+| 👤 | **User attribution** | Every drift event tagged with IAM identity, IP, and session context |
+| 🌍 | **Multi-cloud** | AWS (500+ CloudTrail events, 40+ services) + GCP (170+ events, 27+ services) |
+| 📊 | **Web dashboard** | React UI with live SSE updates, topology graph, dark/light theme |
+| 🔒 | **Enterprise auth** | JWT + API key (SHA-256 hashed), per-client rate limiting |
+| 🔌 | **API-first** | OpenAPI 3.0, 37 endpoints, Swagger UI at `/api/docs` |
+| 📣 | **Flexible alerting** | Slack, Discord, Teams, PagerDuty, webhooks, SIEM (NDJSON) |
+| 🚀 | **Production-ready** | Helm chart, Docker Compose, Prometheus metrics, operations runbook |
 
 ---
 
 ## How It Works
 
-TFDrift-Falco combines two data sources that are powerful together:
-
-- **Terraform state** knows *what your infrastructure should look like*
-- **Falco** (via CloudTrail/GCP Audit Logs) knows *what actually happened, when, and by whom*
-
-When someone makes a manual change, Falco captures it in real-time via its gRPC stream. TFDrift-Falco compares the change against your Terraform state and, if it's a drift, enriches it with user identity, CloudTrail context, and severity — then sends an alert.
-
 ```mermaid
 graph LR
-    A[Cloud Audit Logs] --> B[Falco]
-    B --> C[TFDrift-Falco]
-    D[Terraform State] --> C
+    A[Cloud Audit Logs] -->|Real-time| B[Falco]
+    B -->|gRPC Stream| C[TFDrift-Falco]
+    D[Terraform State] -->|S3/GCS/Local| C
     C --> E[Web Dashboard]
     C --> F[Slack / Webhook]
-    C --> G[JSON / SIEM]
+    C --> G[SIEM / JSON]
+
+    style C fill:#4A90E2,color:#fff,stroke:#357ABD
+    style E fill:#FF6B6B,color:#fff,stroke:#E55A5A
 ```
 
-> **Want to understand the philosophy behind this approach?** Read [Why Falco?](docs/why-falco.md) — a story about blueprints and witnesses.
+| Component | Role |
+|-----------|------|
+| **Falco Subscriber** | Connects to Falco gRPC, receives cloud audit events in real-time |
+| **State Loader** | Syncs Terraform state from local, S3, or GCS backends |
+| **Drift Engine** | Compares runtime changes against IaC definitions |
+| **Context Enricher** | Adds user identity, resource tags, CloudTrail context |
+| **API Server** | REST API + SSE broadcaster for the web dashboard |
+| **Notifier** | Routes alerts to Slack, Discord, webhooks, SIEM |
 
----
-
-## Key Features
-
-- **Real-time detection** — Event-driven via Falco gRPC, not periodic scanning
-- **User attribution** — Know *who* made each change, not just *what* changed
-- **Multi-cloud** — AWS (500+ CloudTrail events, 40+ services) and GCP (170+ Audit Log events, 27+ services)
-- **Web dashboard** — React UI with real-time SSE updates, topology graph, and dark/light theme
-- **Enterprise security** — JWT authentication, API key auth with SHA-256 hashing, per-client rate limiting
-- **API-first** — OpenAPI 3.0 spec with Swagger UI at `/api/docs`, 37 documented endpoints
-- **Flexible output** — Slack, Discord, webhooks, JSON (NDJSON), SSE, WebSocket
-- **Production-ready** — Helm chart, Docker Compose, Prometheus metrics, operations runbook
-
----
-
-## Web Dashboard
-
-The React dashboard provides four main views:
-
-| Page | What it shows |
-|------|---------------|
-| **Dashboard** | Overview stats, severity breakdown, recent events |
-| **Events** | Full event history with filtering, sorting, and JSON diff detail |
-| **Topology** | Interactive graph visualization of resource relationships |
-| **Settings** | Webhooks, detection rules, provider configuration |
-
-### Local development
-
-```bash
-cd ui
-npm install
-npm run dev    # http://localhost:5173
-```
-
----
-
-## Configuration
-
-TFDrift-Falco uses a `config.yaml` file. Start from the example:
-
-```bash
-cp config.yaml.example config.yaml
-```
-
-Edit `config.yaml` and set your AWS Account ID, Terraform state location, and notification preferences. See the comments in the example file for guidance.
-
-> **Tip**: The `quick-start.sh` script generates this file interactively, so you may not need to edit it manually.
-
-For detailed configuration options, see:
-- [Configuration Reference](docs/GETTING_STARTED.md)
-- [AWS Setup](docs/falco-setup.md)
-- [GCP Setup](docs/gcp-setup.md)
-
----
-
-## Deployment
-
-### Docker Compose (recommended)
-
-```bash
-docker compose up -d
-```
-
-### Docker (standalone)
-
-```bash
-docker run -d \
-  --name tfdrift-falco \
-  -e TF_STATE_BACKEND=s3 \
-  -e TF_STATE_S3_BUCKET=my-terraform-state \
-  -e TF_STATE_S3_KEY=prod/terraform.tfstate \
-  -e AWS_REGION=us-east-1 \
-  -v ~/.aws:/root/.aws:ro \
-  ghcr.io/higakikeita/tfdrift-falco:latest
-```
-
-### Kubernetes
-
-```bash
-helm install tfdrift ./charts/tfdrift-falco
-# or: kubectl apply -f k8s/
-```
-
-For production deployment best practices (HA, sizing, security), see [Deployment Guide](docs/deployment.md).
-
----
-
-## API
-
-REST API is available at `http://localhost:8080/api/v1`:
-
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/v1/events` | Drift events (with filtering, sorting, pagination) |
-| `GET /api/v1/events/{id}` | Event detail with JSON diff |
-| `GET /api/v1/graph` | Topology graph data |
-| `GET /api/v1/stats` | Dashboard statistics |
-| `GET /api/v1/stream` | SSE real-time event stream |
-| `POST /api/v1/auth/token` | Generate JWT token |
-| `POST /api/v1/auth/api-keys` | Create / list / revoke API keys |
-| `WS /ws` | WebSocket for bidirectional communication |
-| `GET /api/docs` | Swagger UI (OpenAPI 3.0) |
-| `GET /health` | Health check (public, no auth) |
-
-Full API documentation: [API Reference](docs/api/README.md) | [OpenAPI Spec](docs/api/openapi.yaml)
-
----
-
-## Integrations
-
-TFDrift-Falco outputs structured JSON events compatible with most monitoring and security tools:
-
-- **Slack / Discord / Microsoft Teams** — Built-in webhook formatters
-- **SIEM** (Splunk, Datadog, Sysdig) — NDJSON output or webhook integration
-- **Grafana** — Pre-built dashboards with Loki backend ([setup guide](dashboards/grafana/GETTING_STARTED.md))
-- **PagerDuty** — Webhook integration for on-call alerting
-- **Custom APIs** — Configurable webhook with auth headers and retry logic
-
-See [Webhook Configuration](docs/GETTING_STARTED.md) and [Integration Examples](docs/use-cases.md) for details.
+> **Deep dive:** [Why Falco?](docs/why-falco.md) — A story about blueprints and witnesses.
 
 ---
 
@@ -210,103 +107,124 @@ See [Webhook Configuration](docs/GETTING_STARTED.md) and [Integration Examples](
 <details>
 <summary><strong>AWS</strong> — 500+ CloudTrail events across 40+ services</summary>
 
-Key services: VPC/Networking, IAM, S3, EC2, RDS, EKS, ECS, Lambda, DynamoDB, CloudWatch, API Gateway, KMS, WAF, and more.
+EC2, VPC, IAM, S3, RDS, EKS, ECS, Lambda, DynamoDB, CloudWatch, API Gateway, KMS, WAF, Route53, CloudFront, SNS, SQS, ECR, and more.
 
-See [AWS Resource Coverage Analysis](docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md) for the full list.
+Full list: [AWS Resource Coverage](docs/AWS_RESOURCE_COVERAGE_ANALYSIS.md)
 </details>
 
 <details>
 <summary><strong>GCP</strong> — 170+ Audit Log events across 27+ services</summary>
 
-Key services: Compute Engine, Cloud Storage, Cloud SQL, GKE, Cloud Run, IAM, VPC, BigQuery, Pub/Sub, KMS, and more.
+Compute Engine, Cloud Storage, Cloud SQL, GKE, Cloud Run, IAM, VPC, BigQuery, Pub/Sub, KMS, Secret Manager, Cloud Functions, and more.
 
-See [GCP Setup Guide](docs/gcp-setup.md) for the full list.
+Full list: [GCP Setup Guide](docs/gcp-setup.md)
 </details>
 
-**Azure** support is in progress (tracking via [roadmap](docs/architecture.md)).
+<details>
+<summary><strong>Azure</strong> — In Progress</summary>
+
+Azure support is actively under development. Track progress in the [Architecture doc](docs/architecture.md).
+</details>
 
 ---
 
-## Architecture
+## Quick Reference
 
-```mermaid
-graph TB
-    A[AWS CloudTrail] --> B[Falco + CloudTrail Plugin]
-    A2[GCP Audit Logs] --> B2[Falco + gcpaudit Plugin]
-    B --> C[Falco gRPC Stream]
-    B2 --> C
-    C --> D[TFDrift-Falco]
-    E[Terraform State] --> D
-    D --> F[API Server + SSE]
-    D --> G[Notifications]
-    F --> H[React Dashboard]
-    G --> I[Slack / Webhook / SIEM]
-
-    style D fill:#4A90E2,color:#fff
-    style H fill:#FF6B6B,color:#fff
-```
-
-| Component | Role |
-|-----------|------|
-| **Falco Subscriber** | Connects to Falco gRPC and receives cloud audit events |
-| **State Loader** | Syncs Terraform state from local, S3, or GCS |
-| **Drift Engine** | Compares runtime changes against IaC definitions |
-| **Context Enricher** | Adds user identity, resource tags, CloudTrail context |
-| **API Server** | REST API + SSE broadcaster for the web dashboard |
-| **Notifier** | Sends alerts to Slack, Discord, webhooks |
-
----
-
-## Project Structure
-
-```
-tfdrift-falco/
-├── cmd/tfdrift/       # CLI entry point
-├── pkg/               # Core Go packages
-│   ├── api/           # REST API server
-│   ├── detector/      # Drift detection engine
-│   ├── falco/         # Falco gRPC integration
-│   ├── terraform/     # State parsing
-│   ├── graph/         # Topology graph store
-│   └── notifier/      # Notification handlers
-├── ui/                # React web dashboard
-├── charts/            # Helm chart
-├── dashboards/        # Grafana dashboards
-├── docs/              # Documentation
-└── scripts/           # Build and deployment scripts
-```
-
----
-
-## Contributing
-
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and code style guidelines.
+### Common Commands
 
 ```bash
-git clone https://github.com/higakikeita/tfdrift-falco.git
-cd tfdrift-falco
-go mod download
-go test ./...
-make build
+make start       # Start all services
+make stop        # Stop all services
+make demo        # Launch demo with sample data
+make logs        # Tail logs
+make status      # Check running containers
+```
+
+### API Endpoints
+
+```bash
+# Drift events
+curl http://localhost:8080/api/v1/events
+
+# Real-time stream (SSE)
+curl http://localhost:8080/api/v1/stream
+
+# Dashboard stats
+curl http://localhost:8080/api/v1/stats
+
+# Health check
+curl http://localhost:8080/health
+```
+
+### Deployment Options
+
+```bash
+# Docker Compose (recommended)
+docker compose up -d
+
+# Kubernetes / Helm
+helm install tfdrift ./charts/tfdrift-falco
+
+# Standalone Docker
+docker run -d ghcr.io/higakikeita/tfdrift-falco:latest
 ```
 
 ---
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [Getting Started](docs/GETTING_STARTED.md) | Step-by-step setup guide |
-| [AWS Falco Setup](docs/falco-setup.md) | CloudTrail plugin configuration |
-| [GCP Setup](docs/gcp-setup.md) | GCP Audit Log plugin configuration |
-| [API Reference](docs/api/README.md) | REST API endpoints and usage |
-| [Deployment Guide](docs/deployment.md) | Docker, Kubernetes, production best practices |
-| [Use Cases](docs/use-cases.md) | Security, compliance, cost management examples |
-| [Best Practices](docs/best-practices.md) | Production operation guide |
-| [Grafana Dashboards](dashboards/grafana/GETTING_STARTED.md) | Monitoring dashboard setup |
-| [Why Falco?](docs/why-falco.md) | The philosophy behind event-driven drift detection |
-| [Architecture](docs/architecture.md) | System design overview |
-| [CHANGELOG](CHANGELOG.md) | Version history |
+| | Document | |
+|---|----------|---|
+| 🚀 | [Getting Started](docs/GETTING_STARTED.md) | Step-by-step setup |
+| ☁️ | [AWS Setup](docs/falco-setup.md) | CloudTrail + Falco config |
+| ☁️ | [GCP Setup](docs/gcp-setup.md) | Audit Log + Falco config |
+| 📡 | [API Reference](docs/api/README.md) | REST, SSE, WebSocket |
+| 🏗️ | [Architecture](docs/architecture.md) | System design |
+| 📦 | [Deployment](docs/deployment.md) | Docker, K8s, production |
+| 🔧 | [Best Practices](docs/best-practices.md) | Production operations |
+| 📊 | [Grafana Dashboards](dashboards/grafana/GETTING_STARTED.md) | Monitoring |
+| 📝 | [CHANGELOG](CHANGELOG.md) | Version history |
+
+Full docs site: **[higakikeita.github.io/tfdrift-falco](https://higakikeita.github.io/tfdrift-falco/)**
+
+---
+
+## Contributing
+
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+```bash
+git clone https://github.com/higakikeita/tfdrift-falco.git
+cd tfdrift-falco
+make init    # Set up dev environment
+make check   # Run fmt + lint + test
+```
+
+---
+
+## Why TFDrift-Falco?
+
+Most drift detection tools are **reactive** — they scan on a schedule and tell you what *already* drifted. TFDrift-Falco is **proactive** — it catches changes *as they happen* and tells you who made them.
+
+This matters because:
+
+- **Faster MTTR** — Alert in seconds, not hours. Fix drift before it cascades.
+- **Accountability** — Full audit trail with IAM user, IP, and session context.
+- **Zero blind spots** — Every CloudTrail/Audit Log event, not just what `terraform plan` checks.
+- **Runtime context** — Falco provides security context that pure IaC tools can't.
+
+---
+
+<p align="center">
+  <strong>If this is useful, consider giving it a ⭐</strong><br/>
+  It helps others discover the project.
+</p>
+
+<p align="center">
+  <a href="https://github.com/higakikeita/tfdrift-falco">
+    <img src="https://img.shields.io/github/stars/higakikeita/tfdrift-falco?style=social" alt="GitHub stars">
+  </a>
+</p>
 
 ---
 
@@ -314,8 +232,4 @@ make build
 
 MIT License — see [LICENSE](LICENSE) for details.
 
-## Contact
-
-- **Author**: Keita Higaki
-- **GitHub**: [@higakikeita](https://github.com/higakikeita)
-- **X**: [@keitah0322](https://x.com/keitah0322)
+**Author:** [Keita Higaki](https://github.com/higakikeita) · [X: @keitah0322](https://x.com/keitah0322)
