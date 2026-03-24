@@ -186,6 +186,11 @@ docker-compose up -d
 - `GET /api/v1/rules` - 検知ルールを一覧表示
 - `GET /api/v1/providers` - 設定済みクラウドプロバイダーを一覧表示
 
+**認証エンドポイント:**
+- `POST /api/v1/auth/token` - JWTトークンを生成
+- `POST /api/v1/auth/api-keys` - APIキーの作成・一覧・取り消し
+- `GET /api/docs` - Swagger UI（OpenAPI 3.0仕様）
+
 **ストリーミング:**
 - `GET /api/v1/stream` - リアルタイム通知用Server-Sent Events（SSE）
 - `WS /ws` - 双方向リアルタイム通信用WebSocket
@@ -261,7 +266,7 @@ services:
 ### ☸️ Kubernetesデプロイメント
 
 ```bash
-# Helm chart（準備中）
+# Helm chart（本番対応済み）
 helm install tfdrift ./charts/tfdrift-falco
 
 # または kubectl
@@ -444,12 +449,14 @@ TFDrift-Falcoがイベントを受信し、Terraform Stateと比較
 - 🧩 **Terraform State比較** - IaC定義からの逸脱を検出
 - 🔒 **セキュリティコンテキスト** - ユーザーID（IAMユーザー、APIキー、サービスアカウント）を関連付け
 - 🔔 **複数の通知チャネル** - Slack、Discord、Falco出力、Webhook
-- 🌐 **マルチクラウド対応** - AWS（500+イベント、40+サービス）、GCP（170+イベント、27+サービス）、Azure（計画中）
+- 🌐 **マルチクラウド対応** - AWS（500+イベント、40+サービス）、GCP（170+イベント、27+サービス）、Azure（開発中）
 - 🎨 **拡張可能なルール** - YAMLでカスタムFalcoルールを定義
 - 🐳 **コンテナ対応** - サイドカーまたはスタンドアロンコンテナとして実行
 - 📊 **本番環境対応** - 包括的な負荷テストと監視フレームワーク
 - 📈 **Webダッシュボード UI** - リアルタイムイベント、トポロジービジュアライゼーション、ダーク/ライトテーマ対応Reactダッシュボード
 - 🔌 **リアルタイムWebSocket/SSE** - 重大度ベースの通知を備えたライブイベントストリーミング
+- 🔒 **エンタープライズセキュリティ** - JWT認証、APIキー認証（SHA-256ハッシュ化）、クライアントごとのレート制限
+- 📖 **API-First設計** - OpenAPI 3.0仕様、Swagger UI（`/api/docs`）、37エンドポイント完全文書化
 
 ## 📋 対応AWSサービス
 
