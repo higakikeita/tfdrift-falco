@@ -1,6 +1,6 @@
 # TFDrift-Falco Operations Runbook
 
-**Version**: v0.8.0
+**Version**: v0.9.0
 **Last Updated**: 2026-03-22
 **Audience**: SRE / Platform Engineering / On-Call Engineers
 
