@@ -15,7 +15,7 @@ permissions:
   pull-requests: write
 
 env:
-  GO_VERSION: '1.24'
+  GO_VERSION: '1.25'
   NODE_VERSION: '22'
 
 jobs:
@@ -72,16 +72,13 @@ jobs:
       - name: Verify dependencies
         run: go mod verify
 
-      # ===== Lint (from lint.yml) =====
-      - name: Install golangci-lint
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.8
-
+      # ===== Lint =====
       - name: Run golangci-lint
-        run: golangci-lint run --timeout=5m
-        continue-on-error: true
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
 
       - name: Check formatting
-        continue-on-error: true
         run: |
           if [ -n "$(gofmt -l .)" ]; then
             echo "❌ Go files must be formatted with gofmt. Please run:"
@@ -91,17 +88,9 @@ jobs:
           fi
 
       - name: Run go vet
-        run: go vet ./...
-        continue-on-error: true
-
-      - name: Run staticcheck
-        continue-on-error: true
-        run: |
-          go install honnef.co/go/tools/cmd/staticcheck@latest
-          staticcheck ./...
+        run: go vet $(go list ./... | grep -v 'tests/e2e\|tests/load')
 
       - name: Check go mod tidy
-        continue-on-error: true
         run: |
           go mod tidy
           if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
@@ -111,10 +100,9 @@ jobs:
             exit 1
           fi
 
-      # ===== Test (from test.yml) =====
+      # ===== Test =====
       - name: Run tests with coverage
-        continue-on-error: true
-        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+        run: go test -v -race -coverprofile=coverage.out -covermode=atomic $(go list ./... | grep -v 'tests/e2e\|tests/load')
 
       - name: Generate coverage report
         run: go tool cover -func=coverage.out

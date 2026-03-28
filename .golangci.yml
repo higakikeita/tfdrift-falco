@@ -1,3 +1,5 @@
+version: "2"
+
 run:
   timeout: 5m
   tests: true
@@ -99,6 +101,7 @@ issues:
   max-same-issues: 0
 
 output:
-  format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
+  formats:
+    colored-line-number:
+      print-issued-lines: true
+      print-linter-name: true

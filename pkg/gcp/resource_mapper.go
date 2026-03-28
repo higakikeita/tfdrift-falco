@@ -240,6 +240,146 @@ func initializeEventMapping() map[string]string {
 		// Compute Engine - SSL Certificates
 		"compute.sslCertificates.insert": "google_compute_ssl_certificate",
 		"compute.sslCertificates.delete": "google_compute_ssl_certificate",
+
+		// Compute Engine - Security Policies
+		"compute.securityPolicies.insert": "google_compute_security_policy",
+		"compute.securityPolicies.delete": "google_compute_security_policy",
+		"compute.securityPolicies.patch":  "google_compute_security_policy",
+
+		// Compute Engine - Instance Templates
+		"compute.instanceTemplates.insert": "google_compute_instance_template",
+		"compute.instanceTemplates.delete": "google_compute_instance_template",
+
+		// Compute Engine - Instance Groups
+		"compute.instanceGroupManagers.insert": "google_compute_instance_group_manager",
+		"compute.instanceGroupManagers.delete": "google_compute_instance_group_manager",
+		"compute.instanceGroupManagers.patch":  "google_compute_instance_group_manager",
+
+		// Dataproc - Clusters
+		"google.cloud.dataproc.v1.ClusterController.CreateCluster": "google_dataproc_cluster",
+		"google.cloud.dataproc.v1.ClusterController.DeleteCluster": "google_dataproc_cluster",
+		"google.cloud.dataproc.v1.ClusterController.UpdateCluster": "google_dataproc_cluster",
+
+		// Dataproc - Jobs
+		"google.cloud.dataproc.v1.JobController.SubmitJob": "google_dataproc_job",
+		"google.cloud.dataproc.v1.JobController.DeleteJob": "google_dataproc_job",
+
+		// Dataflow - Jobs
+		"google.dataflow.v1b3.JobsV1Beta3.CreateJob": "google_dataflow_job",
+		"google.dataflow.v1b3.JobsV1Beta3.UpdateJob": "google_dataflow_job",
+
+		// Cloud Spanner - Instances
+		"google.spanner.admin.instance.v1.InstanceAdmin.CreateInstance": "google_spanner_instance",
+		"google.spanner.admin.instance.v1.InstanceAdmin.DeleteInstance": "google_spanner_instance",
+		"google.spanner.admin.instance.v1.InstanceAdmin.UpdateInstance": "google_spanner_instance",
+
+		// Cloud Spanner - Databases
+		"google.spanner.admin.database.v1.DatabaseAdmin.CreateDatabase":    "google_spanner_database",
+		"google.spanner.admin.database.v1.DatabaseAdmin.DropDatabase":      "google_spanner_database",
+		"google.spanner.admin.database.v1.DatabaseAdmin.UpdateDatabaseDdl": "google_spanner_database",
+
+		// Firestore - Databases
+		"google.firestore.admin.v1.FirestoreAdmin.CreateDatabase": "google_firestore_database",
+		"google.firestore.admin.v1.FirestoreAdmin.DeleteDatabase": "google_firestore_database",
+
+		// Firestore - Indexes
+		"google.firestore.admin.v1.FirestoreAdmin.CreateIndex": "google_firestore_index",
+		"google.firestore.admin.v1.FirestoreAdmin.DeleteIndex": "google_firestore_index",
+
+		// Cloud Memorystore / Redis
+		"google.cloud.redis.v1.CloudRedis.CreateInstance": "google_redis_instance",
+		"google.cloud.redis.v1.CloudRedis.DeleteInstance": "google_redis_instance",
+		"google.cloud.redis.v1.CloudRedis.UpdateInstance": "google_redis_instance",
+
+		// Cloud DNS - Managed Zones
+		"dns.managedZones.create": "google_dns_managed_zone",
+		"dns.managedZones.delete": "google_dns_managed_zone",
+		"dns.managedZones.update": "google_dns_managed_zone",
+		"dns.managedZones.patch":  "google_dns_managed_zone",
+
+		// Cloud DNS - Record Sets
+		"dns.changes.create": "google_dns_record_set",
+
+		// Cloud Logging - Sinks
+		"google.logging.v2.ConfigServiceV2.CreateSink": "google_logging_project_sink",
+		"google.logging.v2.ConfigServiceV2.DeleteSink": "google_logging_project_sink",
+		"google.logging.v2.ConfigServiceV2.UpdateSink": "google_logging_project_sink",
+
+		// Cloud Logging - Buckets
+		"google.logging.v2.ConfigServiceV2.CreateBucket": "google_logging_project_bucket_config",
+		"google.logging.v2.ConfigServiceV2.DeleteBucket": "google_logging_project_bucket_config",
+
+		// Cloud Monitoring - Alert Policies
+		"google.monitoring.v3.AlertPolicyService.CreateAlertPolicy": "google_monitoring_alert_policy",
+		"google.monitoring.v3.AlertPolicyService.DeleteAlertPolicy": "google_monitoring_alert_policy",
+		"google.monitoring.v3.AlertPolicyService.UpdateAlertPolicy": "google_monitoring_alert_policy",
+
+		// Cloud Monitoring - Uptime Checks
+		"google.monitoring.v3.UptimeCheckService.CreateUptimeCheckConfig": "google_monitoring_uptime_check_config",
+		"google.monitoring.v3.UptimeCheckService.DeleteUptimeCheckConfig": "google_monitoring_uptime_check_config",
+
+		// Cloud Monitoring - Notification Channels
+		"google.monitoring.v3.NotificationChannelService.CreateNotificationChannel": "google_monitoring_notification_channel",
+		"google.monitoring.v3.NotificationChannelService.DeleteNotificationChannel": "google_monitoring_notification_channel",
+
+		// App Engine - Services
+		"google.appengine.v1.Services.UpdateService": "google_app_engine_service_split_traffic",
+		"google.appengine.v1.Services.DeleteService": "google_app_engine_service_split_traffic",
+
+		// App Engine - Versions
+		"google.appengine.v1.Versions.CreateVersion": "google_app_engine_standard_app_version",
+		"google.appengine.v1.Versions.DeleteVersion": "google_app_engine_standard_app_version",
+
+		// VPC Service Controls - Service Perimeters
+		"google.identity.accesscontextmanager.v1.AccessContextManager.CreateServicePerimeter": "google_access_context_manager_service_perimeter",
+		"google.identity.accesscontextmanager.v1.AccessContextManager.DeleteServicePerimeter": "google_access_context_manager_service_perimeter",
+		"google.identity.accesscontextmanager.v1.AccessContextManager.UpdateServicePerimeter": "google_access_context_manager_service_perimeter",
+
+		// VPC Service Controls - Access Levels
+		"google.identity.accesscontextmanager.v1.AccessContextManager.CreateAccessLevel": "google_access_context_manager_access_level",
+		"google.identity.accesscontextmanager.v1.AccessContextManager.DeleteAccessLevel": "google_access_context_manager_access_level",
+
+		// Artifact Registry - Repositories
+		"google.devtools.artifactregistry.v1.ArtifactRegistry.CreateRepository": "google_artifact_registry_repository",
+		"google.devtools.artifactregistry.v1.ArtifactRegistry.DeleteRepository": "google_artifact_registry_repository",
+		"google.devtools.artifactregistry.v1.ArtifactRegistry.UpdateRepository": "google_artifact_registry_repository",
+
+		// Cloud Composer - Environments
+		"google.cloud.orchestration.airflow.service.v1.Environments.CreateEnvironment": "google_composer_environment",
+		"google.cloud.orchestration.airflow.service.v1.Environments.DeleteEnvironment": "google_composer_environment",
+		"google.cloud.orchestration.airflow.service.v1.Environments.UpdateEnvironment": "google_composer_environment",
+
+		// Cloud Tasks - Queues
+		"google.cloud.tasks.v2.CloudTasks.CreateQueue": "google_cloud_tasks_queue",
+		"google.cloud.tasks.v2.CloudTasks.DeleteQueue": "google_cloud_tasks_queue",
+		"google.cloud.tasks.v2.CloudTasks.UpdateQueue": "google_cloud_tasks_queue",
+
+		// Cloud Scheduler - Jobs
+		"google.cloud.scheduler.v1.CloudScheduler.CreateJob": "google_cloud_scheduler_job",
+		"google.cloud.scheduler.v1.CloudScheduler.DeleteJob": "google_cloud_scheduler_job",
+		"google.cloud.scheduler.v1.CloudScheduler.UpdateJob": "google_cloud_scheduler_job",
+
+		// Cloud Build - Build Triggers
+		"google.devtools.cloudbuild.v1.CloudBuild.CreateBuildTrigger": "google_cloudbuild_trigger",
+		"google.devtools.cloudbuild.v1.CloudBuild.DeleteBuildTrigger": "google_cloudbuild_trigger",
+		"google.devtools.cloudbuild.v1.CloudBuild.UpdateBuildTrigger": "google_cloudbuild_trigger",
+
+		// Cloud Endpoints - Services
+		"google.api.servicemanagement.v1.ServiceManager.CreateService":      "google_endpoints_service",
+		"google.api.servicemanagement.v1.ServiceManager.DeleteService":      "google_endpoints_service",
+		"google.api.servicemanagement.v1.ServiceManager.SubmitConfigSource": "google_endpoints_service",
+
+		// Vertex AI - Endpoints
+		"google.cloud.aiplatform.v1.EndpointService.CreateEndpoint": "google_vertex_ai_endpoint",
+		"google.cloud.aiplatform.v1.EndpointService.DeleteEndpoint": "google_vertex_ai_endpoint",
+
+		// Vertex AI - Datasets
+		"google.cloud.aiplatform.v1.DatasetService.CreateDataset": "google_vertex_ai_dataset",
+		"google.cloud.aiplatform.v1.DatasetService.DeleteDataset": "google_vertex_ai_dataset",
+
+		// Vertex AI - Featurestores
+		"google.cloud.aiplatform.v1.FeaturestoreService.CreateFeaturestore": "google_vertex_ai_featurestore",
+		"google.cloud.aiplatform.v1.FeaturestoreService.DeleteFeaturestore": "google_vertex_ai_featurestore",
 	}
 }
 
