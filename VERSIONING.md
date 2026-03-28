@@ -1,108 +1,92 @@
 # Versioning Policy
 
-TFDrift-Falco follows [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html) with the following project-specific guidelines.
+TFDrift-Falco follows [Semantic Versioning 2.0.0](https://semver.org/).
 
-## Pre-1.0 Versioning (Current)
+Format: `MAJOR.MINOR.PATCH`
 
-While the project is in the `0.x.y` phase, the following rules apply:
+---
 
-### Patch (`0.x.Y`) — Bug Fixes & Minor Improvements
-
-Increment for changes that do not add new features or change behavior.
-
-- Bug fixes
-- Documentation typos and corrections
-- Minor refactoring with no behavior change
-- Dependency updates (non-breaking)
-- CI/CD pipeline fixes
-- Test additions or improvements (no production code change)
-
-Examples: `v0.6.0 → v0.6.1`
-
-### Minor (`0.X.0`) — New Features & Enhancements
-
-Increment for any of the following:
-
-- New user-facing feature (UI page, API endpoint, CLI flag)
-- New cloud provider or service support (AWS services, GCP services, Azure)
-- Major UI overhaul or new dashboard capability
-- New integration (webhook type, notification channel)
-- Breaking API changes (acceptable in pre-1.0)
-- Significant architecture changes
-
-Examples: `v0.6.0 → v0.7.0`
-
-### When to Bump
-
-| Change Type | Version Bump | Example |
-|---|---|---|
-| Fix crash in events API | Patch | `0.7.0 → 0.7.1` |
-| Update README / docs only | Patch | `0.7.0 → 0.7.1` |
-| Add graph export feature | Minor | `0.7.0 → 0.8.0` |
-| Add Azure provider support | Minor | `0.7.0 → 0.8.0` |
-| Add 10 new AWS service mappings | Minor | `0.7.0 → 0.8.0` |
-| Fix typo in error message | Patch | `0.7.0 → 0.7.1` |
-| Add detector unit tests | Patch | `0.7.0 → 0.7.1` |
-
-## 1.0.0 Criteria
-
-The project will be promoted to `1.0.0` when all of the following are met:
-
-- [ ] Falco gRPC integration stable and battle-tested
-- [ ] Multi-cloud support: AWS, GCP, and Azure all functional
-- [ ] End-to-end test suite covering critical paths
-- [ ] Dashboard UI feature-complete with production usage
-- [ ] API stability (no breaking changes expected)
-- [ ] Documentation comprehensive and up to date
-- [ ] At least one production deployment reference
-
-After `1.0.0`, standard semver applies strictly:
-
-- **Major**: Breaking API or configuration changes
-- **Minor**: New features, backward-compatible
-- **Patch**: Bug fixes, backward-compatible
-
-## Post-1.0 Versioning
-
-### Major (`X.0.0`)
-
-- Breaking changes to REST API contracts
-- Breaking changes to `config.yaml` schema
-- Breaking changes to CLI flags or behavior
-- Removal of deprecated features
-
-### Minor (`x.Y.0`)
-
-- New features (backward-compatible)
-- New cloud provider support
-- New API endpoints (additive)
-- New configuration options (with defaults)
-
-### Patch (`x.y.Z`)
-
-- Bug fixes
-- Security patches
-- Performance improvements
-- Documentation updates
-
-## Release Process
-
-1. Update `CHANGELOG.md` with all changes under the new version
-2. Update version references in code (`README.md` badge, `pkg/version/version.go`, etc.)
-3. Create a PR titled `release: vX.Y.Z`
-4. Merge to `main`
-5. Tag with `git tag vX.Y.Z` and push the tag
-6. GitHub Actions publishes the Docker image automatically
+## Current Version: 0.9.0
 
 ## Version History
 
 | Version | Date | Highlights |
-|---|---|---|
-| `v0.2.0-beta` | 2025-12 | MVP: AWS CloudTrail, Falco gRPC, Slack |
-| `v0.3.0` | 2025-12 | Enhanced AWS (203 events, 19 services) |
-| `v0.4.0` | 2026-01 | NDJSON output, structured events |
-| `v0.4.1` | 2026-01 | Webhook integration (Slack, Teams, custom) |
-| `v0.5.0` | 2026-01 | GCP Audit Logs, UI improvements |
-| `v0.6.0` | 2026-03-20 | Multi-cloud expansion (AWS 500+, GCP 170+) |
-| `v0.7.0` | 2026-03-22 | Dashboard UI: events mgmt, notifications, graph export, settings |
-| `v0.8.0` | 2026-03-22 | Enterprise foundation: JWT/API Key auth, rate limiting, OpenAPI, Helm chart, runbook |
+|---------|------|------------|
+| 0.9.0 | 2026-03-29 | Azure FullProvider, azurerm backend, WebSocket enhancements |
+| 0.8.0 | 2026-03-22 | Enterprise Foundation (JWT, Helm, OpenAPI, Operations Runbook) |
+| 0.7.0 | 2026-03-22 | Dashboard UI, versioning policy |
+| 0.6.0 | 2026-03-xx | UI improvements (colors, Storybook) |
+| 0.5.0 | 2025-12-17 | Multi-Cloud GCP support |
+| 0.2.0-beta | 2025-12-05 | VPC networking, code quality |
+| 0.1.0 | 2024-11-xx | Initial release (AWS only) |
+
+---
+
+## Rules
+
+### PATCH (0.9.x)
+
+Increment for backward-compatible bug fixes:
+
+- Bug fixes that don't change API or behavior
+- Security patches
+- Dependency updates (non-breaking)
+- Documentation typo fixes
+- CI/CD fixes
+
+### MINOR (0.x.0)
+
+Increment for backward-compatible feature additions:
+
+- New cloud provider support (e.g., Azure, GCP)
+- New Terraform backend support (e.g., azurerm, gcs)
+- New API endpoints
+- New event types or detection capabilities
+- New UI features or pages
+- Performance improvements with no API changes
+
+### MAJOR (x.0.0)
+
+Increment for breaking changes:
+
+- Breaking API changes (endpoint removal, response format changes)
+- Configuration format changes requiring migration
+- Minimum Go/Node version bumps
+- Removal of deprecated features
+- Database schema changes requiring migration
+
+---
+
+## 1.0.0 GA Criteria
+
+The project will reach 1.0.0 when all of the following are met:
+
+1. **Three cloud providers fully supported** — AWS, GCP, Azure (Discovery + Comparison + Backend) ✅
+2. **Stable API** — No breaking changes planned for /api/v1 endpoints
+3. **Production validation** — Deployed and tested in at least one production environment
+4. **Documentation complete** — Quickstart, architecture, per-provider guides, API reference
+5. **Test coverage** — Core packages above 80%
+6. **Security hardened** — Authentication, input validation, secret handling reviewed
+
+---
+
+## Release Process
+
+1. Create a release branch: `release/vX.Y.Z`
+2. Update `VERSION` file
+3. Update `CHANGELOG.md` (move Unreleased items to new version section)
+4. Update version badges in `README.md` and `README.ja.md`
+5. Update `docs/architecture.md` and `docs/overview.md` version references
+6. Create release notes in `docs/release-notes/vX.Y.Z.md`
+7. Merge to `main` via PR
+8. Tag the merge commit: `git tag vX.Y.Z`
+9. Create GitHub Release with notes
+
+---
+
+## Notes
+
+- Pre-1.0 versions (0.x.y) may include minor breaking changes in MINOR releases, documented in CHANGELOG
+- The `VERSION` file is the single source of truth for the current version
+- All version references across docs must be updated atomically in the release commit
+- Git tags must match the `VERSION` file exactly (prefixed with `v`)

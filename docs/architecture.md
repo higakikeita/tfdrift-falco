@@ -1,6 +1,6 @@
 # TFDrift-Falco Architecture
 
-> **Version:** v0.6.0 (Azure Full Support & Real-Time Enhancements)
+> **Version:** v0.9.0 (Azure Full Support & Real-Time Enhancements)
 > **Supported Providers:** AWS, Google Cloud Platform, Microsoft Azure
 > **Status:** Production Ready
 
@@ -20,7 +20,7 @@
 
 TFDrift-Falco is designed as a **real-time, event-driven, multi-cloud drift detection system** that bridges the gap between Infrastructure-as-Code (IaC) and runtime security monitoring.
 
-**v0.6.0 Multi-Cloud Support:**
+**v0.9.0 Multi-Cloud Support:**
 - ✅ **AWS** - CloudTrail events, S3 state backend (203 events, 19 services)
 - ✅ **GCP** - Audit Logs via Falco gcpaudit plugin, GCS state backend (100+ events, 12+ services)
 - ✅ **Azure** - Activity Logs, Azure Blob Storage backend, Resource Discovery, State Comparison (50+ resource types)

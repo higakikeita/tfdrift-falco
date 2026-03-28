@@ -2,7 +2,7 @@
 
 **Real-time Terraform Drift Detection powered by Falco**
 
-[![Version](https://img.shields.io/badge/version-0.6.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
+[![Version](https://img.shields.io/badge/version-0.9.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
@@ -16,13 +16,13 @@
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
-> 🎉 **v0.6.0 Released!** (2026-03-29) - **Azure Full Support & Real-Time Enhancements**!
+> 🎉 **v0.9.0 Released!** (2026-03-29) - **Azure Full Support & Real-Time Enhancements**!
 > - **Azure ResourceDiscoverer** — 50+ ARM type mappings, resource discovery
 > - **Azure StateComparator** — Case-insensitive matching, tag filtering
 > - **Azure Blob Storage Backend** — azurerm Terraform state backend
-> - **WebSocket v0.6.0** — Provider filtering, new event types
+> - **WebSocket リアルタイム強化** — Provider filtering, new event types
 > - **Provider Capabilities API** — `GET /api/v1/providers`
-> - [📝 Release Notes](docs/release-notes/v0.6.0.md) | [📘 CHANGELOG](CHANGELOG.md#060---2026-03-29) | [🗺️ Roadmap](PROJECT_ROADMAP.md)
+> - [📝 Release Notes](docs/release-notes/v0.9.0.md) | [📘 CHANGELOG](CHANGELOG.md#090---2026-03-29) | [🗺️ Roadmap](PROJECT_ROADMAP.md)
 >
 > 🌐 **v0.5.0** (2025-12-17) - **Multi-Cloud Support (GCP)**!
 > - GCP Audit Logs integration with 100+ event mappings across 12+ services

@@ -2,7 +2,7 @@
 
 **Falcoを活用したリアルタイムTerraformドリフト検知**
 
-[![Version](https://img.shields.io/badge/version-0.6.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
+[![Version](https://img.shields.io/badge/version-0.9.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
@@ -16,12 +16,12 @@
 [![codecov](https://codecov.io/gh/higakikeita/tfdrift-falco/branch/main/graph/badge.svg)](https://codecov.io/gh/higakikeita/tfdrift-falco)
 [![Go Report Card](https://goreportcard.com/badge/github.com/higakikeita/tfdrift-falco)](https://goreportcard.com/report/github.com/higakikeita/tfdrift-falco)
 
-> 🎉 **v0.6.0 リリース!** (2026-03-29) - **Azure完全対応 & リアルタイム強化**!
+> 🎉 **v0.9.0 リリース!** (2026-03-29) - **Azure完全対応 & リアルタイム強化**!
 > - Azure ResourceDiscoverer — 50以上のARMタイプマッピング、リソース探索
 > - Azure StateComparator — 大文字小文字を区別しないマッチング、タグフィルタリング
 > - Azure Blob Storageバックエンド — azurerm Terraform Stateバックエンド
-> - WebSocket v0.6.0 — プロバイダーフィルタリング、新イベントタイプ
-> - [📝 リリースノート](docs/release-notes/v0.6.0.md) | [📘 CHANGELOG](CHANGELOG.md#060---2026-03-29)
+> - WebSocket リアルタイム強化 — プロバイダーフィルタリング、新イベントタイプ
+> - [📝 リリースノート](docs/release-notes/v0.9.0.md) | [📘 CHANGELOG](CHANGELOG.md#090---2026-03-29)
 >
 > 🌐 **v0.5.0** - **マルチクラウド対応**! GCP Audit Logs統合。[リリースノート](https://github.com/higakikeita/tfdrift-falco/releases/tag/v0.5.0)
 >

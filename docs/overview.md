@@ -2,7 +2,7 @@
 
 TFDrift-Falco is a **real-time multi-cloud Terraform drift detection system** that monitors cloud infrastructure changes (AWS, GCP, Azure) and alerts when resources drift from their Terraform-defined state.
 
-> **Version:** v0.6.0 | **Providers:** AWS + GCP + Azure | **Status:** Production Ready
+> **Version:** v0.9.0 | **Providers:** AWS + GCP + Azure | **Status:** Production Ready
 
 ---
 
