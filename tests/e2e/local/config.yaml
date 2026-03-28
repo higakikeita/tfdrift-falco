@@ -1,0 +1,65 @@
+# TFDrift-Falco Local E2E Test Configuration
+# Used by docker-compose for testing without real cloud resources
+
+providers:
+  aws:
+    enabled: true
+    regions:
+      - us-east-1
+    state:
+      backend: "local"
+      local_path: "/data/terraform.tfstate"
+
+falco:
+  enabled: true
+  hostname: "mock-falco"      # Docker service name
+  port: 5060
+
+drift_rules:
+  - name: "EC2 Instance Changes"
+    resource_types:
+      - "aws_instance"
+    watched_attributes:
+      - "disable_api_termination"
+      - "instance_type"
+      - "monitoring"
+    severity: "high"
+
+  - name: "Security Group Changes"
+    resource_types:
+      - "aws_security_group"
+    watched_attributes:
+      - "ingress"
+      - "egress"
+    severity: "high"
+
+  - name: "S3 Bucket Changes"
+    resource_types:
+      - "aws_s3_bucket"
+    watched_attributes:
+      - "server_side_encryption_configuration"
+      - "versioning"
+      - "acl"
+    severity: "critical"
+
+notifications:
+  slack:
+    enabled: false
+
+  falco_output:
+    enabled: true
+    priority: "info"
+
+  console:
+    enabled: true
+
+logging:
+  level: "debug"
+  format: "text"
+
+auto_import:
+  enabled: false
+
+api:
+  port: 8080
+  host: "0.0.0.0"
