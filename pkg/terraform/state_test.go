@@ -186,7 +186,7 @@ func TestStateManager_LoadUnsupportedBackend(t *testing.T) {
 	err = sm.Load(ctx)
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "unsupported backend: gcs")
+	assert.Contains(t, err.Error(), "GCS bucket is required")
 }
 
 func TestStateManager_GetResource(t *testing.T) {

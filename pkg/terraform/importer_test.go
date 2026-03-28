@@ -2,11 +2,19 @@ package terraform
 
 import (
 	"context"
+	"os/exec"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func requireTerraform(t *testing.T) {
+	t.Helper()
+	if _, err := exec.LookPath("terraform"); err != nil {
+		t.Skip("terraform binary not found in PATH, skipping test")
+	}
+}
 
 func TestNewImporter(t *testing.T) {
 	importer := NewImporter("/tmp/terraform", true)
@@ -305,6 +313,7 @@ func TestExecute_DryRun(t *testing.T) {
 }
 
 func TestAutoImport_DryRun(t *testing.T) {
+	requireTerraform(t)
 	importer := NewImporter(".", true) // dry-run enabled
 
 	ctx := context.Background()
@@ -535,6 +544,7 @@ func TestImportCommand_StringFormat(t *testing.T) {
 }
 
 func TestAutoImport_ValidationFailure(t *testing.T) {
+	requireTerraform(t)
 	// Use a non-existent working directory to trigger validation failure
 	importer := NewImporter("/nonexistent/directory/for/testing/123456", false)
 
@@ -552,6 +562,7 @@ func TestAutoImport_ValidationFailure(t *testing.T) {
 }
 
 func TestAutoImport_Success_DryRun(t *testing.T) {
+	requireTerraform(t)
 	importer := NewImporter(".", true) // dry-run mode
 
 	ctx := context.Background()

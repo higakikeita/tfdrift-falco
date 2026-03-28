@@ -378,7 +378,7 @@ func TestPromptForApproval_UserApprovesWithY(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, approved)
 	assert.Equal(t, ApprovalApproved, request.Status)
-	assert.Equal(t, "console-user", request.ApprovedBy)
+	assert.Equal(t, "user@example.com", request.ApprovedBy)
 	assert.False(t, request.ApprovedAt.IsZero())
 }
 
