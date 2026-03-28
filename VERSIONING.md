@@ -132,13 +132,25 @@ The project will reach 1.0.0 when all of the following are met:
 | 17 | `website/app/page.tsx` | リリースバナー文言（L45付近）、`StatCard` の `number` prop（L114付近） |
 | 18 | `website/content/blog/` | **新規作成**: `vXYZ-<slug>.mdx`（MINOR以上で推奨） |
 
-### 7. 更新不要なもの
+### 7. UI（React/Vite — `ui/` ディレクトリ）
+
+| # | File | What to update |
+|---|------|----------------|
+| 19 | `ui/package.json` | `"version"` フィールド |
+| 20 | `ui/README.md` | version badge (`version-X.Y.Z-blue`) |
+
+### 8. Documentation Build（MkDocs）
+
+| # | File | What to update |
+|---|------|----------------|
+| 21 | `mkdocs.yml` | `extra.project_version` の値（末尾付近）。ドキュメントサイト全体のバージョン表示に使われる |
+
+### 9. 更新不要なもの
 
 以下は **リリース時に更新しないでください**:
 
 - Go コード内のコメント（`// Added in v0.5.0` 等）→ 歴史的記録であり、リリースバージョンではない
 - `go.mod` の module path → バージョンと無関係
-- `ui/package.json` の `version` → 現在未使用（将来使う場合はチェックリストに追加）
 - `package-lock.json` 内のバージョン → npm 依存関係であり、プロジェクトバージョンではない
 
 ---
@@ -185,6 +197,9 @@ gh pr create --title "release: vX.Y.Z" --body "$(cat <<'EOF'
 - [ ] charts/Chart.yaml appVersion
 - [ ] website/app/page.tsx
 - [ ] website/content/blog/ (if MINOR+)
+- [ ] ui/package.json version
+- [ ] ui/README.md badge
+- [ ] mkdocs.yml project_version
 EOF
 )"
 
