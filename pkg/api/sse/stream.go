@@ -65,7 +65,9 @@ func (s *Stream) Start() {
 	// Send initial connection event
 	s.sendEvent("connected", map[string]interface{}{
 		"stream_id": s.id,
-		"message":   "Connected to TFDrift-Falco SSE stream",
+		"message":   "Connected to TFDrift-Falco SSE stream v0.6.0",
+		"version":   "0.6.0",
+		"events":    []string{"drift", "falco", "state_change", "drift_result", "discovery_progress", "provider_status", "unmanaged_resource"},
 		"timestamp": time.Now().Format(time.RFC3339),
 	})
 

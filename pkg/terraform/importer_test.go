@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// requireTerraform skips the test if the terraform binary is not available in PATH.
 func requireTerraform(t *testing.T) {
 	t.Helper()
 	if _, err := exec.LookPath("terraform"); err != nil {
@@ -544,7 +545,6 @@ func TestImportCommand_StringFormat(t *testing.T) {
 }
 
 func TestAutoImport_ValidationFailure(t *testing.T) {
-	requireTerraform(t)
 	// Use a non-existent working directory to trigger validation failure
 	importer := NewImporter("/nonexistent/directory/for/testing/123456", false)
 

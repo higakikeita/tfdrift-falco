@@ -289,9 +289,10 @@ func TestAzureProviderImplementsProvider(t *testing.T) {
 	var _ Provider = p
 	assert.Equal(t, "azure", p.Name())
 
+	// Azure now implements discovery and comparison
 	caps := GetCapabilities(p)
-	assert.False(t, caps.Discovery)
-	assert.False(t, caps.Comparison)
+	assert.True(t, caps.Discovery)
+	assert.True(t, caps.Comparison)
 }
 
 func TestAzureProviderRejectsNonActivity(t *testing.T) {

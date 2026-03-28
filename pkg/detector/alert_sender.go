@@ -128,12 +128,6 @@ func (d *Detector) sendUnmanagedResourceAlert(event *types.Event) {
 		return
 	}
 
-	// Notification system stub - intentionally a no-op until notification channels are fully implemented.
-	// Future implementation will send alerts to configured notification channels (Slack, email, webhooks, etc.)
-	log.WithFields(log.Fields{
-		"alert_type":    "unmanaged_resource",
-		"resource_type": alert.ResourceType,
-		"resource_id":   alert.ResourceID,
-		"severity":      alert.Severity,
-	}).Info("Unmanaged resource alert notification queued (notification system not yet implemented)")
+	// TODO: Send to notification channels
+	// For now, console output is enough
 }

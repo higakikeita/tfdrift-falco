@@ -2,13 +2,19 @@
 // for TFDrift-Falco. It processes GCP Audit Logs received via Falco's gcpaudit plugin
 // and maps them to Terraform resource types for drift detection.
 //
-// The package supports 100+ GCP event types across 12+ services including:
-//   - Compute Engine (instances, firewalls, networks, disks, VPN, load balancers)
+// The package supports 200+ GCP event types across 25+ services including:
+//   - Compute Engine (instances, firewalls, networks, disks, VPN, load balancers, security policies)
 //   - Cloud Storage (buckets, bucket IAM)
-//   - Cloud SQL (database instances)
-//   - IAM (project-level policies, service accounts)
+//   - Cloud SQL (database instances, databases, users)
+//   - IAM (project-level policies, service accounts, service account keys)
 //   - GKE (clusters, node pools)
-//   - Cloud Functions, Cloud Run, Cloud Pub/Sub, and more
+//   - Cloud Functions (v1 and v2), Cloud Run, Pub/Sub
+//   - BigQuery, Cloud KMS, Secret Manager
+//   - Dataproc, Dataflow, Cloud Spanner, Firestore, Redis
+//   - Cloud DNS, Cloud Logging, Cloud Monitoring
+//   - App Engine, Cloud Armor / VPC Service Controls
+//   - Artifact Registry, Cloud Composer, Cloud Tasks, Cloud Scheduler
+//   - Cloud Build, Cloud Endpoints, Vertex AI, and more
 //
 // Example usage:
 //
@@ -25,7 +31,6 @@ import (
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
-	"github.com/keitahigaki/tfdrift-falco/pkg/util"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -165,7 +170,7 @@ func (p *AuditParser) Parse(res *outputs.Response) *types.Event {
 // isRelevantEvent checks if a GCP Audit Log event is relevant for drift detection
 func (p *AuditParser) isRelevantEvent(methodName string) bool {
 	relevantEvents := map[string]bool{
-		// Compute Engine - Instances (Phase 1)
+		// Compute Engine - Instances
 		"compute.instances.insert":                true,
 		"compute.instances.delete":                true,
 		"compute.instances.setMetadata":           true,
@@ -175,55 +180,358 @@ func (p *AuditParser) isRelevantEvent(methodName string) bool {
 		"compute.instances.setServiceAccount":     true,
 		"compute.instances.setDeletionProtection": true,
 
-		// Compute Engine - Firewall (Phase 1)
+		// Compute Engine - Firewall
 		"compute.firewalls.insert": true,
 		"compute.firewalls.delete": true,
 		"compute.firewalls.update": true,
 		"compute.firewalls.patch":  true,
 
-		// Compute Engine - Networks (Phase 1)
+		// Compute Engine - Networks
 		"compute.networks.insert": true,
 		"compute.networks.delete": true,
 		"compute.networks.patch":  true,
 
-		// Compute Engine - Subnetworks (Phase 1)
+		// Compute Engine - Subnetworks
 		"compute.subnetworks.insert": true,
 		"compute.subnetworks.delete": true,
 		"compute.subnetworks.patch":  true,
 
-		// IAM (Phase 1)
+		// Compute Engine - Disks
+		"compute.disks.insert": true,
+		"compute.disks.delete": true,
+
+		// Compute Engine - Routes
+		"compute.routes.insert": true,
+		"compute.routes.delete": true,
+
+		// Compute Engine - Routers
+		"compute.routers.insert": true,
+		"compute.routers.delete": true,
+		"compute.routers.patch":  true,
+		"compute.routers.update": true,
+
+		// Compute Engine - VPN
+		"compute.vpnTunnels.insert":  true,
+		"compute.vpnTunnels.delete":  true,
+		"compute.vpnGateways.insert": true,
+		"compute.vpnGateways.delete": true,
+
+		// Compute Engine - Instance Templates
+		"compute.instanceTemplates.insert": true,
+		"compute.instanceTemplates.delete": true,
+
+		// Compute Engine - Instance Group Managers
+		"compute.instanceGroupManagers.insert": true,
+		"compute.instanceGroupManagers.delete": true,
+		"compute.instanceGroupManagers.patch":  true,
+
+		// Compute Engine - Autoscalers
+		"compute.autoscalers.insert": true,
+		"compute.autoscalers.delete": true,
+		"compute.autoscalers.patch":  true,
+
+		// Compute Engine - Global Addresses
+		"compute.globalAddresses.insert": true,
+		"compute.globalAddresses.delete": true,
+
+		// Compute Engine - Addresses
+		"compute.addresses.insert": true,
+		"compute.addresses.delete": true,
+
+		// Compute Engine - Images
+		"compute.images.insert": true,
+		"compute.images.delete": true,
+
+		// Compute Engine - Snapshots
+		"compute.snapshots.insert": true,
+		"compute.snapshots.delete": true,
+
+		// Compute Engine - Interconnect Attachments
+		"compute.interconnects.insert": true,
+		"compute.interconnects.delete": true,
+
+		// Compute Engine - Global Forwarding Rules
+		"compute.globalForwardingRules.insert": true,
+		"compute.globalForwardingRules.delete": true,
+
+		// Compute Engine - Target HTTPS Proxies
+		"compute.targetHttpsProxies.insert": true,
+		"compute.targetHttpsProxies.delete": true,
+
+		// Compute Engine - Target HTTP Proxies
+		"compute.targetHttpProxies.insert": true,
+		"compute.targetHttpProxies.delete": true,
+
+		// Compute Engine - URL Maps
+		"compute.urlMaps.insert": true,
+		"compute.urlMaps.delete": true,
+		"compute.urlMaps.patch":  true,
+
+		// Compute Engine - SSL Policies
+		"compute.sslPolicies.insert": true,
+		"compute.sslPolicies.delete": true,
+		"compute.sslPolicies.patch":  true,
+
+		// Compute Engine - Backend Services
+		"compute.backendServices.insert": true,
+		"compute.backendServices.delete": true,
+		"compute.backendServices.update": true,
+		"compute.backendServices.patch":  true,
+
+		// Compute Engine - Health Checks
+		"compute.healthChecks.insert": true,
+		"compute.healthChecks.delete": true,
+		"compute.healthChecks.update": true,
+		"compute.healthChecks.patch":  true,
+
+		// Compute Engine - Target Pools
+		"compute.targetPools.insert": true,
+		"compute.targetPools.delete": true,
+
+		// Compute Engine - Forwarding Rules
+		"compute.forwardingRules.insert": true,
+		"compute.forwardingRules.delete": true,
+
+		// Compute Engine - SSL Certificates
+		"compute.sslCertificates.insert": true,
+		"compute.sslCertificates.delete": true,
+
+		// Compute Engine - Cloud Armor / Security Policies
+		"compute.securityPolicies.insert":    true,
+		"compute.securityPolicies.delete":    true,
+		"compute.securityPolicies.patch":     true,
+		"compute.securityPolicies.addRule":   true,
+		"compute.securityPolicies.removeRule": true,
+
+		// IAM - Project Level
 		"SetIamPolicy": true,
 
-		// Cloud Storage - Buckets (Phase 2)
+		// IAM - Service Accounts
+		"google.iam.admin.v1.CreateServiceAccount": true,
+		"google.iam.admin.v1.DeleteServiceAccount": true,
+		"google.iam.admin.v1.PatchServiceAccount":  true,
+
+		// IAM - Service Account Keys
+		"google.iam.admin.v1.CreateServiceAccountKey": true,
+		"google.iam.admin.v1.DeleteServiceAccountKey": true,
+
+		// IAM - Policy
+		"google.iam.v1.IAMPolicy.SetIamPolicy": true,
+
+		// Cloud Storage - Buckets
 		"storage.buckets.create": true,
 		"storage.buckets.delete": true,
 		"storage.buckets.update": true,
 		"storage.buckets.patch":  true,
 
-		// Cloud SQL - Instances (Phase 2)
+		// Cloud Storage - Objects
+		"storage.objects.create": true,
+		"storage.objects.delete": true,
+
+		// Cloud Storage - IAM
+		"storage.buckets.setIamPolicy": true,
+
+		// Cloud SQL - Instances
 		"cloudsql.instances.create": true,
 		"cloudsql.instances.delete": true,
 		"cloudsql.instances.update": true,
 		"cloudsql.instances.patch":  true,
 
-		// Compute Engine - Disks (Phase 2)
-		"compute.disks.insert": true,
-		"compute.disks.delete": true,
+		// Cloud SQL - Databases
+		"cloudsql.databases.create": true,
+		"cloudsql.databases.delete": true,
+		"cloudsql.databases.update": true,
 
-		// GKE - Clusters (Phase 3)
+		// Cloud SQL - Users
+		"cloudsql.users.create": true,
+		"cloudsql.users.delete": true,
+		"cloudsql.users.update": true,
+
+		// GKE - Clusters
 		"container.clusters.create": true,
 		"container.clusters.delete": true,
 		"container.clusters.update": true,
 
-		// Cloud Run - Services (Phase 3)
+		// GKE - Node Pools
+		"container.projects.zones.clusters.nodePools.create": true,
+		"container.projects.zones.clusters.nodePools.delete": true,
+		"container.projects.zones.clusters.nodePools.update": true,
+
+		// Cloud Run - Services
 		"run.services.create": true,
 		"run.services.delete": true,
 		"run.services.update": true,
 
-		// Cloud Functions (Phase 3)
+		// Cloud Functions
 		"cloudfunctions.functions.create": true,
 		"cloudfunctions.functions.delete": true,
 		"cloudfunctions.functions.update": true,
+
+		// Cloud Functions v2
+		"cloudfunctions.v2.functions.create": true,
+		"cloudfunctions.v2.functions.delete": true,
+		"cloudfunctions.v2.functions.update": true,
+
+		// Pub/Sub - Topics
+		"google.pubsub.v1.Publisher.CreateTopic": true,
+		"google.pubsub.v1.Publisher.DeleteTopic": true,
+		"google.pubsub.v1.Publisher.UpdateTopic": true,
+
+		// Pub/Sub - Subscriptions
+		"google.pubsub.v1.Subscriber.CreateSubscription":   true,
+		"google.pubsub.v1.Subscriber.DeleteSubscription":   true,
+		"google.pubsub.v1.Subscriber.ModifyPushConfig":     true,
+		"google.pubsub.v1.Subscriber.UpdateSubscription":   true,
+
+		// BigQuery - Datasets
+		"google.cloud.bigquery.v2.DatasetService.InsertDataset": true,
+		"google.cloud.bigquery.v2.DatasetService.DeleteDataset": true,
+		"google.cloud.bigquery.v2.DatasetService.PatchDataset":  true,
+
+		// BigQuery - Tables
+		"google.cloud.bigquery.v2.TableService.InsertTable": true,
+		"google.cloud.bigquery.v2.TableService.DeleteTable": true,
+		"google.cloud.bigquery.v2.TableService.PatchTable":  true,
+
+		// Cloud KMS - KeyRings
+		"google.cloud.kms.v1.KeyManagementService.CreateKeyRing": true,
+
+		// Cloud KMS - CryptoKeys
+		"google.cloud.kms.v1.KeyManagementService.CreateCryptoKey": true,
+		"google.cloud.kms.v1.KeyManagementService.UpdateCryptoKey": true,
+
+		// Secret Manager - Secrets
+		"google.cloud.secretmanager.v1.SecretManagerService.CreateSecret": true,
+		"google.cloud.secretmanager.v1.SecretManagerService.DeleteSecret": true,
+
+		// Dataproc - Clusters
+		"google.cloud.dataproc.v1.ClusterController.CreateCluster": true,
+		"google.cloud.dataproc.v1.ClusterController.DeleteCluster": true,
+		"google.cloud.dataproc.v1.ClusterController.UpdateCluster": true,
+
+		// Dataproc - Jobs
+		"google.cloud.dataproc.v1.JobController.SubmitJob": true,
+		"google.cloud.dataproc.v1.JobController.DeleteJob": true,
+
+		// Dataflow - Jobs
+		"google.dataflow.v1b3.JobsV1Beta3.CreateJob": true,
+		"google.dataflow.v1b3.JobsV1Beta3.UpdateJob": true,
+
+		// Cloud Spanner - Instances
+		"google.spanner.admin.instance.v1.InstanceAdmin.CreateInstance": true,
+		"google.spanner.admin.instance.v1.InstanceAdmin.DeleteInstance": true,
+		"google.spanner.admin.instance.v1.InstanceAdmin.UpdateInstance": true,
+
+		// Cloud Spanner - Databases
+		"google.spanner.admin.database.v1.DatabaseAdmin.CreateDatabase":     true,
+		"google.spanner.admin.database.v1.DatabaseAdmin.DropDatabase":       true,
+		"google.spanner.admin.database.v1.DatabaseAdmin.UpdateDatabaseDdl":  true,
+
+		// Firestore - Indexes
+		"google.firestore.admin.v1.FirestoreAdmin.CreateIndex": true,
+		"google.firestore.admin.v1.FirestoreAdmin.DeleteIndex": true,
+
+		// Firestore - Databases
+		"google.firestore.admin.v1.FirestoreAdmin.CreateDatabase": true,
+		"google.firestore.admin.v1.FirestoreAdmin.DeleteDatabase": true,
+
+		// Cloud Memorystore / Redis
+		"google.cloud.redis.v1.CloudRedis.CreateInstance": true,
+		"google.cloud.redis.v1.CloudRedis.DeleteInstance": true,
+		"google.cloud.redis.v1.CloudRedis.UpdateInstance": true,
+
+		// Cloud DNS - Managed Zones
+		"dns.managedZones.create": true,
+		"dns.managedZones.delete": true,
+		"dns.managedZones.update": true,
+		"dns.managedZones.patch":  true,
+
+		// Cloud DNS - Record Sets
+		"dns.changes.create": true,
+
+		// Cloud Logging - Sinks
+		"google.logging.v2.ConfigServiceV2.CreateSink": true,
+		"google.logging.v2.ConfigServiceV2.DeleteSink": true,
+		"google.logging.v2.ConfigServiceV2.UpdateSink": true,
+
+		// Cloud Logging - Buckets
+		"google.logging.v2.ConfigServiceV2.CreateBucket": true,
+		"google.logging.v2.ConfigServiceV2.DeleteBucket": true,
+
+		// Cloud Monitoring - Alert Policies
+		"google.monitoring.v3.AlertPolicyService.CreateAlertPolicy": true,
+		"google.monitoring.v3.AlertPolicyService.DeleteAlertPolicy": true,
+		"google.monitoring.v3.AlertPolicyService.UpdateAlertPolicy": true,
+
+		// Cloud Monitoring - Uptime Checks
+		"google.monitoring.v3.UptimeCheckService.CreateUptimeCheckConfig": true,
+		"google.monitoring.v3.UptimeCheckService.DeleteUptimeCheckConfig": true,
+
+		// Cloud Monitoring - Notification Channels
+		"google.monitoring.v3.NotificationChannelService.CreateNotificationChannel": true,
+		"google.monitoring.v3.NotificationChannelService.DeleteNotificationChannel": true,
+
+		// App Engine - Services
+		"google.appengine.v1.Services.UpdateService": true,
+		"google.appengine.v1.Services.DeleteService": true,
+
+		// App Engine - Versions
+		"google.appengine.v1.Versions.CreateVersion": true,
+		"google.appengine.v1.Versions.DeleteVersion": true,
+
+		// App Engine - Firewall
+		"google.appengine.v1.Firewall.BatchUpdateIngressRules": true,
+
+		// VPC Service Controls - Service Perimeters
+		"google.identity.accesscontextmanager.v1.AccessContextManager.CreateServicePerimeter": true,
+		"google.identity.accesscontextmanager.v1.AccessContextManager.DeleteServicePerimeter": true,
+		"google.identity.accesscontextmanager.v1.AccessContextManager.UpdateServicePerimeter": true,
+
+		// VPC Service Controls - Access Levels
+		"google.identity.accesscontextmanager.v1.AccessContextManager.CreateAccessLevel": true,
+		"google.identity.accesscontextmanager.v1.AccessContextManager.DeleteAccessLevel": true,
+
+		// Artifact Registry - Repositories
+		"google.devtools.artifactregistry.v1.ArtifactRegistry.CreateRepository": true,
+		"google.devtools.artifactregistry.v1.ArtifactRegistry.DeleteRepository": true,
+		"google.devtools.artifactregistry.v1.ArtifactRegistry.UpdateRepository": true,
+
+		// Cloud Composer - Environments
+		"google.cloud.orchestration.airflow.service.v1.Environments.CreateEnvironment": true,
+		"google.cloud.orchestration.airflow.service.v1.Environments.DeleteEnvironment": true,
+		"google.cloud.orchestration.airflow.service.v1.Environments.UpdateEnvironment": true,
+
+		// Cloud Tasks - Queues
+		"google.cloud.tasks.v2.CloudTasks.CreateQueue": true,
+		"google.cloud.tasks.v2.CloudTasks.DeleteQueue": true,
+		"google.cloud.tasks.v2.CloudTasks.UpdateQueue": true,
+
+		// Cloud Scheduler - Jobs
+		"google.cloud.scheduler.v1.CloudScheduler.CreateJob": true,
+		"google.cloud.scheduler.v1.CloudScheduler.DeleteJob": true,
+		"google.cloud.scheduler.v1.CloudScheduler.UpdateJob": true,
+
+		// Cloud Build - Build Triggers
+		"google.devtools.cloudbuild.v1.CloudBuild.CreateBuildTrigger": true,
+		"google.devtools.cloudbuild.v1.CloudBuild.DeleteBuildTrigger": true,
+		"google.devtools.cloudbuild.v1.CloudBuild.UpdateBuildTrigger": true,
+
+		// Cloud Endpoints - Services
+		"google.api.servicemanagement.v1.ServiceManager.CreateService":      true,
+		"google.api.servicemanagement.v1.ServiceManager.DeleteService":      true,
+		"google.api.servicemanagement.v1.ServiceManager.SubmitConfigSource": true,
+
+		// Vertex AI - Endpoints
+		"google.cloud.aiplatform.v1.EndpointService.CreateEndpoint": true,
+		"google.cloud.aiplatform.v1.EndpointService.DeleteEndpoint": true,
+
+		// Vertex AI - Datasets
+		"google.cloud.aiplatform.v1.DatasetService.CreateDataset": true,
+		"google.cloud.aiplatform.v1.DatasetService.DeleteDataset": true,
+
+		// Vertex AI - Featurestores
+		"google.cloud.aiplatform.v1.FeaturestoreService.CreateFeaturestore": true,
+		"google.cloud.aiplatform.v1.FeaturestoreService.DeleteFeaturestore": true,
 	}
 
 	return relevantEvents[methodName]
@@ -334,25 +642,58 @@ func (p *AuditParser) extractChanges(methodName string, fields map[string]string
 			changes["deletion_protection"] = request
 		}
 
-	case methodName == "SetIamPolicy":
+	case methodName == "SetIamPolicy" || strings.HasSuffix(methodName, ".SetIamPolicy"):
 		// Extract IAM policy changes
 		if request != "" {
 			changes["policy"] = request
 		}
 
-	case strings.Contains(methodName, ".insert") || strings.Contains(methodName, ".create"):
-		// Resource creation
+	case strings.Contains(methodName, "UpdateDatabaseDdl"):
+		// Extract Spanner DDL updates
+		if request != "" {
+			changes["ddl"] = request
+		}
+
+	case strings.Contains(methodName, "UpdatePolicy") || strings.Contains(methodName, "SetIamPolicy"):
+		// Extract policy/binding changes
+		if request != "" {
+			changes["bindings"] = request
+		}
+
+	case strings.Contains(methodName, "changes.create") || strings.Contains(methodName, "dns.changes"):
+		// Extract DNS record changes (rrdata)
+		if request != "" {
+			changes["rrdata"] = request
+		}
+
+	case strings.Contains(methodName, "SecurityPolicy") || strings.Contains(methodName, "securityPolicies"):
+		// Extract security policy rule changes
+		if request != "" {
+			changes["rules"] = request
+		}
+
+	case strings.HasSuffix(methodName, ".ModifyPushConfig"):
+		// Extract Pub/Sub push config changes
+		if request != "" {
+			changes["push_config"] = request
+		}
+
+	case strings.Contains(methodName, ".insert") || strings.Contains(methodName, ".create") ||
+		strings.Contains(methodName, ".Create") || strings.Contains(methodName, "Create"):
+		// Resource creation (covers compute .insert, gRPC Create* methods, Dataproc CreateCluster, etc.)
 		changes["_action"] = "create"
 		if response != "" {
 			changes["_created_resource"] = response
 		}
 
-	case strings.Contains(methodName, ".delete"):
-		// Resource deletion
+	case strings.Contains(methodName, ".delete") || strings.Contains(methodName, ".Drop") ||
+		strings.Contains(methodName, ".Delete") || strings.Contains(methodName, "Delete"):
+		// Resource deletion (covers compute .delete, gRPC Delete* methods, Redis DeleteInstance, etc.)
 		changes["_action"] = "delete"
 
-	case strings.Contains(methodName, ".update") || strings.Contains(methodName, ".patch"):
-		// Resource update
+	case strings.Contains(methodName, ".update") || strings.Contains(methodName, ".patch") ||
+		strings.Contains(methodName, ".Update") || strings.Contains(methodName, "Update"):
+		// Resource update (covers compute .update/.patch, gRPC Update* methods)
 		changes["_action"] = "update"
 		if request != "" {
 			changes["_update_request"] = request
@@ -372,7 +713,10 @@ func (p *AuditParser) extractChanges(methodName string, fields map[string]string
 
 // getStringField safely gets a string field from Falco output fields
 func getStringField(fields map[string]string, key string) string {
-	return util.GetStringField(fields, key)
+	if val, ok := fields[key]; ok {
+		return val
+	}
+	return ""
 }
 
 // ValidateEvent performs validation on parsed event

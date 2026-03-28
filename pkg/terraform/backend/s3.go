@@ -6,9 +6,11 @@ import (
 	"io"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
+	// TODO: Migrate to aws-sdk-go-v2 (aws-sdk-go-v1 deprecated, EOL July 31, 2025)
+	// See: https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-go-v1-on-july-31-2025/
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -17,7 +19,7 @@ type S3Backend struct {
 	bucket string
 	key    string
 	region string
-	client *s3.Client
+	client *s3.S3
 }
 
 // S3BackendConfig contains S3 backend configuration
@@ -42,19 +44,19 @@ func NewS3Backend(cfg S3BackendConfig) (*S3Backend, error) {
 		region = "us-east-1"
 	}
 
-	// Load AWS configuration (v2)
-	awsCfg, err := awsconfig.LoadDefaultConfig(context.Background(),
-		awsconfig.WithRegion(region),
-	)
+	// Create AWS session
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String(region),
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to load AWS config: %w", err)
+		return nil, fmt.Errorf("failed to create AWS session: %w", err)
 	}
 
 	return &S3Backend{
 		bucket: cfg.Bucket,
 		key:    cfg.Key,
 		region: region,
-		client: s3.NewFromConfig(awsCfg),
+		client: s3.New(sess),
 	}, nil
 }
 
@@ -67,7 +69,7 @@ func (b *S3Backend) Load(ctx context.Context) ([]byte, error) {
 		Key:    aws.String(b.key),
 	}
 
-	result, err := b.client.GetObject(ctx, input)
+	result, err := b.client.GetObjectWithContext(ctx, input)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get object from S3 s3://%s/%s: %w", b.bucket, b.key, err)
 	}

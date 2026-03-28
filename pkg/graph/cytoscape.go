@@ -6,7 +6,6 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
-	"github.com/keitahigaki/tfdrift-falco/pkg/util"
 )
 
 // ConvertDriftToCytoscape converts a drift alert to Cytoscape node
@@ -113,7 +112,27 @@ func ConvertTerraformResourceToCytoscape(resource *terraform.Resource, hasDrift 
 
 // extractResourceIDFromAttributes extracts a unique resource ID from Terraform attributes
 func extractResourceIDFromAttributes(attributes map[string]interface{}) string {
-	return util.ExtractResourceIDFromAttributes(attributes)
+	// Try to get ID from attributes
+	if id, ok := attributes["id"].(string); ok && id != "" {
+		return id
+	}
+
+	// Fallback to ARN for AWS resources
+	if arn, ok := attributes["arn"].(string); ok && arn != "" {
+		return arn
+	}
+
+	// Fallback to name
+	if name, ok := attributes["name"].(string); ok && name != "" {
+		return name
+	}
+
+	// Fallback to self_link for GCP resources
+	if selfLink, ok := attributes["self_link"].(string); ok && selfLink != "" {
+		return selfLink
+	}
+
+	return ""
 }
 
 // extractResourceName extracts a human-readable name from Terraform resource

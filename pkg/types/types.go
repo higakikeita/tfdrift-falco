@@ -1,16 +1,6 @@
 // Package types defines core data structures used throughout TFDrift-Falco.
 package types
 
-// EventStatus represents the status of a drift event
-type EventStatus string
-
-const (
-	EventStatusOpen         EventStatus = "open"
-	EventStatusAcknowledged EventStatus = "acknowledged"
-	EventStatusIgnored      EventStatus = "ignored"
-	EventStatusResolved     EventStatus = "resolved"
-)
-
 // Event represents a cloud event that might indicate drift
 type Event struct {
 	Provider     string
@@ -20,27 +10,21 @@ type Event struct {
 	UserIdentity UserIdentity
 	Changes      map[string]interface{}
 	RawEvent     interface{}
-	Timestamp    string      // ISO 8601 timestamp
-	Severity     string      // critical, high, medium, low
-	Status       EventStatus // open, acknowledged, ignored, resolved
-	StatusReason string      // reason for status change (e.g., ignore reason)
-
-	// AWS-specific fields
-	Region string // AWS Region (optional)
-
-	// GCP-specific fields
-	ProjectID   string // GCP Project ID (optional)
-	ServiceName string // GCP Service Name (e.g., compute.googleapis.com) (optional)
-
-	// Azure-specific fields
-	SubscriptionID string // Azure Subscription ID (optional)
-	ResourceGroup  string // Azure Resource Group (optional)
 
 	// Metadata holds provider-specific fields in a unified way.
 	// AWS examples:  "region" -> "us-east-1"
 	// GCP examples:  "project_id" -> "my-project", "zone" -> "us-central1-a", "service_name" -> "compute.googleapis.com"
 	// Azure examples: "subscription_id" -> "...", "resource_group" -> "...", "region" -> "eastus"
 	Metadata map[string]string
+
+	// Deprecated: use Metadata["region"] instead. Kept for backward compatibility.
+	Region string // AWS Region (optional)
+
+	// Deprecated: use Metadata["project_id"] instead. Kept for backward compatibility.
+	ProjectID string // GCP Project ID (optional)
+
+	// Deprecated: use Metadata["service_name"] instead. Kept for backward compatibility.
+	ServiceName string // GCP Service Name (e.g., compute.googleapis.com) (optional)
 }
 
 // GetMetadata returns a metadata value for the given key, or empty string if not found.

@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
-	"regexp"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -73,36 +72,8 @@ func (cmd *ImportCommand) String() string {
 		cmd.ResourceType, cmd.ResourceName, cmd.ResourceID)
 }
 
-// validateImportInput validates terraform import inputs to prevent injection.
-// Only allows alphanumeric characters, hyphens, underscores, dots, colons, and slashes.
-var validImportPattern = regexp.MustCompile(`^[a-zA-Z0-9_\-\.:/]+$`)
-
-func validateImportInput(name, value string) error {
-	if value == "" {
-		return fmt.Errorf("%s cannot be empty", name)
-	}
-	if !validImportPattern.MatchString(value) {
-		return fmt.Errorf("%s contains invalid characters: %s", name, value)
-	}
-	if len(value) > 512 {
-		return fmt.Errorf("%s exceeds maximum length (512): %d", name, len(value))
-	}
-	return nil
-}
-
 // Execute runs the terraform import command
 func (i *Importer) Execute(ctx context.Context, cmd *ImportCommand) error {
-	// Validate inputs to prevent injection
-	if err := validateImportInput("resource_type", cmd.ResourceType); err != nil {
-		return fmt.Errorf("invalid import command: %w", err)
-	}
-	if err := validateImportInput("resource_name", cmd.ResourceName); err != nil {
-		return fmt.Errorf("invalid import command: %w", err)
-	}
-	if err := validateImportInput("resource_id", cmd.ResourceID); err != nil {
-		return fmt.Errorf("invalid import command: %w", err)
-	}
-
 	if i.dryRun {
 		log.Infof("[DRY-RUN] Would execute: %s", cmd.String())
 		return nil

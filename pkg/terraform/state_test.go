@@ -175,6 +175,8 @@ func TestStateManager_LoadS3_NotImplemented(t *testing.T) {
 }
 
 func TestStateManager_LoadUnsupportedBackend(t *testing.T) {
+	// GCS backend is now supported but requires a bucket name.
+	// An empty config should fail with a validation error.
 	cfg := config.TerraformStateConfig{
 		Backend: "gcs",
 	}

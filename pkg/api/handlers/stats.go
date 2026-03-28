@@ -31,16 +31,6 @@ func (h *StatsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 	// Get graph structure stats
 	graphData := h.store.BuildGraph()
 
-	// Safely extract typed maps with fallbacks (prevent panic on nil assertion)
-	severityCounts, _ := baseStats["severity_counts"].(map[string]int)
-	if severityCounts == nil {
-		severityCounts = map[string]int{}
-	}
-	resourceTypeCounts, _ := baseStats["resource_type_counts"].(map[string]int)
-	if resourceTypeCounts == nil {
-		resourceTypeCounts = map[string]int{}
-	}
-
 	// Compile comprehensive statistics
 	stats := map[string]interface{}{
 		// Graph structure
@@ -52,8 +42,8 @@ func (h *StatsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 		// Drifts
 		"drifts": map[string]interface{}{
 			"total":           baseStats["total_drifts"],
-			"severity_counts": severityCounts,
-			"resource_types":  resourceTypeCounts,
+			"severity_counts": baseStats["severity_counts"],
+			"resource_types":  baseStats["resource_type_counts"],
 		},
 
 		// Events
@@ -67,10 +57,10 @@ func (h *StatsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 		},
 
 		// Severity breakdown
-		"severity_breakdown": h.calculateSeverityPercentages(severityCounts),
+		"severity_breakdown": h.calculateSeverityPercentages(baseStats["severity_counts"].(map[string]int)),
 
 		// Top resource types with drifts
-		"top_resource_types": h.getTopResourceTypes(resourceTypeCounts, 5),
+		"top_resource_types": h.getTopResourceTypes(baseStats["resource_type_counts"].(map[string]int), 5),
 	}
 
 	w.Header().Set("Content-Type", "application/json")

@@ -1,27 +1,70 @@
 package provider
 
 import (
-	"github.com/keitahigaki/tfdrift-falco/pkg/azure"
+	"context"
+	"fmt"
+	"strings"
+
+	azurepkg "github.com/keitahigaki/tfdrift-falco/pkg/azure"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
-// Compile-time interface check
-var _ Provider = (*AzureProvider)(nil)
+// Compile-time interface checks
+var (
+	_ Provider           = (*AzureProvider)(nil)
+	_ ResourceDiscoverer = (*AzureProvider)(nil)
+	_ StateComparator    = (*AzureProvider)(nil)
+)
 
-// AzureProvider implements the Provider interface for Microsoft Azure.
+// AzureProvider implements Provider, ResourceDiscoverer, and StateComparator
+// for Microsoft Azure. It wraps existing Azure Activity Log parsing,
+// resource discovery, and state comparison logic.
 type AzureProvider struct {
-	parser *azure.AuditParser
-	mapper *azure.ResourceMapper
+	parser         *azurepkg.ActivityParser
+	mapper         *azurepkg.ResourceMapper
+	subscriptionID string   // Azure subscription ID for resource discovery
+	regions        []string // configured Azure regions/locations
+	resourceGroup  string   // optional: limit discovery to a resource group
+	resourceLister azurepkg.ResourceLister // Azure SDK resource lister
 }
 
 // AzureProviderOption configures the Azure provider.
 type AzureProviderOption func(*AzureProvider)
 
+// WithAzureSubscriptionID sets the subscription ID for resource discovery.
+func WithAzureSubscriptionID(subscriptionID string) AzureProviderOption {
+	return func(p *AzureProvider) {
+		p.subscriptionID = subscriptionID
+	}
+}
+
+// WithAzureRegions sets the regions for resource discovery.
+func WithAzureRegions(regions []string) AzureProviderOption {
+	return func(p *AzureProvider) {
+		p.regions = regions
+	}
+}
+
+// WithAzureResourceGroup limits discovery to a specific resource group.
+func WithAzureResourceGroup(resourceGroup string) AzureProviderOption {
+	return func(p *AzureProvider) {
+		p.resourceGroup = resourceGroup
+	}
+}
+
+// WithAzureResourceLister sets the resource lister for Azure SDK integration.
+func WithAzureResourceLister(lister azurepkg.ResourceLister) AzureProviderOption {
+	return func(p *AzureProvider) {
+		p.resourceLister = lister
+	}
+}
+
 // NewAzureProvider creates a new Azure provider instance.
 func NewAzureProvider(opts ...AzureProviderOption) *AzureProvider {
 	p := &AzureProvider{
-		parser: azure.NewAuditParser(),
-		mapper: azure.NewResourceMapper(),
+		parser:  azurepkg.NewActivityParser(),
+		mapper:  azurepkg.NewResourceMapper(),
+		regions: []string{}, // empty = all regions
 	}
 	for _, opt := range opts {
 		opt(p)
@@ -89,11 +132,11 @@ func (p *AzureProvider) ParseEvent(source string, fields map[string]string, rawE
 }
 
 func (p *AzureProvider) IsRelevantEvent(eventName string) bool {
-	return p.mapper.MapOperationToResource(eventName) != ""
+	return p.mapper.MapEventToResource(eventName) != ""
 }
 
 func (p *AzureProvider) MapEventToResource(eventName string, eventSource string) string {
-	return p.mapper.MapOperationToResource(eventName)
+	return p.mapper.MapEventToResource(eventName)
 }
 
 func (p *AzureProvider) ExtractChanges(eventName string, fields map[string]string) map[string]interface{} {
@@ -111,13 +154,13 @@ func (p *AzureProvider) ExtractChanges(eventName string, fields map[string]strin
 }
 
 func (p *AzureProvider) SupportedEventCount() int {
-	return len(p.mapper.GetAllSupportedOperations())
+	return len(p.mapper.GetAllSupportedEvents())
 }
 
 func (p *AzureProvider) SupportedResourceTypes() []string {
 	typeSet := make(map[string]bool)
-	for _, event := range p.mapper.GetAllSupportedOperations() {
-		if rt := p.mapper.MapOperationToResource(event); rt != "" {
+	for _, event := range p.mapper.GetAllSupportedEvents() {
+		if rt := p.mapper.MapEventToResource(event); rt != "" {
 			typeSet[rt] = true
 		}
 	}
@@ -126,4 +169,153 @@ func (p *AzureProvider) SupportedResourceTypes() []string {
 		result = append(result, rt)
 	}
 	return result
+}
+
+// --- ResourceDiscoverer implementation ---
+
+// DiscoverResources enumerates actual Azure resources across configured regions.
+func (p *AzureProvider) DiscoverResources(ctx context.Context, opts DiscoveryOptions) ([]*types.DiscoveredResource, error) {
+	subscriptionID := p.subscriptionID
+	if subscriptionID == "" {
+		return nil, fmt.Errorf("Azure subscription ID is required for resource discovery; use WithAzureSubscriptionID option")
+	}
+
+	regions := opts.Regions
+	if len(regions) == 0 {
+		regions = p.regions
+	}
+
+	client, err := azurepkg.NewDiscoveryClient(subscriptionID, regions, p.resourceLister)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Azure discovery client: %w", err)
+	}
+
+	if p.resourceGroup != "" {
+		client.WithResourceGroup(p.resourceGroup)
+	}
+
+	azureResources, err := client.DiscoverAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to discover Azure resources: %w", err)
+	}
+
+	// Convert Azure-specific DiscoveredResource to common type
+	var allResources []*types.DiscoveredResource
+	for _, r := range azureResources {
+		metadata := map[string]string{
+			"subscription_id": subscriptionID,
+		}
+		if rg := extractResourceGroupFromAzureID(r.ID); rg != "" {
+			metadata["resource_group"] = rg
+		}
+
+		allResources = append(allResources, &types.DiscoveredResource{
+			ID:         r.ID,
+			Type:       r.Type,
+			Provider:   "azure",
+			Name:       r.Name,
+			Region:     r.Region,
+			Attributes: r.Attributes,
+			Tags:       r.Tags,
+			Metadata:   metadata,
+		})
+	}
+
+	return allResources, nil
+}
+
+// SupportedDiscoveryTypes returns the Terraform resource types that Azure can discover.
+func (p *AzureProvider) SupportedDiscoveryTypes() []string {
+	return azurepkg.SupportedDiscoveryTypes()
+}
+
+// --- StateComparator implementation ---
+
+// CompareState compares Terraform resources with discovered Azure resources.
+func (p *AzureProvider) CompareState(tfResources []*types.TerraformResource, actualResources []*types.DiscoveredResource, opts CompareOptions) *types.DriftResult {
+	// Convert common types to Azure-specific types for the existing comparator
+	azureTFResources := make([]*azurepkg.TerraformResource, 0, len(tfResources))
+	for _, r := range tfResources {
+		azureTFResources = append(azureTFResources, &azurepkg.TerraformResource{
+			Type:       r.Type,
+			Name:       r.Name,
+			Attributes: r.Attributes,
+		})
+	}
+
+	azureDiscovered := make([]*azurepkg.DiscoveredResource, 0, len(actualResources))
+	for _, r := range actualResources {
+		azureDiscovered = append(azureDiscovered, &azurepkg.DiscoveredResource{
+			ID:         r.ID,
+			Type:       r.Type,
+			Name:       r.Name,
+			Region:     r.Region,
+			Attributes: r.Attributes,
+			Tags:       r.Tags,
+		})
+	}
+
+	// Use existing Azure comparator
+	azureResult := azurepkg.CompareStateWithActual(azureTFResources, azureDiscovered)
+
+	// Convert Azure-specific result to common type
+	result := &types.DriftResult{
+		Provider:           "azure",
+		UnmanagedResources: make([]*types.DiscoveredResource, 0, len(azureResult.UnmanagedResources)),
+		MissingResources:   make([]*types.TerraformResource, 0, len(azureResult.MissingResources)),
+		ModifiedResources:  make([]*types.ResourceDiff, 0, len(azureResult.ModifiedResources)),
+	}
+
+	for _, r := range azureResult.UnmanagedResources {
+		result.UnmanagedResources = append(result.UnmanagedResources, &types.DiscoveredResource{
+			ID:         r.ID,
+			Type:       r.Type,
+			Provider:   "azure",
+			Name:       r.Name,
+			Region:     r.Region,
+			Attributes: r.Attributes,
+			Tags:       r.Tags,
+		})
+	}
+
+	for _, r := range azureResult.MissingResources {
+		result.MissingResources = append(result.MissingResources, &types.TerraformResource{
+			Type:       r.Type,
+			Name:       r.Name,
+			Provider:   "azure",
+			Attributes: r.Attributes,
+		})
+	}
+
+	for _, d := range azureResult.ModifiedResources {
+		diffs := make([]types.FieldDiff, 0, len(d.Differences))
+		for _, fd := range d.Differences {
+			diffs = append(diffs, types.FieldDiff{
+				Field:          fd.Field,
+				TerraformValue: fd.TerraformValue,
+				ActualValue:    fd.ActualValue,
+			})
+		}
+		result.ModifiedResources = append(result.ModifiedResources, &types.ResourceDiff{
+			ResourceID:     d.ResourceID,
+			ResourceType:   d.ResourceType,
+			Provider:       "azure",
+			TerraformState: d.TerraformState,
+			ActualState:    d.ActualState,
+			Differences:    diffs,
+		})
+	}
+
+	return result
+}
+
+// extractResourceGroupFromAzureID extracts the resource group from an Azure resource ID.
+func extractResourceGroupFromAzureID(resourceID string) string {
+	parts := strings.Split(resourceID, "/")
+	for i, part := range parts {
+		if strings.EqualFold(part, "resourceGroups") && i+1 < len(parts) {
+			return parts[i+1]
+		}
+	}
+	return ""
 }

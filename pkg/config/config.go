@@ -17,39 +17,7 @@ type Config struct {
 	Notifications NotificationsConfig `yaml:"notifications"`
 	Logging       LoggingConfig       `yaml:"logging"`
 	AutoImport    AutoImportConfig    `yaml:"auto_import"`
-	API           APIConfig           `yaml:"api"`
 	DryRun        bool                `yaml:"-"`
-}
-
-// APIConfig contains API server settings
-type APIConfig struct {
-	Auth      AuthConfig      `yaml:"auth"`
-	RateLimit RateLimitConfig `yaml:"rate_limit"`
-}
-
-// AuthConfig contains authentication settings
-type AuthConfig struct {
-	Enabled   bool          `yaml:"enabled" mapstructure:"enabled"`
-	JWTSecret string        `yaml:"jwt_secret" mapstructure:"jwt_secret"`
-	JWTIssuer string        `yaml:"jwt_issuer" mapstructure:"jwt_issuer"`
-	JWTExpiry string        `yaml:"jwt_expiry" mapstructure:"jwt_expiry"`
-	APIKeys   []APIKeyEntry `yaml:"api_keys" mapstructure:"api_keys"`
-}
-
-// APIKeyEntry represents a configured API key
-type APIKeyEntry struct {
-	Name      string   `yaml:"name" mapstructure:"name"`
-	Key       string   `yaml:"key" mapstructure:"key"`
-	Scopes    []string `yaml:"scopes" mapstructure:"scopes"`
-	CreatedAt string   `yaml:"created_at" mapstructure:"created_at"`
-}
-
-// RateLimitConfig contains rate limiting settings
-type RateLimitConfig struct {
-	Enabled         bool   `yaml:"enabled" mapstructure:"enabled"`
-	RequestsPerMin  int    `yaml:"requests_per_minute" mapstructure:"requests_per_minute"`
-	BurstSize       int    `yaml:"burst_size" mapstructure:"burst_size"`
-	CleanupInterval string `yaml:"cleanup_interval" mapstructure:"cleanup_interval"`
 }
 
 // ProvidersConfig contains cloud provider settings
@@ -80,11 +48,12 @@ type TerraformStateConfig struct {
 	GCSBucket string `yaml:"gcs_bucket" mapstructure:"gcs_bucket"`
 	GCSPrefix string `yaml:"gcs_prefix" mapstructure:"gcs_prefix"`
 
-	// Azure Blob backend settings
-	AzureResourceGroup  string `yaml:"azure_resource_group" mapstructure:"azure_resource_group"`
+	// Azure Blob Storage backend settings
 	AzureStorageAccount string `yaml:"azure_storage_account" mapstructure:"azure_storage_account"`
 	AzureContainerName  string `yaml:"azure_container_name" mapstructure:"azure_container_name"`
-	AzureKey            string `yaml:"azure_key" mapstructure:"azure_key"`
+	AzureBlobName       string `yaml:"azure_blob_name" mapstructure:"azure_blob_name"`
+	AzureAccessKey      string `yaml:"azure_access_key" mapstructure:"azure_access_key"`
+	AzureSASToken       string `yaml:"azure_sas_token" mapstructure:"azure_sas_token"`
 }
 
 // GCPConfig contains GCP-specific settings
@@ -96,9 +65,11 @@ type GCPConfig struct {
 
 // AzureConfig contains Azure-specific settings
 type AzureConfig struct {
-	Enabled       bool                 `yaml:"enabled"`
-	Subscriptions []string             `yaml:"subscriptions"`
-	State         TerraformStateConfig `yaml:"state"`
+	Enabled        bool                 `yaml:"enabled"`
+	SubscriptionID string               `yaml:"subscription_id"`
+	Regions        []string             `yaml:"regions"`
+	ResourceGroup  string               `yaml:"resource_group"`
+	State          TerraformStateConfig `yaml:"state"`
 }
 
 // FalcoConfig contains Falco integration settings
@@ -221,11 +192,6 @@ func (c *Config) Validate() error {
 	}
 	if c.Falco.Port == 0 {
 		return fmt.Errorf("falco port must be specified")
-	}
-
-	// Validate JWT secret length for HS256 (minimum 32 bytes recommended)
-	if c.API.Auth.Enabled && len(c.API.Auth.JWTSecret) < 32 {
-		return fmt.Errorf("jwt_secret must be at least 32 characters for HS256 security")
 	}
 
 	return nil

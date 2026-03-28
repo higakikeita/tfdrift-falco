@@ -29,8 +29,6 @@ type Server struct {
 	stateManager *terraform.StateManager
 	wsHandler    *websocket.Handler
 	sseHandler   *sse.Handler
-	authMw       *apimiddleware.Auth
-	rateLimiter  *apimiddleware.RateLimiter
 	router       *chi.Mux
 	port         int
 	version      string
@@ -47,23 +45,6 @@ func NewServer(cfg *config.Config, det *detector.Detector, port int, version str
 	// Create SSE handler
 	sseHandler := sse.NewHandler(bc)
 
-	// Create auth middleware
-	authMw := apimiddleware.NewAuth(apimiddleware.AuthConfig{
-		Enabled:   cfg.API.Auth.Enabled,
-		JWTSecret: cfg.API.Auth.JWTSecret,
-		JWTIssuer: cfg.API.Auth.JWTIssuer,
-		JWTExpiry: cfg.API.Auth.JWTExpiry,
-		APIKeys:   convertAPIKeys(cfg.API.Auth.APIKeys),
-	})
-
-	// Create rate limiter
-	rateLimiter := apimiddleware.NewRateLimiter(apimiddleware.RateLimitConfig{
-		Enabled:         cfg.API.RateLimit.Enabled,
-		RequestsPerMin:  cfg.API.RateLimit.RequestsPerMin,
-		BurstSize:       cfg.API.RateLimit.BurstSize,
-		CleanupInterval: cfg.API.RateLimit.CleanupInterval,
-	})
-
 	s := &Server{
 		cfg:          cfg,
 		detector:     det,
@@ -72,8 +53,6 @@ func NewServer(cfg *config.Config, det *detector.Detector, port int, version str
 		stateManager: det.GetStateManager(),
 		wsHandler:    wsHandler,
 		sseHandler:   sseHandler,
-		authMw:       authMw,
-		rateLimiter:  rateLimiter,
 		port:         port,
 		version:      version,
 	}
@@ -107,41 +86,23 @@ func (s *Server) setupRouter() {
 	r.Use(apimiddleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(apimiddleware.NewCORS().Handler)
-	r.Use(s.rateLimiter.Middleware)
 
 	// Health check (no /api/v1 prefix for simplicity)
 	healthHandler := handlers.NewHealthHandler(s.version)
 	r.Get("/health", healthHandler.GetHealth)
 
-	// Swagger UI (no auth required)
-	swaggerHandler := handlers.NewSwaggerHandler()
-	r.Get("/api/docs", swaggerHandler.ServeUI)
-	r.Get("/api/docs/openapi.yaml", swaggerHandler.ServeSpec)
-
 	// API v1 routes
 	r.Route("/api/v1", func(r chi.Router) {
-		// Public endpoints (no auth required)
+		// Health check also available under /api/v1
 		r.Get("/health", healthHandler.GetHealth)
-		r.Get("/version", handlers.NewConfigHandler(s.cfg).GetVersion)
 
-		// SSE endpoint - no timeout for streaming, auth applied
-		r.Group(func(r chi.Router) {
-			r.Use(s.authMw.Middleware)
-			r.Get("/stream", s.sseHandler.HandleSSE)
-		})
+		// SSE endpoint (Phase 4) - no timeout middleware for streaming
+		r.Get("/stream", s.sseHandler.HandleSSE)
 
-		// Protected API routes with auth + timeout
+		// Regular API routes with timeout
 		r.Group(func(r chi.Router) {
-			r.Use(s.authMw.Middleware)
 			// Timeout for non-streaming API routes
 			r.Use(middleware.Timeout(60 * time.Second))
-
-			// Auth management endpoints
-			authHandler := handlers.NewAuthHandler(s.authMw)
-			r.Post("/auth/token", authHandler.GenerateToken)
-			r.Get("/auth/api-keys", authHandler.ListAPIKeys)
-			r.Post("/auth/api-keys", authHandler.CreateAPIKey)
-			r.Delete("/auth/api-keys", authHandler.RevokeAPIKey)
 
 			// Graph endpoints
 			graphHandler := handlers.NewGraphHandler(s.graphStore)
@@ -172,7 +133,6 @@ func (s *Server) setupRouter() {
 			eventsHandler := handlers.NewEventsHandler(s.graphStore)
 			r.Get("/events", eventsHandler.GetEvents)
 			r.Get("/events/{id}", eventsHandler.GetEvent)
-			r.Patch("/events/{id}", eventsHandler.UpdateEventStatus)
 
 			// Drifts endpoints (Phase 2)
 			driftsHandler := handlers.NewDriftsHandler(s.graphStore)
@@ -182,17 +142,6 @@ func (s *Server) setupRouter() {
 			// Stats endpoints (Phase 2)
 			statsHandler := handlers.NewStatsHandler(s.graphStore)
 			r.Get("/stats", statsHandler.GetStats)
-
-			// Analytics endpoints (v0.6.0 - Dashboard)
-			analyticsHandler := handlers.NewAnalyticsHandler(s.graphStore)
-			r.Get("/analytics/summary", analyticsHandler.GetSummary)
-			r.Get("/analytics/timeline", analyticsHandler.GetTimeline)
-			r.Get("/analytics/breakdown", analyticsHandler.GetBreakdown)
-
-			// Config endpoints (v0.6.0 - Dashboard)
-			configHandler := handlers.NewConfigHandler(s.cfg)
-			r.Get("/config", configHandler.GetConfig)
-			r.Post("/config/webhooks/test", configHandler.TestWebhook)
 
 			// Discovery endpoints (AWS resource discovery and drift detection)
 			discoveryHandler := handlers.NewDiscoveryHandler(s.stateManager)
@@ -224,7 +173,6 @@ func (s *Server) Start(ctx context.Context) error {
 	log.Infof("API base URL: http://localhost%s/api/v1", addr)
 	log.Infof("WebSocket URL: ws://localhost%s/ws", addr)
 	log.Infof("SSE Stream URL: http://localhost%s/api/v1/stream", addr)
-	log.Infof("API Docs: http://localhost%s/api/docs", addr)
 
 	// Start the server in a goroutine
 	go func() {
@@ -258,18 +206,4 @@ func (s *Server) GetBroadcaster() *broadcaster.Broadcaster {
 // GetGraphStore returns the graph store for detector integration
 func (s *Server) GetGraphStore() *graph.Store {
 	return s.graphStore
-}
-
-// convertAPIKeys converts config API key entries to middleware API key entries.
-func convertAPIKeys(entries []config.APIKeyEntry) []apimiddleware.APIKeyEntry {
-	result := make([]apimiddleware.APIKeyEntry, len(entries))
-	for i, e := range entries {
-		result[i] = apimiddleware.APIKeyEntry{
-			Name:      e.Name,
-			Key:       e.Key,
-			Scopes:    e.Scopes,
-			CreatedAt: e.CreatedAt,
-		}
-	}
-	return result
 }

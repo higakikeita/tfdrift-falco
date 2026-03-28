@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
-	"time"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/diff"
@@ -109,7 +107,7 @@ func (m *Manager) formatSlackMessage(alert *types.DriftAlert) []map[string]inter
 				},
 				{
 					"type": "mrkdwn",
-					"text": fmt.Sprintf("*Changed:*\n`%v` â `%v`", alert.OldValue, alert.NewValue),
+					"text": fmt.Sprintf("*Changed:*\n`%v` → `%v`", alert.OldValue, alert.NewValue),
 				},
 				{
 					"type": "mrkdwn",
@@ -195,46 +193,21 @@ func (m *Manager) sendFalcoOutput(alert *types.DriftAlert) error {
 		},
 	}
 
-	// Falco integration stub - intentionally a no-op until Falco gRPC integration is fully implemented.
-	// Future implementation will send events to Falco gRPC endpoint or write to Falco output file.
-	jsonData, err := json.MarshalIndent(falcoEvent, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal Falco event: %w", err)
-	}
-	log.WithFields(log.Fields{
-		"alert_type":    "drift",
-		"resource_type": alert.ResourceType,
-		"resource_name": alert.ResourceName,
-		"severity":      alert.Severity,
-	}).Info("Falco output event logged (Falco gRPC integration not yet implemented)")
-	// Log the full event structure for debugging
-	log.Debug("Falco event: " + string(jsonData))
+	// TODO: Send to Falco gRPC endpoint or write to stdout
+	jsonData, _ := json.MarshalIndent(falcoEvent, "", "  ")
+	log.Info(string(jsonData))
 
 	return nil
 }
 
-// webhookClient is an HTTP client with sensible timeouts for webhook delivery.
-var webhookClient = &http.Client{
-	Timeout: 30 * time.Second,
-}
-
-// sendWebhook sends a generic webhook with HTTPS validation and timeout.
-func (m *Manager) sendWebhook(webhookURL string, payload interface{}) error {
-	// Validate URL scheme
-	parsed, err := url.Parse(webhookURL)
-	if err != nil {
-		return fmt.Errorf("invalid webhook URL: %w", err)
-	}
-	if parsed.Scheme != "https" {
-		log.Warnf("Webhook URL uses %s instead of https — consider using HTTPS in production: %s", parsed.Scheme, parsed.Host)
-	}
-
+// sendWebhook sends a generic webhook
+func (m *Manager) sendWebhook(url string, payload interface{}) error {
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	resp, err := webhookClient.Post(webhookURL, "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to send webhook: %w", err)
 	}

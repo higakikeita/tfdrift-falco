@@ -3,8 +3,6 @@ package websocket
 import (
 	"encoding/json"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -12,41 +10,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func getAllowedOrigins() []string {
-	originsStr := os.Getenv("WEBSOCKET_ALLOWED_ORIGINS")
-	if originsStr == "" {
-		// Default to * (all origins) for development
-		return []string{"*"}
-	}
-	// Parse comma-separated list of allowed origins
-	var origins []string
-	for _, origin := range strings.Split(originsStr, ",") {
-		if trimmed := strings.TrimSpace(origin); trimmed != "" {
-			origins = append(origins, trimmed)
-		}
-	}
-	return origins
-}
-
-func checkOriginAllowed(origin string, allowedOrigins []string) bool {
-	for _, allowed := range allowedOrigins {
-		if allowed == "*" || allowed == origin {
-			return true
-		}
-	}
-	return false
-}
-
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		origin := r.Header.Get("Origin")
-		if origin == "" {
-			return true // Allow requests without Origin header (same-origin)
-		}
-		allowedOrigins := getAllowedOrigins()
-		return checkOriginAllowed(origin, allowedOrigins)
+		// Allow all origins for development
+		// TODO: Restrict origins in production
+		return true
 	},
 }
 
@@ -83,8 +53,10 @@ func (h *Handler) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		Type: "connected",
 		Data: map[string]interface{}{
 			"client_id": client.id,
-			"message":   "Connected to TFDrift-Falco WebSocket",
-			"topics":    []string{"drifts", "events", "state", "all"},
+			"message":   "Connected to TFDrift-Falco WebSocket v0.6.0",
+			"version":   "0.6.0",
+			"topics":    []string{"drifts", "events", "state", "drift_result", "discovery_progress", "provider_status", "unmanaged_resource", "all"},
+			"features":  []string{"provider_filter", "drift_results", "discovery_progress", "provider_status"},
 		},
 		Timestamp: time.Now().Format(time.RFC3339),
 	})

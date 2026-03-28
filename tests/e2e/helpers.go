@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	ec2Types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/aws/aws-sdk-go-v2/service/iam"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	// TODO: Migrate to aws-sdk-go-v2 (aws-sdk-go-v1 deprecated, EOL July 31, 2025)
+	// See: https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-go-v1-on-july-31-2025/
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
@@ -27,10 +27,10 @@ type TestContext struct {
 	t              *testing.T
 	cfg            *config.Config
 	detector       *detector.Detector
-	awsCfg         aws.Config
-	ec2Client      *ec2.Client
-	iamClient      *iam.Client
-	s3Client       *s3.Client
+	awsSession     *session.Session
+	ec2Client      *ec2.EC2
+	iamClient      *iam.IAM
+	s3Client       *s3.S3
 	alertChan      chan types.DriftAlert
 	cleanupFuncs   []func()
 	testInstanceID string
@@ -46,18 +46,18 @@ func NewTestContext(t *testing.T) *TestContext {
 	// Load test outputs from Terraform
 	outputs := loadTerraformOutputs(t)
 
-	// Load AWS configuration (v2)
-	awsCfg, err := awsconfig.LoadDefaultConfig(context.Background(),
-		awsconfig.WithRegion(getEnvOrDefault("AWS_REGION", "us-east-1")),
-	)
-	require.NoError(t, err, "Failed to load AWS config")
+	// Create AWS session
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String(getEnvOrDefault("AWS_REGION", "us-east-1")),
+	})
+	require.NoError(t, err, "Failed to create AWS session")
 
 	ctx := &TestContext{
 		t:              t,
-		awsCfg:         awsCfg,
-		ec2Client:      ec2.NewFromConfig(awsCfg),
-		iamClient:      iam.NewFromConfig(awsCfg),
-		s3Client:       s3.NewFromConfig(awsCfg),
+		awsSession:     sess,
+		ec2Client:      ec2.New(sess),
+		iamClient:      iam.New(sess),
+		s3Client:       s3.New(sess),
 		alertChan:      make(chan types.DriftAlert, 100),
 		cleanupFuncs:   []func(){},
 		testInstanceID: outputs["test_instance_id"].(string),
@@ -128,12 +128,12 @@ func (ctx *TestContext) ModifyEC2Termination(instanceID string, enabled bool) {
 
 	input := &ec2.ModifyInstanceAttributeInput{
 		InstanceId: aws.String(instanceID),
-		DisableApiTermination: &ec2Types.AttributeBooleanValue{
+		DisableApiTermination: &ec2.AttributeBooleanValue{
 			Value: aws.Bool(enabled),
 		},
 	}
 
-	_, err := ctx.ec2Client.ModifyInstanceAttribute(context.Background(), input)
+	_, err := ctx.ec2Client.ModifyInstanceAttribute(input)
 	require.NoError(ctx.t, err, "Failed to modify instance attribute")
 
 	ctx.t.Logf("Modified EC2 termination protection successfully")
@@ -150,7 +150,7 @@ func (ctx *TestContext) ModifyIAMAssumeRolePolicy(roleName string, newPolicy str
 		PolicyDocument: aws.String(newPolicy),
 	}
 
-	_, err := ctx.iamClient.UpdateAssumeRolePolicy(context.Background(), input)
+	_, err := ctx.iamClient.UpdateAssumeRolePolicy(input)
 	require.NoError(ctx.t, err, "Failed to update assume role policy")
 
 	ctx.t.Logf("Modified IAM assume role policy successfully")
@@ -166,7 +166,7 @@ func (ctx *TestContext) DisableS3BucketEncryption(bucketName string) {
 		Bucket: aws.String(bucketName),
 	}
 
-	_, err := ctx.s3Client.DeleteBucketEncryption(context.Background(), input)
+	_, err := ctx.s3Client.DeleteBucketEncryption(input)
 	require.NoError(ctx.t, err, "Failed to delete bucket encryption")
 
 	ctx.t.Logf("Disabled S3 bucket encryption successfully")
@@ -180,18 +180,18 @@ func (ctx *TestContext) EnableS3BucketEncryption(bucketName string) {
 
 	input := &s3.PutBucketEncryptionInput{
 		Bucket: aws.String(bucketName),
-		ServerSideEncryptionConfiguration: &s3Types.ServerSideEncryptionConfiguration{
-			Rules: []s3Types.ServerSideEncryptionRule{
+		ServerSideEncryptionConfiguration: &s3.ServerSideEncryptionConfiguration{
+			Rules: []*s3.ServerSideEncryptionRule{
 				{
-					ApplyServerSideEncryptionByDefault: &s3Types.ServerSideEncryptionByDefault{
-						SSEAlgorithm: s3Types.ServerSideEncryptionAes256,
+					ApplyServerSideEncryptionByDefault: &s3.ServerSideEncryptionByDefault{
+						SSEAlgorithm: aws.String("AES256"),
 					},
 				},
 			},
 		},
 	}
 
-	_, err := ctx.s3Client.PutBucketEncryption(context.Background(), input)
+	_, err := ctx.s3Client.PutBucketEncryption(input)
 	require.NoError(ctx.t, err, "Failed to enable bucket encryption")
 
 	ctx.t.Logf("Enabled S3 bucket encryption successfully")
@@ -256,6 +256,7 @@ func getEnvOrDefault(key, defaultValue string) string {
 	return defaultValue
 }
 
+// skipIfShort skips test if running in short mode
 // AssertAlertReceived asserts that an alert was received
 func AssertAlertReceived(t *testing.T, alert *types.DriftAlert, resourceType, resourceID string) {
 	t.Helper()

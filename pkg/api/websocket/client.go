@@ -41,18 +41,19 @@ type Client struct {
 	// Subscriptions - set of event types the client is subscribed to
 	subscriptions map[string]bool
 
+	// ProviderFilter - if set, only events from this provider are forwarded (v0.6.0)
+	providerFilter string
+
 	// Mutex for subscription operations
 	mu sync.RWMutex
-
-	// closeOnce ensures send channel is closed exactly once, preventing double-close panics
-	closeOnce sync.Once
 }
 
 // WSMessage represents a WebSocket message
 type WSMessage struct {
-	Type    string          `json:"type"`    // "subscribe", "unsubscribe", "query", "ping"
-	Topic   string          `json:"topic"`   // "drifts", "events", "state", "all"
-	Payload json.RawMessage `json:"payload"` // Additional data
+	Type     string          `json:"type"`     // "subscribe", "unsubscribe", "query", "ping", "filter"
+	Topic    string          `json:"topic"`    // "drifts", "events", "state", "drift_result", "discovery_progress", "provider_status", "unmanaged_resource", "all"
+	Provider string          `json:"provider"` // Optional: filter by provider (v0.6.0)
+	Payload  json.RawMessage `json:"payload"`  // Additional data
 }
 
 // WSResponse represents a WebSocket response
@@ -73,13 +74,6 @@ func newClient(hub *Hub, conn *websocket.Conn) *Client {
 		send:          make(chan []byte, 256),
 		subscriptions: make(map[string]bool),
 	}
-}
-
-// CloseOnce safely closes the send channel exactly once, preventing double-close panics
-func (c *Client) CloseOnce() {
-	c.closeOnce.Do(func() {
-		close(c.send)
-	})
 }
 
 // readPump pumps messages from the WebSocket connection to the hub
@@ -168,6 +162,8 @@ func (c *Client) handleMessage(message []byte) {
 		c.subscribe(msg.Topic)
 	case "unsubscribe":
 		c.unsubscribe(msg.Topic)
+	case "filter":
+		c.setProviderFilter(msg.Provider)
 	case "ping":
 		c.sendPong()
 	case "query":
@@ -243,6 +239,36 @@ func (c *Client) sendError(errMsg string) {
 		Error:     errMsg,
 		Timestamp: time.Now().Format(time.RFC3339),
 	})
+}
+
+// setProviderFilter sets a provider filter for this client (v0.6.0)
+func (c *Client) setProviderFilter(provider string) {
+	c.mu.Lock()
+	c.providerFilter = provider
+	c.mu.Unlock()
+
+	log.Infof("Client %s set provider filter: %s", c.id, provider)
+	c.sendResponse(WSResponse{
+		Type:      "filter_set",
+		Data:      map[string]string{"provider": provider},
+		Timestamp: time.Now().Format(time.RFC3339),
+	})
+}
+
+// matchesProviderFilter checks if an event payload matches the client's provider filter (v0.6.0)
+func (c *Client) matchesProviderFilter(payload map[string]interface{}) bool {
+	c.mu.RLock()
+	filter := c.providerFilter
+	c.mu.RUnlock()
+
+	if filter == "" {
+		return true // no filter = all providers
+	}
+
+	if provider, ok := payload["provider"].(string); ok {
+		return provider == filter
+	}
+	return true // no provider in payload = pass through
 }
 
 // sendPong sends a pong response to the client

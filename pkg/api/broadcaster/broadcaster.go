@@ -110,6 +110,68 @@ func (b *Broadcaster) BroadcastStateChange(resourceType, resourceID string, chan
 	b.Broadcast(event)
 }
 
+// BroadcastDriftResult broadcasts a full drift detection result (v0.6.0)
+func (b *Broadcaster) BroadcastDriftResult(result *types.DriftResult) {
+	event := Event{
+		Type: "drift_result",
+		Payload: map[string]interface{}{
+			"provider":             result.Provider,
+			"unmanaged_count":      len(result.UnmanagedResources),
+			"missing_count":        len(result.MissingResources),
+			"modified_count":       len(result.ModifiedResources),
+			"unmanaged_resources":  result.UnmanagedResources,
+			"missing_resources":    result.MissingResources,
+			"modified_resources":   result.ModifiedResources,
+		},
+	}
+	b.Broadcast(event)
+}
+
+// BroadcastDiscoveryProgress broadcasts resource discovery progress (v0.6.0)
+func (b *Broadcaster) BroadcastDiscoveryProgress(provider string, resourceType string, count int, phase string) {
+	event := Event{
+		Type: "discovery_progress",
+		Payload: map[string]interface{}{
+			"provider":      provider,
+			"resource_type": resourceType,
+			"count":         count,
+			"phase":         phase, // "started", "discovering", "completed", "error"
+		},
+	}
+	b.Broadcast(event)
+}
+
+// BroadcastProviderStatus broadcasts provider health/status updates (v0.6.0)
+func (b *Broadcaster) BroadcastProviderStatus(provider string, status string, capabilities map[string]bool, details map[string]interface{}) {
+	event := Event{
+		Type: "provider_status",
+		Payload: map[string]interface{}{
+			"provider":     provider,
+			"status":       status, // "connected", "disconnected", "error", "discovering"
+			"capabilities": capabilities,
+			"details":      details,
+		},
+	}
+	b.Broadcast(event)
+}
+
+// BroadcastUnmanagedResource broadcasts a single newly detected unmanaged resource (v0.6.0)
+func (b *Broadcaster) BroadcastUnmanagedResource(resource *types.DiscoveredResource) {
+	event := Event{
+		Type: "unmanaged_resource",
+		Payload: map[string]interface{}{
+			"id":         resource.ID,
+			"type":       resource.Type,
+			"provider":   resource.Provider,
+			"name":       resource.Name,
+			"region":     resource.Region,
+			"attributes": resource.Attributes,
+			"tags":       resource.Tags,
+		},
+	}
+	b.Broadcast(event)
+}
+
 // SubscriberCount returns the number of active subscribers
 func (b *Broadcaster) SubscriberCount() int {
 	b.mu.RLock()

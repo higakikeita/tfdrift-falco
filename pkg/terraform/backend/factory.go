@@ -30,7 +30,16 @@ func NewBackend(ctx context.Context, cfg config.TerraformStateConfig) (Backend, 
 			Prefix: cfg.GCSPrefix,
 		})
 
+	case "azurerm":
+		return NewAzureRMBackend(AzureRMBackendConfig{
+			StorageAccountName: cfg.AzureStorageAccount,
+			ContainerName:      cfg.AzureContainerName,
+			BlobName:           cfg.AzureBlobName,
+			AccessKey:          cfg.AzureAccessKey,
+			SASToken:           cfg.AzureSASToken,
+		})
+
 	default:
-		return nil, fmt.Errorf("unsupported backend: %s (supported: local, s3, gcs)", cfg.Backend)
+		return nil, fmt.Errorf("unsupported backend: %s (supported: local, s3, gcs, azurerm)", cfg.Backend)
 	}
 }

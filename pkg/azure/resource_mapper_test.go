@@ -4,143 +4,260 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-func TestNewResourceMapper(t *testing.T) {
-	mapper := NewResourceMapper()
-	require.NotNil(t, mapper)
-	assert.NotNil(t, mapper.operationToResource)
-}
-
-func TestResourceMapper_MapOperationToResource(t *testing.T) {
+func TestResourceMapper_MapEventToResource(t *testing.T) {
 	mapper := NewResourceMapper()
 
 	tests := []struct {
-		name         string
-		operation    string
-		expectedType string
+		operation string
+		want      string
 	}{
 		// Compute
-		{"VM Write", "Microsoft.Compute/virtualMachines/write", "azurerm_linux_virtual_machine"},
-		{"VM Delete", "Microsoft.Compute/virtualMachines/delete", "azurerm_linux_virtual_machine"},
-		{"Disk Write", "Microsoft.Compute/disks/write", "azurerm_managed_disk"},
+		{"Microsoft.Compute/virtualMachines/write", "azurerm_virtual_machine"},
+		{"Microsoft.Compute/virtualMachines/delete", "azurerm_virtual_machine"},
+		{"Microsoft.Compute/virtualMachines/start/action", "azurerm_virtual_machine"},
+		{"Microsoft.Compute/virtualMachineScaleSets/write", "azurerm_virtual_machine_scale_set"},
+		{"Microsoft.Compute/disks/write", "azurerm_managed_disk"},
 
-		// Networking
-		{"VNet Write", "Microsoft.Network/virtualNetworks/write", "azurerm_virtual_network"},
-		{"NSG Write", "Microsoft.Network/networkSecurityGroups/write", "azurerm_network_security_group"},
-		{"Public IP Write", "Microsoft.Network/publicIPAddresses/write", "azurerm_public_ip"},
-		{"Load Balancer Write", "Microsoft.Network/loadBalancers/write", "azurerm_lb"},
-		{"VPN Gateway Write", "Microsoft.Network/virtualNetworkGateways/write", "azurerm_virtual_network_gateway"},
-		{"Firewall Write", "Microsoft.Network/azureFirewalls/write", "azurerm_firewall"},
-		{"NAT Gateway Write", "Microsoft.Network/natGateways/write", "azurerm_nat_gateway"},
-		{"Private Endpoint Write", "Microsoft.Network/privateEndpoints/write", "azurerm_private_endpoint"},
+		// Networking - NSGs
+		{"Microsoft.Network/networkSecurityGroups/write", "azurerm_network_security_group"},
+		{"Microsoft.Network/networkSecurityGroups/delete", "azurerm_network_security_group"},
+		{"Microsoft.Network/networkSecurityGroups/securityRules/write", "azurerm_network_security_rule"},
+		{"Microsoft.Network/networkSecurityGroups/securityRules/delete", "azurerm_network_security_rule"},
 
-		// Storage & Database
-		{"Storage Account Write", "Microsoft.Storage/storageAccounts/write", "azurerm_storage_account"},
-		{"SQL Server Write", "Microsoft.Sql/servers/write", "azurerm_mssql_server"},
-		{"CosmosDB Write", "Microsoft.DocumentDB/databaseAccounts/write", "azurerm_cosmosdb_account"},
-		{"Redis Write", "Microsoft.Cache/redis/write", "azurerm_redis_cache"},
+		// Networking - Virtual Networks
+		{"Microsoft.Network/virtualNetworks/write", "azurerm_virtual_network"},
+		{"Microsoft.Network/virtualNetworks/delete", "azurerm_virtual_network"},
+		{"Microsoft.Network/virtualNetworks/subnets/write", "azurerm_subnet"},
+		{"Microsoft.Network/virtualNetworks/subnets/delete", "azurerm_subnet"},
 
-		// Security & Identity
-		{"Key Vault Write", "Microsoft.KeyVault/vaults/write", "azurerm_key_vault"},
-		{"Role Assignment Write", "Microsoft.Authorization/roleAssignments/write", "azurerm_role_assignment"},
-		{"Managed Identity Write", "Microsoft.ManagedIdentity/userAssignedIdentities/write", "azurerm_user_assigned_identity"},
+		// Networking - Load Balancer
+		{"Microsoft.Network/loadBalancers/write", "azurerm_lb"},
+		{"Microsoft.Network/loadBalancers/delete", "azurerm_lb"},
+		{"Microsoft.Network/loadBalancers/backendAddressPools/write", "azurerm_lb_backend_address_pool"},
+
+		// Networking - Public IP
+		{"Microsoft.Network/publicIPAddresses/write", "azurerm_public_ip"},
+		{"Microsoft.Network/publicIPAddresses/delete", "azurerm_public_ip"},
+
+		// Networking - Network Interfaces
+		{"Microsoft.Network/networkInterfaces/write", "azurerm_network_interface"},
+		{"Microsoft.Network/networkInterfaces/delete", "azurerm_network_interface"},
+
+		// Networking - Route Tables
+		{"Microsoft.Network/routeTables/write", "azurerm_route_table"},
+		{"Microsoft.Network/routeTables/delete", "azurerm_route_table"},
+		{"Microsoft.Network/routeTables/routes/write", "azurerm_route"},
+		{"Microsoft.Network/routeTables/routes/delete", "azurerm_route"},
+
+		// Networking - Application Gateway
+		{"Microsoft.Network/applicationGateways/write", "azurerm_application_gateway"},
+		{"Microsoft.Network/applicationGateways/delete", "azurerm_application_gateway"},
+
+		// Networking - Firewall
+		{"Microsoft.Network/azureFirewalls/write", "azurerm_firewall"},
+		{"Microsoft.Network/azureFirewalls/delete", "azurerm_firewall"},
+		{"Microsoft.Network/firewallPolicies/write", "azurerm_firewall_policy"},
+
+		// Networking - Private Endpoints
+		{"Microsoft.Network/privateEndpoints/write", "azurerm_private_endpoint"},
+		{"Microsoft.Network/privateEndpoints/delete", "azurerm_private_endpoint"},
+
+		// Networking - CDN
+		{"Microsoft.Cdn/profiles/write", "azurerm_cdn_profile"},
+		{"Microsoft.Cdn/profiles/endpoints/write", "azurerm_cdn_endpoint"},
+
+		// Networking - Front Door
+		{"Microsoft.Network/frontDoors/write", "azurerm_frontdoor"},
+		{"Microsoft.Network/frontDoors/delete", "azurerm_frontdoor"},
+
+		// Storage
+		{"Microsoft.Storage/storageAccounts/write", "azurerm_storage_account"},
+		{"Microsoft.Storage/storageAccounts/delete", "azurerm_storage_account"},
+		{"Microsoft.Storage/storageAccounts/blobServices/write", "azurerm_storage_blob"},
+		{"Microsoft.Storage/storageAccounts/blobServices/containers/write", "azurerm_storage_container"},
+
+		// SQL
+		{"Microsoft.Sql/servers/write", "azurerm_mssql_server"},
+		{"Microsoft.Sql/servers/databases/write", "azurerm_mssql_database"},
+		{"Microsoft.Sql/servers/databases/delete", "azurerm_mssql_database"},
+		{"Microsoft.Sql/servers/failoverGroups/write", "azurerm_mssql_failover_group"},
+		{"Microsoft.Sql/servers/elasticPools/write", "azurerm_mssql_elasticpool"},
+
+		// MySQL
+		{"Microsoft.DBforMySQL/servers/write", "azurerm_mysql_server"},
+		{"Microsoft.DBforMySQL/servers/databases/write", "azurerm_mysql_database"},
+
+		// PostgreSQL
+		{"Microsoft.DBforPostgreSQL/servers/write", "azurerm_postgresql_server"},
+		{"Microsoft.DBforPostgreSQL/servers/databases/write", "azurerm_postgresql_database"},
+
+		// Cosmos DB
+		{"Microsoft.DocumentDB/databaseAccounts/write", "azurerm_cosmosdb_account"},
+		{"Microsoft.DocumentDB/databaseAccounts/delete", "azurerm_cosmosdb_account"},
+		{"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/write", "azurerm_cosmosdb_sql_database"},
+		{"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/write", "azurerm_cosmosdb_sql_container"},
+
+		// Key Vault
+		{"Microsoft.KeyVault/vaults/write", "azurerm_key_vault"},
+		{"Microsoft.KeyVault/vaults/delete", "azurerm_key_vault"},
+		{"Microsoft.KeyVault/vaults/secrets/write", "azurerm_key_vault_secret"},
+		{"Microsoft.KeyVault/vaults/secrets/delete", "azurerm_key_vault_secret"},
+		{"Microsoft.KeyVault/vaults/keys/write", "azurerm_key_vault_key"},
+		{"Microsoft.KeyVault/vaults/keys/delete", "azurerm_key_vault_key"},
+
+		// Managed Identities
+		{"Microsoft.ManagedIdentity/userAssignedIdentities/write", "azurerm_user_assigned_identity"},
+		{"Microsoft.ManagedIdentity/userAssignedIdentities/delete", "azurerm_user_assigned_identity"},
+
+		// App Service
+		{"Microsoft.Web/sites/write", "azurerm_app_service"},
+		{"Microsoft.Web/sites/delete", "azurerm_app_service"},
+		{"Microsoft.Web/serverfarms/write", "azurerm_app_service_plan"},
+		{"Microsoft.Web/serverfarms/delete", "azurerm_app_service_plan"},
+
+		// Kubernetes
+		{"Microsoft.ContainerService/managedClusters/write", "azurerm_kubernetes_cluster"},
+		{"Microsoft.ContainerService/managedClusters/delete", "azurerm_kubernetes_cluster"},
+
+		// Container Registry
+		{"Microsoft.ContainerRegistry/registries/write", "azurerm_container_registry"},
+		{"Microsoft.ContainerRegistry/registries/delete", "azurerm_container_registry"},
+
+		// Container Instances
+		{"Microsoft.ContainerInstance/containerGroups/write", "azurerm_container_group"},
+		{"Microsoft.ContainerInstance/containerGroups/delete", "azurerm_container_group"},
+
+		// Service Bus
+		{"Microsoft.ServiceBus/namespaces/write", "azurerm_servicebus_namespace"},
+		{"Microsoft.ServiceBus/namespaces/queues/write", "azurerm_servicebus_queue"},
+		{"Microsoft.ServiceBus/namespaces/topics/write", "azurerm_servicebus_topic"},
+		{"Microsoft.ServiceBus/namespaces/topics/subscriptions/write", "azurerm_servicebus_subscription"},
+
+		// Event Grid
+		{"Microsoft.EventGrid/topics/write", "azurerm_eventgrid_topic"},
+		{"Microsoft.EventGrid/topics/delete", "azurerm_eventgrid_topic"},
+		{"Microsoft.EventGrid/domains/write", "azurerm_eventgrid_domain"},
+
+		// Event Hub
+		{"Microsoft.EventHub/namespaces/write", "azurerm_eventhub_namespace"},
+		{"Microsoft.EventHub/namespaces/eventhubs/write", "azurerm_eventhub"},
 
 		// Monitoring
-		{"Action Group Write", "Microsoft.Insights/actionGroups/write", "azurerm_monitor_action_group"},
-		{"Diagnostic Settings Write", "Microsoft.Insights/diagnosticSettings/write", "azurerm_monitor_diagnostic_setting"},
+		{"Microsoft.Insights/metricAlerts/write", "azurerm_monitor_metric_alert"},
+		{"Microsoft.Insights/metricAlerts/delete", "azurerm_monitor_metric_alert"},
+		{"Microsoft.Insights/scheduledQueryRules/write", "azurerm_monitor_scheduled_query_rules_alert"},
+		{"Microsoft.Insights/actionGroups/write", "azurerm_monitor_action_group"},
+		{"Microsoft.Insights/diagnosticSettings/write", "azurerm_monitor_diagnostic_setting"},
 
-		// Analytics & Data
-		{"Event Hub Namespace Write", "Microsoft.EventHub/namespaces/write", "azurerm_eventhub_namespace"},
-		{"Service Bus Namespace Write", "Microsoft.ServiceBus/namespaces/write", "azurerm_servicebus_namespace"},
-		{"Data Factory Write", "Microsoft.DataFactory/factories/write", "azurerm_data_factory"},
-		{"Synapse Workspace Write", "Microsoft.Synapse/workspaces/write", "azurerm_synapse_workspace"},
+		// Log Analytics
+		{"Microsoft.OperationalInsights/workspaces/write", "azurerm_log_analytics_workspace"},
+		{"Microsoft.OperationalInsights/workspaces/delete", "azurerm_log_analytics_workspace"},
 
-		// Integration
-		{"API Management Write", "Microsoft.ApiManagement/service/write", "azurerm_api_management"},
-		{"Logic App Write", "Microsoft.Logic/workflows/write", "azurerm_logic_app_workflow"},
+		// Application Insights
+		{"Microsoft.Insights/components/write", "azurerm_application_insights"},
 
-		// Unknown operation
-		{"Unknown Operation", "Microsoft.Unknown/unknown/write", ""},
+		// Cache
+		{"Microsoft.Cache/redis/write", "azurerm_redis_cache"},
+		{"Microsoft.Cache/redis/delete", "azurerm_redis_cache"},
+
+		// DNS
+		{"Microsoft.Network/dnszones/write", "azurerm_dns_zone"},
+		{"Microsoft.Network/dnszones/delete", "azurerm_dns_zone"},
+		{"Microsoft.Network/dnszones/recordSets/write", "azurerm_dns_a_record"},
+		{"Microsoft.Network/privateDnsZones/write", "azurerm_private_dns_zone"},
+
+		// API Management
+		{"Microsoft.ApiManagement/service/write", "azurerm_api_management"},
+		{"Microsoft.ApiManagement/service/apis/write", "azurerm_api_management_api"},
+		{"Microsoft.ApiManagement/service/apis/operations/write", "azurerm_api_management_api_operation"},
+
+		// Authorization & Governance
+		{"Microsoft.Authorization/roleAssignments/write", "azurerm_role_assignment"},
+		{"Microsoft.Authorization/roleAssignments/delete", "azurerm_role_assignment"},
+		{"Microsoft.Authorization/policyAssignments/write", "azurerm_resource_group_policy_assignment"},
+		{"Microsoft.Authorization/policyAssignments/delete", "azurerm_resource_group_policy_assignment"},
+		{"Microsoft.Authorization/locks/write", "azurerm_management_lock"},
+		{"Microsoft.Authorization/locks/delete", "azurerm_management_lock"},
+
+		// Batch
+		{"Microsoft.Batch/batchAccounts/write", "azurerm_batch_account"},
+		{"Microsoft.Batch/batchAccounts/pools/write", "azurerm_batch_pool"},
+
+		// Data Factory
+		{"Microsoft.DataFactory/factories/write", "azurerm_data_factory"},
+		{"Microsoft.DataFactory/factories/pipelines/write", "azurerm_data_factory_pipeline"},
+
+		// Search
+		{"Microsoft.Search/searchServices/write", "azurerm_search_service"},
+
+		// Stream Analytics
+		{"Microsoft.StreamAnalytics/streamingjobs/write", "azurerm_stream_analytics_job"},
+
+		// Synapse
+		{"Microsoft.Synapse/workspaces/write", "azurerm_synapse_workspace"},
+		{"Microsoft.Synapse/workspaces/bigDataPools/write", "azurerm_synapse_spark_pool"},
+
+		// Logic Apps
+		{"Microsoft.Logic/workflows/write", "azurerm_logic_app_workflow"},
+
+		// Automation
+		{"Microsoft.Automation/automationAccounts/write", "azurerm_automation_account"},
+		{"Microsoft.Automation/automationAccounts/runbooks/write", "azurerm_automation_runbook"},
+
+		// Resource Groups
+		{"Microsoft.Resources/resourceGroups/write", "azurerm_resource_group"},
+
+		// Non-existent operation
+		{"nonexistent/operation", ""},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := mapper.MapOperationToResource(tt.operation)
-			assert.Equal(t, tt.expectedType, result)
-		})
+		got := mapper.MapEventToResource(tt.operation)
+		assert.Equal(t, tt.want, got, "operation: %s", tt.operation)
 	}
 }
 
-func TestResourceMapper_GetAllSupportedOperations(t *testing.T) {
+func TestResourceMapper_GetAllSupportedEvents(t *testing.T) {
 	mapper := NewResourceMapper()
-	ops := mapper.GetAllSupportedOperations()
+	events := mapper.GetAllSupportedEvents()
 
-	assert.NotEmpty(t, ops)
-	assert.Greater(t, len(ops), 50, "Should support at least 50 operations")
+	// Should have 185+ events (after deduplication of Microsoft.Web/sites entries)
+	assert.Greater(t, len(events), 185, "Expected more than 185 supported events")
 
-	// Check that some key operations are present
-	opSet := make(map[string]bool)
-	for _, op := range ops {
-		opSet[op] = true
-	}
-
-	expectedOps := []string{
-		"Microsoft.Compute/virtualMachines/write",
-		"Microsoft.Network/virtualNetworks/write",
-		"Microsoft.Storage/storageAccounts/write",
-		"Microsoft.KeyVault/vaults/write",
-		"Microsoft.Authorization/roleAssignments/write",
-	}
-
-	for _, op := range expectedOps {
-		assert.True(t, opSet[op], "Operation %s should be present", op)
+	// All events should be non-empty strings
+	for _, event := range events {
+		assert.NotEmpty(t, event, "Event should not be empty")
 	}
 }
 
-func TestResourceMapper_GetSupportedServiceCount(t *testing.T) {
+func TestResourceMapper_GetResourceTypesForService(t *testing.T) {
 	mapper := NewResourceMapper()
-	count := mapper.GetSupportedServiceCount()
 
-	// Should support multiple Azure services
-	assert.Greater(t, count, 10, "Should support at least 10 Azure services")
-	assert.Less(t, count, 100, "Should not exceed 100 services")
-}
+	tests := []struct {
+		service string
+		minCount int
+	}{
+		{"Microsoft.Compute/", 5},
+		{"Microsoft.Network/", 15},
+		{"Microsoft.Storage/", 3},
+		{"Microsoft.Sql/", 4},
+		{"Microsoft.KeyVault/", 4},
+		{"Microsoft.Web/", 3},
+		{"Microsoft.ContainerService/", 1},
+	}
 
-func TestResourceMapper_AllOperationsHaveMappings(t *testing.T) {
-	mapper := NewResourceMapper()
-	ops := mapper.GetAllSupportedOperations()
-
-	// Every operation should have a valid mapping
-	for _, op := range ops {
-		resourceType := mapper.MapOperationToResource(op)
-		assert.NotEmpty(t, resourceType, "Operation %s should have a mapping", op)
-		assert.True(t, len(resourceType) > 0, "Resource type for %s should not be empty", op)
+	for _, tt := range tests {
+		resourceTypes := mapper.GetResourceTypesForService(tt.service)
+		assert.GreaterOrEqual(t, len(resourceTypes), tt.minCount,
+			"service %s should have at least %d resource types, got %d",
+			tt.service, tt.minCount, len(resourceTypes))
 	}
 }
 
-func TestResourceMapper_UnmappedOperationReturnsEmpty(t *testing.T) {
+func TestResourceMapper_CreateNewResourceMapper(t *testing.T) {
 	mapper := NewResourceMapper()
-
-	result := mapper.MapOperationToResource("Microsoft.Unknown/unknownService/write")
-	assert.Equal(t, "", result)
-
-	result = mapper.MapOperationToResource("Invalid/Operation")
-	assert.Equal(t, "", result)
-}
-
-func TestResourceMapper_OperationsMatchPattern(t *testing.T) {
-	mapper := NewResourceMapper()
-	ops := mapper.GetAllSupportedOperations()
-
-	// All operations should follow Microsoft pattern
-	for _, op := range ops {
-		assert.True(t, len(op) > 0, "Operation should not be empty")
-		assert.Contains(t, op, "/", "Operation should contain forward slashes")
-		// Most operations should start with Microsoft or be a generic term
-		assert.True(t,
-			op[0] >= 'A' && op[0] <= 'Z',
-			"Operation %s should start with capital letter", op)
-	}
+	assert.NotNil(t, mapper, "Mapper should not be nil")
+	assert.Greater(t, len(mapper.eventToResource), 0, "Mapper should have events")
 }

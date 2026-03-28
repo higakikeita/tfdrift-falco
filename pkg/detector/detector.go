@@ -10,6 +10,7 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/falco"
 	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
 	"github.com/keitahigaki/tfdrift-falco/pkg/notifier"
+	"github.com/keitahigaki/tfdrift-falco/pkg/provider"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
@@ -17,25 +18,82 @@ import (
 
 // Detector is the main drift detection engine
 type Detector struct {
-	cfg             *config.Config
-	stateManager    *terraform.StateManager
-	falcoSubscriber *falco.Subscriber
-	notifier        *notifier.Manager
-	formatter       *diff.DiffFormatter
-	importer        *terraform.Importer
-	approvalManager *terraform.ApprovalManager
-	broadcaster     *broadcaster.Broadcaster
-	graphStore      *graph.Store
-	eventCh         chan types.Event
-	wg              sync.WaitGroup
+	cfg               *config.Config
+	stateManager      *terraform.StateManager       // Legacy: default state manager for backward compatibility
+	stateManagers     map[string]*terraform.StateManager // Multi-provider state managers
+	providerRegistry  *provider.Registry            // Provider registry for handling multiple clouds
+	falcoSubscriber   *falco.Subscriber
+	notifier          *notifier.Manager
+	formatter         *diff.DiffFormatter
+	importer          *terraform.Importer
+	approvalManager   *terraform.ApprovalManager
+	broadcaster       *broadcaster.Broadcaster
+	graphStore        *graph.Store
+	eventCh           chan types.Event
+	wg                sync.WaitGroup
 }
 
 // New creates a new Detector instance
 func New(cfg *config.Config) (*Detector, error) {
-	// Initialize state manager
-	stateManager, err := terraform.NewStateManager(cfg.Providers.AWS.State)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create state manager: %w", err)
+	// Initialize provider registry
+	registry := provider.NewRegistry()
+
+	// Initialize state managers for each enabled provider
+	stateManagers := make(map[string]*terraform.StateManager)
+
+	// AWS provider
+	var defaultStateManager *terraform.StateManager
+	if cfg.Providers.AWS.Enabled {
+		sm, err := terraform.NewStateManager(cfg.Providers.AWS.State)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create AWS state manager: %w", err)
+		}
+		stateManagers["aws"] = sm
+		defaultStateManager = sm
+
+		awsOpts := []provider.AWSProviderOption{}
+		if len(cfg.Providers.AWS.Regions) > 0 {
+			awsOpts = append(awsOpts, provider.WithAWSRegions(cfg.Providers.AWS.Regions))
+		}
+		if err := registry.Register(provider.NewAWSProvider(awsOpts...)); err != nil {
+			return nil, fmt.Errorf("failed to register AWS provider: %w", err)
+		}
+	}
+
+	// GCP provider
+	if cfg.Providers.GCP.Enabled {
+		sm, err := terraform.NewStateManager(cfg.Providers.GCP.State)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create GCP state manager: %w", err)
+		}
+		stateManagers["gcp"] = sm
+
+		// Use first enabled provider as default if AWS is not enabled
+		if defaultStateManager == nil {
+			defaultStateManager = sm
+		}
+
+		if err := registry.Register(provider.NewGCPProvider()); err != nil {
+			return nil, fmt.Errorf("failed to register GCP provider: %w", err)
+		}
+	}
+
+	// Azure provider
+	if cfg.Providers.Azure.Enabled {
+		sm, err := terraform.NewStateManager(cfg.Providers.Azure.State)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create Azure state manager: %w", err)
+		}
+		stateManagers["azure"] = sm
+
+		// Use first enabled provider as default if neither AWS nor GCP is enabled
+		if defaultStateManager == nil {
+			defaultStateManager = sm
+		}
+
+		if err := registry.Register(provider.NewAzureProvider()); err != nil {
+			return nil, fmt.Errorf("failed to register Azure provider: %w", err)
+		}
 	}
 
 	// Initialize Falco subscriber
@@ -77,32 +135,35 @@ func New(cfg *config.Config) (*Detector, error) {
 		}
 	}
 
-	return &Detector{
-		cfg:             cfg,
-		stateManager:    stateManager,
-		falcoSubscriber: falcoSub,
-		notifier:        notifierManager,
-		formatter:       formatter,
-		importer:        importer,
-		approvalManager: approvalManager,
-		eventCh:         make(chan types.Event, 100),
-	}, nil
-}
+	log.Infof("Initialized %d cloud provider(s): %v", registry.Count(), registry.Names())
 
-// NewDemoDetector creates a minimal Detector for demo mode.
-// It has no Falco subscriber, state manager, or notifier —
-// just enough structure to satisfy the API server's interface.
-func NewDemoDetector() (*Detector, error) {
 	return &Detector{
-		cfg:       &config.Config{DryRun: true},
-		formatter: diff.NewFormatter(true),
-		eventCh:   make(chan types.Event, 100),
+		cfg:              cfg,
+		stateManager:     defaultStateManager,
+		stateManagers:    stateManagers,
+		providerRegistry: registry,
+		falcoSubscriber:  falcoSub,
+		notifier:         notifierManager,
+		formatter:        formatter,
+		importer:         importer,
+		approvalManager:  approvalManager,
+		eventCh:          make(chan types.Event, 100),
 	}, nil
 }
 
 // GetStateManager returns the state manager for API access
 func (d *Detector) GetStateManager() *terraform.StateManager {
 	return d.stateManager
+}
+
+// GetProviderRegistry returns the provider registry
+func (d *Detector) GetProviderRegistry() *provider.Registry {
+	return d.providerRegistry
+}
+
+// GetStateManagers returns all state managers indexed by provider name
+func (d *Detector) GetStateManagers() map[string]*terraform.StateManager {
+	return d.stateManagers
 }
 
 // SetBroadcaster sets the broadcaster for real-time event distribution
