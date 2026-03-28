@@ -7,169 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.8.0] - 2026-03-22
+## [0.6.0] - 2026-03-29
 
-### 🔒 Enterprise Foundation
+### Added
 
-Major release establishing enterprise-grade security, API documentation, Kubernetes deployment, and operational readiness.
+#### Azure FullProvider Implementation
+- **Azure Resource Discovery** — ResourceLister abstraction with 50+ ARM type mappings
+- **Azure State Comparison** — Case-insensitive matching, name-based fallback, Azure-managed tag filtering
+- **Azure Blob Storage Backend** — `azurerm` backend with SAS token and access key authentication
+- **Azure Activity Parser** — Renamed from AuditParser for clarity
 
-#### Added
+#### WebSocket v0.6.0 Enhancements
+- **Provider-based filtering** — Clients can subscribe to events for specific providers
+- **New event types** — `drift_result`, `discovery_progress`, `provider_status`, `unmanaged_resource`
+- **SSE stream** automatically forwards all new event types
 
-##### API Authentication & Authorization (PR #53)
-- **JWT Authentication** — HMAC-SHA256 tokens via `golang-jwt/jwt/v5`, configurable issuer and expiry
-- **API Key Authentication** — `X-API-Key` header with `tfd_` prefixed keys, constant-time comparison
-- **Auth Management Endpoints** — Token generation, API key CRUD (create/list/revoke)
-- **Scoped Access Control** — Per-key scopes for fine-grained authorization
-- **20 unit tests** covering JWT validation, API key lifecycle, edge cases
+#### Provider Capabilities API
+- `GET /api/v1/providers` — List all providers with capabilities
+- `GET /api/v1/providers/{name}/capabilities` — Per-provider capability details
 
-##### API Rate Limiting (PR #53)
-- **Token Bucket Algorithm** — Per-client rate limiting by IP or authenticated identity
-- **Standard Headers** — `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`, `Retry-After`
-- **Configurable Limits** — Requests per minute, burst size, cleanup interval
-- **8 unit tests** covering rate limiting behavior
+#### Exported Helpers
+- `ExtractAWSChanges()`, `ExtractAWSResourceID()`, `GetAWSRelevantEvents()` for provider abstraction
 
-##### OpenAPI 3.0 Specification & Swagger UI (PR #54)
-- **886-line OpenAPI 3.0 spec** covering all 37 API endpoints across 12 tags
-- **Swagger UI** embedded at `/api/docs` via Go embed (CDN v5.11.0)
-- **Complete schema definitions** — APIResponse, PaginatedResponse, Event, DriftAlert, GraphNode/Edge, etc.
-
-##### Kubernetes Helm Chart (PR #55)
-- **Production-ready Helm chart** with `values.yaml` covering image, service, ingress, resources, autoscaling
-- **Security hardened** — Non-root container, read-only filesystem, dropped capabilities
-- **HPA v2** with CPU/memory scaling targets
-- **NetworkPolicy** — Ingress from namespaces, egress to DNS/Falco/HTTPS
-- **ServiceMonitor** — Prometheus Operator integration
-- **Secret management** — JWT secret with `existingSecret` support
-- **ServiceAccount** with IRSA/Workload Identity annotation support
-
-##### Operations Runbook (PR #56)
-- **460-line comprehensive runbook** at `docs/operations/runbook.md`
-- **5 incident playbooks** — API Down, High Memory, Falco Connection Lost, Cloud Auth Failure, Rate Limiting
-- **Troubleshooting decision trees** and common log message reference
-- **Scaling guidelines** — Vertical and horizontal scaling procedures
-- **Maintenance procedures** — Rolling update, config change, key rotation
-
-##### Frontend Test Coverage Expansion (PR #57)
-- **14 new test files** (10 → 26 total) covering stores, components, pages, and utilities
-- **Store tests** — sidebarStore (toggle, setCollapsed), toastStore (add/remove/clear, helpers)
-- **Component tests** — Header, Sidebar, EventTable, EventFilters, GraphExportButton, SeverityChart, TimelineChart, ThemeToggle, ConnectionStatus
-- **Page tests** — DashboardPage, EventsPage, SettingsPage smoke tests
-- **Utility tests** — graphClustering, graphConverter import verification
-
-#### Changed
-- API Server now applies rate limiting globally and authentication on all non-public routes
-- `/health` and `/version` endpoints are public (no auth required)
-- SSE stream and all `/api/v1/*` routes require authentication when enabled
-- Middleware chain: RequestID → RealIP → Logger → Recoverer → CORS → RateLimiter → Auth → Timeout
-
-#### Dependencies
-- Added `github.com/golang-jwt/jwt/v5 v5.3.1`
-
-#### Technical Details
-- PRs: #53, #54, #55, #56, #57
-- Issues closed: #47, #48, #49, #50, #51, #52
-- Backend: 2 new middleware packages (~500 lines), auth handler (~155 lines)
-- Infrastructure: Helm chart (12 templates), OpenAPI spec (886 lines), runbook (460 lines)
-- Frontend: 14 new test files (677 lines)
-
-## [0.7.0] - 2026-03-22
-
-### 🎨 Dashboard UI & Real-time Notifications
-
-Major release adding a fully functional React dashboard with real-time event management, graph visualization export, and comprehensive settings management.
-
-#### Added
-
-##### Events Management (PR #39)
-- **Events API expansion** — Filtering (severity, provider, status, search, time range), sorting, pagination
-- **Event status workflow** — open → acknowledged/ignored/resolved → reopen via PATCH endpoint
-- **EventDetailPanel** — Slide-over panel with JSON diff viewer, user identity, status actions, navigation
-- **JsonDiff component** — LCS-based line-level diff with syntax highlighting
-
-##### Dashboard UI Enhancements (PR #40)
-- **Dark/light theme toggle** — System-wide theme switching with Sun/Moon icons in header
-- **Toast notification system** — Zustand-based store with 4 severity types, auto-dismiss, dark mode
-- **Docker Compose fix** — Removed deprecated `version` field from 5 compose files
-- **Detector tests** — Table-driven tests with 16 test scenarios for pkg/detector
-
-##### Real-time Notifications & Export (PR #41)
-- **NotificationPanel** — SSE-connected notification dropdown with live/offline status, unread count badge, severity-colored alerts, auto-toast for critical/high events
-- **GraphExportButton** — PNG (2x scale), SVG vector, and JSON data export with toast feedback
-- **Settings page** — 4 functional tabs:
-  - Webhooks: CRUD with event type filters, enable/disable, test button
-  - Rules: CRUD drift rules with severity, resource types, watched attributes
-  - Providers: AWS/GCP/Azure cards with enable/disable and region config
-  - General: Dry run, auto-import, require approval toggles, polling interval
-- **testWebhook API client method** for webhook URL validation
-
-##### Documentation Overhaul (PR #42)
-- **README.md** — Updated React Web UI section, API endpoints, architecture diagram, roadmap, project structure
-- **README.ja.md** — Synced all changes in natural Japanese
-- **docs/ site** — Updated architecture.md, quickstart.md, overview.md, index.md for v0.7.0
-- Fixed GitHub username references (keitahigaki → higakikeita)
-
-#### Changed
-- Events page now uses real API with fallback to mock data
-- Header Bell button replaced with live NotificationPanel
-- TopologyPage includes graph export functionality
-- Architecture diagram includes API Server, SSE Broadcaster, React Dashboard UI
-
-#### Technical Details
-- PRs: #39, #40, #41, #42
-- Frontend: 6 new components, 784+ lines of new UI code
-- Backend: Events API expansion, PATCH endpoint, event status management
-- Tests: 12 event handler tests, 16 detector test scenarios
-
-## [0.6.0] - 2026-03-20
-
-### 🌐 Expanded Multi-Cloud Service Coverage
-
-Major expansion of supported cloud services across AWS and GCP, significantly increasing drift detection coverage.
-
-#### Added
-
-##### AWS - 10 New Services (+100 event mappings)
-- **EFS (Elastic File System)** - File systems, mount targets, access points, policies
-- **Cognito** - User pools, clients, domains, identity pools, resource servers
-- **AppSync** - GraphQL APIs, resolvers, datasources
-- **MSK (Managed Streaming for Kafka)** - Clusters, configurations, broker management
-- **OpenSearch** - Domains, VPC endpoints, domain configurations
-- **CodePipeline** - Pipelines, webhooks, stage transitions
-- **CodeBuild** - Projects, report groups
-- **CodeDeploy** - Applications, deployment groups, deployment configs
-- **Transfer Family** - SFTP/FTP servers
-- **GuardDuty** - Detectors, filters, IP sets, threat intel sets
-- **AWS Config** - Configuration recorders, delivery channels, config rules
-
-##### GCP - 15 New Services (+70 event mappings)
-- **Cloud Armor** - Security policies (compute.securityPolicies)
-- **Cloud DNS** - Managed zones, record sets
-- **Memorystore (Redis)** - Redis instances
-- **Cloud Spanner** - Instances, databases
-- **Artifact Registry** - Repositories
-- **Cloud Scheduler** - Jobs
-- **Cloud Tasks** - Queues
-- **Filestore** - Instances
-- **Cloud Logging** - Sinks, log metrics
-- **Cloud Monitoring** - Alert policies, notification channels
-- **Dataproc** - Clusters
-- **Cloud Build** - Build triggers
-- **Workflows** - Workflow definitions
-- **VPC Service Controls** - Service perimeters
-- **Compute Engine (LB)** - Global forwarding rules, URL maps, HTTPS proxies, managed SSL certs
-
-##### Conflict Resolution
-- Added comprehensive event source disambiguation for 15+ conflicting event names
-- MSK, OpenSearch, CodePipeline, CodeBuild, CodeDeploy, Transfer Family, GuardDuty, EFS, Cognito, AppSync handled correctly
-
-#### Changed
-- AWS total coverage: 30+ → **40+ services**, 400+ → **500+ events**
-- GCP total coverage: 12+ → **27+ services**, 100+ → **170+ events**
-
-#### Technical Details
-- Files modified: `pkg/falco/mappings/other_services.go`, `pkg/falco/mappings/conflicts.go`, `pkg/falco/event_parser.go`, `pkg/gcp/resource_mapper.go`
-- All existing tests pass with no regressions
-- +404 lines of new mapping and conflict resolution code
+### Changed
+- Azure provider now implements `FullProvider` (Provider + ResourceDiscoverer + StateComparator)
+- Backend factory supports `azurerm` (local, s3, gcs, azurerm)
+- WebSocket welcome message updated to v0.6.0
+- Configuration expanded with Azure-specific fields
 
 ## [0.5.0+] - 2026-01-10
 
@@ -281,7 +145,7 @@ This release brings significant UI improvements with Storybook-Driven Developmen
 
 ---
 
-## [0.5.0] - 2025-12-17
+## [0.5.0-gcp] - 2025-12-17
 
 ### 🎉 Major Release - Multi-Cloud Support (GCP)
 

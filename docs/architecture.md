@@ -1,7 +1,7 @@
 # TFDrift-Falco Architecture
 
-> **Version:** v{{ config.extra.project_version }} (Enterprise Foundation)
-> **Supported Providers:** AWS (40+ services, 500+ events), Google Cloud Platform (27+ services, 170+ events)
+> **Version:** v0.6.0 (Azure Full Support & Real-Time Enhancements)
+> **Supported Providers:** AWS, Google Cloud Platform, Microsoft Azure
 > **Status:** Production Ready
 
 ## Table of Contents
@@ -20,10 +20,10 @@
 
 TFDrift-Falco is designed as a **real-time, event-driven, multi-cloud drift detection system** that bridges the gap between Infrastructure-as-Code (IaC) and runtime security monitoring.
 
-**v0.5.0 Multi-Cloud Support:**
+**v0.6.0 Multi-Cloud Support:**
 - ✅ **AWS** - CloudTrail events, S3 state backend (203 events, 19 services)
 - ✅ **GCP** - Audit Logs via Falco gcpaudit plugin, GCS state backend (100+ events, 12+ services)
-- ✅ **Azure** - Supported since v0.7.0
+- ✅ **Azure** - Activity Logs, Azure Blob Storage backend, Resource Discovery, State Comparison (50+ resource types)
 
 ### Design Principles
 
@@ -53,18 +53,6 @@ graph TB
         B6[Notification Manager]
     end
 
-    subgraph "API & Storage (v0.6.0+)"
-        D1[REST API Server<br/>Chi Router]
-        D2[In-Memory Graph Store]
-        D3[WebSocket/SSE<br/>Real-time Streaming]
-    end
-
-    subgraph "User Interface (v0.6.0+)"
-        E1[React Dashboard UI<br/>React 19 + TypeScript]
-        E2[Topology Graph<br/>Visualization]
-        E3[Dark/Light Theme]
-    end
-
     subgraph "External Systems"
         C1[Terraform State<br/>S3/GCS/Local]
         C2[Slack/Discord]
@@ -89,21 +77,9 @@ graph TB
     B6 --> C3
     B6 --> C4
 
-    B3 --> D2
-    B6 --> D1
-    D1 --> D2
-    D1 --> D3
-    D3 --> E1
-    D2 --> E2
-    E2 --> E1
-
     style B3 fill:#4A90E2
     style B4 fill:#FFA500
     style B5 fill:#50C878
-    style D1 fill:#9B59B6
-    style D2 fill:#3498DB
-    style E1 fill:#E74C3C
-    style E2 fill:#F39C12
 ```
 
 ---
@@ -799,223 +775,6 @@ sequenceDiagram
 
 ---
 
-## API Server & Dashboard UI (v0.6.0+)
-
-### REST API Server
-
-The API Server provides real-time access to drift detection data via HTTP REST endpoints and WebSocket/SSE streams.
-
-**Technology Stack:**
-- **Framework:** Chi Router (Go HTTP middleware)
-- **Port:** `:8080`
-- **Authentication:** API Key (configurable)
-- **Real-time Streaming:** WebSocket and Server-Sent Events (SSE)
-
-#### API Endpoints
-
-```mermaid
-graph LR
-    A[Client] -->|REST| B[API Server<br/>Chi Router]
-    A -->|WebSocket| B
-    A -->|SSE| B
-
-    B --> C[Graph Endpoints]
-    B --> D[Event Endpoints]
-    B --> E[Drift Alerts]
-    B --> F[Health/Stats]
-
-    C --> G["GET /api/v1/graph"]
-    C --> H["GET /api/v1/graph/query"]
-    C --> I["PATCH /events/{id}"]
-
-    D --> J["GET /api/v1/events"]
-    D --> K["POST /api/v1/events/batch"]
-
-    E --> L["GET /api/v1/drifts"]
-    E --> M["POST /api/v1/drifts"]
-
-    F --> N["GET /health"]
-    F --> O["GET /api/v1/stats"]
-
-    style B fill:#9B59B6
-    style G fill:#3498DB
-    style H fill:#3498DB
-    style I fill:#3498DB
-```
-
-**Key Endpoints:**
-
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| `GET` | `/health` | Server health check |
-| `GET` | `/api/v1/graph` | Fetch entire causal graph |
-| `GET` | `/api/v1/graph/query` | Query graph with filters |
-| `PATCH` | `/api/v1/events/{id}` | Update event status |
-| `GET` | `/api/v1/stream` | SSE real-time event stream |
-| `WS` | `/ws` | WebSocket real-time updates |
-| `GET` | `/api/v1/drifts` | List detected drifts |
-| `POST` | `/api/v1/drifts` | Create drift alert |
-| `GET` | `/api/v1/stats` | Drift statistics |
-
-See [REST API Documentation →](api/rest-api.md) for complete endpoint details.
-
-#### In-Memory Graph Store
-
-The API Server maintains an in-memory directed acyclic graph (DAG) of drift events and their relationships.
-
-```go
-type GraphStore struct {
-    nodes map[string]*Node
-    edges map[string]*Edge
-    mutex sync.RWMutex
-}
-
-type Node struct {
-    ID       string
-    Type     string // "drift", "event", "resource"
-    Label    string
-    Metadata map[string]interface{}
-    Created  time.Time
-}
-
-type Edge struct {
-    ID       string
-    Source   string // Node ID
-    Target   string // Node ID
-    RelType  string // "caused_by", "related_to", "depends_on"
-    Metadata map[string]interface{}
-}
-```
-
-**Graph Capabilities:**
-- Causal relationship tracking (which drift caused which events)
-- Real-time graph updates via WebSocket/SSE
-- Graph export (PNG, SVG, JSON formats)
-- Query support (filter by severity, time range, resource type)
-
-#### Real-time Streaming
-
-**WebSocket Streaming:**
-```go
-// Client connects to ws://localhost:8080/ws
-// Receives real-time JSON messages:
-{
-  "type": "drift_detected",
-  "data": {
-    "id": "drift-001",
-    "resource": "i-0123456789abcdef0",
-    "change": "instance_type: t3.micro → t3.small",
-    "severity": "high",
-    "timestamp": "2025-03-20T10:30:00Z"
-  }
-}
-```
-
-**Server-Sent Events (SSE):**
-```bash
-curl http://localhost:8080/api/v1/stream
-# Receives server-sent events:
-# data: {"type":"drift_detected","data":{...}}
-```
-
-### React Dashboard UI (v0.6.0+)
-
-The Dashboard provides a modern, interactive web UI for monitoring and visualizing drift detection.
-
-**Technology Stack:**
-- **Framework:** React 19
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **Build Tool:** Vite
-- **Port:** `:3000`
-- **Themes:** Dark Mode + Light Mode
-- **Graph Visualization:** Custom WebGL rendering
-
-#### Dashboard Features
-
-```mermaid
-graph TB
-    A["Dashboard Home"]
-    A --> B["Real-time Event Stream"]
-    A --> C["Drift Statistics"]
-    A --> D["Service Breakdown"]
-
-    E["Topology Graph View"]
-    E --> F["Interactive Node Selection"]
-    E --> G["Relationship Visualization"]
-    E --> H["Zoom & Pan Controls"]
-
-    I["Drift Details Panel"]
-    I --> J["Change History"]
-    I --> K["User Attribution"]
-    I --> L["Remediation Steps"]
-
-    M["Settings & Export"]
-    M --> N["Dark/Light Theme Toggle"]
-    M --> O["Export Graph PNG/SVG"]
-    M --> P["Export Data JSON"]
-    M --> Q["API Key Management"]
-
-    style B fill:#F39C12
-    style E fill:#E74C3C
-    style I fill:#3498DB
-    style M fill:#9B59B6
-```
-
-**Key UI Components:**
-
-1. **Real-time Event Stream** - Live feed of drift events with auto-refresh
-2. **Topology Graph** - Visual representation of drift relationships and causality
-3. **Drift Details Panel** - Deep dive into individual drift events
-4. **Statistics Dashboard** - Service-level and time-series metrics
-5. **Theme Toggle** - Dark/Light mode switching
-6. **Graph Export** - Download visualizations (PNG, SVG, JSON)
-7. **Settings Panel** - API configuration and user preferences
-
-#### Dashboard Architecture
-
-```typescript
-// Main components structure
-src/components/
-├── Dashboard.tsx              // Main layout
-├── EventStream/
-│   ├── EventFeed.tsx         // Real-time event list
-│   └── EventCard.tsx         // Individual event display
-├── TopologyGraph/
-│   ├── Graph.tsx             // Main graph component
-│   ├── Node.tsx              // Graph node rendering
-│   ├── Edge.tsx              // Graph edge rendering
-│   └── Legend.tsx            // Graph legend
-├── DriftDetails/
-│   ├── Panel.tsx             // Details sidebar
-│   ├── ChangeHistory.tsx     // Change timeline
-│   └── Remediation.tsx       // Remediation suggestions
-├── Statistics/
-│   ├── Overview.tsx          // Key metrics
-│   ├── ServiceBreakdown.tsx  // Service distribution
-│   └── Timeline.tsx          // Time-series chart
-└── Settings/
-    ├── ThemeToggle.tsx       // Dark/light mode
-    ├── ExportPanel.tsx       // Graph export options
-    └── ApiConfig.tsx         // API settings
-```
-
-#### Accessing the Dashboard
-
-```bash
-# Dashboard URL
-http://localhost:3000
-
-# Connected to API Server
-http://localhost:8080
-
-# Example: Real-time drift updates
-# Dashboard connects via WebSocket
-# ws://localhost:8080/ws
-```
-
----
-
 ## Integration Points
 
 ### Falco Integration
@@ -1337,6 +1096,6 @@ graph TB
 
 ---
 
-**Document Version:** 1.3 (v0.8.0 Enterprise Update)
-**Last Updated:** 2026-03-22
+**Document Version:** 1.1 (v0.5.0 Multi-Cloud Update)
+**Last Updated:** 2025-01-18
 **Maintainer:** Keita Higaki

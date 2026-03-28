@@ -1,10 +1,8 @@
 # Overview
 
-TFDrift-Falco is a **real-time multi-cloud Terraform drift detection system** with an integrated React Dashboard UI that monitors cloud infrastructure changes (AWS, GCP) and alerts when resources drift from their Terraform-defined state.
+TFDrift-Falco is a **real-time multi-cloud Terraform drift detection system** that monitors cloud infrastructure changes (AWS, GCP, Azure) and alerts when resources drift from their Terraform-defined state.
 
-> **Version:** v{{ config.extra.project_version }} | **Providers:** AWS (40+ services, 500+ events) + GCP (27+ services, 170+ events) | **Status:** Production Ready
->
-> **New in v0.6.0:** React Dashboard UI • Expanded Service Coverage • API Server with REST/WebSocket/SSE
+> **Version:** v0.6.0 | **Providers:** AWS + GCP + Azure | **Status:** Production Ready
 
 ---
 
@@ -78,33 +76,26 @@ Change happens → CloudTrail event → Drift detected (< 30s)
 
 #### 2. Comprehensive Multi-Cloud Service Coverage
 
-**AWS (500+ events across 40+ services) - v0.6.0:**
-- **Compute:** EC2, Lambda, Auto Scaling, ECS, EKS, ECR
-- **Networking:** VPC, Security Groups, ELB/ALB, Route53, CloudFront, EFS
+**AWS (203+ events across 19 services):**
+- **Compute:** EC2, Lambda, Auto Scaling
+- **Networking:** VPC, Security Groups, ELB/ALB, Route53, CloudFront
 - **Storage:** S3, EBS
-- **Databases:** RDS, Aurora, DynamoDB, Elasticache
-- **Security:** IAM, KMS, GuardDuty, AWS Config
+- **Databases:** RDS, Aurora, DynamoDB
+- **Security:** IAM, KMS
 - **Containers:** ECS, EKS, ECR
-- **Serverless:** API Gateway, Lambda, AppSync
-- **DNS & CDN:** Route53, CloudFront
-- **Messaging:** SNS, SQS
-- **DevOps:** CodePipeline, CodeBuild, CodeDeploy
-- **Identity:** Cognito
-- **Search & Streaming:** OpenSearch, MSK
+- **Application:** API Gateway, SNS, SQS
 
 [View Full AWS Coverage →](services/index.md)
 
-**GCP (170+ events across 27+ services) - v0.6.0:**
-- **Compute:** Compute Engine, Disks, Cloud Run
-- **Networking:** VPC, Firewall, Routes, Routers, Cloud Armor, Cloud DNS
+**GCP (100+ events across 12+ services) - v0.5.0+:**
+- **Compute:** Compute Engine, Disks
+- **Networking:** VPC, Firewall, Routes, Routers
 - **Storage:** Cloud Storage
-- **Databases:** Cloud SQL, Spanner, Datastore, Cloud Firestore
+- **Databases:** Cloud SQL
 - **Security:** IAM, KMS, Secret Manager
-- **Containers:** GKE
+- **Containers:** GKE, Cloud Run
 - **Serverless:** Cloud Functions
-- **Data & Analytics:** BigQuery, Pub/Sub, Dataproc, Monitoring, Logging
-- **DevOps:** Cloud Build, Artifact Registry
-- **Caching:** Cloud Memorystore (Redis)
+- **Data & Analytics:** BigQuery, Pub/Sub
 
 [View Full GCP Coverage →](services/gcp/index.md)
 
@@ -137,49 +128,6 @@ EC2 Instance Type Changed
 - User: admin@example.com
 - Time: 2025-12-06 07:30:00 UTC
 ```
-
----
-
-## Dashboard UI & API Server (v0.6.0+)
-
-### React Dashboard
-
-A modern web-based dashboard for real-time drift monitoring and visualization.
-
-**Features:**
-- **Real-time Event Stream** - Live feed of detected drift events with auto-refresh
-- **Topology Graph** - Interactive visualization of drift relationships and causality
-- **Drift Details Panel** - Deep dive into individual events with change history
-- **Statistics Dashboard** - Service-level metrics and time-series analytics
-- **Dark/Light Theme** - Flexible UI theming
-- **Graph Export** - Download visualizations (PNG, SVG) and data (JSON)
-- **API Integration** - Real-time WebSocket/SSE connectivity
-
-**Access Dashboard:**
-```
-http://localhost:3000
-```
-
-### REST API Server
-
-Provides programmatic access to drift detection data with real-time streaming capabilities.
-
-**Features:**
-- **REST Endpoints** - Query graph, events, drifts, and statistics
-- **WebSocket Streaming** - Real-time drift alerts via persistent connection
-- **Server-Sent Events** - Real-time updates without WebSocket
-- **Graph Query API** - Filter and search drift relationships
-- **Event Management** - Create, update, and query events
-
-**Access API:**
-```
-REST API:   http://localhost:8080/api/v1
-WebSocket:  ws://localhost:8080/ws
-SSE Stream: http://localhost:8080/api/v1/stream
-Health:     http://localhost:8080/health
-```
-
-See [REST API Documentation →](api/rest-api.md) and [WebSocket Documentation →](api/websocket.md)
 
 ---
 
