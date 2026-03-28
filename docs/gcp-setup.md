@@ -3029,7 +3029,7 @@ curl http://localhost:8080/health
 # Expected response:
 {
   "status": "healthy",
-  "version": "v0.8.0",
+  "version": "v0.9.0",
   "uptime_seconds": 3600,
   "last_event_received": "2025-12-17T10:30:45Z",
   "falco_connection": "connected",

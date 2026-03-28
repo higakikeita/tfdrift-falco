@@ -278,7 +278,7 @@ To upgrade TFDrift-Falco version:
 module "tfdrift_falco" {
   # ...
 
-  tfdrift_version = "0.6.0"  # Update version
+  tfdrift_version = "0.9.0"  # Update version
 }
 ```
 

@@ -66,7 +66,7 @@ curl -s http://localhost:8080/health | jq .
 # Expected response
 {
   "status": "healthy",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "timestamp": "2026-03-22T10:00:00Z"
 }
 ```
