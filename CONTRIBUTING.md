@@ -155,7 +155,7 @@ What actually happened.
 **Environment**
 - OS: [e.g. Ubuntu 22.04]
 - Go Version: [e.g. 1.24]
-- TFDrift-Falco Version: [e.g. 0.5.0]
+- TFDrift-Falco Version: [e.g. 0.9.0]
 - Cloud Provider: [e.g. AWS, GCP, or both]
 - Terraform Version: [e.g. 1.6.0]
 

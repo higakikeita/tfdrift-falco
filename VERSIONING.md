@@ -110,40 +110,43 @@ The project will reach 1.0.0 when all of the following are met:
 | 10 | `docs/overview.md` | ヘッダーの Version / Providers / Status 行 |
 | 11 | `docs/release-notes/vX.Y.Z.md` | **新規作成**。過去のリリースノートをテンプレートとして使う |
 | 12 | `PROJECT_ROADMAP.md` | Current version セクション |
-| 13 | `CONTRIBUTING.md` | Versioning セクション（ルール変更時のみ） |
+| 13 | `CONTRIBUTING.md` | Bug report テンプレート内のバージョン例 |
+| 14 | `docs/services/gcp/index.md` | フッターの **Version** |
+| 15 | `docs/services/gcp/compute-engine.md` | フッターの **Version** |
+| 16 | `terraform/aws/README.md` | `tfdrift_version` の例（2箇所） |
 
 ### 4. API Specification
 
 | # | File | What to update |
 |---|------|----------------|
-| 14 | `docs/api/openapi.yaml` | `info.version` フィールド |
-| 15 | `pkg/api/handlers/openapi.yaml` | `info.version` フィールド（埋め込み用コピー） |
+| 17 | `docs/api/openapi.yaml` | `info.version` フィールド |
+| 18 | `pkg/api/handlers/openapi.yaml` | `info.version` フィールド（埋め込み用コピー） |
 
 ### 5. Helm Chart（Kubernetes）
 
 | # | File | What to update |
 |---|------|----------------|
-| 16 | `charts/tfdrift-falco/Chart.yaml` | `appVersion` フィールド。`version`（Chart自体）も必要に応じて |
+| 19 | `charts/tfdrift-falco/Chart.yaml` | `appVersion` フィールド。`version`（Chart自体）も必要に応じて |
 
 ### 6. Website（Next.js — `website/` ディレクトリ）
 
 | # | File | What to update |
 |---|------|----------------|
-| 17 | `website/app/page.tsx` | リリースバナー文言（L45付近）、`StatCard` の `number` prop（L114付近） |
-| 18 | `website/content/blog/` | **新規作成**: `vXYZ-<slug>.mdx`（MINOR以上で推奨） |
+| 20 | `website/app/page.tsx` | リリースバナー文言（L45付近）、`StatCard` の `number` prop（L114付近） |
+| 21 | `website/content/blog/` | **新規作成**: `vXYZ-<slug>.mdx`（MINOR以上で推奨） |
 
 ### 7. UI（React/Vite — `ui/` ディレクトリ）
 
 | # | File | What to update |
 |---|------|----------------|
-| 19 | `ui/package.json` | `"version"` フィールド |
-| 20 | `ui/README.md` | version badge (`version-X.Y.Z-blue`) |
+| 22 | `ui/package.json` | `"version"` フィールド |
+| 23 | `ui/README.md` | version badge (`version-X.Y.Z-blue`) |
 
 ### 8. Documentation Build（MkDocs）
 
 | # | File | What to update |
 |---|------|----------------|
-| 21 | `mkdocs.yml` | `extra.project_version` の値（末尾付近）。ドキュメントサイト全体のバージョン表示に使われる |
+| 24 | `mkdocs.yml` | `extra.project_version` の値（末尾付近）。ドキュメントサイト全体のバージョン表示に使われる |
 
 ### 9. 更新不要なもの
 

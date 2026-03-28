@@ -77,7 +77,7 @@ module "tfdrift_falco" {
 
   # Container Versions
   falco_version   = "0.37.1"
-  tfdrift_version = "0.5.0"
+  tfdrift_version = "0.9.0"
 
   # Notification Configuration
   slack_webhook_secret_arn = aws_secretsmanager_secret.slack_webhook.arn

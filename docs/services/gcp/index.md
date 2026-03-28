@@ -262,4 +262,4 @@ drift_rules:
 ---
 
 **Last Updated:** 2026-03-22
-**Version:** v0.8.0
+**Version:** v0.9.0

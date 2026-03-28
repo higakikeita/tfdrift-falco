@@ -1096,6 +1096,6 @@ graph TB
 
 ---
 
-**Document Version:** 1.1 (v0.5.0 Multi-Cloud Update)
+**Document Version:** 1.2 (v0.9.0 Azure Full Support Update)
 **Last Updated:** 2025-01-18
 **Maintainer:** Keita Higaki
