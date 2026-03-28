@@ -1,8 +1,8 @@
-.PHONY: build test clean install lint fmt help setup-hooks demo
+.PHONY: build test clean install lint fmt help
 
 # Variables
 BINARY_NAME=tfdrift
-VERSION?=0.1.0
+VERSION?=0.9.0
 BUILD_DIR=./bin
 GO=go
 GOFLAGS=-v
@@ -122,37 +122,6 @@ docker-run:
 	@echo "Running Docker container..."
 	docker run --rm -v $(PWD)/config.yaml:/config.yaml tfdrift-falco:latest --config /config.yaml
 
-## demo: Launch demo stack with sample data (no cloud credentials needed)
-demo:
-	@echo ""
-	@echo "  ╔══════════════════════════════════════════╗"
-	@echo "  ║   TFDrift-Falco Demo                     ║"
-	@echo "  ║   Real-time Terraform Drift Detection     ║"
-	@echo "  ╚══════════════════════════════════════════╝"
-	@echo ""
-	@echo "Starting demo environment..."
-	@mkdir -p .demo
-	@cp config.yaml.example .demo/config.yaml 2>/dev/null || true
-	docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d --build
-	@echo ""
-	@echo "  ✅ Demo is running!"
-	@echo ""
-	@echo "  📊 Dashboard:  http://localhost:3000"
-	@echo "  🔌 API:        http://localhost:8080/api/v1"
-	@echo "  📡 SSE Stream: http://localhost:8080/api/v1/stream"
-	@echo "  📖 API Docs:   http://localhost:8080/api/docs"
-	@echo "  ❤️  Health:     http://localhost:8080/health"
-	@echo ""
-	@echo "  Run 'make demo-stop' to tear down."
-	@echo ""
-
-## demo-stop: Stop and clean up demo environment
-demo-stop:
-	@echo "Stopping demo environment..."
-	docker compose -f docker-compose.yml -f docker-compose.demo.yml down -v
-	rm -rf .demo
-	@echo "Demo environment cleaned up."
-
 ## quick-start: Run quick start setup script
 quick-start:
 	@echo "Running TFDrift-Falco Quick Start..."
@@ -214,14 +183,6 @@ run-dry: build
 	@echo "Running $(BINARY_NAME) in dry-run mode..."
 	$(BUILD_DIR)/$(BINARY_NAME) --config examples/config.yaml --dry-run
 
-## setup-hooks: Install pre-commit hooks
-setup-hooks:
-	@echo "Installing pre-commit hooks..."
-	@which pre-commit > /dev/null || (echo "pre-commit not installed. Run: pip install pre-commit" && exit 1)
-	pre-commit install
-	pre-commit install --hook-type commit-msg
-	@echo "Pre-commit hooks installed!"
-
 ## init: Initialize development environment
 init:
 	@echo "Initializing development environment..."
@@ -229,8 +190,6 @@ init:
 	@echo "Installing development tools..."
 	$(GO) install golang.org/x/tools/cmd/goimports@latest
 	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	@echo "Setting up pre-commit hooks (if pre-commit is available)..."
-	@which pre-commit > /dev/null && $(MAKE) setup-hooks || echo "pre-commit not found, skipping hooks setup"
 	@echo "Development environment ready!"
 
 ## check: Run all checks (fmt, lint, test)
