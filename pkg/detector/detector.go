@@ -10,6 +10,7 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/falco"
 	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
 	"github.com/keitahigaki/tfdrift-falco/pkg/notifier"
+	"github.com/keitahigaki/tfdrift-falco/pkg/policy"
 	"github.com/keitahigaki/tfdrift-falco/pkg/provider"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
@@ -29,6 +30,7 @@ type Detector struct {
 	approvalManager   *terraform.ApprovalManager
 	broadcaster       *broadcaster.Broadcaster
 	graphStore        *graph.Store
+	policyEngine      *policy.Engine
 	eventCh           chan types.Event
 	wg                sync.WaitGroup
 }
@@ -135,6 +137,18 @@ func New(cfg *config.Config) (*Detector, error) {
 		}
 	}
 
+	// Initialize policy engine
+	var policyEngine *policy.Engine
+	if cfg.Policy.Enabled {
+		policyEngine = policy.NewEngine()
+		if cfg.Policy.PolicyDir != "" {
+			if err := policyEngine.LoadDir(cfg.Policy.PolicyDir); err != nil {
+				return nil, fmt.Errorf("failed to load policy files: %w", err)
+			}
+			log.Infof("Policy engine loaded %d module(s) from %s", policyEngine.ModuleCount(), cfg.Policy.PolicyDir)
+		}
+	}
+
 	log.Infof("Initialized %d cloud provider(s): %v", registry.Count(), registry.Names())
 
 	return &Detector{
@@ -147,6 +161,7 @@ func New(cfg *config.Config) (*Detector, error) {
 		formatter:        formatter,
 		importer:         importer,
 		approvalManager:  approvalManager,
+		policyEngine:     policyEngine,
 		eventCh:          make(chan types.Event, 100),
 	}, nil
 }
@@ -174,6 +189,16 @@ func (d *Detector) SetBroadcaster(bc *broadcaster.Broadcaster) {
 // GetBroadcaster returns the broadcaster
 func (d *Detector) GetBroadcaster() *broadcaster.Broadcaster {
 	return d.broadcaster
+}
+
+// GetPolicyEngine returns the policy engine
+func (d *Detector) GetPolicyEngine() *policy.Engine {
+	return d.policyEngine
+}
+
+// SetPolicyEngine sets the policy engine for drift evaluation
+func (d *Detector) SetPolicyEngine(pe *policy.Engine) {
+	d.policyEngine = pe
 }
 
 // SetGraphStore sets the graph store for drift visualization

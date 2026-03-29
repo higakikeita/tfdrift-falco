@@ -20,6 +20,7 @@ type Config struct {
 	Telemetry     TelemetryConfig     `yaml:"telemetry"`
 	Remediation   RemediationConfig   `yaml:"remediation"`
 	GitHub        GitHubConfig        `yaml:"github"`
+	Policy        PolicyConfig        `yaml:"policy"`
 	DryRun        bool                `yaml:"-"`
 }
 
@@ -169,6 +170,12 @@ type GitHubConfig struct {
 	Repo    string `yaml:"repo"`
 	Branch  string `yaml:"branch"`
 	Token   string `yaml:"token"`
+}
+
+// PolicyConfig contains OPA/Rego policy engine settings
+type PolicyConfig struct {
+	Enabled   bool   `yaml:"enabled"`
+	PolicyDir string `yaml:"policy_dir"` // Directory containing .rego files
 }
 
 // Load loads configuration from file
