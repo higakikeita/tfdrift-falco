@@ -104,6 +104,9 @@ func (h *HTTPServer) Start() {
 	mux.HandleFunc("/trigger-ec2-change", h.handleEC2Change)
 	mux.HandleFunc("/trigger-sg-change", h.handleSecurityGroupChange)
 	mux.HandleFunc("/trigger-s3-change", h.handleS3Change)
+	mux.HandleFunc("/trigger-azure-vm-change", h.handleAzureVMChange)
+	mux.HandleFunc("/trigger-azure-nsg-change", h.handleAzureNSGChange)
+	mux.HandleFunc("/trigger-azure-storage-change", h.handleAzureStorageChange)
 
 	addr := fmt.Sprintf(":%d", h.port)
 	log.Infof("Starting HTTP server on %s", addr)
@@ -280,6 +283,105 @@ func (h *HTTPServer) handleS3Change(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "S3 event sent"})
+}
+
+// handleAzureVMChange triggers an Azure Virtual Machine modification event
+func (h *HTTPServer) handleAzureVMChange(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	outputFields := map[string]interface{}{
+		"azure.operationName":    "Microsoft.Compute/virtualMachines/write",
+		"azure.resourceId":       "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfdrift-e2e-rg/providers/Microsoft.Compute/virtualMachines/tfdrift-test-vm",
+		"azure.subscriptionId":   "00000000-0000-0000-0000-000000000000",
+		"azure.resourceGroup":    "tfdrift-e2e-rg",
+		"azure.caller":           "testuser@example.com",
+		"azure.resourceLocation": "eastus",
+		"azure.status":           "Succeeded",
+		"azure.correlationId":    "e2e-test-correlation-001",
+	}
+
+	fields, _ := json.Marshal(outputFields)
+	event := &outputs.Response{
+		Rule:         "Azure VM Modified",
+		Priority:     "warning",
+		SourceName:   "azure_activity",
+		OutputFields: string(fields),
+		Time:         timestamppb.Now(),
+	}
+
+	h.falcoServer.PublishEvent(event)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "Azure VM event sent"})
+}
+
+// handleAzureNSGChange triggers an Azure Network Security Group modification event
+func (h *HTTPServer) handleAzureNSGChange(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	outputFields := map[string]interface{}{
+		"azure.operationName":    "Microsoft.Network/networkSecurityGroups/write",
+		"azure.resourceId":       "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfdrift-e2e-rg/providers/Microsoft.Network/networkSecurityGroups/tfdrift-test-nsg",
+		"azure.subscriptionId":   "00000000-0000-0000-0000-000000000000",
+		"azure.resourceGroup":    "tfdrift-e2e-rg",
+		"azure.caller":           "testuser@example.com",
+		"azure.resourceLocation": "eastus",
+		"azure.status":           "Succeeded",
+		"azure.correlationId":    "e2e-test-correlation-002",
+	}
+
+	fields, _ := json.Marshal(outputFields)
+	event := &outputs.Response{
+		Rule:         "Azure NSG Modified",
+		Priority:     "warning",
+		SourceName:   "azure_activity",
+		OutputFields: string(fields),
+		Time:         timestamppb.Now(),
+	}
+
+	h.falcoServer.PublishEvent(event)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "Azure NSG event sent"})
+}
+
+// handleAzureStorageChange triggers an Azure Storage Account modification event
+func (h *HTTPServer) handleAzureStorageChange(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	outputFields := map[string]interface{}{
+		"azure.operationName":    "Microsoft.Storage/storageAccounts/write",
+		"azure.resourceId":       "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfdrift-e2e-rg/providers/Microsoft.Storage/storageAccounts/tfdrifte2estorage",
+		"azure.subscriptionId":   "00000000-0000-0000-0000-000000000000",
+		"azure.resourceGroup":    "tfdrift-e2e-rg",
+		"azure.caller":           "testuser@example.com",
+		"azure.resourceLocation": "eastus",
+		"azure.status":           "Succeeded",
+		"azure.correlationId":    "e2e-test-correlation-003",
+	}
+
+	fields, _ := json.Marshal(outputFields)
+	event := &outputs.Response{
+		Rule:         "Azure Storage Modified",
+		Priority:     "warning",
+		SourceName:   "azure_activity",
+		OutputFields: string(fields),
+		Time:         timestamppb.Now(),
+	}
+
+	h.falcoServer.PublishEvent(event)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "Azure Storage event sent"})
 }
 
 func main() {

@@ -20,6 +20,7 @@ func TestParseFalcoOutput_MultiProvider(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, subscriber)
 	assert.NotNil(t, subscriber.gcpParser, "GCP parser should be initialized")
+	assert.NotNil(t, subscriber.azureParser, "Azure parser should be initialized")
 
 	tests := []struct {
 		name         string
@@ -60,6 +61,33 @@ func TestParseFalcoOutput_MultiProvider(t *testing.T) {
 			},
 			wantProvider: "gcp",
 			wantNil:      false,
+		},
+		{
+			name: "Azure Activity Log Event",
+			response: &outputs.Response{
+				Source: "azure_activity",
+				OutputFields: map[string]string{
+					"azure.operationName":    "Microsoft.Compute/virtualMachines/write",
+					"azure.resourceId":       "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.Compute/virtualMachines/test-vm",
+					"azure.subscriptionId":   "00000000-0000-0000-0000-000000000000",
+					"azure.resourceGroup":    "test-rg",
+					"azure.caller":           "user@example.com",
+					"azure.resourceLocation": "eastus",
+				},
+			},
+			wantProvider: "azure",
+			wantNil:      false,
+		},
+		{
+			name: "Azure Irrelevant Event",
+			response: &outputs.Response{
+				Source: "azure_activity",
+				OutputFields: map[string]string{
+					"azure.operationName": "Microsoft.Compute/virtualMachines/read",
+					"azure.resourceId":    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.Compute/virtualMachines/test-vm",
+				},
+			},
+			wantNil: true,
 		},
 		{
 			name: "Unknown Source",
