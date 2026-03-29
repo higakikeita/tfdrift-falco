@@ -3,14 +3,17 @@ package notifier
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/diff"
+	"github.com/keitahigaki/tfdrift-falco/pkg/telemetry"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Manager manages notification delivery
@@ -31,30 +34,45 @@ func NewManager(cfg config.NotificationsConfig) (*Manager, error) {
 
 // Send sends a drift alert to configured channels
 func (m *Manager) Send(alert *types.DriftAlert) error {
+	_, span := telemetry.StartSpan(context.Background(), "notifier.send",
+		trace.WithAttributes(
+			telemetry.AttrSeverity.String(alert.Severity),
+			telemetry.AttrResourceType.String(alert.ResourceType),
+			telemetry.AttrResourceID.String(alert.ResourceID),
+		),
+	)
+	defer span.End()
+
 	var errors []error
 
 	if m.cfg.Slack.Enabled {
+		span.AddEvent("sending_slack")
 		if err := m.sendSlack(alert); err != nil {
 			errors = append(errors, fmt.Errorf("slack: %w", err))
 		}
 	}
 
 	if m.cfg.Discord.Enabled {
+		span.AddEvent("sending_discord")
 		if err := m.sendDiscord(alert); err != nil {
 			errors = append(errors, fmt.Errorf("discord: %w", err))
 		}
 	}
 
 	if m.cfg.FalcoOutput.Enabled {
+		span.AddEvent("sending_falco_output")
 		if err := m.sendFalcoOutput(alert); err != nil {
 			errors = append(errors, fmt.Errorf("falco: %w", err))
 		}
 	}
 
 	if len(errors) > 0 {
-		return fmt.Errorf("notification errors: %v", errors)
+		err := fmt.Errorf("notification errors: %v", errors)
+		telemetry.RecordError(span, err)
+		return err
 	}
 
+	telemetry.SetOK(span)
 	return nil
 }
 

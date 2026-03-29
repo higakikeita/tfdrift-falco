@@ -17,7 +17,21 @@ type Config struct {
 	Notifications NotificationsConfig `yaml:"notifications"`
 	Logging       LoggingConfig       `yaml:"logging"`
 	AutoImport    AutoImportConfig    `yaml:"auto_import"`
+	Telemetry     TelemetryConfig     `yaml:"telemetry"`
 	DryRun        bool                `yaml:"-"`
+}
+
+// TelemetryConfig contains OpenTelemetry settings
+type TelemetryConfig struct {
+	Enabled        bool              `yaml:"enabled"`
+	ServiceName    string            `yaml:"service_name"`
+	ServiceVersion string            `yaml:"service_version"`
+	Environment    string            `yaml:"environment"`
+	TracesEndpoint string            `yaml:"traces_endpoint"`
+	MetricsEndpoint string           `yaml:"metrics_endpoint"`
+	SamplingRatio  float64           `yaml:"sampling_ratio"`
+	Insecure       bool              `yaml:"insecure"`
+	Attributes     map[string]string `yaml:"attributes"`
 }
 
 // ProvidersConfig contains cloud provider settings

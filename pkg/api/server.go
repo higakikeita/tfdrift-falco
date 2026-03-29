@@ -83,6 +83,7 @@ func (s *Server) setupRouter() {
 	// Middleware
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
+	r.Use(apimiddleware.OTelHTTP("tfdrift-falco-api"))
 	r.Use(apimiddleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(apimiddleware.NewCORS().Handler)

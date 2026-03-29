@@ -2,35 +2,67 @@ package detector
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/keitahigaki/tfdrift-falco/pkg/telemetry"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // handleEvent processes a single event
 func (d *Detector) handleEvent(event types.Event) {
+	ctx := context.Background()
+	ctx, span := telemetry.StartSpan(ctx, "detector.handle_event",
+		trace.WithAttributes(
+			telemetry.AttrProvider.String(event.Provider),
+			telemetry.AttrEventName.String(event.EventName),
+			telemetry.AttrResourceType.String(event.ResourceType),
+			telemetry.AttrResourceID.String(event.ResourceID),
+		),
+	)
+	defer span.End()
+
 	log.Debugf("Processing event: %s - %s", event.EventName, event.ResourceID)
 
 	// Look up resource in Terraform state
 	resource, exists := d.stateManager.GetResource(event.ResourceID)
 	if !exists {
+		span.AddEvent("unmanaged_resource", trace.WithAttributes(
+			attribute.String("resource_id", event.ResourceID),
+		))
 		log.Warnf("Resource %s not found in Terraform state (unmanaged resource)", event.ResourceID)
 		// Send alert for unmanaged resource
 		d.sendUnmanagedResourceAlert(&event)
 
 		// Handle auto-import if enabled
 		if d.cfg.AutoImport.Enabled && d.importer != nil && d.approvalManager != nil {
-			d.handleAutoImport(context.Background(), &event)
+			d.handleAutoImport(ctx, &event)
 		}
 		return
 	}
 
 	// Compare with state
+	_, detectSpan := telemetry.StartSpan(ctx, "detector.detect_drifts",
+		trace.WithAttributes(
+			telemetry.AttrResourceType.String(resource.Type),
+			telemetry.AttrResourceID.String(event.ResourceID),
+		),
+	)
 	drifts := d.detectDrifts(resource, event.Changes)
+	detectSpan.SetAttributes(attribute.Int("drift_count", len(drifts)))
+	detectSpan.End()
+
 	if len(drifts) == 0 {
 		log.Debugf("No drift detected for %s", event.ResourceID)
+		telemetry.SetOK(span)
 		return
 	}
+
+	span.AddEvent("drift_detected", trace.WithAttributes(
+		telemetry.AttrDriftCount.Int(len(drifts)),
+	))
 
 	// Evaluate rules
 	for _, drift := range drifts {
@@ -47,8 +79,9 @@ func (d *Detector) handleEvent(event types.Event) {
 			}
 		}
 
+		severity := d.getSeverity(matchedRules)
 		alert := &types.DriftAlert{
-			Severity:     d.getSeverity(matchedRules),
+			Severity:     severity,
 			ResourceType: resource.Type,
 			ResourceName: resource.Name,
 			ResourceID:   event.ResourceID,
@@ -60,6 +93,11 @@ func (d *Detector) handleEvent(event types.Event) {
 			Timestamp:    timestamp,
 			AlertType:    "drift", // Mark as drift alert
 		}
+
+		span.AddEvent("alert_sent", trace.WithAttributes(
+			telemetry.AttrSeverity.String(severity),
+			attribute.String("attribute", fmt.Sprintf("%v", drift.Attribute)),
+		))
 
 		d.sendAlert(alert)
 	}

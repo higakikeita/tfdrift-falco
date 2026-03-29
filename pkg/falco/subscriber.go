@@ -9,8 +9,10 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/azure"
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/gcp"
+	"github.com/keitahigaki/tfdrift-falco/pkg/telemetry"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -134,16 +136,33 @@ func (s *Subscriber) receiveMessages(ctx context.Context, stream outputs.Service
 				return fmt.Errorf("error receiving Falco output: %w", err)
 			}
 
+			// Trace: event receive + parse
+			parseCtx, span := telemetry.StartSpan(ctx, "falco.receive_and_parse",
+				trace.WithAttributes(
+					telemetry.AttrEventSource.String(res.Source),
+					telemetry.AttrEventName.String(res.Rule),
+				),
+			)
+
 			// Parse Falco output
 			event := s.parseFalcoOutput(res)
 			if event != nil {
+				span.SetAttributes(
+					telemetry.AttrProvider.String(event.Provider),
+					telemetry.AttrResourceType.String(event.ResourceType),
+					telemetry.AttrResourceID.String(event.ResourceID),
+				)
+				telemetry.SetOK(span)
+
 				select {
 				case eventCh <- *event:
 					log.Debugf("Sent Falco event to channel: %s", res.Rule)
-				case <-ctx.Done():
-					return ctx.Err()
+				case <-parseCtx.Done():
+					span.End()
+					return parseCtx.Err()
 				}
 			}
+			span.End()
 		}
 	}
 }
