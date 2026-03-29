@@ -34,14 +34,16 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install MkDocs dependencies
         run: |
-          pip install mkdocs-material mkdocs-minify-plugin
+          pip install "mkdocs>=1.6,<2" "mkdocs-material>=9.5,<10" mkdocs-minify-plugin
 
       - name: Build MkDocs site
         run: mkdocs build --site-dir ./site
+        env:
+          PYTHONDONTWRITEBYTECODE: 1
 
       # --- Storybook Build (optional — does not block docs deploy) ---
       - name: Set up Node.js
