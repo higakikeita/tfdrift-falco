@@ -122,7 +122,7 @@ Supports **170+ Audit Log events** across **27+ GCP services**:
 - Graph export capabilities (PNG, SVG, JSON)
 
 **Endpoints:**
-```
+```text
 REST API:   http://localhost:8080/api/v1
 WebSocket:  ws://localhost:8080/ws
 SSE Stream: http://localhost:8080/api/v1/stream
@@ -255,7 +255,7 @@ providers:
 
 ## Architecture
 
-```
+```text
 ┌─────────────┐
 │ AWS Console │ User makes manual change
 │   / CLI     │ (e.g., modify EC2 instance type)
