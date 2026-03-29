@@ -148,6 +148,12 @@ func (s *Server) setupRouter() {
 			r.Get("/discovery/scan", discoveryHandler.DiscoverAWSResources)
 			r.Get("/discovery/drift", discoveryHandler.DetectDrift)
 			r.Get("/discovery/drift/summary", discoveryHandler.GetDriftSummary)
+
+			// Provider status endpoints (multi-cloud monitoring)
+			providerStatusHandler := handlers.NewProviderStatusHandler(s.detector.GetProviderRegistry())
+			r.Get("/providers", providerStatusHandler.GetProviderStatus)
+			r.Get("/providers/status", providerStatusHandler.GetProviderStatus)
+			r.Get("/providers/summary", providerStatusHandler.GetProviderSummary)
 		})
 	})
 
