@@ -1,8 +1,8 @@
-# Quickstart Guide (v{{ config.extra.project_version }})
+# Quickstart Guide (v0.12.0)
 
 Get TFDrift-Falco up and running in 5 minutes with Dashboard UI.
 
-> **New in v{{ config.extra.project_version }}:** JWT Authentication, Rate Limiting, Helm Chart, Enterprise Dashboard, Operations Runbook
+> **New in v0.12.0:** JWT Authentication, Rate Limiting, Helm Chart, Enterprise Dashboard, Operations Runbook
 
 ---
 

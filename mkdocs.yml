@@ -188,10 +188,6 @@ plugins:
   - search:
       lang: en
       separator: '[\s\-\.]+'
-  - macros:
-      # Enables {{ project_version }} in all Markdown files
-      # Value comes from extra.project_version in this file
-      module_name: null
   - minify:
       minify_html: true
 
