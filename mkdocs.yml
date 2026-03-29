@@ -166,6 +166,10 @@ nav:
   # 7. Release Notes - Version History (newest first)
   # ==========================================
   - Release Notes:
+      - v0.12.0 (OPA/Rego, Auto-Remediation, OTel): release-notes/v0.12.0.md
+      - v0.11.0 (Cross-Cloud Correlation): release-notes/v0.11.0.md
+      - v0.10.0 (Testing Infrastructure): release-notes/v0.10.0.md
+      - v0.9.0 (Coverage & CI Gate): release-notes/v0.9.0.md
       - v0.7.0 (Dashboard & Azure): release-notes/v0.7.0.md
       - v0.6.0 (Service Expansion): release-notes/v0.6.0.md
       - v0.5.0 (Multi-Cloud): release-notes/v0.5.0.md
@@ -236,7 +240,7 @@ markdown_extensions:
 
 extra:
   # Single source of truth for version — used in docs via {{ config.extra.project_version }}
-  project_version: "0.9.0"
+  project_version: "0.12.0"
   version:
     provider: mike
     default: stable

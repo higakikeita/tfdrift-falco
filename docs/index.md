@@ -2,9 +2,9 @@
 
 Welcome to the official documentation for **TFDrift-Falco**, a real-time multi-cloud Terraform drift detection system with an integrated React Dashboard UI.
 
-> **Version:** v{{ config.extra.project_version }} | **Status:** Production Ready | **Providers:** AWS (40+ services) + GCP (27+ services)
+> **Version:** v{{ config.extra.project_version }} | **Status:** Production Ready | **Providers:** AWS (40+ services) + GCP (27+ services) + Azure
 >
-> **New in v0.8.0:** JWT Auth • Rate Limiting • Helm Chart • Operations Runbook • Enterprise Dashboard | **New in v0.6.1:** Unified Icon System • Why Falco? Page • Storybook at /storybook/ | **New in v0.6.0:** Dashboard UI • Expanded Service Coverage (500+ AWS events, 170+ GCP events) • REST API Server with WebSocket/SSE Streaming
+> **New in v0.12.0:** Policy-as-Code (OPA/Rego) • Drift Auto-Remediation (GitHub PR生成) • OpenTelemetry分散トレーシング | **New in v0.11.0:** クロスクラウド相関エンジン • Provider Status UI • Grafanaダッシュボード (Azure対応) | **New in v0.10.0:** E2Eテスト環境 • テストカバレッジ65%+ • CI Gate
 
 ---
 
@@ -12,14 +12,53 @@ Welcome to the official documentation for **TFDrift-Falco**, a real-time multi-c
 
 TFDrift-Falco detects when your cloud infrastructure changes outside of Terraform by:
 
-1. **Monitoring cloud audit logs** in real-time (AWS CloudTrail, GCP Audit Logs)
+1. **Monitoring cloud audit logs** in real-time (AWS CloudTrail, GCP Audit Logs, Azure Activity Log)
 2. **Comparing changes against Terraform state** (S3, GCS, or local)
-3. **Alerting via Falco** when drift is detected
-4. **Visualizing drift in Grafana** dashboards
+3. **Evaluating drift policies** via OPA/Rego (allow / alert / remediate / deny)
+4. **Auto-remediating** by generating Terraform code and GitHub PRs
+5. **Alerting via Falco** when drift is detected
+6. **Visualizing drift in Grafana** dashboards with cross-cloud correlation
 
 ---
 
 ## Key Features
+
+### 📜 Policy-as-Code with OPA/Rego (v0.12.0+)
+
+**Classify every drift with Rego policies:**
+
+- **Allow** — suppress false positives (Auto Scaling, ECS desired_count, tag-only changes)
+- **Alert** — default: notify via Slack/Discord/Falco
+- **Remediate** — auto-generate Terraform code and create GitHub PRs
+- **Deny** — escalate policy violations (IAM changes by unknown users, encryption disabled)
+
+Sample policies included for AWS and GCP. Custom policies can be added to the `policies/` directory.
+
+### 🔧 Drift Auto-Remediation (v0.12.0+)
+
+**Automatically propose fixes for detected drifts:**
+
+- Terraform HCL code generation for unmanaged resources
+- `terraform import` / `terraform plan` command generation
+- GitHub PR auto-creation via API
+- Real-time broadcast of remediation proposals via WebSocket/SSE
+
+### 🔭 OpenTelemetry Distributed Tracing (v0.12.0+)
+
+**Full observability across the drift detection pipeline:**
+
+- OTLP gRPC traces and metrics export
+- Span instrumentation for Falco subscriber, detector, notifier
+- W3C trace context propagation in HTTP middleware
+- Integration with Jaeger, Grafana Tempo, or any OTLP-compatible backend
+
+### 🌍 Cross-Cloud Drift Correlation (v0.11.0+)
+
+**Detect coordinated changes across AWS, GCP, and Azure:**
+
+- Correlation engine links related drifts across providers
+- Provider Status API with health monitoring
+- Grafana dashboards for unified multi-cloud visibility
 
 ### 🎨 Dashboard UI (v0.6.0+)
 
