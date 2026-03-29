@@ -173,6 +173,7 @@ jobs:
 
       - name: Commit baseline to repo
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
         run: |
           mkdir -p .github/benchmark-baselines
           cp tests/benchmark/baseline-${{ github.sha }}.txt .github/benchmark-baselines/latest.txt
@@ -182,5 +183,6 @@ jobs:
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add .github/benchmark-baselines/latest.txt
             git commit -m "chore: update benchmark baseline [skip ci]"
+            git pull --rebase origin main || true
             git push
           fi
