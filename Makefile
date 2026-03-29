@@ -51,32 +51,44 @@ install:
 	@echo "Installing $(BINARY_NAME)..."
 	$(GO) install $(LDFLAGS) ./cmd/tfdrift
 
-## test: Run tests
+## test: Run unit tests (excludes e2e/load)
 test:
 	@echo "Running tests..."
-	$(GO) test -v ./...
+	$(GO) test -v $$($(GO) list ./... | grep -v 'tests/e2e\|tests/load')
 
 ## test-coverage: Run tests with coverage report
 test-coverage:
 	@echo "Running tests with coverage..."
-	$(GO) test -cover -coverprofile=coverage.out ./...
+	$(GO) test -cover -coverprofile=coverage.out -covermode=atomic $$($(GO) list ./... | grep -v 'tests/e2e\|tests/load')
 	@$(GO) tool cover -func=coverage.out
 	@$(GO) tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 
-## test-coverage-threshold: Run tests and check coverage threshold
+## test-coverage-threshold: Run tests and enforce minimum coverage (60%)
 test-coverage-threshold:
 	@echo "Running tests with coverage threshold check..."
-	$(GO) test -coverprofile=coverage.out -covermode=atomic ./...
+	$(GO) test -coverprofile=coverage.out -covermode=atomic $$($(GO) list ./... | grep -v 'tests/e2e\|tests/load')
 	@COVERAGE=$$($(GO) tool cover -func=coverage.out | grep total | awk '{print $$3}' | sed 's/%//'); \
 	echo "Total coverage: $${COVERAGE}%"; \
-	THRESHOLD=30.0; \
+	THRESHOLD=60.0; \
 	if [ $$(echo "$${COVERAGE} < $${THRESHOLD}" | bc -l) -eq 1 ]; then \
 		echo "❌ Coverage $${COVERAGE}% is below threshold $${THRESHOLD}%"; \
 		exit 1; \
 	else \
 		echo "✅ Coverage $${COVERAGE}% meets threshold $${THRESHOLD}%"; \
 	fi
+
+## test-coverage-by-pkg: Show coverage breakdown per package
+test-coverage-by-pkg:
+	@echo "Running coverage analysis by package..."
+	@$(GO) test -coverprofile=coverage.out -covermode=atomic $$($(GO) list ./... | grep -v 'tests/e2e\|tests/load') 2>/dev/null
+	@echo ""
+	@echo "=== Package Coverage ==="
+	@$(GO) tool cover -func=coverage.out | grep -v "^total" | \
+		awk -F'\t+' '{split($$1,a,":"); pkg=a[1]; split($$NF,p,"%"); covered[pkg]+=p[1]; count[pkg]++} \
+		END {for(p in count) printf "%-70s %5.1f%% (%d funcs)\n", p, covered[p]/count[p], count[p]}' | sort
+	@echo ""
+	@$(GO) tool cover -func=coverage.out | grep "total:"
 
 ## test-race: Run tests with race detection
 test-race:

@@ -49,8 +49,13 @@ func (j *JSONOutput) Write(event *types.DriftEvent) error {
 	return nil
 }
 
-// Close closes the output (if the writer is closable)
+// Close closes the output (if the writer is closable).
+// Standard file descriptors (stdout/stderr) are never closed as they
+// are shared resources used by the Go runtime for coverage reporting.
 func (j *JSONOutput) Close() error {
+	if j.writer == os.Stdout || j.writer == os.Stderr {
+		return nil
+	}
 	if closer, ok := j.writer.(io.Closer); ok {
 		return closer.Close()
 	}
