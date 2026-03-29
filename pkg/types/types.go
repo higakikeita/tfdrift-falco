@@ -133,3 +133,30 @@ type UnmanagedResourceAlert struct {
 	Timestamp    string
 	Reason       string // Why it's considered unmanaged
 }
+
+// RemediationProposal represents a single remediation action
+type RemediationProposal struct {
+	ID              string                 `json:"id"`
+	AlertType       string                 `json:"alert_type"`       // "drift" or "unmanaged"
+	Provider        string                 `json:"provider"`
+	ResourceType    string                 `json:"resource_type"`
+	ResourceID      string                 `json:"resource_id"`
+	ResourceName    string                 `json:"resource_name"`
+	Severity        string                 `json:"severity"`
+	Description     string                 `json:"description"`
+	TerraformCode   string                 `json:"terraform_code"`   // Generated HCL
+	ImportCommand   string                 `json:"import_command"`   // terraform import command
+	PlanCommand     string                 `json:"plan_command"`     // terraform plan command
+	Status          string                 `json:"status"`           // pending/approved/rejected/applied
+	PRUrl           string                 `json:"pr_url,omitempty"`
+	PRNumber        int                    `json:"pr_number,omitempty"`
+	CreatedAt       string                 `json:"created_at"`
+	Attributes      map[string]interface{} `json:"attributes,omitempty"`
+}
+
+const (
+	RemediationPending  = "pending"
+	RemediationApproved = "approved"
+	RemediationRejected = "rejected"
+	RemediationApplied  = "applied"
+)

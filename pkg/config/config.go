@@ -18,6 +18,8 @@ type Config struct {
 	Logging       LoggingConfig       `yaml:"logging"`
 	AutoImport    AutoImportConfig    `yaml:"auto_import"`
 	Telemetry     TelemetryConfig     `yaml:"telemetry"`
+	Remediation   RemediationConfig   `yaml:"remediation"`
+	GitHub        GitHubConfig        `yaml:"github"`
 	DryRun        bool                `yaml:"-"`
 }
 
@@ -151,6 +153,22 @@ type AutoImportConfig struct {
 	OutputDir        string   `yaml:"output_dir"` // Where to save generated .tf files
 	AllowedResources []string `yaml:"allowed_resources"`
 	RequireApproval  bool     `yaml:"require_approval"`
+}
+
+// RemediationConfig contains remediation settings
+type RemediationConfig struct {
+	Enabled   bool `yaml:"enabled"`
+	CreatePRs bool `yaml:"create_prs"`
+	DryRun    bool `yaml:"dry_run"`
+}
+
+// GitHubConfig contains GitHub integration settings
+type GitHubConfig struct {
+	Enabled bool   `yaml:"enabled"`
+	Owner   string `yaml:"owner"`
+	Repo    string `yaml:"repo"`
+	Branch  string `yaml:"branch"`
+	Token   string `yaml:"token"`
 }
 
 // Load loads configuration from file

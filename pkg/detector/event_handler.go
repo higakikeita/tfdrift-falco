@@ -40,6 +40,9 @@ func (d *Detector) handleEvent(event types.Event) {
 		if d.cfg.AutoImport.Enabled && d.importer != nil && d.approvalManager != nil {
 			d.handleAutoImport(ctx, &event)
 		}
+
+		// Generate remediation proposal for unmanaged resource
+		d.handleUnmanagedRemediation(ctx, &event)
 		return
 	}
 
@@ -100,5 +103,8 @@ func (d *Detector) handleEvent(event types.Event) {
 		))
 
 		d.sendAlert(alert)
+
+		// Generate remediation proposal for drift
+		d.handleRemediation(ctx, alert)
 	}
 }
