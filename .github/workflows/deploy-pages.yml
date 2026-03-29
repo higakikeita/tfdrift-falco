@@ -38,7 +38,7 @@ jobs:
 
       - name: Install MkDocs dependencies
         run: |
-          pip install "mkdocs>=1.6,<2" "mkdocs-material>=9.5,<10" mkdocs-minify-plugin
+          pip install "mkdocs>=1.6,<2" "mkdocs-material>=9.5,<10" "pygments>=2.16,<2.20" mkdocs-minify-plugin
 
       - name: Build MkDocs site
         run: mkdocs build --site-dir ./site
