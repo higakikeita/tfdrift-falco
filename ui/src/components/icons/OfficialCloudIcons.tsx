@@ -12,7 +12,7 @@ import {
   ArchitectureServiceAWSLambda,
   ArchitectureServiceAmazonEC2,
   ArchitectureServiceAmazonElasticContainerService,
-  ArchitectureServiceAmazonEKSCloud,
+  ArchitectureServiceAmazonEKSAnywhere,
 
   // AWS Storage Icons
   ResourceAmazonSimpleStorageServiceBucket,
@@ -69,8 +69,8 @@ const AWS_ICON_MAPPING: Record<string, AWSIconComponent> = {
   'aws_ecs_service': ArchitectureServiceAmazonElasticContainerService,
   'aws_ecs_cluster': ArchitectureServiceAmazonElasticContainerService,
   'aws_ecs_task_definition': ArchitectureServiceAmazonElasticContainerService,
-  'aws_eks_cluster': ArchitectureServiceAmazonEKSCloud,
-  'aws_eks_node_group': ArchitectureServiceAmazonEKSCloud,
+  'aws_eks_cluster': ArchitectureServiceAmazonEKSAnywhere,
+  'aws_eks_node_group': ArchitectureServiceAmazonEKSAnywhere,
 
   // Storage
   'aws_s3_bucket': ResourceAmazonSimpleStorageServiceBucket,

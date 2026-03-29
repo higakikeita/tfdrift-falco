@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom/vitest';
 
 // localStorage / sessionStorage mock
 // zustand persist と WelcomeModal テスト用
