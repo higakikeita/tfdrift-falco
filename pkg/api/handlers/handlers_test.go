@@ -9,6 +9,7 @@ import (
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
 	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
+	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
 	"github.com/keitahigaki/tfdrift-falco/pkg/provider"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
@@ -872,5 +873,577 @@ func TestMatchRate(t *testing.T) {
 		if result != tt.expected {
 			t.Errorf("matchRate(%d, %d) = %f, want %f", tt.total, tt.matched, result, tt.expected)
 		}
+	}
+}
+
+// ===== HealthHandler Tests =====
+
+func TestNewHealthHandler(t *testing.T) {
+	handler := NewHealthHandler("1.2.3")
+
+	if handler == nil {
+		t.Fatal("expected handler to be created, got nil")
+	}
+	if handler.version != "1.2.3" {
+		t.Errorf("expected version 1.2.3, got %s", handler.version)
+	}
+}
+
+func TestGetHealth(t *testing.T) {
+	handler := NewHealthHandler("2.0.0")
+
+	req := httptest.NewRequest("GET", "/health", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetHealth(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	if err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+
+	if !resp.Success {
+		t.Error("expected success to be true")
+	}
+
+	// Check response data structure
+	data, ok := resp.Data.(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected Data to be a map, got %T", resp.Data)
+	}
+
+	if status, ok := data["status"].(string); !ok || status != "ok" {
+		t.Errorf("expected status 'ok', got %v", data["status"])
+	}
+
+	if version, ok := data["version"].(string); !ok || version != "2.0.0" {
+		t.Errorf("expected version '2.0.0', got %v", data["version"])
+	}
+
+	if _, ok := data["timestamp"]; !ok {
+		t.Error("expected 'timestamp' key in response data")
+	}
+
+	if contentType := w.Header().Get("Content-Type"); contentType != "application/json" {
+		t.Errorf("expected Content-Type application/json, got %s", contentType)
+	}
+}
+
+// ===== StatsHandler Tests =====
+
+func TestNewStatsHandler(t *testing.T) {
+	store := graph.NewStore()
+	handler := NewStatsHandler(store)
+
+	if handler == nil {
+		t.Fatal("expected handler to be created, got nil")
+	}
+	if handler.store != store {
+		t.Fatal("expected store to be set correctly")
+	}
+}
+
+func TestGetStats_Empty(t *testing.T) {
+	store := graph.NewStore()
+	handler := NewStatsHandler(store)
+
+	req := httptest.NewRequest("GET", "/api/v1/stats", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetStats(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	if err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+
+	if !resp.Success {
+		t.Error("expected success to be true")
+	}
+
+	stats, ok := resp.Data.(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected Data to be a map, got %T", resp.Data)
+	}
+
+	// Verify expected keys
+	expectedKeys := []string{"graph", "drifts", "events", "unmanaged", "severity_breakdown", "top_resource_types"}
+	for _, key := range expectedKeys {
+		if _, ok := stats[key]; !ok {
+			t.Errorf("expected stats to contain key %q", key)
+		}
+	}
+}
+
+func TestGetStats_WithData(t *testing.T) {
+	store := graph.NewStore()
+
+	// Add some test data
+	drift := types.DriftAlert{
+		ResourceID:   "i-123",
+		Severity:     "high",
+		ResourceType: "aws_instance",
+		Timestamp:    time.Now().Format(time.RFC3339),
+	}
+	store.AddDrift(drift)
+
+	handler := NewStatsHandler(store)
+
+	req := httptest.NewRequest("GET", "/api/v1/stats", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetStats(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	if err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+
+	if !resp.Success {
+		t.Error("expected success to be true")
+	}
+}
+
+// ===== EventsHandler Tests =====
+
+func TestNewEventsHandler(t *testing.T) {
+	store := graph.NewStore()
+	handler := NewEventsHandler(store)
+
+	if handler == nil {
+		t.Fatal("expected handler to be created, got nil")
+	}
+	if handler.store != store {
+		t.Fatal("expected store to be set correctly")
+	}
+}
+
+func TestGetEvents_Empty(t *testing.T) {
+	store := graph.NewStore()
+	handler := NewEventsHandler(store)
+
+	req := httptest.NewRequest("GET", "/api/v1/events", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetEvents(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	if err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+
+	if !resp.Success {
+		t.Error("expected success to be true")
+	}
+
+	data, ok := resp.Data.(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected Data to be a map, got %T", resp.Data)
+	}
+
+	if total, ok := data["total"].(float64); !ok || total != 0 {
+		t.Errorf("expected total to be 0, got %v", data["total"])
+	}
+}
+
+func TestGetEvents_WithData(t *testing.T) {
+	store := graph.NewStore()
+
+	event := types.Event{
+		Provider:     "aws",
+		EventName:    "PutObject",
+		ResourceType: "aws_instance",
+		ResourceID:   "i-123",
+		Changes:      make(map[string]interface{}),
+	}
+	store.AddEvent(event)
+
+	handler := NewEventsHandler(store)
+
+	req := httptest.NewRequest("GET", "/api/v1/events", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetEvents(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	if err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+
+	if !resp.Success {
+		t.Error("expected success to be true")
+	}
+}
+
+
+// ===== DriftsHandler Tests =====
+
+func TestNewDriftsHandler(t *testing.T) {
+	store := graph.NewStore()
+	handler := NewDriftsHandler(store)
+
+	if handler == nil {
+		t.Fatal("expected handler to be created, got nil")
+	}
+	if handler.store != store {
+		t.Fatal("expected store to be set correctly")
+	}
+}
+
+func TestGetDrifts_Empty(t *testing.T) {
+	store := graph.NewStore()
+	handler := NewDriftsHandler(store)
+
+	req := httptest.NewRequest("GET", "/api/v1/drifts", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetDrifts(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	if err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+
+	if !resp.Success {
+		t.Error("expected success to be true")
+	}
+
+	data, ok := resp.Data.(map[string]interface{})
+	if !ok {
+		t.Fatalf("expected Data to be a map, got %T", resp.Data)
+	}
+
+	if total, ok := data["total"].(float64); !ok || total != 0 {
+		t.Errorf("expected total to be 0, got %v", data["total"])
+	}
+}
+
+func TestGetDrifts_WithData(t *testing.T) {
+	store := graph.NewStore()
+
+	drift := types.DriftAlert{
+		ResourceID:   "i-123",
+		Severity:     "high",
+		ResourceType: "aws_instance",
+		Timestamp:    time.Now().Format(time.RFC3339),
+	}
+	store.AddDrift(drift)
+
+	handler := NewDriftsHandler(store)
+
+	req := httptest.NewRequest("GET", "/api/v1/drifts", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetDrifts(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	if err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+
+	data := resp.Data.(map[string]interface{})
+	if total, ok := data["total"].(float64); !ok || total != 1 {
+		t.Errorf("expected total to be 1, got %v", data["total"])
+	}
+}
+
+func TestGetDrifts_WithFilters(t *testing.T) {
+	store := graph.NewStore()
+
+	drift1 := types.DriftAlert{
+		ResourceID:   "i-123",
+		Severity:     "high",
+		ResourceType: "aws_instance",
+		Timestamp:    time.Now().Format(time.RFC3339),
+	}
+	drift2 := types.DriftAlert{
+		ResourceID:   "vol-456",
+		Severity:     "low",
+		ResourceType: "aws_ebs_volume",
+		Timestamp:    time.Now().Format(time.RFC3339),
+	}
+	store.AddDrift(drift1)
+	store.AddDrift(drift2)
+
+	handler := NewDriftsHandler(store)
+
+	// Test severity filter
+	req := httptest.NewRequest("GET", "/api/v1/drifts?severity=high", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetDrifts(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	json.Unmarshal(w.Body.Bytes(), &resp)
+
+	data := resp.Data.(map[string]interface{})
+	if total, ok := data["total"].(float64); !ok || total != 1 {
+		t.Errorf("expected total to be 1 after filter, got %v", data["total"])
+	}
+}
+
+// ===== ProvidersHandler Tests =====
+
+func TestNewProvidersHandler(t *testing.T) {
+	registry := provider.NewRegistry()
+	handler := NewProvidersHandler(registry)
+
+	if handler == nil {
+		t.Fatal("expected handler to be created, got nil")
+	}
+	if handler.registry != registry {
+		t.Fatal("expected registry to be set correctly")
+	}
+}
+
+func TestGetProviders_Empty(t *testing.T) {
+	registry := provider.NewRegistry()
+	handler := NewProvidersHandler(registry)
+
+	req := httptest.NewRequest("GET", "/api/v1/providers", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetProviders(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	if err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+
+	if !resp.Success {
+		t.Error("expected success to be true")
+	}
+
+	data := resp.Data.(map[string]interface{})
+	if count, ok := data["count"].(float64); !ok || count != 0 {
+		t.Errorf("expected count to be 0, got %v", data["count"])
+	}
+}
+
+func TestGetProviders_WithProviders(t *testing.T) {
+	registry := provider.NewRegistry()
+	registry.Register(&MockProvider{name: "aws"})
+	registry.Register(&MockProvider{name: "gcp"})
+
+	handler := NewProvidersHandler(registry)
+
+	req := httptest.NewRequest("GET", "/api/v1/providers", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetProviders(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	json.Unmarshal(w.Body.Bytes(), &resp)
+
+	data := resp.Data.(map[string]interface{})
+	if count, ok := data["count"].(float64); !ok || count != 2 {
+		t.Errorf("expected count to be 2, got %v", data["count"])
+	}
+}
+
+func TestGetProviderCapabilities_Success(t *testing.T) {
+	registry := provider.NewRegistry()
+	registry.Register(&MockProvider{name: "aws"})
+
+	handler := NewProvidersHandler(registry)
+
+	req := httptest.NewRequest("GET", "/api/v1/providers/capabilities?name=aws", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetProviderCapabilities(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	json.Unmarshal(w.Body.Bytes(), &resp)
+
+	if !resp.Success {
+		t.Error("expected success to be true")
+	}
+}
+
+func TestGetProviderCapabilities_NotFound(t *testing.T) {
+	registry := provider.NewRegistry()
+	handler := NewProvidersHandler(registry)
+
+	req := httptest.NewRequest("GET", "/api/v1/providers/capabilities?name=nonexistent", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetProviderCapabilities(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("expected status %d, got %d", http.StatusNotFound, w.Code)
+	}
+}
+
+func TestGetProviderCapabilities_MissingName(t *testing.T) {
+	registry := provider.NewRegistry()
+	handler := NewProvidersHandler(registry)
+
+	req := httptest.NewRequest("GET", "/api/v1/providers/capabilities", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetProviderCapabilities(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected status %d, got %d", http.StatusBadRequest, w.Code)
+	}
+}
+
+// ===== GraphHandler Tests =====
+
+func TestNewGraphHandler(t *testing.T) {
+	store := graph.NewStore()
+	handler := NewGraphHandler(store)
+
+	if handler == nil {
+		t.Fatal("expected handler to be created, got nil")
+	}
+	if handler.store != store {
+		t.Fatal("expected store to be set correctly")
+	}
+}
+
+func TestGetGraph_Empty(t *testing.T) {
+	store := graph.NewStore()
+	handler := NewGraphHandler(store)
+
+	req := httptest.NewRequest("GET", "/api/v1/graph", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetGraph(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	json.Unmarshal(w.Body.Bytes(), &resp)
+
+	if !resp.Success {
+		t.Error("expected success to be true")
+	}
+}
+
+func TestGetNodes_Empty(t *testing.T) {
+	store := graph.NewStore()
+	handler := NewGraphHandler(store)
+
+	req := httptest.NewRequest("GET", "/api/v1/graph/nodes", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetNodes(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	json.Unmarshal(w.Body.Bytes(), &resp)
+
+	data := resp.Data.(map[string]interface{})
+	if total, ok := data["total"].(float64); !ok || total != 0 {
+		t.Errorf("expected total to be 0, got %v", data["total"])
+	}
+}
+
+func TestGetEdges_Empty(t *testing.T) {
+	store := graph.NewStore()
+	handler := NewGraphHandler(store)
+
+	req := httptest.NewRequest("GET", "/api/v1/graph/edges", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetEdges(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var resp models.APIResponse
+	json.Unmarshal(w.Body.Bytes(), &resp)
+
+	data := resp.Data.(map[string]interface{})
+	if total, ok := data["total"].(float64); !ok || total != 0 {
+		t.Errorf("expected total to be 0, got %v", data["total"])
+	}
+}
+
+// ===== GraphQueryHandler Tests =====
+
+func TestNewGraphQueryHandler(t *testing.T) {
+	store := graph.NewStore()
+	handler := NewGraphQueryHandler(store)
+
+	if handler == nil {
+		t.Fatal("expected handler to be created, got nil")
+	}
+	if handler.graphStore != store {
+		t.Fatal("expected graphStore to be set correctly")
+	}
+}
+
+
+func TestGetNodesByLabel_Missing(t *testing.T) {
+	store := graph.NewStore()
+	handler := NewGraphQueryHandler(store)
+
+	req := httptest.NewRequest("GET", "/api/v1/graph/nodes", nil)
+	w := httptest.NewRecorder()
+
+	handler.GetNodesByLabel(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected status %d, got %d", http.StatusBadRequest, w.Code)
 	}
 }
