@@ -43,7 +43,7 @@ jobs:
       - name: Build MkDocs site
         run: mkdocs build --site-dir ./site
 
-      # --- Storybook Build ---
+      # --- Storybook Build (optional — does not block docs deploy) ---
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -54,10 +54,12 @@ jobs:
       - name: Install UI dependencies
         working-directory: ui
         run: npm install
+        continue-on-error: true
 
       - name: Build Storybook
         working-directory: ui
         run: npm run build-storybook -- --output-dir ../site/storybook
+        continue-on-error: true
 
       # --- Deploy ---
       - name: Setup Pages
