@@ -63,3 +63,4 @@ var RoleHierarchy = map[Role]int{
 	RoleEditor: 1,
 	RoleAdmin:  2,
 }
+
