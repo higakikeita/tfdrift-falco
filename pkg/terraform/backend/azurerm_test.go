@@ -522,3 +522,355 @@ func TestAzureRMBackend_Load_UnmarshalErrorInResponse(t *testing.T) {
 	assert.Nil(t, data)
 	assert.Contains(t, err.Error(), "401")
 }
+
+// TestAzureRMBackend_Load_Forbidden tests 403 Forbidden responses
+func TestAzureRMBackend_Load_Forbidden(t *testing.T) {
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusForbidden,
+				Body:       `{"error": "access denied"}`,
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	data, err := b.Load(ctx)
+	assert.Error(t, err)
+	assert.Nil(t, data)
+	assert.Contains(t, err.Error(), "403")
+}
+
+// TestAzureRMBackend_Load_BadGateway tests 502 Bad Gateway responses
+func TestAzureRMBackend_Load_BadGateway(t *testing.T) {
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusBadGateway,
+				Body:       `{"error": "bad gateway"}`,
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	data, err := b.Load(ctx)
+	assert.Error(t, err)
+	assert.Nil(t, data)
+	assert.Contains(t, err.Error(), "502")
+}
+
+// TestAzureRMBackend_Load_ServiceUnavailable tests 503 Service Unavailable responses
+func TestAzureRMBackend_Load_ServiceUnavailable(t *testing.T) {
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusServiceUnavailable,
+				Body:       `{"error": "service unavailable"}`,
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	data, err := b.Load(ctx)
+	assert.Error(t, err)
+	assert.Nil(t, data)
+	assert.Contains(t, err.Error(), "503")
+}
+
+// TestAzureRMBackend_Load_WithSASToken tests loading with SAS token auth
+func TestAzureRMBackend_Load_WithSASToken(t *testing.T) {
+	stateContent := `{"version": 4, "resources": []}`
+
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		sasToken:           "sv=2020-10-02&sig=abc123",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusOK,
+				Body:       stateContent,
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	data, err := b.Load(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+	assert.Equal(t, []byte(stateContent), data)
+
+	// Verify SAS token is present in URL
+	url := b.buildBlobURL()
+	assert.Contains(t, url, "sv=2020-10-02&sig=abc123")
+}
+
+// TestAzureRMBackend_Load_LargeResponse tests handling large state files
+func TestAzureRMBackend_Load_LargeResponse(t *testing.T) {
+	// Create a large state file
+	largeBody := `{"version": 4, "resources": [` +
+		strings.Repeat(`{"id":"resource","name":"name"},`, 5000) +
+		`]}`
+
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusOK,
+				Body:       largeBody,
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	data, err := b.Load(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+	assert.Greater(t, len(data), 5000)
+}
+
+// TestAzureRMBackend_Load_JSONResponse tests valid JSON state file
+func TestAzureRMBackend_Load_JSONResponse(t *testing.T) {
+	jsonState := `{
+		"version": 4,
+		"terraform_version": "1.0.0",
+		"serial": 123,
+		"lineage": "abc-def-ghi",
+		"resources": []
+	}`
+
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusOK,
+				Body:       jsonState,
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	data, err := b.Load(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+	assert.Contains(t, string(data), "terraform_version")
+}
+
+// TestAzureRMBackend_Load_BinaryContent tests handling binary content
+func TestAzureRMBackend_Load_BinaryContent(t *testing.T) {
+	binaryContent := string([]byte{0, 1, 2, 3, 4, 5, 255, 254, 253})
+
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusOK,
+				Body:       binaryContent,
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	data, err := b.Load(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+	assert.Equal(t, len(binaryContent), len(data))
+}
+
+// TestAzureRMBackend_BuildBlobURL_SpecialCharacters tests URL escaping
+func TestAzureRMBackend_BuildBlobURL_SpecialCharacters(t *testing.T) {
+	tests := []struct {
+		name     string
+		blobName string
+		contains string
+	}{
+		{"forward slash", "path/to/blob", "%2F"},
+		{"space", "my blob", "%20"},
+		{"dot", "blob.name", "."},
+		{"dash", "blob-name", "-"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b, err := NewAzureRMBackend(AzureRMBackendConfig{
+				StorageAccountName: "test",
+				ContainerName:      "container",
+				BlobName:           tt.blobName,
+			})
+			require.NoError(t, err)
+
+			url := b.buildBlobURL()
+			assert.Contains(t, url, tt.contains)
+		})
+	}
+}
+
+// TestAzureRMBackend_Load_WithContext tests context cancellation during Load
+func TestAzureRMBackend_Load_WithContext(t *testing.T) {
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusOK,
+				Body:       `{"version": 4}`,
+			},
+		},
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Load succeeds with active context
+	data, err := b.Load(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+
+	// Cancel context
+	cancel()
+	assert.True(t, ctx.Err() != nil)
+}
+
+// TestAzureRMBackend_Load_MultipleCallsIdempotent tests repeated Load calls
+func TestAzureRMBackend_Load_MultipleCallsIdempotent(t *testing.T) {
+	stateContent := `{"version": 4, "resources": []}`
+
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusOK,
+				Body:       stateContent,
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	// Multiple calls should return same data
+	data1, err1 := b.Load(ctx)
+	data2, err2 := b.Load(ctx)
+
+	assert.NoError(t, err1)
+	assert.NoError(t, err2)
+	assert.Equal(t, data1, data2)
+	assert.Equal(t, []byte(stateContent), data1)
+}
+
+// TestAzureRMBackend_InvalidBlobName tests various blob name formats
+func TestAzureRMBackend_InvalidBlobName(t *testing.T) {
+	tests := []struct {
+		name     string
+		blobName string
+	}{
+		{"empty blob name", ""},
+		{"simple name", "blob"},
+		{"with extension", "terraform.tfstate"},
+		{"nested path", "env/prod/terraform.tfstate"},
+		{"with dots", "my.terraform.tfstate"},
+		{"with dashes", "my-terraform-tfstate"},
+		{"with underscores", "my_terraform_tfstate"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.blobName == "" {
+				// Empty blob name should fail validation
+				_, err := NewAzureRMBackend(AzureRMBackendConfig{
+					StorageAccountName: "test",
+					ContainerName:      "container",
+					BlobName:           tt.blobName,
+				})
+				assert.Error(t, err)
+			} else {
+				b, err := NewAzureRMBackend(AzureRMBackendConfig{
+					StorageAccountName: "test",
+					ContainerName:      "container",
+					BlobName:           tt.blobName,
+				})
+				assert.NoError(t, err)
+				assert.Equal(t, tt.blobName, b.blobName)
+			}
+		})
+	}
+}
+
+// errorBodyTransport returns a response with a body that fails to read
+type errorBodyTransport struct{}
+
+func (t *errorBodyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(&failingReader{}),
+		Header:     make(http.Header),
+	}, nil
+}
+
+type failingReader struct{}
+
+func (r *failingReader) Read(p []byte) (int, error) {
+	return 0, io.ErrUnexpectedEOF
+}
+
+// TestAzureRMBackend_Load_BodyReadError tests when the response body read fails
+func TestAzureRMBackend_Load_BodyReadError(t *testing.T) {
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &errorBodyTransport{},
+		},
+	}
+
+	_, err := b.Load(context.Background())
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to read blob body")
+}
+
+// errorTransport returns an error from RoundTrip (network error)
+type errorTransport struct{}
+
+func (t *errorTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	return nil, io.ErrUnexpectedEOF
+}
+
+// TestAzureRMBackend_Load_NetworkError tests when the HTTP request fails
+func TestAzureRMBackend_Load_NetworkError(t *testing.T) {
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &errorTransport{},
+		},
+	}
+
+	_, err := b.Load(context.Background())
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to download blob from Azure")
+}

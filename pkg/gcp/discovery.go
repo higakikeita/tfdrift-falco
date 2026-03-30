@@ -28,6 +28,25 @@ type DiscoveryClient struct {
 	sqlService       *sqladmin.Service
 	storageClient    *storage.Client
 	runService       *run.Service
+
+	// Function overrides for testing (nil = use default implementation)
+	discoverNetworksFunc    func(ctx context.Context) ([]*DiscoveredResource, error)
+	discoverSubnetworksFunc func(ctx context.Context) ([]*DiscoveredResource, error)
+	discoverFirewallsFunc   func(ctx context.Context) ([]*DiscoveredResource, error)
+	discoverInstancesFunc   func(ctx context.Context) ([]*DiscoveredResource, error)
+	discoverBucketsFunc     func(ctx context.Context) ([]*DiscoveredResource, error)
+	discoverSQLFunc         func(ctx context.Context) ([]*DiscoveredResource, error)
+	discoverGKEFunc         func(ctx context.Context) ([]*DiscoveredResource, error)
+	discoverCloudRunFunc    func(ctx context.Context) ([]*DiscoveredResource, error)
+}
+
+// NewDiscoveryClientForTesting creates a DiscoveryClient with function overrides for testing.
+// Each discover function can be replaced with a mock implementation.
+func NewDiscoveryClientForTesting(projectID string, regions []string) *DiscoveryClient {
+	return &DiscoveryClient{
+		projectID: projectID,
+		regions:   regions,
+	}
 }
 
 // Type aliases to use shared types from pkg/types
@@ -84,76 +103,36 @@ func (d *DiscoveryClient) DiscoverAll(ctx context.Context) ([]*DiscoveredResourc
 
 	var allResources []*DiscoveredResource
 
-	// Discover VPC Networks (global)
-	networks, err := d.discoverNetworks(ctx)
-	if err != nil {
-		log.Warnf("Failed to discover VPC Networks: %v", err)
-	} else {
-		allResources = append(allResources, networks...)
-		log.Infof("Discovered %d VPC Networks", len(networks))
+	// Each discover call uses function override if set, otherwise default implementation
+	type discoveryTask struct {
+		name     string
+		override func(context.Context) ([]*DiscoveredResource, error)
+		fallback func(context.Context) ([]*DiscoveredResource, error)
 	}
 
-	// Discover Subnetworks (regional)
-	subnets, err := d.discoverSubnetworks(ctx)
-	if err != nil {
-		log.Warnf("Failed to discover Subnetworks: %v", err)
-	} else {
-		allResources = append(allResources, subnets...)
-		log.Infof("Discovered %d Subnetworks", len(subnets))
+	tasks := []discoveryTask{
+		{"VPC Networks", d.discoverNetworksFunc, d.discoverNetworks},
+		{"Subnetworks", d.discoverSubnetworksFunc, d.discoverSubnetworks},
+		{"Firewalls", d.discoverFirewallsFunc, d.discoverFirewalls},
+		{"Compute Instances", d.discoverInstancesFunc, d.discoverInstances},
+		{"GCS Buckets", d.discoverBucketsFunc, d.discoverBuckets},
+		{"Cloud SQL Instances", d.discoverSQLFunc, d.discoverSQLInstances},
+		{"GKE Clusters", d.discoverGKEFunc, d.discoverGKEClusters},
+		{"Cloud Run Services", d.discoverCloudRunFunc, d.discoverCloudRunServices},
 	}
 
-	// Discover Firewall Rules (global)
-	firewalls, err := d.discoverFirewalls(ctx)
-	if err != nil {
-		log.Warnf("Failed to discover Firewalls: %v", err)
-	} else {
-		allResources = append(allResources, firewalls...)
-		log.Infof("Discovered %d Firewalls", len(firewalls))
-	}
-
-	// Discover Compute Instances (zonal)
-	instances, err := d.discoverInstances(ctx)
-	if err != nil {
-		log.Warnf("Failed to discover Compute Instances: %v", err)
-	} else {
-		allResources = append(allResources, instances...)
-		log.Infof("Discovered %d Compute Instances", len(instances))
-	}
-
-	// Discover GCS Buckets (global)
-	buckets, err := d.discoverBuckets(ctx)
-	if err != nil {
-		log.Warnf("Failed to discover GCS Buckets: %v", err)
-	} else {
-		allResources = append(allResources, buckets...)
-		log.Infof("Discovered %d GCS Buckets", len(buckets))
-	}
-
-	// Discover Cloud SQL Instances
-	sqlInstances, err := d.discoverSQLInstances(ctx)
-	if err != nil {
-		log.Warnf("Failed to discover Cloud SQL Instances: %v", err)
-	} else {
-		allResources = append(allResources, sqlInstances...)
-		log.Infof("Discovered %d Cloud SQL Instances", len(sqlInstances))
-	}
-
-	// Discover GKE Clusters
-	clusters, err := d.discoverGKEClusters(ctx)
-	if err != nil {
-		log.Warnf("Failed to discover GKE Clusters: %v", err)
-	} else {
-		allResources = append(allResources, clusters...)
-		log.Infof("Discovered %d GKE Clusters", len(clusters))
-	}
-
-	// Discover Cloud Run Services
-	runServices, err := d.discoverCloudRunServices(ctx)
-	if err != nil {
-		log.Warnf("Failed to discover Cloud Run Services: %v", err)
-	} else {
-		allResources = append(allResources, runServices...)
-		log.Infof("Discovered %d Cloud Run Services", len(runServices))
+	for _, task := range tasks {
+		fn := task.fallback
+		if task.override != nil {
+			fn = task.override
+		}
+		resources, err := fn(ctx)
+		if err != nil {
+			log.Warnf("Failed to discover %s: %v", task.name, err)
+		} else {
+			allResources = append(allResources, resources...)
+			log.Infof("Discovered %d %s", len(resources), task.name)
+		}
 	}
 
 	log.Infof("GCP discovery completed: %d total resources discovered", len(allResources))

@@ -482,6 +482,8 @@ func TestExtractLastSegment(t *testing.T) {
 		{"https://compute.googleapis.com/compute/v1/projects/p/zones/z/machineTypes/e2-medium", "e2-medium"},
 		{"simple-name", "simple-name"},
 		{"a/b/c", "c"},
+		{"", ""}, // empty string edge case
+		{"/", ""}, // single slash returns empty
 	}
 
 	for _, tt := range tests {
@@ -503,5 +505,263 @@ func TestContainsString(t *testing.T) {
 	}
 	if containsString(nil, "anything") {
 		t.Error("expected containsString to return false for nil slice")
+	}
+}
+
+// TestMatchesByName tests the matchesByName function
+func TestMatchesByName_Match(t *testing.T) {
+	gcpRes := &DiscoveredResource{
+		Type: "google_compute_instance",
+		Name: "web-server",
+	}
+
+	tfMap := map[string]interface{}{
+		"tf-1": &TerraformResource{
+			Type: "google_compute_instance",
+			Attributes: map[string]interface{}{
+				"name": "web-server",
+			},
+		},
+	}
+
+	result := matchesByName(gcpRes, tfMap)
+	if !result {
+		t.Error("expected matchesByName to find matching resource")
+	}
+}
+
+// TestMatchesByName_NoMatch_DifferentName tests matchesByName with different name
+func TestMatchesByName_NoMatch_DifferentName(t *testing.T) {
+	gcpRes := &DiscoveredResource{
+		Type: "google_compute_instance",
+		Name: "web-server",
+	}
+
+	tfMap := map[string]interface{}{
+		"tf-1": &TerraformResource{
+			Type: "google_compute_instance",
+			Attributes: map[string]interface{}{
+				"name": "api-server",
+			},
+		},
+	}
+
+	result := matchesByName(gcpRes, tfMap)
+	if result {
+		t.Error("expected matchesByName not to find match with different name")
+	}
+}
+
+// TestMatchesByName_NoMatch_DifferentType tests matchesByName with different type
+func TestMatchesByName_NoMatch_DifferentType(t *testing.T) {
+	gcpRes := &DiscoveredResource{
+		Type: "google_compute_instance",
+		Name: "resource-1",
+	}
+
+	tfMap := map[string]interface{}{
+		"tf-1": &TerraformResource{
+			Type: "google_storage_bucket",
+			Attributes: map[string]interface{}{
+				"name": "resource-1",
+			},
+		},
+	}
+
+	result := matchesByName(gcpRes, tfMap)
+	if result {
+		t.Error("expected matchesByName not to find match with different type")
+	}
+}
+
+// TestMatchesByName_NoNameAttribute tests matchesByName with missing name attribute
+func TestMatchesByName_NoNameAttribute(t *testing.T) {
+	gcpRes := &DiscoveredResource{
+		Type: "google_compute_instance",
+		Name: "web-server",
+	}
+
+	tfMap := map[string]interface{}{
+		"tf-1": &TerraformResource{
+			Type: "google_compute_instance",
+			Attributes: map[string]interface{}{
+				"zone": "us-central1-a",
+			},
+		},
+	}
+
+	result := matchesByName(gcpRes, tfMap)
+	if result {
+		t.Error("expected matchesByName not to match when name attribute missing")
+	}
+}
+
+// TestMatchesByName_EmptyMap tests matchesByName with empty map
+func TestMatchesByName_EmptyMap(t *testing.T) {
+	gcpRes := &DiscoveredResource{
+		Type: "google_compute_instance",
+		Name: "web-server",
+	}
+
+	tfMap := make(map[string]interface{})
+
+	result := matchesByName(gcpRes, tfMap)
+	if result {
+		t.Error("expected matchesByName not to match empty map")
+	}
+}
+
+// TestFindByName_Success tests findByName finding a matching resource
+func TestFindByName_Success(t *testing.T) {
+	tfRes := &TerraformResource{
+		Type: "google_compute_instance",
+		Attributes: map[string]interface{}{
+			"name": "web-server",
+		},
+	}
+
+	gcpMap := map[string]*DiscoveredResource{
+		"gcp-1": {
+			Type: "google_compute_instance",
+			Name: "web-server",
+			ID:   "projects/p/zones/us-central1-a/instances/web-server",
+		},
+		"gcp-2": {
+			Type: "google_storage_bucket",
+			Name: "my-bucket",
+			ID:   "my-bucket",
+		},
+	}
+
+	result := findByName(tfRes, gcpMap)
+	if result == nil {
+		t.Fatal("expected findByName to return a result")
+	}
+	if result.Name != "web-server" {
+		t.Errorf("expected name web-server, got %s", result.Name)
+	}
+}
+
+// TestFindByName_NoMatch tests findByName with no matching resource
+func TestFindByName_NoMatch(t *testing.T) {
+	tfRes := &TerraformResource{
+		Type: "google_compute_instance",
+		Attributes: map[string]interface{}{
+			"name": "missing-server",
+		},
+	}
+
+	gcpMap := map[string]*DiscoveredResource{
+		"gcp-1": {
+			Type: "google_compute_instance",
+			Name: "web-server",
+			ID:   "projects/p/zones/us-central1-a/instances/web-server",
+		},
+	}
+
+	result := findByName(tfRes, gcpMap)
+	if result != nil {
+		t.Error("expected findByName to return nil")
+	}
+}
+
+// TestFindByName_DifferentType tests findByName with different type
+func TestFindByName_DifferentType(t *testing.T) {
+	tfRes := &TerraformResource{
+		Type: "google_storage_bucket",
+		Attributes: map[string]interface{}{
+			"name": "my-bucket",
+		},
+	}
+
+	gcpMap := map[string]*DiscoveredResource{
+		"gcp-1": {
+			Type: "google_compute_instance",
+			Name: "my-bucket",
+			ID:   "projects/p/zones/us-central1-a/instances/my-bucket",
+		},
+	}
+
+	result := findByName(tfRes, gcpMap)
+	if result != nil {
+		t.Error("expected findByName to return nil for different type")
+	}
+}
+
+// TestFindByName_NoNameAttribute tests findByName with missing name attribute
+func TestFindByName_NoNameAttribute(t *testing.T) {
+	tfRes := &TerraformResource{
+		Type: "google_compute_instance",
+		Attributes: map[string]interface{}{
+			"zone": "us-central1-a",
+		},
+	}
+
+	gcpMap := map[string]*DiscoveredResource{
+		"gcp-1": {
+			Type: "google_compute_instance",
+			Name: "web-server",
+			ID:   "projects/p/zones/us-central1-a/instances/web-server",
+		},
+	}
+
+	result := findByName(tfRes, gcpMap)
+	if result != nil {
+		t.Error("expected findByName to return nil when name attribute missing")
+	}
+}
+
+// TestFindByNameInterface_Success tests findByNameInterface finding a matching resource
+func TestFindByNameInterface_Success(t *testing.T) {
+	tfRes := &TerraformResource{
+		Type: "google_compute_network",
+		Attributes: map[string]interface{}{
+			"name": "vpc-1",
+		},
+	}
+
+	gcpMap := map[string]interface{}{
+		"gcp-1": &DiscoveredResource{
+			Type: "google_compute_network",
+			Name: "vpc-1",
+			ID:   "projects/p/global/networks/vpc-1",
+		},
+		"gcp-2": &DiscoveredResource{
+			Type: "google_compute_network",
+			Name: "default",
+			ID:   "projects/p/global/networks/default",
+		},
+	}
+
+	result := findByNameInterface(tfRes, gcpMap)
+	if result == nil {
+		t.Fatal("expected findByNameInterface to return a result")
+	}
+	gcpRes := result.(*DiscoveredResource)
+	if gcpRes.Name != "vpc-1" {
+		t.Errorf("expected name vpc-1, got %s", gcpRes.Name)
+	}
+}
+
+// TestFindByNameInterface_NoMatch tests findByNameInterface with no matching resource
+func TestFindByNameInterface_NoMatch(t *testing.T) {
+	tfRes := &TerraformResource{
+		Type: "google_compute_network",
+		Attributes: map[string]interface{}{
+			"name": "missing-vpc",
+		},
+	}
+
+	gcpMap := map[string]interface{}{
+		"gcp-1": &DiscoveredResource{
+			Type: "google_compute_network",
+			Name: "vpc-1",
+			ID:   "projects/p/global/networks/vpc-1",
+		},
+	}
+
+	result := findByNameInterface(tfRes, gcpMap)
+	if result != nil {
+		t.Error("expected findByNameInterface to return nil")
 	}
 }

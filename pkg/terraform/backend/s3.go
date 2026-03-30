@@ -9,17 +9,23 @@ import (
 	// TODO: Migrate to aws-sdk-go-v2 (aws-sdk-go-v1 deprecated, EOL July 31, 2025)
 	// See: https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-go-v1-on-july-31-2025/
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	log "github.com/sirupsen/logrus"
 )
+
+// s3Client defines the interface for S3 operations used by the backend.
+type s3Client interface {
+	GetObjectWithContext(ctx context.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error)
+}
 
 // S3Backend implements AWS S3 backend
 type S3Backend struct {
 	bucket string
 	key    string
 	region string
-	client *s3.S3
+	client s3Client
 }
 
 // S3BackendConfig contains S3 backend configuration

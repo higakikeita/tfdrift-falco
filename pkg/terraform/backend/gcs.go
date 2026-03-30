@@ -43,6 +43,10 @@ type GCSBackend struct {
 	bucket string
 	prefix string
 	client *storage.Client
+
+	// loadFunc is an optional override for testing the Load method.
+	// When set, Load() calls this instead of the real GCS client.
+	loadFunc func(ctx context.Context) ([]byte, error)
 }
 
 // GCSBackendConfig contains configuration for the GCS backend.
@@ -158,6 +162,10 @@ func NewGCSBackend(ctx context.Context, cfg GCSBackendConfig) (*GCSBackend, erro
 //	}
 //	// Parse Terraform state from data
 func (b *GCSBackend) Load(ctx context.Context) ([]byte, error) {
+	if b.loadFunc != nil {
+		return b.loadFunc(ctx)
+	}
+
 	log.Infof("Loading Terraform state from GCS: gs://%s/%s", b.bucket, b.prefix)
 
 	// Get bucket handle

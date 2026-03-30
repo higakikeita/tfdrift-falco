@@ -886,3 +886,184 @@ func TestAuditParser_ValidateEvent_ExtensiveCases(t *testing.T) {
 		})
 	}
 }
+
+// TestAuditParser_extractResourceIDFromName tests extracting resource ID from full resource name
+func TestAuditParser_extractResourceIDFromName(t *testing.T) {
+	parser := NewAuditParser()
+
+	tests := []struct {
+		name         string
+		resourceName string
+		expected     string
+	}{
+		{
+			"Full compute instance path",
+			"projects/my-project-123/zones/us-central1-a/instances/vm-1",
+			"vm-1",
+		},
+		{
+			"Full bucket path",
+			"projects/my-project-123/buckets/my-bucket",
+			"my-bucket",
+		},
+		{
+			"Simple resource name",
+			"vm-1",
+			"vm-1",
+		},
+		{
+			"Empty string",
+			"",
+			"",
+		},
+		{
+			"Single segment",
+			"resource-id",
+			"resource-id",
+		},
+		{
+			"Path with trailing slash",
+			"projects/my-project/zones/us-central1-a/instances/vm-1/",
+			"",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := parser.extractResourceIDFromName(tt.resourceName)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+// TestAuditParser_extractProjectIDFromName tests extracting project ID from resource name
+func TestAuditParser_extractProjectIDFromName(t *testing.T) {
+	parser := NewAuditParser()
+
+	tests := []struct {
+		name         string
+		resourceName string
+		fields       map[string]string
+		expected     string
+	}{
+		{
+			"Extract from resource name",
+			"projects/my-project-123/zones/us-central1-a/instances/vm-1",
+			map[string]string{},
+			"my-project-123",
+		},
+		{
+			"Fallback to fields",
+			"zones/us-central1-a/instances/vm-1",
+			map[string]string{"gcp.resource.labels.project_id": "fallback-project"},
+			"fallback-project",
+		},
+		{
+			"Prefer resource name over fields",
+			"projects/name-project/zones/us-central1-a/instances/vm-1",
+			map[string]string{"gcp.resource.labels.project_id": "fallback-project"},
+			"name-project",
+		},
+		{
+			"No project in name or fields",
+			"instances/vm-1",
+			map[string]string{},
+			"",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := parser.extractProjectIDFromName(tt.resourceName, tt.fields)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+// TestAuditParser_extractZoneFromName tests extracting zone from resource name
+func TestAuditParser_extractZoneFromName(t *testing.T) {
+	parser := NewAuditParser()
+
+	tests := []struct {
+		name         string
+		resourceName string
+		fields       map[string]string
+		expected     string
+	}{
+		{
+			"Extract from resource name",
+			"projects/my-project/zones/us-central1-a/instances/vm-1",
+			map[string]string{},
+			"us-central1-a",
+		},
+		{
+			"Fallback to fields",
+			"projects/my-project/instances/vm-1",
+			map[string]string{"gcp.resource.labels.zone": "us-west1-b"},
+			"us-west1-b",
+		},
+		{
+			"No zone in name or fields",
+			"projects/my-project/instances/vm-1",
+			map[string]string{},
+			"",
+		},
+		{
+			"Zone with multiple path segments after",
+			"projects/my-project/zones/europe-west1-c/instances/vm-1/subresource",
+			map[string]string{},
+			"europe-west1-c",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := parser.extractZoneFromName(tt.resourceName, tt.fields)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+// TestAuditParser_extractRegionFromZone tests extracting region from zone
+func TestAuditParser_extractRegionFromZone(t *testing.T) {
+	parser := NewAuditParser()
+
+	tests := []struct {
+		name     string
+		zone     string
+		expected string
+	}{
+		{
+			"Standard zone format",
+			"us-central1-a",
+			"us-central1",
+		},
+		{
+			"Multi-part region",
+			"europe-west1-b",
+			"europe-west1",
+		},
+		{
+			"Single region component",
+			"us-east1-c",
+			"us-east1",
+		},
+		{
+			"Already a region",
+			"us-central1",
+			"us-central1",
+		},
+		{
+			"Empty zone",
+			"",
+			"",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := parser.extractRegionFromZone(tt.zone)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
