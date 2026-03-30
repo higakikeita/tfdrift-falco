@@ -15,93 +15,93 @@ linters:
     - revive        # Fast, configurable, extensible linter
     - gosec         # Security-focused linter
     - unparam       # Check for unused function parameters
+  settings:
+    errcheck:
+      check-blank: false
+      check-type-assertions: true
+      exclude-functions:
+        # Common functions where ignoring errors is acceptable
+        - io.Copy
+        - io.WriteTo
+        - (io.Closer).Close
+        - (*os.File).Close
+        - (net.Conn).Close
+        - (*net/http.Response.Body).Close
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - (net.Conn).SetDeadline
+        - (net.Conn).SetReadDeadline
+        - (net.Conn).SetWriteDeadline
+        - (*github.com/gorilla/websocket.Conn).SetReadDeadline
+        - (*github.com/gorilla/websocket.Conn).SetWriteDeadline
+        - (*github.com/gorilla/websocket.Conn).WriteMessage
+        - (*github.com/gorilla/websocket.Conn).WriteJSON
+        - (*encoding/json.Encoder).Encode
+        - (net/http.ResponseWriter).Write
 
-linters-settings:
-  errcheck:
-    check-blank: false
-    check-type-assertions: true
-    exclude-functions:
-      # Common functions where ignoring errors is acceptable
-      - io.Copy
-      - io.WriteTo
-      - (io.Closer).Close
-      - (*os.File).Close
-      - (net.Conn).Close
-      - (*net/http.Response.Body).Close
-      - fmt.Fprint
-      - fmt.Fprintf
-      - fmt.Fprintln
-      - (net.Conn).SetDeadline
-      - (net.Conn).SetReadDeadline
-      - (net.Conn).SetWriteDeadline
-      - (*github.com/gorilla/websocket.Conn).SetReadDeadline
-      - (*github.com/gorilla/websocket.Conn).SetWriteDeadline
-      - (*github.com/gorilla/websocket.Conn).WriteMessage
-      - (*github.com/gorilla/websocket.Conn).WriteJSON
-      - (*encoding/json.Encoder).Encode
-      - (net/http.ResponseWriter).Write
+    govet:
+      enable-all: true
+      disable:
+        - shadow          # Too strict for practical use
+        - fieldalignment  # Struct field ordering for memory alignment (cosmetic)
+        - unusedwrite     # Unused writes to struct fields (false positives common)
 
-  govet:
-    enable-all: true
-    disable:
-      - shadow          # Too strict for practical use
-      - fieldalignment  # Struct field ordering for memory alignment (cosmetic)
-      - unusedwrite     # Unused writes to struct fields (false positives common)
+    staticcheck:
+      checks:
+        - "all"
+        - "-ST1018"  # Unicode control chars in string literals (intentional in autodetect.go)
 
-  staticcheck:
-    checks:
-      - "all"
-      - "-ST1018"  # Unicode control chars in string literals (intentional in autodetect.go)
+    gosec:
+      excludes:
+        - G104  # Allow unchecked errors in some cases
+        - G307  # Allow deferred file.Close() without checking error
+        - G115  # Integer overflow conversion (common with uint/int casts)
 
-  gosec:
-    excludes:
-      - G104  # Allow unchecked errors in some cases
-      - G307  # Allow deferred file.Close() without checking error
-      - G115  # Integer overflow conversion (common with uint/int casts)
-
-  revive:
-    rules:
-      - name: exported
-        disabled: false
-        arguments:
-          - "checkPrivateReceivers"
-          - "sayRepetitiveInsteadOfStutters"
+    revive:
+      rules:
+        - name: exported
+          disabled: false
+          arguments:
+            - "checkPrivateReceivers"
+            - "sayRepetitiveInsteadOfStutters"
 
 issues:
-  exclude-rules:
-    - path: pkg/aws/discovery_resources.go
-      linters: [staticcheck]
-      text: "SA4010"
-    # Exclude some linters from running on tests files
-    - path: _test\.go
-      linters:
-        - errcheck
-        - gosec
-        - unparam
-
-    # Exclude testutil mock files
-    - path: pkg/testutil/
-      linters:
-        - errcheck
-        - unused
-
-    # Exclude test directories
-    - path: tests/
-      linters:
-        - errcheck
-        - gosec
-        - unparam
-
-    # Exclude cmd directories (main packages with simplified error handling)
-    - path: cmd/
-      linters:
-        - errcheck
-
   max-issues-per-linter: 0
   max-same-issues: 0
 
+  exclusions:
+    rules:
+      - path: pkg/aws/discovery_resources.go
+        linters: [staticcheck]
+        text: "SA4010"
+      # Exclude some linters from running on tests files
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gosec
+          - unparam
+
+      # Exclude testutil mock files
+      - path: pkg/testutil/
+        linters:
+          - errcheck
+          - unused
+
+      # Exclude test directories
+      - path: tests/
+        linters:
+          - errcheck
+          - gosec
+          - unparam
+
+      # Exclude cmd directories (main packages with simplified error handling)
+      - path: cmd/
+        linters:
+          - errcheck
+
 output:
   formats:
-    colored-line-number:
+    text:
       print-issued-lines: true
       print-linter-name: true
