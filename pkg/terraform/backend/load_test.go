@@ -7,18 +7,17 @@ import (
 	"io"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws/request"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 // mockS3Client implements the s3Client interface for testing
 type mockS3Client struct {
-	getObjectFunc func(ctx context.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error)
+	getObjectFunc func(ctx context.Context, input *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
 }
 
-func (m *mockS3Client) GetObjectWithContext(ctx context.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error) {
+func (m *mockS3Client) GetObject(ctx context.Context, input *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
 	if m.getObjectFunc != nil {
-		return m.getObjectFunc(ctx, input, opts...)
+		return m.getObjectFunc(ctx, input, optFns...)
 	}
 	return nil, fmt.Errorf("not implemented")
 }
@@ -32,7 +31,7 @@ func TestS3Backend_Load_MockSuccess(t *testing.T) {
 		key:    "terraform.tfstate",
 		region: "us-east-1",
 		client: &mockS3Client{
-			getObjectFunc: func(ctx context.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error) {
+			getObjectFunc: func(ctx context.Context, input *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
 				if *input.Bucket != "test-bucket" {
 					t.Errorf("expected bucket test-bucket, got %s", *input.Bucket)
 				}
@@ -63,7 +62,7 @@ func TestS3Backend_Load_MockGetObjectError(t *testing.T) {
 		key:    "terraform.tfstate",
 		region: "us-east-1",
 		client: &mockS3Client{
-			getObjectFunc: func(ctx context.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error) {
+			getObjectFunc: func(ctx context.Context, input *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
 				return nil, fmt.Errorf("NoSuchKey: The specified key does not exist")
 			},
 		},
@@ -85,7 +84,7 @@ func TestS3Backend_Load_MockReadBodyError(t *testing.T) {
 		key:    "terraform.tfstate",
 		region: "us-east-1",
 		client: &mockS3Client{
-			getObjectFunc: func(ctx context.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error) {
+			getObjectFunc: func(ctx context.Context, input *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
 				return &s3.GetObjectOutput{
 					Body: io.NopCloser(&errorReader{}),
 				}, nil
@@ -112,7 +111,7 @@ func TestS3Backend_Load_MockLargeState(t *testing.T) {
 		key:    "large-state.tfstate",
 		region: "eu-west-1",
 		client: &mockS3Client{
-			getObjectFunc: func(ctx context.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error) {
+			getObjectFunc: func(ctx context.Context, input *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
 				return &s3.GetObjectOutput{
 					Body: io.NopCloser(bytes.NewReader(largeData)),
 				}, nil
@@ -136,7 +135,7 @@ func TestS3Backend_Load_MockEmptyState(t *testing.T) {
 		key:    "empty.tfstate",
 		region: "us-east-1",
 		client: &mockS3Client{
-			getObjectFunc: func(ctx context.Context, input *s3.GetObjectInput, opts ...request.Option) (*s3.GetObjectOutput, error) {
+			getObjectFunc: func(ctx context.Context, input *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
 				return &s3.GetObjectOutput{
 					Body: io.NopCloser(bytes.NewReader([]byte{})),
 				}, nil

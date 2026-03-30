@@ -1,32 +1,24 @@
 package falco
 
 import (
-	"github.com/keitahigaki/tfdrift-falco/pkg/falco/mappings"
+	log "github.com/sirupsen/logrus"
 )
 
 // mapEventToResourceType maps a CloudTrail event name and source to a Terraform resource type
 // eventSource examples: "ec2.amazonaws.com", "lambda.amazonaws.com", "kms.amazonaws.com"
+// Uses configuration loaded from YAML for flexibility and maintainability
 func (s *Subscriber) mapEventToResourceType(eventName string, eventSource string) string {
+	cfg, err := LoadEventConfig()
+	if err != nil {
+		log.Warnf("Failed to load event config: %v, returning unknown", err)
+		return "unknown"
+	}
+
 	// First, try to resolve conflicts using eventSource
-	if resolved := mappings.ResolveEventSourceConflict(eventName, eventSource); resolved != "" {
+	if resolved := cfg.ResolveEventSourceConflict(eventName, eventSource); resolved != "" {
 		return resolved
 	}
 
-	// Try each category of mappings
-	allMappings := []map[string]string{
-		mappings.ComputeMappings,
-		mappings.NetworkingMappings,
-		mappings.StorageAndDatabaseMappings,
-		mappings.SecurityMappings,
-		mappings.OtherServicesMappings,
-	}
-
-	for _, mapping := range allMappings {
-		if resourceType, ok := mapping[eventName]; ok {
-			return resourceType
-		}
-	}
-
-	// Event not found in any mapping
-	return "unknown"
+	// Get resource type from config mapping
+	return cfg.GetResourceType(eventName)
 }

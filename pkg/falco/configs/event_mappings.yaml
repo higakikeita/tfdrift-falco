@@ -1,0 +1,1492 @@
+# AWS CloudTrail Event Mappings for tfdrift-falco
+# This file defines which CloudTrail events are relevant for drift detection
+# and how to map them to Terraform resource types and field extraction paths.
+
+relevant_events:
+  # EC2
+  - ModifyInstanceAttribute
+  - ModifyNetworkInterfaceAttribute
+  - ModifyVolume
+
+  # VPC - Security Groups (Critical)
+  - AuthorizeSecurityGroupIngress
+  - AuthorizeSecurityGroupEgress
+  - RevokeSecurityGroupIngress
+  - RevokeSecurityGroupEgress
+  - CreateSecurityGroup
+  - DeleteSecurityGroup
+  - ModifySecurityGroupRules
+
+  # VPC - Core
+  - CreateVpc
+  - DeleteVpc
+  - ModifyVpcAttribute
+  - CreateSubnet
+  - DeleteSubnet
+  - ModifySubnetAttribute
+
+  # VPC - Route Tables (Critical)
+  - CreateRoute
+  - DeleteRoute
+  - ReplaceRoute
+  - CreateRouteTable
+  - DeleteRouteTable
+  - AssociateRouteTable
+
+  # VPC - Internet/NAT Gateways
+  - AttachInternetGateway
+  - DetachInternetGateway
+  - CreateNatGateway
+  - DeleteNatGateway
+
+  # VPC - Network ACLs
+  - CreateNetworkAcl
+  - DeleteNetworkAcl
+  - CreateNetworkAclEntry
+  - DeleteNetworkAclEntry
+  - ReplaceNetworkAclEntry
+
+  # VPC - VPC Endpoints
+  - CreateVpcEndpoint
+  - DeleteVpcEndpoint
+  - ModifyVpcEndpoint
+
+  # ELB/ALB - Load Balancers
+  - CreateLoadBalancer
+  - DeleteLoadBalancer
+  - ModifyLoadBalancerAttributes
+
+  # ELB/ALB - Target Groups
+  - CreateTargetGroup
+  - DeleteTargetGroup
+  - ModifyTargetGroup
+  - ModifyTargetGroupAttributes
+  - RegisterTargets
+  - DeregisterTargets
+
+  # ELB/ALB - Listeners & Rules (Critical)
+  - CreateListener
+  - DeleteListener
+  - ModifyListener
+  - CreateRule
+  - DeleteRule
+  - ModifyRule
+
+  # KMS (Critical)
+  - ScheduleKeyDeletion
+  - DisableKey
+  - EnableKey
+  - PutKeyPolicy
+  - CreateKey
+  - CreateAlias
+  - DeleteAlias
+  - UpdateAlias
+  - EnableKeyRotation
+  - DisableKeyRotation
+
+  # DynamoDB
+  - CreateTable
+  - DeleteTable
+  - UpdateTable
+  - UpdateTimeToLive
+  - UpdateContinuousBackups
+
+  # IAM - Policy modifications
+  - PutUserPolicy
+  - PutRolePolicy
+  - PutGroupPolicy
+  - UpdateAssumeRolePolicy
+  - AttachUserPolicy
+  - AttachRolePolicy
+  - AttachGroupPolicy
+  - CreatePolicy
+  - CreatePolicyVersion
+
+  # IAM - User/Role/Group lifecycle
+  - CreateRole
+  - DeleteRole
+  - CreateUser
+  - DeleteUser
+  - CreateAccessKey
+  - AddUserToGroup
+  - RemoveUserFromGroup
+  - UpdateAccountPasswordPolicy
+
+  # S3
+  - PutBucketPolicy
+  - PutBucketVersioning
+  - PutBucketEncryption
+  - DeleteBucketEncryption
+  - PutBucketLogging
+  - PutBucketPublicAccessBlock
+  - DeleteBucketPublicAccessBlock
+  - PutBucketAcl
+
+  # RDS - DB Instances
+  - CreateDBInstance
+  - DeleteDBInstance
+  - ModifyDBInstance
+  - RebootDBInstance
+  - StartDBInstance
+  - StopDBInstance
+
+  # RDS - DB Clusters (including Aurora)
+  - CreateDBCluster
+  - DeleteDBCluster
+  - ModifyDBCluster
+  - StartDBCluster
+  - StopDBCluster
+  - FailoverDBCluster
+
+  # RDS - Aurora Specific
+  - AddRoleToDBCluster
+  - RemoveRoleFromDBCluster
+  - ModifyDBClusterEndpoint
+  - CreateDBClusterEndpoint
+  - DeleteDBClusterEndpoint
+  - ModifyGlobalCluster
+
+  # RDS - Snapshots
+  - CreateDBSnapshot
+  - DeleteDBSnapshot
+  - ModifyDBSnapshotAttribute
+  - CreateDBClusterSnapshot
+  - DeleteDBClusterSnapshot
+
+  # RDS - Parameter Groups
+  - CreateDBParameterGroup
+  - DeleteDBParameterGroup
+  - ModifyDBParameterGroup
+
+  # RDS - Subnet Groups
+  - CreateDBSubnetGroup
+  - DeleteDBSubnetGroup
+  - ModifyDBSubnetGroup
+
+  # RDS - Security & Backup
+  - ModifyDBInstanceAttribute
+  - RestoreDBInstanceFromDBSnapshot
+  - RestoreDBClusterFromSnapshot
+
+  # Lambda
+  - UpdateFunctionConfiguration
+  - UpdateFunctionCode
+  - AddPermission
+  - RemovePermission
+
+  # API Gateway - REST API
+  - CreateRestApi
+  - DeleteRestApi
+  - UpdateRestApi
+  - CreateResource
+  - DeleteResource
+  - CreateMethod
+  - DeleteMethod
+  - PutMethod
+  - UpdateMethod
+  - CreateDeployment
+  - DeleteDeployment
+  - CreateStage
+  - DeleteStage
+  - UpdateStage
+
+  # API Gateway - Authorizers & Models
+  - CreateAuthorizer
+  - DeleteAuthorizer
+  - UpdateAuthorizer
+  - CreateModel
+  - DeleteModel
+
+  # API Gateway - API Keys & Usage Plans
+  - CreateApiKey
+  - DeleteApiKey
+  - UpdateApiKey
+  - CreateUsagePlan
+  - DeleteUsagePlan
+  - UpdateUsagePlan
+
+  # API Gateway v2 (HTTP/WebSocket)
+  - CreateApi
+  - DeleteApi
+  - UpdateApi
+  - UpdateRoute
+  - CreateIntegration
+  - DeleteIntegration
+  - UpdateIntegration
+
+  # CloudWatch - Alarms (Critical for monitoring)
+  - PutMetricAlarm
+  - DeleteAlarms
+  - DisableAlarmActions
+  - EnableAlarmActions
+  - SetAlarmState
+
+  # CloudWatch - Logs (Critical for auditing)
+  - CreateLogGroup
+  - DeleteLogGroup
+  - PutRetentionPolicy
+  - DeleteRetentionPolicy
+  - AssociateKmsKey
+  - DisassociateKmsKey
+
+  # CloudWatch - Metric Filters
+  - PutMetricFilter
+  - DeleteMetricFilter
+
+  # CloudWatch - Log Streams
+  - CreateLogStream
+  - DeleteLogStream
+
+  # CloudWatch - Dashboards
+  - PutDashboard
+  - DeleteDashboards
+
+  # SNS (Critical for alerting)
+  - CreateTopic
+  - DeleteTopic
+  - SetTopicAttributes
+  - Subscribe
+  - Unsubscribe
+  - ConfirmSubscription
+
+  # SQS (Critical for async processing)
+  - CreateQueue
+  - DeleteQueue
+  - SetQueueAttributes
+  - PurgeQueue
+
+  # Route53 (Critical for DNS)
+  - ChangeResourceRecordSets
+  - CreateHostedZone
+  - DeleteHostedZone
+  - ChangeTagsForResource
+  - AssociateVPCWithHostedZone
+  - DisassociateVPCFromHostedZone
+
+  # ECR (Critical for container security)
+  - PutImageScanningConfiguration
+  - PutImageTagMutability
+  - PutLifecyclePolicy
+  - DeleteLifecyclePolicy
+  - SetRepositoryPolicy
+  - DeleteRepositoryPolicy
+  - CreateRepository
+  - DeleteRepository
+  - PutReplicationConfiguration
+
+  # SSM Parameter Store (Critical for secrets)
+  - PutParameter
+  - DeleteParameter
+  - DeleteParameters
+  - LabelParameterVersion
+
+  # Secrets Manager (Critical for secrets)
+  - CreateSecret
+  - DeleteSecret
+  - UpdateSecret
+  - PutSecretValue
+  - RotateSecret
+  - CancelRotateSecret
+  - UpdateSecretVersionStage
+  - PutResourcePolicy
+  - DeleteResourcePolicy
+
+  # CloudFront (Critical for CDN)
+  - CreateDistribution
+  - DeleteDistribution
+  - UpdateDistribution
+  - CreateInvalidation
+
+  # CloudTrail (Critical for auditing)
+  - CreateTrail
+  - DeleteTrail
+  - UpdateTrail
+  - StartLogging
+  - StopLogging
+  - PutEventSelectors
+  - PutInsightSelectors
+
+  # ECS - Services (Critical for container orchestration)
+  - CreateService
+  - UpdateService
+  - DeleteService
+
+  # ECS - Task Definitions
+  - RegisterTaskDefinition
+  - DeregisterTaskDefinition
+
+  # ECS - Clusters
+  - UpdateCluster
+  - UpdateClusterSettings
+  - PutClusterCapacityProviders
+  - UpdateContainerInstancesState
+
+  # ECS - Capacity Providers
+  - CreateCapacityProvider
+  - UpdateCapacityProvider
+  - DeleteCapacityProvider
+
+  # EKS - Clusters
+  - CreateCluster
+  - DeleteCluster
+  - UpdateClusterConfig
+  - UpdateClusterVersion
+
+  # EKS - Node Groups
+  - CreateNodegroup
+  - DeleteNodegroup
+  - UpdateNodegroupConfig
+  - UpdateNodegroupVersion
+
+  # EKS - Addons
+  - CreateAddon
+  - DeleteAddon
+  - UpdateAddon
+
+  # EKS - Fargate Profiles
+  - CreateFargateProfile
+
+  # Redshift
+  - ModifyCluster
+  - ModifyClusterParameterGroup
+  - CreateClusterParameterGroup
+  - DeleteClusterParameterGroup
+
+  # S3 - Additional events
+  - CreateBucket
+  - DeleteBucket
+  - PutBucketLifecycle
+  - DeleteBucketLifecycle
+  - PutBucketReplication
+  - DeleteBucketReplication
+  - PutBucketCors
+  - DeleteBucketCors
+  - PutBucketWebsite
+  - DeleteBucketWebsite
+  - PutBucketTagging
+  - DeleteBucketTagging
+
+  # Lambda - Additional events
+  - CreateFunction
+  - DeleteFunction
+  - PublishVersion
+  - PutProvisionedConcurrencyConfig
+  - PutFunctionEventInvokeConfig
+  - CreateEventSourceMapping
+  - DeleteEventSourceMapping
+  - UpdateEventSourceMapping
+  - PutFunctionConcurrency
+  - DeleteFunctionConcurrency
+
+  # IAM - Additional events
+  - UpdateRole
+  - TagRole
+  - UntagRole
+  - UpdateUser
+  - UpdateGroup
+  - CreateInstanceProfile
+  - DeleteInstanceProfile
+  - AddRoleToInstanceProfile
+  - RemoveRoleFromInstanceProfile
+
+  # CloudFormation - Critical for IaC
+  - CreateStack
+  - UpdateStack
+  - DeleteStack
+  - CreateChangeSet
+  - ExecuteChangeSet
+  - DeleteChangeSet
+  - CreateStackSet
+  - UpdateStackSet
+  - DeleteStackSet
+  - SetStackPolicy
+
+  # EventBridge - Critical for event-driven
+  - PutRule
+  - PutTargets
+  - RemoveTargets
+
+  # Step Functions - Critical for workflow
+  - CreateStateMachine
+  - UpdateStateMachine
+  - DeleteStateMachine
+  - StartExecution
+  - StopExecution
+
+  # AWS Glue - Critical for data pipeline
+  - CreateJob
+  - UpdateJob
+  - DeleteJob
+  - CreateCrawler
+  - UpdateCrawler
+  - DeleteCrawler
+
+  # Kinesis - Critical for streaming
+  - CreateStream
+  - DeleteStream
+  - UpdateShardCount
+  - EnableEnhancedMonitoring
+  - DisableEnhancedMonitoring
+  - StartStreamEncryption
+  - StopStreamEncryption
+  - RegisterStreamConsumer
+  - DeregisterStreamConsumer
+  - CreateDeliveryStream
+  - DeleteDeliveryStream
+  - UpdateDestination
+
+  # ACM - Critical for security
+  - RequestCertificate
+  - DeleteCertificate
+  - AddTagsToCertificate
+  - RemoveTagsFromCertificate
+  - ImportCertificate
+
+  # WAF / WAFv2 - Critical for security
+  - CreateWebACL
+  - UpdateWebACL
+  - DeleteWebACL
+  - CreateRuleGroup
+  - UpdateRuleGroup
+  - DeleteRuleGroup
+  - CreateIPSet
+  - UpdateIPSet
+  - DeleteIPSet
+  - AssociateWebACL
+  - DisassociateWebACL
+
+  # AWS Backup - Critical for disaster recovery
+  - CreateBackupPlan
+  - UpdateBackupPlan
+  - DeleteBackupPlan
+  - CreateBackupVault
+  - DeleteBackupVault
+  - PutBackupVaultAccessPolicy
+  - DeleteBackupVaultAccessPolicy
+
+# Resource ID field mappings
+# Maps CloudTrail event names to ordered lists of field paths to extract resource IDs
+resource_id_fields:
+  ModifyInstanceAttribute: [ct.request.instanceid, ct.resource.instanceid]
+  ModifyVolume: [ct.request.volumeid]
+  PutBucketPolicy: [ct.request.bucket, ct.resource.bucket]
+  PutBucketEncryption: [ct.request.bucket]
+  DeleteBucketEncryption: [ct.request.bucket]
+  ModifyDBInstance: [ct.request.dbinstanceidentifier]
+  UpdateFunctionConfiguration: [ct.request.functionname]
+
+  # VPC - Security Groups
+  AuthorizeSecurityGroupIngress: [ct.request.groupid, ct.request.groupname]
+  AuthorizeSecurityGroupEgress: [ct.request.groupid, ct.request.groupname]
+  RevokeSecurityGroupIngress: [ct.request.groupid, ct.request.groupname]
+  RevokeSecurityGroupEgress: [ct.request.groupid, ct.request.groupname]
+  CreateSecurityGroup: [ct.response.groupid, ct.request.groupname]
+  DeleteSecurityGroup: [ct.request.groupid, ct.request.groupname]
+  ModifySecurityGroupRules: [ct.request.groupid]
+
+  # VPC - Core
+  CreateVpc: [ct.response.vpcid, ct.response.vpc.vpcid]
+  DeleteVpc: [ct.request.vpcid]
+  ModifyVpcAttribute: [ct.request.vpcid]
+  CreateSubnet: [ct.response.subnetid, ct.response.subnet.subnetid]
+  DeleteSubnet: [ct.request.subnetid]
+  ModifySubnetAttribute: [ct.request.subnetid]
+
+  # VPC - Route Tables
+  CreateRoute: [ct.request.routetableid]
+  DeleteRoute: [ct.request.routetableid]
+  ReplaceRoute: [ct.request.routetableid]
+  CreateRouteTable: [ct.response.routetableid, ct.response.routetable.routetableid]
+  DeleteRouteTable: [ct.request.routetableid]
+  AssociateRouteTable: [ct.request.routetableid]
+
+  # VPC - Gateways
+  AttachInternetGateway: [ct.request.internetgatewayid]
+  DetachInternetGateway: [ct.request.internetgatewayid]
+  CreateNatGateway: [ct.response.natgatewayid, ct.response.natgateway.natgatewayid]
+  DeleteNatGateway: [ct.request.natgatewayid]
+
+  # VPC - Network ACLs
+  CreateNetworkAcl: [ct.response.networkaclid]
+  DeleteNetworkAcl: [ct.request.networkaclid]
+  CreateNetworkAclEntry: [ct.request.networkaclid]
+  DeleteNetworkAclEntry: [ct.request.networkaclid]
+  ReplaceNetworkAclEntry: [ct.request.networkaclid]
+
+  # VPC - Endpoints
+  CreateVpcEndpoint: [ct.response.vpcendpointid]
+  DeleteVpcEndpoint: [ct.request.vpcendpointid]
+  ModifyVpcEndpoint: [ct.request.vpcendpointid]
+
+  # ELB/ALB
+  CreateLoadBalancer: [ct.response.loadbalancers.0.loadbalancerarn]
+  DeleteLoadBalancer: [ct.request.loadbalancerarn]
+  ModifyLoadBalancerAttributes: [ct.request.loadbalancerarn]
+  CreateTargetGroup: [ct.response.targetgroups.0.targetgrouparn]
+  DeleteTargetGroup: [ct.request.targetgrouparn]
+  ModifyTargetGroup: [ct.request.targetgrouparn]
+  ModifyTargetGroupAttributes: [ct.request.targetgrouparn]
+  RegisterTargets: [ct.request.targetgrouparn]
+  DeregisterTargets: [ct.request.targetgrouparn]
+  CreateListener: [ct.response.listeners.0.listenerarn]
+  DeleteListener: [ct.request.listenerarn]
+  ModifyListener: [ct.request.listenerarn]
+  CreateRule: [ct.response.rules.0.rulearn]
+  DeleteRule: [ct.request.rulearn]
+  ModifyRule: [ct.request.rulearn]
+
+  # KMS
+  ScheduleKeyDeletion: [ct.request.keyid]
+  DisableKey: [ct.request.keyid]
+  EnableKey: [ct.request.keyid]
+  PutKeyPolicy: [ct.request.keyid]
+  CreateKey: [ct.response.keymetadata.keyid]
+  CreateAlias: [ct.request.aliasname]
+  DeleteAlias: [ct.request.aliasname]
+  UpdateAlias: [ct.request.aliasname]
+  EnableKeyRotation: [ct.request.keyid]
+  DisableKeyRotation: [ct.request.keyid]
+
+  # DynamoDB
+  CreateTable: [ct.request.tablename]
+  DeleteTable: [ct.request.tablename]
+  UpdateTable: [ct.request.tablename]
+  UpdateTimeToLive: [ct.request.tablename]
+  UpdateContinuousBackups: [ct.request.tablename]
+
+  # IAM - Roles
+  PutRolePolicy: [ct.request.rolename]
+  UpdateAssumeRolePolicy: [ct.request.rolename]
+  AttachRolePolicy: [ct.request.rolename]
+  CreateRole: [ct.request.rolename]
+  DeleteRole: [ct.request.rolename]
+
+  # IAM - Users
+  PutUserPolicy: [ct.request.username]
+  AttachUserPolicy: [ct.request.username]
+  CreateUser: [ct.request.username]
+  DeleteUser: [ct.request.username]
+  CreateAccessKey: [ct.request.username]
+  AddUserToGroup: [ct.request.username]
+  RemoveUserFromGroup: [ct.request.username]
+
+  # IAM - Groups
+  PutGroupPolicy: [ct.request.groupname]
+  AttachGroupPolicy: [ct.request.groupname]
+
+  # IAM - Policies
+  CreatePolicy: [ct.request.policyname]
+  CreatePolicyVersion: [ct.request.policyarn]
+
+  # S3
+  PutBucketPublicAccessBlock: [ct.request.bucket]
+  DeleteBucketPublicAccessBlock: [ct.request.bucket]
+  PutBucketAcl: [ct.request.bucket]
+
+  # Lambda
+  AddPermission: [ct.request.functionname]
+  RemovePermission: [ct.request.functionname]
+
+  # RDS - DB Instances
+  CreateDBInstance: [ct.response.dbinstanceidentifier, ct.request.dbinstanceidentifier]
+  DeleteDBInstance: [ct.request.dbinstanceidentifier]
+  RebootDBInstance: [ct.request.dbinstanceidentifier]
+  StartDBInstance: [ct.request.dbinstanceidentifier]
+  StopDBInstance: [ct.request.dbinstanceidentifier]
+  ModifyDBInstanceAttribute: [ct.request.dbinstanceidentifier]
+
+  # RDS - DB Clusters
+  CreateDBCluster: [ct.response.dbclusteridentifier, ct.request.dbclusteridentifier]
+  DeleteDBCluster: [ct.request.dbclusteridentifier]
+  StartDBCluster: [ct.request.dbclusteridentifier]
+  StopDBCluster: [ct.request.dbclusteridentifier]
+  FailoverDBCluster: [ct.request.dbclusteridentifier]
+  AddRoleToDBCluster: [ct.request.dbclusteridentifier]
+  RemoveRoleFromDBCluster: [ct.request.dbclusteridentifier]
+  ModifyDBClusterEndpoint: [ct.request.dbclusterendpointidentifier]
+  CreateDBClusterEndpoint: [ct.response.dbclusterendpointidentifier]
+  DeleteDBClusterEndpoint: [ct.request.dbclusterendpointidentifier]
+  ModifyGlobalCluster: [ct.request.globalclusteridentifier]
+
+  # RDS - Snapshots
+  CreateDBSnapshot: [ct.request.dbsnapshotidentifier]
+  DeleteDBSnapshot: [ct.request.dbsnapshotidentifier]
+  ModifyDBSnapshotAttribute: [ct.request.dbsnapshotidentifier]
+  CreateDBClusterSnapshot: [ct.request.dbclustersnapshotidentifier]
+  DeleteDBClusterSnapshot: [ct.request.dbclustersnapshotidentifier]
+
+  # RDS - Parameter Groups
+  CreateDBParameterGroup: [ct.request.dbparametergroupname]
+  DeleteDBParameterGroup: [ct.request.dbparametergroupname]
+  ModifyDBParameterGroup: [ct.request.dbparametergroupname]
+
+  # RDS - Subnet Groups
+  CreateDBSubnetGroup: [ct.request.dbsubnetgroupname]
+  DeleteDBSubnetGroup: [ct.request.dbsubnetgroupname]
+  ModifyDBSubnetGroup: [ct.request.dbsubnetgroupname]
+
+  # RDS - Restore
+  RestoreDBInstanceFromDBSnapshot: [ct.request.dbinstanceidentifier]
+  RestoreDBClusterFromSnapshot: [ct.request.dbclusteridentifier]
+
+  # API Gateway - REST API
+  CreateRestApi: [ct.response.id, ct.response.restapiid]
+  DeleteRestApi: [ct.request.restapiid]
+  UpdateRestApi: [ct.request.restapiid]
+  CreateResource: [ct.response.id]
+  DeleteResource: [ct.request.resourceid]
+  CreateMethod: [ct.request.resourceid]
+  DeleteMethod: [ct.request.resourceid]
+  PutMethod: [ct.request.resourceid]
+  UpdateMethod: [ct.request.resourceid]
+  CreateDeployment: [ct.response.id]
+  DeleteDeployment: [ct.request.deploymentid]
+  CreateStage: [ct.request.stagename]
+  DeleteStage: [ct.request.stagename]
+  UpdateStage: [ct.request.stagename]
+
+  # API Gateway - Authorizers & Models
+  CreateAuthorizer: [ct.response.id]
+  DeleteAuthorizer: [ct.request.authorizerid]
+  UpdateAuthorizer: [ct.request.authorizerid]
+  CreateModel: [ct.response.name]
+  DeleteModel: [ct.request.modelname]
+
+  # API Gateway - API Keys & Usage Plans
+  CreateApiKey: [ct.response.id]
+  DeleteApiKey: [ct.request.apikeyid]
+  UpdateApiKey: [ct.request.apikeyid]
+  CreateUsagePlan: [ct.response.id]
+  DeleteUsagePlan: [ct.request.usageplanid]
+  UpdateUsagePlan: [ct.request.usageplanid]
+
+  # API Gateway v2
+  CreateApi: [ct.response.apiid]
+  DeleteApi: [ct.request.apiid]
+  UpdateApi: [ct.request.apiid]
+  UpdateRoute: [ct.request.routeid]
+  CreateIntegration: [ct.response.integrationid]
+  DeleteIntegration: [ct.request.integrationid]
+  UpdateIntegration: [ct.request.integrationid]
+
+  # CloudWatch - Alarms
+  PutMetricAlarm: [ct.request.alarmname]
+  DeleteAlarms: [ct.request.alarmnames.0]
+  DisableAlarmActions: [ct.request.alarmnames.0]
+  EnableAlarmActions: [ct.request.alarmnames.0]
+  SetAlarmState: [ct.request.alarmname]
+
+  # CloudWatch - Logs
+  CreateLogGroup: [ct.request.loggroupname]
+  DeleteLogGroup: [ct.request.loggroupname]
+  PutRetentionPolicy: [ct.request.loggroupname]
+  DeleteRetentionPolicy: [ct.request.loggroupname]
+  AssociateKmsKey: [ct.request.loggroupname]
+  DisassociateKmsKey: [ct.request.loggroupname]
+  PutMetricFilter: [ct.request.loggroupname]
+  DeleteMetricFilter: [ct.request.loggroupname]
+  CreateLogStream: [ct.request.logstreamname]
+  DeleteLogStream: [ct.request.logstreamname]
+  PutDashboard: [ct.request.dashboardname]
+  DeleteDashboards: [ct.request.dashboardnames.0]
+
+  # SNS
+  CreateTopic: [ct.response.topicarn]
+  DeleteTopic: [ct.request.topicarn]
+  SetTopicAttributes: [ct.request.topicarn]
+  Subscribe: [ct.request.topicarn]
+  Unsubscribe: [ct.request.subscriptionarn]
+  ConfirmSubscription: [ct.request.topicarn]
+
+  # SQS
+  CreateQueue: [ct.response.queueurl]
+  DeleteQueue: [ct.request.queueurl]
+  SetQueueAttributes: [ct.request.queueurl]
+  PurgeQueue: [ct.request.queueurl]
+
+  # Route53
+  ChangeResourceRecordSets: [ct.request.hostedzoneid]
+  CreateHostedZone: [ct.response.hostedzone.id]
+  DeleteHostedZone: [ct.request.id]
+  ChangeTagsForResource: [ct.request.resourceid]
+  AssociateVPCWithHostedZone: [ct.request.hostedzoneid]
+  DisassociateVPCFromHostedZone: [ct.request.hostedzoneid]
+
+  # ECR
+  PutImageScanningConfiguration: [ct.request.repositoryname]
+  PutImageTagMutability: [ct.request.repositoryname]
+  PutLifecyclePolicy: [ct.request.repositoryname]
+  DeleteLifecyclePolicy: [ct.request.repositoryname]
+  SetRepositoryPolicy: [ct.request.repositoryname]
+  DeleteRepositoryPolicy: [ct.request.repositoryname]
+  CreateRepository: [ct.request.repositoryname]
+  DeleteRepository: [ct.request.repositoryname]
+  PutReplicationConfiguration: [ct.request.repositoryname]
+
+  # SSM Parameter Store
+  PutParameter: [ct.request.name]
+  DeleteParameter: [ct.request.name]
+  DeleteParameters: [ct.request.names.0]
+  LabelParameterVersion: [ct.request.name]
+
+  # Secrets Manager
+  CreateSecret: [ct.response.arn, ct.response.name]
+  DeleteSecret: [ct.request.secretid]
+  UpdateSecret: [ct.request.secretid]
+  PutSecretValue: [ct.request.secretid]
+  RotateSecret: [ct.request.secretid]
+  CancelRotateSecret: [ct.request.secretid]
+  UpdateSecretVersionStage: [ct.request.secretid]
+  PutResourcePolicy: [ct.request.secretid]
+  DeleteResourcePolicy: [ct.request.secretid]
+
+  # CloudFront
+  CreateDistribution: [ct.response.distribution.id]
+  DeleteDistribution: [ct.request.id]
+  UpdateDistribution: [ct.request.id]
+  CreateInvalidation: [ct.request.distributionid]
+
+  # CloudTrail
+  CreateTrail: [ct.response.trailarn, ct.response.name]
+  DeleteTrail: [ct.request.name]
+  UpdateTrail: [ct.request.name]
+  StartLogging: [ct.request.name]
+  StopLogging: [ct.request.name]
+  PutEventSelectors: [ct.request.trailname]
+  PutInsightSelectors: [ct.request.trailname]
+
+  # ECS - Services
+  CreateService: [ct.response.service.servicearn]
+  UpdateService: [ct.request.service]
+  DeleteService: [ct.request.service]
+
+  # ECS - Task Definitions
+  RegisterTaskDefinition: [ct.response.taskdefinition.taskdefinitionarn]
+  DeregisterTaskDefinition: [ct.request.taskdefinition]
+
+  # ECS - Clusters
+  UpdateCluster: [ct.request.cluster]
+  UpdateClusterSettings: [ct.request.cluster]
+  PutClusterCapacityProviders: [ct.request.cluster]
+  UpdateContainerInstancesState: [ct.request.containerinstances.0]
+
+  # ECS - Capacity Providers
+  CreateCapacityProvider: [ct.response.capacityprovider.capacityproviderarn]
+  UpdateCapacityProvider: [ct.request.name]
+  DeleteCapacityProvider: [ct.request.capacityprovider]
+
+  # EKS - Clusters
+  CreateCluster: [ct.response.cluster.name, ct.request.name]
+  DeleteCluster: [ct.request.name]
+  UpdateClusterConfig: [ct.request.name]
+  UpdateClusterVersion: [ct.request.name]
+
+  # EKS - Node Groups
+  CreateNodegroup: [ct.response.nodegroup.nodegroupname, ct.request.nodegroupname]
+  DeleteNodegroup: [ct.request.nodegroupname]
+  UpdateNodegroupConfig: [ct.request.nodegroupname]
+  UpdateNodegroupVersion: [ct.request.nodegroupname]
+
+  # EKS - Addons
+  CreateAddon: [ct.response.addon.addonname, ct.request.addonname]
+  DeleteAddon: [ct.request.addonname]
+  UpdateAddon: [ct.request.addonname]
+
+  # EKS - Fargate Profiles
+  CreateFargateProfile: [ct.response.fargateprofile.fargateprofilename, ct.request.fargateprofilename]
+
+  # Redshift
+  ModifyCluster: [ct.request.clusteridentifier]
+  ModifyClusterParameterGroup: [ct.request.parametergroupname]
+  CreateClusterParameterGroup: [ct.request.parametergroupname]
+  DeleteClusterParameterGroup: [ct.request.parametergroupname]
+
+# Event to Terraform resource type mappings
+# Organized by AWS service category
+event_to_resource_type:
+  # EC2
+  RunInstances: aws_instance
+  TerminateInstances: aws_instance
+  StartInstances: aws_instance
+  StopInstances: aws_instance
+  ModifyInstanceAttribute: aws_instance
+
+  # EC2 - AMI
+  CreateImage: aws_ami
+  DeregisterImage: aws_ami
+
+  # EC2 - EBS
+  CreateVolume: aws_ebs_volume
+  DeleteVolume: aws_ebs_volume
+  AttachVolume: aws_volume_attachment
+  DetachVolume: aws_volume_attachment
+  ModifyVolume: aws_ebs_volume
+
+  # EC2 - Snapshots
+  CreateSnapshot: aws_ebs_snapshot
+  DeleteSnapshot: aws_ebs_snapshot
+
+  # EC2 - Network Interfaces
+  CreateNetworkInterface: aws_network_interface
+  DeleteNetworkInterface: aws_network_interface
+  AttachNetworkInterface: aws_network_interface_attachment
+  ModifyNetworkInterfaceAttribute: aws_network_interface
+
+  # Lambda
+  CreateFunction: aws_lambda_function
+  DeleteFunction: aws_lambda_function
+  UpdateFunctionConfiguration: aws_lambda_function
+  UpdateFunctionCode: aws_lambda_function
+  PublishVersion: aws_lambda_version
+  PutProvisionedConcurrencyConfig: aws_lambda_provisioned_concurrency_config
+  PutFunctionEventInvokeConfig: aws_lambda_function_event_invoke_config
+  DeleteFunctionEventInvokeConfig: aws_lambda_function_event_invoke_config
+  CreateEventSourceMapping: aws_lambda_event_source_mapping
+  DeleteEventSourceMapping: aws_lambda_event_source_mapping
+  UpdateEventSourceMapping: aws_lambda_event_source_mapping
+  AddPermission: aws_lambda_permission
+  RemovePermission: aws_lambda_permission
+  PutFunctionConcurrency: aws_lambda_function
+  DeleteFunctionConcurrency: aws_lambda_function
+
+  # ECS
+  CreateService: aws_ecs_service
+  UpdateService: aws_ecs_service
+  DeleteService: aws_ecs_service
+  RegisterTaskDefinition: aws_ecs_task_definition
+  DeregisterTaskDefinition: aws_ecs_task_definition
+  UpdateCluster: aws_ecs_cluster
+  UpdateClusterSettings: aws_ecs_cluster
+  PutClusterCapacityProviders: aws_ecs_cluster_capacity_providers
+  UpdateContainerInstancesState: aws_ecs_container_instance
+  CreateCapacityProvider: aws_ecs_capacity_provider
+  UpdateCapacityProvider: aws_ecs_capacity_provider
+  DeleteCapacityProvider: aws_ecs_capacity_provider
+
+  # EKS
+  CreateCluster: aws_eks_cluster
+  DeleteCluster: aws_eks_cluster
+  UpdateClusterConfig: aws_eks_cluster
+  UpdateClusterVersion: aws_eks_cluster
+  CreateNodegroup: aws_eks_node_group
+  DeleteNodegroup: aws_eks_node_group
+  UpdateNodegroupConfig: aws_eks_node_group
+  UpdateNodegroupVersion: aws_eks_node_group
+  CreateAddon: aws_eks_addon
+  DeleteAddon: aws_eks_addon
+  UpdateAddon: aws_eks_addon
+  CreateFargateProfile: aws_eks_fargate_profile
+
+  # Auto Scaling
+  CreateAutoScalingGroup: aws_autoscaling_group
+  UpdateAutoScalingGroup: aws_autoscaling_group
+  DeleteAutoScalingGroup: aws_autoscaling_group
+  SetDesiredCapacity: aws_autoscaling_group
+  CreateLaunchConfiguration: aws_launch_configuration
+  DeleteLaunchConfiguration: aws_launch_configuration
+  PutScalingPolicy: aws_autoscaling_policy
+  DeletePolicy: aws_autoscaling_policy
+  PutScheduledUpdateGroupAction: aws_autoscaling_schedule
+  DeleteScheduledAction: aws_autoscaling_schedule
+  AttachLoadBalancers: aws_autoscaling_attachment
+  DetachLoadBalancers: aws_autoscaling_attachment
+  AttachLoadBalancerTargetGroups: aws_autoscaling_attachment
+  DetachLoadBalancerTargetGroups: aws_autoscaling_attachment
+
+  # VPC - Security Groups
+  AuthorizeSecurityGroupIngress: aws_security_group
+  AuthorizeSecurityGroupEgress: aws_security_group
+  RevokeSecurityGroupIngress: aws_security_group
+  RevokeSecurityGroupEgress: aws_security_group
+  CreateSecurityGroup: aws_security_group
+  DeleteSecurityGroup: aws_security_group
+  ModifySecurityGroupRules: aws_security_group_rule
+
+  # VPC - Core
+  CreateVpc: aws_vpc
+  DeleteVpc: aws_vpc
+  ModifyVpcAttribute: aws_vpc
+  CreateSubnet: aws_subnet
+  DeleteSubnet: aws_subnet
+  ModifySubnetAttribute: aws_subnet
+
+  # VPC - Route Tables
+  CreateRoute: aws_route
+  DeleteRoute: aws_route
+  ReplaceRoute: aws_route
+  CreateRouteTable: aws_route_table
+  DeleteRouteTable: aws_route_table
+  AssociateRouteTable: aws_route_table_association
+
+  # VPC - Gateways
+  AttachInternetGateway: aws_internet_gateway_attachment
+  DetachInternetGateway: aws_internet_gateway_attachment
+  CreateNatGateway: aws_nat_gateway
+  DeleteNatGateway: aws_nat_gateway
+  CreateInternetGateway: aws_internet_gateway
+  DeleteInternetGateway: aws_internet_gateway
+
+  # VPC - Network ACLs
+  CreateNetworkAcl: aws_network_acl
+  DeleteNetworkAcl: aws_network_acl
+  CreateNetworkAclEntry: aws_network_acl_rule
+  DeleteNetworkAclEntry: aws_network_acl_rule
+  ReplaceNetworkAclEntry: aws_network_acl_rule
+
+  # VPC - Endpoints
+  CreateVpcEndpoint: aws_vpc_endpoint
+  DeleteVpcEndpoint: aws_vpc_endpoint
+  ModifyVpcEndpoint: aws_vpc_endpoint
+
+  # VPC - Peering
+  CreateVpcPeeringConnection: aws_vpc_peering_connection
+  DeleteVpcPeeringConnection: aws_vpc_peering_connection
+  AcceptVpcPeeringConnection: aws_vpc_peering_connection_accepter
+  RejectVpcPeeringConnection: aws_vpc_peering_connection
+
+  # VPC - Transit Gateway
+  CreateTransitGateway: aws_ec2_transit_gateway
+  DeleteTransitGateway: aws_ec2_transit_gateway
+  ModifyTransitGateway: aws_ec2_transit_gateway
+  CreateTransitGatewayVpcAttachment: aws_ec2_transit_gateway_vpc_attachment
+  DeleteTransitGatewayVpcAttachment: aws_ec2_transit_gateway_vpc_attachment
+  CreateTransitGatewayRouteTable: aws_ec2_transit_gateway_route_table
+  DeleteTransitGatewayRouteTable: aws_ec2_transit_gateway_route_table
+  CreateTransitGatewayRoute: aws_ec2_transit_gateway_route
+  DeleteTransitGatewayRoute: aws_ec2_transit_gateway_route
+
+  # VPC - Flow Logs
+  CreateFlowLogs: aws_flow_log
+  DeleteFlowLogs: aws_flow_log
+
+  # VPC - Network Firewall
+  CreateFirewall: aws_networkfirewall_firewall
+  DeleteFirewall: aws_networkfirewall_firewall
+  UpdateFirewall: aws_networkfirewall_firewall
+  CreateFirewallPolicy: aws_networkfirewall_firewall_policy
+  DeleteFirewallPolicy: aws_networkfirewall_firewall_policy
+  UpdateFirewallPolicy: aws_networkfirewall_firewall_policy
+
+  # ELB/ALB
+  CreateLoadBalancer: aws_lb
+  DeleteLoadBalancer: aws_lb
+  ModifyLoadBalancerAttributes: aws_lb
+  CreateTargetGroup: aws_lb_target_group
+  DeleteTargetGroup: aws_lb_target_group
+  ModifyTargetGroup: aws_lb_target_group
+  ModifyTargetGroupAttributes: aws_lb_target_group
+  RegisterTargets: aws_lb_target_group_attachment
+  DeregisterTargets: aws_lb_target_group_attachment
+  CreateListener: aws_lb_listener
+  DeleteListener: aws_lb_listener
+  ModifyListener: aws_lb_listener
+  CreateRule: aws_lb_listener_rule
+  DeleteRule: aws_lb_listener_rule
+  ModifyRule: aws_lb_listener_rule
+  AddListenerCertificates: aws_lb_listener_certificate
+  RemoveListenerCertificates: aws_lb_listener_certificate
+
+  # Route53
+  CreateHostedZone: aws_route53_zone
+  DeleteHostedZone: aws_route53_zone
+  ChangeResourceRecordSets: aws_route53_record
+  AssociateVPCWithHostedZone: aws_route53_zone_association
+  DisassociateVPCFromHostedZone: aws_route53_zone_association
+  ChangeTagsForResource: aws_route53_zone
+
+  # CloudFront
+  CreateDistribution: aws_cloudfront_distribution
+  DeleteDistribution: aws_cloudfront_distribution
+  UpdateDistribution: aws_cloudfront_distribution
+  CreateInvalidation: aws_cloudfront_invalidation
+
+  # S3
+  CreateBucket: aws_s3_bucket
+  DeleteBucket: aws_s3_bucket
+  PutBucketPolicy: aws_s3_bucket_policy
+  DeleteBucketPolicy: aws_s3_bucket_policy
+  PutBucketVersioning: aws_s3_bucket_versioning
+  PutBucketEncryption: aws_s3_bucket
+  DeleteBucketEncryption: aws_s3_bucket
+  PutBucketLogging: aws_s3_bucket_logging
+  PutBucketPublicAccessBlock: aws_s3_bucket_public_access_block
+  DeleteBucketPublicAccessBlock: aws_s3_bucket_public_access_block
+  PutBucketAcl: aws_s3_bucket_acl
+  PutBucketLifecycle: aws_s3_bucket_lifecycle_configuration
+  DeleteBucketLifecycle: aws_s3_bucket_lifecycle_configuration
+  PutBucketReplication: aws_s3_bucket_replication_configuration
+  DeleteBucketReplication: aws_s3_bucket_replication_configuration
+  PutBucketCors: aws_s3_bucket_cors_configuration
+  DeleteBucketCors: aws_s3_bucket_cors_configuration
+  PutBucketWebsite: aws_s3_bucket_website_configuration
+  DeleteBucketWebsite: aws_s3_bucket_website_configuration
+  PutBucketTagging: aws_s3_bucket
+  DeleteBucketTagging: aws_s3_bucket
+  PutBucketRequestPayment: aws_s3_bucket_request_payment_configuration
+  PutBucketAccelerateConfig: aws_s3_bucket_accelerate_configuration
+
+  # RDS - DB Instances
+  CreateDBInstance: aws_db_instance
+  DeleteDBInstance: aws_db_instance
+  ModifyDBInstance: aws_db_instance
+  RebootDBInstance: aws_db_instance
+  StartDBInstance: aws_db_instance
+  StopDBInstance: aws_db_instance
+
+  # RDS - DB Clusters
+  CreateDBCluster: aws_rds_cluster
+  DeleteDBCluster: aws_rds_cluster
+  ModifyDBCluster: aws_rds_cluster
+  StartDBCluster: aws_rds_cluster
+  StopDBCluster: aws_rds_cluster
+  FailoverDBCluster: aws_rds_cluster
+
+  # RDS - Aurora
+  AddRoleToDBCluster: aws_rds_cluster_role_association
+  RemoveRoleFromDBCluster: aws_rds_cluster_role_association
+  ModifyDBClusterEndpoint: aws_rds_cluster_endpoint
+  CreateDBClusterEndpoint: aws_rds_cluster_endpoint
+  DeleteDBClusterEndpoint: aws_rds_cluster_endpoint
+  ModifyGlobalCluster: aws_rds_global_cluster
+
+  # RDS - Snapshots
+  CreateDBSnapshot: aws_db_snapshot
+  DeleteDBSnapshot: aws_db_snapshot
+  ModifyDBSnapshotAttribute: aws_db_snapshot
+  CreateDBClusterSnapshot: aws_db_cluster_snapshot
+  DeleteDBClusterSnapshot: aws_db_cluster_snapshot
+
+  # RDS - Parameter Groups
+  CreateDBParameterGroup: aws_db_parameter_group
+  DeleteDBParameterGroup: aws_db_parameter_group
+  ModifyDBParameterGroup: aws_db_parameter_group
+
+  # RDS - Subnet Groups
+  CreateDBSubnetGroup: aws_db_subnet_group
+  DeleteDBSubnetGroup: aws_db_subnet_group
+  ModifyDBSubnetGroup: aws_db_subnet_group
+
+  # RDS - Option Groups
+  CreateOptionGroup: aws_db_option_group
+  DeleteOptionGroup: aws_db_option_group
+  ModifyOptionGroup: aws_db_option_group
+
+  # RDS - Restore
+  ModifyDBInstanceAttribute: aws_db_instance
+  RestoreDBInstanceFromDBSnapshot: aws_db_instance
+  RestoreDBInstanceToPointInTime: aws_db_instance
+  RestoreDBClusterFromSnapshot: aws_rds_cluster
+  CreateDBInstanceReadReplica: aws_db_instance
+
+  # DynamoDB
+  CreateTable: aws_dynamodb_table
+  DeleteTable: aws_dynamodb_table
+  UpdateTable: aws_dynamodb_table
+  UpdateTimeToLive: aws_dynamodb_table
+  UpdateContinuousBackups: aws_dynamodb_table
+
+  # DynamoDB - Global Tables
+  CreateGlobalTable: aws_dynamodb_global_table
+  UpdateGlobalTable: aws_dynamodb_global_table
+
+  # DynamoDB - Backups
+  CreateBackup: aws_dynamodb_table_backup
+  DeleteBackup: aws_dynamodb_table_backup
+  RestoreTableFromBackup: aws_dynamodb_table
+  RestoreTableToPointInTime: aws_dynamodb_table
+
+  # DynamoDB - Streams
+  EnableKinesisStreamingDestination: aws_dynamodb_kinesis_streaming_destination
+  DisableKinesisStreamingDestination: aws_dynamodb_kinesis_streaming_destination
+
+  # DynamoDB - Contributor Insights
+  UpdateContributorInsights: aws_dynamodb_contributor_insights
+
+  # ElastiCache
+  CreateCacheCluster: aws_elasticache_cluster
+  DeleteCacheCluster: aws_elasticache_cluster
+  ModifyCacheCluster: aws_elasticache_cluster
+  RebootCacheCluster: aws_elasticache_cluster
+  CreateReplicationGroup: aws_elasticache_replication_group
+  DeleteReplicationGroup: aws_elasticache_replication_group
+  ModifyReplicationGroup: aws_elasticache_replication_group
+  CreateCacheParameterGroup: aws_elasticache_parameter_group
+  DeleteCacheParameterGroup: aws_elasticache_parameter_group
+  ModifyCacheParameterGroup: aws_elasticache_parameter_group
+  CreateCacheSubnetGroup: aws_elasticache_subnet_group
+  DeleteCacheSubnetGroup: aws_elasticache_subnet_group
+  ModifyCacheSubnetGroup: aws_elasticache_subnet_group
+  IncreaseReplicaCount: aws_elasticache_replication_group
+  DecreaseReplicaCount: aws_elasticache_replication_group
+  CreateGlobalReplicationGroup: aws_elasticache_global_replication_group
+  DeleteGlobalReplicationGroup: aws_elasticache_global_replication_group
+
+  # Redshift
+  # Note: CreateCluster/DeleteCluster/ModifyCluster/RebootCluster/ResizeCluster
+  # are handled via event_source_conflicts to disambiguate from EKS/ECS/ElastiCache
+  ModifyClusterParameterGroup: aws_redshift_parameter_group
+  CreateClusterParameterGroup: aws_redshift_parameter_group
+  DeleteClusterParameterGroup: aws_redshift_parameter_group
+
+  # ECR
+  CreateRepository: aws_ecr_repository
+  DeleteRepository: aws_ecr_repository
+  PutImageScanningConfiguration: aws_ecr_repository
+  PutImageTagMutability: aws_ecr_repository
+  PutLifecyclePolicy: aws_ecr_lifecycle_policy
+  DeleteLifecyclePolicy: aws_ecr_lifecycle_policy
+  SetRepositoryPolicy: aws_ecr_repository_policy
+  DeleteRepositoryPolicy: aws_ecr_repository_policy
+  PutReplicationConfiguration: aws_ecr_replication_configuration
+
+  # IAM - Policies
+  PutUserPolicy: aws_iam_user_policy
+  PutRolePolicy: aws_iam_role_policy
+  PutGroupPolicy: aws_iam_group_policy
+  UpdateAssumeRolePolicy: aws_iam_role
+  AttachUserPolicy: aws_iam_user_policy_attachment
+  AttachRolePolicy: aws_iam_role_policy_attachment
+  AttachGroupPolicy: aws_iam_group_policy_attachment
+  CreatePolicy: aws_iam_policy
+  CreatePolicyVersion: aws_iam_policy
+
+  # IAM - Lifecycle
+  CreateRole: aws_iam_role
+  DeleteRole: aws_iam_role
+  UpdateRole: aws_iam_role
+  TagRole: aws_iam_role
+  UntagRole: aws_iam_role
+  CreateUser: aws_iam_user
+  DeleteUser: aws_iam_user
+  UpdateUser: aws_iam_user
+  CreateGroup: aws_iam_group
+  DeleteGroup: aws_iam_group
+  UpdateGroup: aws_iam_group
+  CreateAccessKey: aws_iam_access_key
+  AddUserToGroup: aws_iam_user_group_membership
+  RemoveUserFromGroup: aws_iam_user_group_membership
+  UpdateAccountPasswordPolicy: aws_iam_account_password_policy
+
+  # IAM - Instance Profiles
+  CreateInstanceProfile: aws_iam_instance_profile
+  DeleteInstanceProfile: aws_iam_instance_profile
+  AddRoleToInstanceProfile: aws_iam_instance_profile
+  RemoveRoleFromInstanceProfile: aws_iam_instance_profile
+
+  # IAM - OIDC Providers
+  AddClientIDToOpenIDConnectProvider: aws_iam_openid_connect_provider
+  RemoveClientIDFromOpenIDConnectProvider: aws_iam_openid_connect_provider
+
+  # KMS
+  CreateKey: aws_kms_key
+  ScheduleKeyDeletion: aws_kms_key
+  DisableKey: aws_kms_key
+  EnableKey: aws_kms_key
+  PutKeyPolicy: aws_kms_key
+  EnableKeyRotation: aws_kms_key
+  DisableKeyRotation: aws_kms_key
+  CreateAlias: aws_kms_alias
+  DeleteAlias: aws_kms_alias
+  UpdateAlias: aws_kms_alias
+
+  # ACM
+  RequestCertificate: aws_acm_certificate
+  DeleteCertificate: aws_acm_certificate
+  AddTagsToCertificate: aws_acm_certificate
+  RemoveTagsFromCertificate: aws_acm_certificate
+  ImportCertificate: aws_acm_certificate
+  ExportCertificate: aws_acm_certificate
+
+  # WAF / WAFv2
+  CreateWebACL: aws_wafv2_web_acl
+  UpdateWebACL: aws_wafv2_web_acl
+  DeleteWebACL: aws_wafv2_web_acl
+  CreateRuleGroup: aws_wafv2_rule_group
+  UpdateRuleGroup: aws_wafv2_rule_group
+  DeleteRuleGroup: aws_wafv2_rule_group
+  CreateIPSet: aws_wafv2_ip_set
+  UpdateIPSet: aws_wafv2_ip_set
+  DeleteIPSet: aws_wafv2_ip_set
+  CreateRegexPatternSet: aws_wafv2_regex_pattern_set
+  UpdateRegexPatternSet: aws_wafv2_regex_pattern_set
+  DeleteRegexPatternSet: aws_wafv2_regex_pattern_set
+  AssociateWebACL: aws_wafv2_web_acl_association
+  DisassociateWebACL: aws_wafv2_web_acl_association
+
+  # Secrets Manager
+  CreateSecret: aws_secretsmanager_secret
+  DeleteSecret: aws_secretsmanager_secret
+  UpdateSecret: aws_secretsmanager_secret
+  PutSecretValue: aws_secretsmanager_secret_version
+  RotateSecret: aws_secretsmanager_secret_rotation
+  CancelRotateSecret: aws_secretsmanager_secret_rotation
+  UpdateSecretVersionStage: aws_secretsmanager_secret_version
+  PutResourcePolicy: aws_secretsmanager_secret_policy
+  DeleteResourcePolicy: aws_secretsmanager_secret_policy
+
+  # SSM Parameter Store
+  PutParameter: aws_ssm_parameter
+  DeleteParameter: aws_ssm_parameter
+  DeleteParameters: aws_ssm_parameter
+  LabelParameterVersion: aws_ssm_parameter
+
+  # CloudTrail
+  CreateTrail: aws_cloudtrail
+  DeleteTrail: aws_cloudtrail
+  UpdateTrail: aws_cloudtrail
+  StartLogging: aws_cloudtrail
+  StopLogging: aws_cloudtrail
+  PutEventSelectors: aws_cloudtrail
+  PutInsightSelectors: aws_cloudtrail
+
+  # CloudWatch - Alarms
+  PutMetricAlarm: aws_cloudwatch_metric_alarm
+  DeleteAlarms: aws_cloudwatch_metric_alarm
+  DisableAlarmActions: aws_cloudwatch_metric_alarm
+  EnableAlarmActions: aws_cloudwatch_metric_alarm
+  SetAlarmState: aws_cloudwatch_metric_alarm
+
+  # CloudWatch - Composite Alarms
+  PutCompositeAlarm: aws_cloudwatch_composite_alarm
+
+  # CloudWatch - Logs
+  CreateLogGroup: aws_cloudwatch_log_group
+  DeleteLogGroup: aws_cloudwatch_log_group
+  PutRetentionPolicy: aws_cloudwatch_log_group
+  DeleteRetentionPolicy: aws_cloudwatch_log_group
+  AssociateKmsKey: aws_cloudwatch_log_group
+  DisassociateKmsKey: aws_cloudwatch_log_group
+
+  # CloudWatch - Metric Filters
+  PutMetricFilter: aws_cloudwatch_log_metric_filter
+  DeleteMetricFilter: aws_cloudwatch_log_metric_filter
+
+  # CloudWatch - Log Streams
+  CreateLogStream: aws_cloudwatch_log_stream
+  DeleteLogStream: aws_cloudwatch_log_stream
+
+  # CloudWatch - Dashboards
+  PutDashboard: aws_cloudwatch_dashboard
+  DeleteDashboards: aws_cloudwatch_dashboard
+
+  # CloudWatch - Metric Streams
+  PutMetricStream: aws_cloudwatch_metric_stream
+  DeleteMetricStream: aws_cloudwatch_metric_stream
+
+  # CloudWatch - Insights Rules
+  PutInsightRule: aws_cloudwatch_event_rule
+  DeleteInsightRule: aws_cloudwatch_event_rule
+
+  # SNS
+  CreateTopic: aws_sns_topic
+  DeleteTopic: aws_sns_topic
+  SetTopicAttributes: aws_sns_topic
+  Subscribe: aws_sns_topic_subscription
+  Unsubscribe: aws_sns_topic_subscription
+  ConfirmSubscription: aws_sns_topic_subscription
+
+  # SQS
+  CreateQueue: aws_sqs_queue
+  DeleteQueue: aws_sqs_queue
+  SetQueueAttributes: aws_sqs_queue
+  PurgeQueue: aws_sqs_queue
+
+  # API Gateway - REST API
+  CreateRestApi: aws_api_gateway_rest_api
+  DeleteRestApi: aws_api_gateway_rest_api
+  UpdateRestApi: aws_api_gateway_rest_api
+  CreateResource: aws_api_gateway_resource
+  DeleteResource: aws_api_gateway_resource
+  CreateMethod: aws_api_gateway_method
+  DeleteMethod: aws_api_gateway_method
+  PutMethod: aws_api_gateway_method
+  UpdateMethod: aws_api_gateway_method
+  CreateDeployment: aws_api_gateway_deployment
+  DeleteDeployment: aws_api_gateway_deployment
+  CreateStage: aws_api_gateway_stage
+  DeleteStage: aws_api_gateway_stage
+  UpdateStage: aws_api_gateway_stage
+
+  # API Gateway - Authorizers & Models
+  CreateAuthorizer: aws_api_gateway_authorizer
+  DeleteAuthorizer: aws_api_gateway_authorizer
+  UpdateAuthorizer: aws_api_gateway_authorizer
+  CreateModel: aws_api_gateway_model
+  DeleteModel: aws_api_gateway_model
+
+  # API Gateway - API Keys & Usage Plans
+  CreateApiKey: aws_api_gateway_api_key
+  DeleteApiKey: aws_api_gateway_api_key
+  UpdateApiKey: aws_api_gateway_api_key
+  CreateUsagePlan: aws_api_gateway_usage_plan
+  DeleteUsagePlan: aws_api_gateway_usage_plan
+  UpdateUsagePlan: aws_api_gateway_usage_plan
+
+  # API Gateway v2
+  CreateApi: aws_apigatewayv2_api
+  DeleteApi: aws_apigatewayv2_api
+  UpdateApi: aws_apigatewayv2_api
+  UpdateRoute: aws_apigatewayv2_route
+  CreateIntegration: aws_apigatewayv2_integration
+  DeleteIntegration: aws_apigatewayv2_integration
+  UpdateIntegration: aws_apigatewayv2_integration
+
+  # CloudFormation
+  CreateStack: aws_cloudformation_stack
+  UpdateStack: aws_cloudformation_stack
+  DeleteStack: aws_cloudformation_stack
+  CreateChangeSet: aws_cloudformation_change_set
+  ExecuteChangeSet: aws_cloudformation_change_set
+  DeleteChangeSet: aws_cloudformation_change_set
+  CreateStackSet: aws_cloudformation_stack_set
+  UpdateStackSet: aws_cloudformation_stack_set
+  DeleteStackSet: aws_cloudformation_stack_set
+  SetStackPolicy: aws_cloudformation_stack
+  CreateStackInstances: aws_cloudformation_stack_set_instance
+  DeleteStackInstances: aws_cloudformation_stack_set_instance
+  UpdateStackInstances: aws_cloudformation_stack_set_instance
+
+  # EventBridge (CloudWatch Events)
+  PutRule: aws_cloudwatch_event_rule
+  PutTargets: aws_cloudwatch_event_target
+  RemoveTargets: aws_cloudwatch_event_target
+  PutEvents: aws_cloudwatch_event_rule
+
+  # Step Functions
+  CreateStateMachine: aws_sfn_state_machine
+  UpdateStateMachine: aws_sfn_state_machine
+  DeleteStateMachine: aws_sfn_state_machine
+  StartExecution: aws_sfn_state_machine
+  StopExecution: aws_sfn_state_machine
+
+  # AWS Glue
+  CreateJob: aws_glue_job
+  UpdateJob: aws_glue_job
+  DeleteJob: aws_glue_job
+  CreateCrawler: aws_glue_crawler
+  UpdateCrawler: aws_glue_crawler
+  DeleteCrawler: aws_glue_crawler
+
+  # Kinesis
+  CreateStream: aws_kinesis_stream
+  DeleteStream: aws_kinesis_stream
+  UpdateShardCount: aws_kinesis_stream
+  EnableEnhancedMonitoring: aws_kinesis_stream
+  DisableEnhancedMonitoring: aws_kinesis_stream
+  StartStreamEncryption: aws_kinesis_stream
+  StopStreamEncryption: aws_kinesis_stream
+  RegisterStreamConsumer: aws_kinesis_stream_consumer
+  DeregisterStreamConsumer: aws_kinesis_stream_consumer
+  CreateDeliveryStream: aws_kinesis_firehose_delivery_stream
+  DeleteDeliveryStream: aws_kinesis_firehose_delivery_stream
+  UpdateDestination: aws_kinesis_firehose_delivery_stream
+  CreateApplication: aws_kinesis_analytics_application
+  UpdateApplication: aws_kinesis_analytics_application
+  DeleteApplication: aws_kinesis_analytics_application
+
+  # AWS Backup
+  CreateBackupPlan: aws_backup_plan
+  UpdateBackupPlan: aws_backup_plan
+  DeleteBackupPlan: aws_backup_plan
+  CreateBackupVault: aws_backup_vault
+  DeleteBackupVault: aws_backup_vault
+  PutBackupVaultAccessPolicy: aws_backup_vault_policy
+  DeleteBackupVaultAccessPolicy: aws_backup_vault_policy
+  StartBackupJob: aws_backup_selection
+  StopBackupJob: aws_backup_selection
+  StartRestoreJob: aws_backup_selection
+
+  # SageMaker
+  CreateEndpoint: aws_sagemaker_endpoint
+  UpdateEndpoint: aws_sagemaker_endpoint
+  DeleteEndpoint: aws_sagemaker_endpoint
+  CreateEndpointConfig: aws_sagemaker_endpoint_configuration
+  DeleteEndpointConfig: aws_sagemaker_endpoint_configuration
+  CreateTrainingJob: aws_sagemaker_training_job
+  StopTrainingJob: aws_sagemaker_training_job
+  CreateNotebookInstance: aws_sagemaker_notebook_instance
+  UpdateNotebookInstance: aws_sagemaker_notebook_instance
+  DeleteNotebookInstance: aws_sagemaker_notebook_instance
+  StartNotebookInstance: aws_sagemaker_notebook_instance
+  StopNotebookInstance: aws_sagemaker_notebook_instance
+  CreateModelPackage: aws_sagemaker_model_package
+  UpdateModelPackage: aws_sagemaker_model_package
+  DeleteModelPackage: aws_sagemaker_model_package
+  CreateModelPackageGroup: aws_sagemaker_model_package_group
+  DeleteModelPackageGroup: aws_sagemaker_model_package_group
+
+# Event source conflicts resolution
+# When multiple AWS services use the same CloudTrail event name,
+# use the eventSource field to determine the correct resource type
+event_source_conflicts:
+  CreateAlias:
+    lambda.amazonaws.com: aws_lambda_alias
+    kms.amazonaws.com: aws_kms_alias
+  DeleteAlias:
+    lambda.amazonaws.com: aws_lambda_alias
+    kms.amazonaws.com: aws_kms_alias
+  UpdateAlias:
+    lambda.amazonaws.com: aws_lambda_alias
+    kms.amazonaws.com: aws_kms_alias
+  DeleteRule:
+    events.amazonaws.com: aws_cloudwatch_event_rule
+    elasticloadbalancing.amazonaws.com: aws_lb_listener_rule
+  CreateTable:
+    glue.amazonaws.com: aws_glue_catalog_table
+    dynamodb.amazonaws.com: aws_dynamodb_table
+  DeleteTable:
+    glue.amazonaws.com: aws_glue_catalog_table
+    dynamodb.amazonaws.com: aws_dynamodb_table
+  UpdateTable:
+    glue.amazonaws.com: aws_glue_catalog_table
+    dynamodb.amazonaws.com: aws_dynamodb_table
+  CreateDatabase:
+    glue.amazonaws.com: aws_glue_catalog_database
+    rds.amazonaws.com: unknown
+  DeleteDatabase:
+    glue.amazonaws.com: aws_glue_catalog_database
+    rds.amazonaws.com: unknown
+  UpdateDatabase:
+    glue.amazonaws.com: aws_glue_catalog_database
+    rds.amazonaws.com: unknown
+  TagResource:
+    states.amazonaws.com: aws_sfn_state_machine
+  UntagResource:
+    states.amazonaws.com: aws_sfn_state_machine
+  CreateModel:
+    sagemaker.amazonaws.com: aws_sagemaker_model
+    apigateway.amazonaws.com: aws_api_gateway_model
+  DeleteModel:
+    sagemaker.amazonaws.com: aws_sagemaker_model
+    apigateway.amazonaws.com: aws_api_gateway_model
+  CreateCluster:
+    eks.amazonaws.com: aws_eks_cluster
+    ecs.amazonaws.com: aws_ecs_cluster
+    redshift.amazonaws.com: aws_redshift_cluster
+    elasticache.amazonaws.com: aws_elasticache_cluster
+  DeleteCluster:
+    eks.amazonaws.com: aws_eks_cluster
+    ecs.amazonaws.com: aws_ecs_cluster
+    redshift.amazonaws.com: aws_redshift_cluster
+    elasticache.amazonaws.com: aws_elasticache_cluster
+  ModifyCluster:
+    eks.amazonaws.com: aws_eks_cluster
+    ecs.amazonaws.com: aws_ecs_cluster
+    redshift.amazonaws.com: aws_redshift_cluster
+    elasticache.amazonaws.com: aws_elasticache_cluster
+  RebootCluster:
+    eks.amazonaws.com: aws_eks_cluster
+    ecs.amazonaws.com: aws_ecs_cluster
+    redshift.amazonaws.com: aws_redshift_cluster
+    elasticache.amazonaws.com: aws_elasticache_cluster
+  ResizeCluster:
+    eks.amazonaws.com: aws_eks_cluster
+    ecs.amazonaws.com: aws_ecs_cluster
+    redshift.amazonaws.com: aws_redshift_cluster
+    elasticache.amazonaws.com: aws_elasticache_cluster
+  PutResourcePolicy:
+    secretsmanager.amazonaws.com: aws_secretsmanager_secret_policy
+    backup.amazonaws.com: aws_backup_vault_policy
+  DeleteResourcePolicy:
+    secretsmanager.amazonaws.com: aws_secretsmanager_secret_policy
+    backup.amazonaws.com: aws_backup_vault_policy

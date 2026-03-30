@@ -139,3 +139,18 @@ func encodeEvent(event broadcaster.Event) []byte {
 
 	return data
 }
+
+// TestCheckOriginFunc is exported for testing the checkOrigin logic
+func TestCheckOriginFunc(r *http.Request) bool {
+	return checkOrigin(r)
+}
+
+// TestGetAllowedOriginsFunc is exported for testing the getAllowedOrigins logic
+func TestGetAllowedOriginsFunc() []string {
+	return getAllowedOrigins()
+}
+
+// TestNewUploaderFunc is exported for testing the newUpgrader logic
+func TestNewUploaderFunc() websocket.Upgrader {
+	return newUpgrader()
+}

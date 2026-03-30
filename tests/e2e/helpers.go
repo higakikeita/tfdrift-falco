@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	// TODO: Migrate to aws-sdk-go-v2 (aws-sdk-go-v1 deprecated, EOL July 31, 2025)
-	// See: https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-go-v1-on-july-31-2025/
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
@@ -30,7 +30,7 @@ type TestContext struct {
 	awsSession     *session.Session
 	ec2Client      *ec2.EC2
 	iamClient      *iam.IAM
-	s3Client       *s3.S3
+	s3Client       *s3.Client
 	alertChan      chan types.DriftAlert
 	cleanupFuncs   []func()
 	testInstanceID string
@@ -46,18 +46,24 @@ func NewTestContext(t *testing.T) *TestContext {
 	// Load test outputs from Terraform
 	outputs := loadTerraformOutputs(t)
 
-	// Create AWS session
+	// Create AWS session for v1 clients
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(getEnvOrDefault("AWS_REGION", "us-east-1")),
 	})
 	require.NoError(t, err, "Failed to create AWS session")
+
+	// Create AWS config for v2 S3 client
+	awsCfg, err := awsconfig.LoadDefaultConfig(context.Background(),
+		awsconfig.WithRegion(getEnvOrDefault("AWS_REGION", "us-east-1")),
+	)
+	require.NoError(t, err, "Failed to load AWS config for S3")
 
 	ctx := &TestContext{
 		t:              t,
 		awsSession:     sess,
 		ec2Client:      ec2.New(sess),
 		iamClient:      iam.New(sess),
-		s3Client:       s3.New(sess),
+		s3Client:       s3.NewFromConfig(awsCfg),
 		alertChan:      make(chan types.DriftAlert, 100),
 		cleanupFuncs:   []func(){},
 		testInstanceID: outputs["test_instance_id"].(string),
@@ -163,10 +169,10 @@ func (ctx *TestContext) DisableS3BucketEncryption(bucketName string) {
 	ctx.t.Logf("Disabling S3 bucket encryption: %s", bucketName)
 
 	input := &s3.DeleteBucketEncryptionInput{
-		Bucket: aws.String(bucketName),
+		Bucket: &bucketName,
 	}
 
-	_, err := ctx.s3Client.DeleteBucketEncryption(input)
+	_, err := ctx.s3Client.DeleteBucketEncryption(context.Background(), input)
 	require.NoError(ctx.t, err, "Failed to delete bucket encryption")
 
 	ctx.t.Logf("Disabled S3 bucket encryption successfully")
@@ -178,20 +184,21 @@ func (ctx *TestContext) EnableS3BucketEncryption(bucketName string) {
 
 	ctx.t.Logf("Enabling S3 bucket encryption: %s", bucketName)
 
+	algorithm := "AES256"
 	input := &s3.PutBucketEncryptionInput{
-		Bucket: aws.String(bucketName),
-		ServerSideEncryptionConfiguration: &s3.ServerSideEncryptionConfiguration{
-			Rules: []*s3.ServerSideEncryptionRule{
+		Bucket: &bucketName,
+		ServerSideEncryptionConfiguration: &s3types.ServerSideEncryptionConfiguration{
+			Rules: []s3types.ServerSideEncryptionRule{
 				{
-					ApplyServerSideEncryptionByDefault: &s3.ServerSideEncryptionByDefault{
-						SSEAlgorithm: aws.String("AES256"),
+					ApplyServerSideEncryptionByDefault: &s3types.ServerSideEncryptionByDefault{
+						SSEAlgorithm: s3types.ServerSideEncryption(algorithm),
 					},
 				},
 			},
 		},
 	}
 
-	_, err := ctx.s3Client.PutBucketEncryption(input)
+	_, err := ctx.s3Client.PutBucketEncryption(context.Background(), input)
 	require.NoError(ctx.t, err, "Failed to enable bucket encryption")
 
 	ctx.t.Logf("Enabled S3 bucket encryption successfully")
