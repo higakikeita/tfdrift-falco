@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@cloud-diagrams/core": "^0.2.2",
-    "@dagrejs/dagre": "^1.1.8",
+    "@dagrejs/dagre": "^3.0.0",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-slot": "^1.2.4",
