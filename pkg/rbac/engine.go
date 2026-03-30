@@ -122,3 +122,4 @@ func (e *Engine) GetRoleHierarchyLevel(role Role) (int, bool) {
 	level, ok := e.roleHierarchy[role]
 	return level, ok
 }
+

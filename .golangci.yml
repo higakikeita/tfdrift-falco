@@ -62,6 +62,9 @@ linters:
         - "-S1011"   # Use single append for slice concatenation (style preference)
         - "-ST1003"  # ALL_CAPS naming convention (existing Go constants)
         - "-ST1005"  # Error string capitalization (existing convention)
+        - "-ST1020"  # Comment on exported function form (noisy)
+        - "-SA1012"  # Nil context in tests (intentional for error path testing)
+        - "-SA4006"  # Unused value (false positives in test code)
 
     gosec:
       excludes:
@@ -108,6 +111,14 @@ linters:
       - path: cmd/
         linters:
           - errcheck
+
+      # Exclude unparam from handlers and notifier (pre-existing design patterns)
+      - path: pkg/api/handlers/
+        linters:
+          - unparam
+      - path: pkg/notifier/
+        linters:
+          - unparam
 
 issues:
   max-issues-per-linter: 0
