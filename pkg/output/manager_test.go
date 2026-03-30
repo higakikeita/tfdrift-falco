@@ -11,13 +11,13 @@ import (
 )
 
 func TestNewManager(t *testing.T) {
-	manager := NewManager(OutputModeJSON)
+	manager := NewManager(ModeJSON)
 	assert.NotNil(t, manager)
-	assert.Equal(t, OutputModeJSON, manager.mode)
+	assert.Equal(t, ModeJSON, manager.mode)
 }
 
 func TestManager_EmitDriftEvent_JSONMode(t *testing.T) {
-	manager := NewManager(OutputModeJSON)
+	manager := NewManager(ModeJSON)
 
 	var jsonBuf bytes.Buffer
 	manager.SetJSONWriter(&jsonBuf)
@@ -33,7 +33,7 @@ func TestManager_EmitDriftEvent_JSONMode(t *testing.T) {
 }
 
 func TestManager_EmitDriftEvent_HumanMode(t *testing.T) {
-	manager := NewManager(OutputModeHuman)
+	manager := NewManager(ModeHuman)
 
 	var humanBuf bytes.Buffer
 	manager.SetHumanWriter(&humanBuf)
@@ -54,7 +54,7 @@ func TestManager_EmitDriftEvent_HumanMode(t *testing.T) {
 }
 
 func TestManager_EmitDriftEvent_BothMode(t *testing.T) {
-	manager := NewManager(OutputModeBoth)
+	manager := NewManager(ModeBoth)
 
 	var jsonBuf, humanBuf bytes.Buffer
 	manager.SetJSONWriter(&jsonBuf)
@@ -75,7 +75,7 @@ func TestManager_EmitDriftEvent_BothMode(t *testing.T) {
 }
 
 func TestManager_FormatHumanMessage(t *testing.T) {
-	manager := NewManager(OutputModeHuman)
+	manager := NewManager(ModeHuman)
 
 	tests := []struct {
 		name     string
@@ -135,7 +135,7 @@ func TestManager_FormatHumanMessage(t *testing.T) {
 }
 
 func TestManager_GetSeverityEmoji(t *testing.T) {
-	manager := NewManager(OutputModeHuman)
+	manager := NewManager(ModeHuman)
 
 	tests := []struct {
 		severity string
@@ -158,32 +158,32 @@ func TestManager_GetSeverityEmoji(t *testing.T) {
 }
 
 func TestManager_SetMode(t *testing.T) {
-	manager := NewManager(OutputModeHuman)
-	assert.Equal(t, OutputModeHuman, manager.mode)
+	manager := NewManager(ModeHuman)
+	assert.Equal(t, ModeHuman, manager.mode)
 
-	manager.SetMode(OutputModeJSON)
-	assert.Equal(t, OutputModeJSON, manager.mode)
+	manager.SetMode(ModeJSON)
+	assert.Equal(t, ModeJSON, manager.mode)
 
-	manager.SetMode(OutputModeBoth)
-	assert.Equal(t, OutputModeBoth, manager.mode)
+	manager.SetMode(ModeBoth)
+	assert.Equal(t, ModeBoth, manager.mode)
 }
 
-func TestParseOutputMode(t *testing.T) {
+func TestParseMode(t *testing.T) {
 	tests := []struct {
 		input    string
-		expected OutputMode
+		expected Mode
 		wantErr  bool
 	}{
-		{"human", OutputModeHuman, false},
-		{"json", OutputModeJSON, false},
-		{"both", OutputModeBoth, false},
-		{"invalid", OutputModeHuman, true},
-		{"", OutputModeHuman, true},
+		{"human", ModeHuman, false},
+		{"json", ModeJSON, false},
+		{"both", ModeBoth, false},
+		{"invalid", ModeHuman, true},
+		{"", ModeHuman, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			mode, err := ParseOutputMode(tt.input)
+			mode, err := ParseMode(tt.input)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -195,13 +195,13 @@ func TestParseOutputMode(t *testing.T) {
 }
 
 func TestManager_Close(t *testing.T) {
-	manager := NewManager(OutputModeJSON)
+	manager := NewManager(ModeJSON)
 	err := manager.Close()
 	assert.NoError(t, err)
 }
 
 func TestManager_Concurrent(t *testing.T) {
-	manager := NewManager(OutputModeBoth)
+	manager := NewManager(ModeBoth)
 
 	var jsonBuf, humanBuf bytes.Buffer
 	manager.SetJSONWriter(&jsonBuf)

@@ -15,7 +15,7 @@ type Store struct {
 	events       []types.Event
 	unmanaged    []types.UnmanagedResourceAlert
 	stateManager *terraform.StateManager
-	graphDB      *GraphDatabase // Neo4j-style graph database
+	graphDB      *Database // Neo4j-style graph database
 	mu           sync.RWMutex
 }
 
@@ -25,7 +25,7 @@ func NewStore() *Store {
 		drifts:    make([]types.DriftAlert, 0),
 		events:    make([]types.Event, 0),
 		unmanaged: make([]types.UnmanagedResourceAlert, 0),
-		graphDB:   NewGraphDatabase(),
+		graphDB:   NewDatabase(),
 	}
 }
 
@@ -97,10 +97,10 @@ func (s *Store) SetStateManager(sm *terraform.StateManager) {
 }
 
 // GetGraphDB returns the graph database
-func (s *Store) GetGraphDB() *GraphDatabase {
+func (s *Store) GetGraphDB() *Database {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	log.Infof("[GetGraphDB] Returning GraphDatabase instance: %p (node count: %d)", s.graphDB, s.graphDB.NodeCount())
+	log.Infof("[GetGraphDB] Returning Database instance: %p (node count: %d)", s.graphDB, s.graphDB.NodeCount())
 	return s.graphDB
 }
 

@@ -52,8 +52,8 @@ const (
 	CAUSED_DRIFT_IN = "CAUSED_DRIFT_IN" // Change A caused drift in B
 )
 
-// GraphDatabase is an in-memory graph database inspired by Neo4j
-type GraphDatabase struct {
+// Database is an in-memory graph database inspired by Neo4j
+type Database struct {
 	mu sync.RWMutex
 
 	// Core storage
@@ -69,9 +69,9 @@ type GraphDatabase struct {
 	relationshipsByType map[string]map[string]*Relationship // type -> {rel_id -> relationship}
 }
 
-// NewGraphDatabase creates a new in-memory graph database
-func NewGraphDatabase() *GraphDatabase {
-	return &GraphDatabase{
+// NewDatabase creates a new in-memory graph database
+func NewDatabase() *Database {
+	return &Database{
 		nodes:               make(map[string]*Node),
 		relationships:       make(map[string]*Relationship),
 		nodesByLabel:        make(map[string]map[string]*Node),
@@ -82,7 +82,7 @@ func NewGraphDatabase() *GraphDatabase {
 }
 
 // AddNode adds a node to the graph
-func (db *GraphDatabase) AddNode(node *Node) {
+func (db *Database) AddNode(node *Node) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 
@@ -106,14 +106,14 @@ func (db *GraphDatabase) AddNode(node *Node) {
 }
 
 // GetNode retrieves a node by ID
-func (db *GraphDatabase) GetNode(id string) *Node {
+func (db *Database) GetNode(id string) *Node {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 	return db.nodes[id]
 }
 
 // GetNodesByLabel retrieves all nodes with a specific label
-func (db *GraphDatabase) GetNodesByLabel(label string) []*Node {
+func (db *Database) GetNodesByLabel(label string) []*Node {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -126,7 +126,7 @@ func (db *GraphDatabase) GetNodesByLabel(label string) []*Node {
 }
 
 // HasLabel checks if a node has a specific label
-func (db *GraphDatabase) HasLabel(nodeID string, label string) bool {
+func (db *Database) HasLabel(nodeID string, label string) bool {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -144,7 +144,7 @@ func (db *GraphDatabase) HasLabel(nodeID string, label string) bool {
 }
 
 // AddRelationship adds a relationship to the graph
-func (db *GraphDatabase) AddRelationship(rel *Relationship) error {
+func (db *Database) AddRelationship(rel *Relationship) error {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 
@@ -177,14 +177,14 @@ func (db *GraphDatabase) AddRelationship(rel *Relationship) error {
 }
 
 // GetRelationship retrieves a relationship by ID
-func (db *GraphDatabase) GetRelationship(id string) *Relationship {
+func (db *Database) GetRelationship(id string) *Relationship {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 	return db.relationships[id]
 }
 
 // GetOutgoingRelationships returns all outgoing relationships from a node
-func (db *GraphDatabase) GetOutgoingRelationships(nodeID string) []*Relationship {
+func (db *Database) GetOutgoingRelationships(nodeID string) []*Relationship {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -197,7 +197,7 @@ func (db *GraphDatabase) GetOutgoingRelationships(nodeID string) []*Relationship
 }
 
 // GetIncomingRelationships returns all incoming relationships to a node
-func (db *GraphDatabase) GetIncomingRelationships(nodeID string) []*Relationship {
+func (db *Database) GetIncomingRelationships(nodeID string) []*Relationship {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -210,7 +210,7 @@ func (db *GraphDatabase) GetIncomingRelationships(nodeID string) []*Relationship
 }
 
 // GetRelationshipsByType returns all relationships of a specific type
-func (db *GraphDatabase) GetRelationshipsByType(relType string) []*Relationship {
+func (db *Database) GetRelationshipsByType(relType string) []*Relationship {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -223,7 +223,7 @@ func (db *GraphDatabase) GetRelationshipsByType(relType string) []*Relationship 
 }
 
 // GetNeighbors returns all directly connected nodes (both incoming and outgoing)
-func (db *GraphDatabase) GetNeighbors(nodeID string) []*Node {
+func (db *Database) GetNeighbors(nodeID string) []*Node {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -251,7 +251,7 @@ func (db *GraphDatabase) GetNeighbors(nodeID string) []*Node {
 }
 
 // GetAllNodes returns all nodes in the graph
-func (db *GraphDatabase) GetAllNodes() []*Node {
+func (db *Database) GetAllNodes() []*Node {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -263,7 +263,7 @@ func (db *GraphDatabase) GetAllNodes() []*Node {
 }
 
 // GetAllRelationships returns all relationships in the graph
-func (db *GraphDatabase) GetAllRelationships() []*Relationship {
+func (db *Database) GetAllRelationships() []*Relationship {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -275,21 +275,21 @@ func (db *GraphDatabase) GetAllRelationships() []*Relationship {
 }
 
 // NodeCount returns the total number of nodes
-func (db *GraphDatabase) NodeCount() int {
+func (db *Database) NodeCount() int {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 	return len(db.nodes)
 }
 
 // RelationshipCount returns the total number of relationships
-func (db *GraphDatabase) RelationshipCount() int {
+func (db *Database) RelationshipCount() int {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 	return len(db.relationships)
 }
 
 // DeleteNode removes a node and all its relationships
-func (db *GraphDatabase) DeleteNode(nodeID string) {
+func (db *Database) DeleteNode(nodeID string) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 
@@ -344,7 +344,7 @@ func (db *GraphDatabase) DeleteNode(nodeID string) {
 }
 
 // Clear removes all nodes and relationships
-func (db *GraphDatabase) Clear() {
+func (db *Database) Clear() {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 

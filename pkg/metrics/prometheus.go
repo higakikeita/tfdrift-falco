@@ -28,7 +28,7 @@ type Metrics struct {
 }
 
 var (
-	// Global metrics instance
+	// DefaultMetrics is a global metrics instance.
 	DefaultMetrics *Metrics
 )
 

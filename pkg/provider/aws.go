@@ -48,8 +48,10 @@ func NewAWSProvider(opts ...AWSProviderOption) *AWSProvider {
 	return p
 }
 
+// Name returns the provider name.
 func (p *AWSProvider) Name() string { return "aws" }
 
+// ParseEvent parses a CloudTrail event into a normalized event.
 func (p *AWSProvider) ParseEvent(source string, fields map[string]string, rawEvent interface{}) *types.Event {
 	if source != "aws_cloudtrail" {
 		return nil
@@ -108,10 +110,12 @@ func (p *AWSProvider) ParseEvent(source string, fields map[string]string, rawEve
 	return event
 }
 
+// IsRelevantEvent checks if an event is relevant for tracking.
 func (p *AWSProvider) IsRelevantEvent(eventName string) bool {
 	return p.relevantEvents[eventName]
 }
 
+// MapEventToResource maps a CloudTrail event to a resource type.
 func (p *AWSProvider) MapEventToResource(eventName string, eventSource string) string {
 	// First try conflict resolution
 	if resolved := mappings.ResolveEventSourceConflict(eventName, eventSource); resolved != "" {
@@ -135,14 +139,17 @@ func (p *AWSProvider) MapEventToResource(eventName string, eventSource string) s
 	return "unknown"
 }
 
+// ExtractChanges extracts change details from event fields.
 func (p *AWSProvider) ExtractChanges(eventName string, fields map[string]string) map[string]interface{} {
 	return falco.ExtractAWSChanges(eventName, fields)
 }
 
+// SupportedEventCount returns the number of supported events.
 func (p *AWSProvider) SupportedEventCount() int {
 	return len(p.relevantEvents)
 }
 
+// SupportedResourceTypes returns the resource types supported by this provider.
 func (p *AWSProvider) SupportedResourceTypes() []string {
 	typeSet := make(map[string]bool)
 	allMappings := []map[string]string{

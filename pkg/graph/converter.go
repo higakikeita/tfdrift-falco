@@ -7,9 +7,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// TerraformToGraph converts Terraform resources to a GraphDatabase
-func TerraformToGraph(resources []*terraform.Resource, driftedIDs map[string]bool) *GraphDatabase {
-	db := NewGraphDatabase()
+// TerraformToGraph converts Terraform resources to a Database
+func TerraformToGraph(resources []*terraform.Resource, driftedIDs map[string]bool) *Database {
+	db := NewDatabase()
 
 	log.Infof("Converting Terraform resources to graph database... (input: %d resources)", len(resources))
 

@@ -10,28 +10,28 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// OutputMode defines the output mode
-type OutputMode string
+// Mode defines the output mode
+type Mode string
 
 const (
-	// OutputModeHuman outputs human-readable logs only
-	OutputModeHuman OutputMode = "human"
-	// OutputModeJSON outputs JSON events only (NDJSON)
-	OutputModeJSON OutputMode = "json"
-	// OutputModeBoth outputs both human-readable and JSON
-	OutputModeBoth OutputMode = "both"
+	// ModeHuman outputs human-readable logs only
+	ModeHuman Mode = "human"
+	// ModeJSON outputs JSON events only (NDJSON)
+	ModeJSON Mode = "json"
+	// ModeBoth outputs both human-readable and JSON
+	ModeBoth Mode = "both"
 )
 
 // Manager manages multiple output writers for drift events
 type Manager struct {
-	mode       OutputMode
+	mode       Mode
 	jsonOutput *JSONOutput
 	humanOut   io.Writer
 	mu         sync.Mutex
 }
 
 // NewManager creates a new output manager
-func NewManager(mode OutputMode) *Manager {
+func NewManager(mode Mode) *Manager {
 	return &Manager{
 		mode:       mode,
 		jsonOutput: NewJSONOutput(),
@@ -47,14 +47,14 @@ func (m *Manager) EmitDriftEvent(event *types.DriftEvent) error {
 	var errors []error
 
 	// Emit JSON output
-	if m.mode == OutputModeJSON || m.mode == OutputModeBoth {
+	if m.mode == ModeJSON || m.mode == ModeBoth {
 		if err := m.jsonOutput.Write(event); err != nil {
 			errors = append(errors, fmt.Errorf("JSON output error: %w", err))
 		}
 	}
 
 	// Emit human-readable output
-	if m.mode == OutputModeHuman || m.mode == OutputModeBoth {
+	if m.mode == ModeHuman || m.mode == ModeBoth {
 		humanMsg := m.formatHumanMessage(event)
 		if _, err := fmt.Fprintln(m.humanOut, humanMsg); err != nil {
 			errors = append(errors, fmt.Errorf("human output error: %w", err))
@@ -115,7 +115,7 @@ func (m *Manager) getSeverityEmoji(severity string) string {
 }
 
 // SetMode sets the output mode
-func (m *Manager) SetMode(mode OutputMode) {
+func (m *Manager) SetMode(mode Mode) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.mode = mode
@@ -153,17 +153,17 @@ func (m *Manager) Close() error {
 	return nil
 }
 
-// ParseOutputMode parses a string into OutputMode
-func ParseOutputMode(mode string) (OutputMode, error) {
+// ParseMode parses a string into Mode
+func ParseMode(mode string) (Mode, error) {
 	switch mode {
 	case "human":
-		return OutputModeHuman, nil
+		return ModeHuman, nil
 	case "json":
-		return OutputModeJSON, nil
+		return ModeJSON, nil
 	case "both":
-		return OutputModeBoth, nil
+		return ModeBoth, nil
 	default:
-		return OutputModeHuman, fmt.Errorf("invalid output mode: %s (valid: human, json, both)", mode)
+		return ModeHuman, fmt.Errorf("invalid output mode: %s (valid: human, json, both)", mode)
 	}
 }
 

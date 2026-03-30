@@ -10,7 +10,7 @@ import (
 
 // TestNodeCreation tests basic node creation and retrieval
 func TestNodeCreation(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	node := &Node{
 		ID:     "node-1",
@@ -44,7 +44,7 @@ func TestNodeCreation(t *testing.T) {
 
 // TestGetNodesByLabel tests label-based node retrieval
 func TestGetNodesByLabel(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	node1 := &Node{
 		ID:     "ec2-1",
@@ -95,7 +95,7 @@ func TestGetNodesByLabel(t *testing.T) {
 
 // TestHasLabel tests label checking
 func TestHasLabel(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	node := &Node{
 		ID:     "test-node",
@@ -127,7 +127,7 @@ func TestHasLabel(t *testing.T) {
 
 // TestRelationshipCreation tests relationship creation and retrieval
 func TestRelationshipCreation(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create nodes first
 	node1 := &Node{ID: "ec2-1", Labels: []string{"EC2"}, Properties: map[string]interface{}{}}
@@ -173,7 +173,7 @@ func TestRelationshipCreation(t *testing.T) {
 
 // TestRelationshipValidation tests that relationships require both nodes to exist
 func TestRelationshipValidation(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	node1 := &Node{ID: "ec2-1", Labels: []string{"EC2"}, Properties: map[string]interface{}{}}
 	db.AddNode(node1)
@@ -199,7 +199,7 @@ func TestRelationshipValidation(t *testing.T) {
 
 // TestGetOutgoingRelationships tests outgoing relationship retrieval
 func TestGetOutgoingRelationships(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create nodes
 	ec2 := &Node{ID: "ec2-1", Labels: []string{"EC2"}, Properties: map[string]interface{}{}}
@@ -245,7 +245,7 @@ func TestGetOutgoingRelationships(t *testing.T) {
 
 // TestGetIncomingRelationships tests incoming relationship retrieval
 func TestGetIncomingRelationships(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create nodes
 	ec2 := &Node{ID: "ec2-1", Labels: []string{"EC2"}, Properties: map[string]interface{}{}}
@@ -291,7 +291,7 @@ func TestGetIncomingRelationships(t *testing.T) {
 
 // TestGetRelationshipsByType tests type-based relationship retrieval
 func TestGetRelationshipsByType(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create nodes
 	nodes := []*Node{
@@ -349,7 +349,7 @@ func TestGetRelationshipsByType(t *testing.T) {
 
 // TestGetNeighbors tests neighbor retrieval
 func TestGetNeighbors(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create nodes
 	ec2 := &Node{ID: "ec2-1", Labels: []string{"EC2"}, Properties: map[string]interface{}{}}
@@ -391,7 +391,7 @@ func TestGetNeighbors(t *testing.T) {
 
 // TestGetAllNodes tests retrieving all nodes
 func TestGetAllNodes(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	nodes := []*Node{
 		{ID: "node-1", Labels: []string{"A"}, Properties: map[string]interface{}{}},
@@ -411,7 +411,7 @@ func TestGetAllNodes(t *testing.T) {
 
 // TestGetAllRelationships tests retrieving all relationships
 func TestGetAllRelationships(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create nodes
 	for i := 1; i <= 3; i++ {
@@ -436,7 +436,7 @@ func TestGetAllRelationships(t *testing.T) {
 
 // TestNodeCount and RelationshipCount
 func TestCounts(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	if db.NodeCount() != 0 {
 		t.Errorf("Expected 0 nodes initially, got %d", db.NodeCount())
@@ -460,7 +460,7 @@ func TestCounts(t *testing.T) {
 
 // TestDeleteNode tests node deletion and cascade deletion of relationships
 func TestDeleteNode(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create nodes
 	db.AddNode(&Node{ID: "ec2-1", Labels: []string{"EC2"}, Properties: map[string]interface{}{}})
@@ -499,7 +499,7 @@ func TestDeleteNode(t *testing.T) {
 
 // TestClear tests clearing the entire database
 func TestClear(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Add some data
 	db.AddNode(&Node{ID: "node-1", Labels: []string{"A"}, Properties: map[string]interface{}{}})
@@ -524,7 +524,7 @@ func TestClear(t *testing.T) {
 
 // TestFindPath tests BFS path finding
 func TestFindPath(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create a chain: EC2 -> Subnet -> VPC
 	ec2 := &Node{ID: "ec2-1", Labels: []string{"EC2"}, Properties: map[string]interface{}{}}
@@ -559,7 +559,7 @@ func TestFindPath(t *testing.T) {
 
 // TestFindPathNotFound tests path finding when no path exists
 func TestFindPathNotFound(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create isolated nodes
 	db.AddNode(&Node{ID: "node-1", Labels: []string{"A"}, Properties: map[string]interface{}{}})
@@ -582,7 +582,7 @@ func TestFindPathNotFound(t *testing.T) {
 
 // TestFindPathInvalidNode tests path finding with non-existent nodes
 func TestFindPathInvalidNode(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	db.AddNode(&Node{ID: "node-1", Labels: []string{"A"}, Properties: map[string]interface{}{}})
 
@@ -609,7 +609,7 @@ func TestFindPathInvalidNode(t *testing.T) {
 
 // TestFindImpactRadius tests finding nodes within a depth
 func TestFindImpactRadius(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create a tree structure
 	// VPC
@@ -663,7 +663,7 @@ func TestFindImpactRadius(t *testing.T) {
 
 // TestFindImpactRadiusNonExistent tests FindImpactRadius with non-existent node
 func TestFindImpactRadiusNonExistent(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	result := db.FindImpactRadius("non-existent", 1)
 	if len(result.Nodes) != 0 {
@@ -673,7 +673,7 @@ func TestFindImpactRadiusNonExistent(t *testing.T) {
 
 // TestFindDependencies tests finding dependencies
 func TestFindDependencies(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create structure: EC2 -> Subnet -> VPC
 	ec2 := &Node{ID: "ec2-1", Labels: []string{"EC2"}, Properties: map[string]interface{}{}}
@@ -696,7 +696,7 @@ func TestFindDependencies(t *testing.T) {
 
 // TestFindDependents tests finding nodes that depend on a given node
 func TestFindDependents(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create structure: EC2 -> Subnet -> VPC
 	// Means: EC2 depends on Subnet, Subnet depends on VPC
@@ -722,7 +722,7 @@ func TestFindDependents(t *testing.T) {
 
 // TestFindCriticalPaths tests identifying critical nodes with many dependents
 func TestFindCriticalPaths(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create structure where VPC is critical
 	// EC2-1 -> VPC
@@ -762,7 +762,7 @@ func TestFindCriticalPaths(t *testing.T) {
 
 // TestMatch tests pattern matching query
 func TestMatch(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create EC2 instances and subnets
 	ec2_1 := &Node{
@@ -827,7 +827,7 @@ func TestMatch(t *testing.T) {
 
 // TestMatchNoLabels tests pattern matching with no label constraints
 func TestMatchNoLabels(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create nodes
 	db.AddNode(&Node{ID: "node-1", Labels: []string{"A"}, Properties: map[string]interface{}{}})
@@ -854,7 +854,7 @@ func TestMatchNoLabels(t *testing.T) {
 
 // TestConcurrentAccess tests thread-safety with concurrent operations
 func TestConcurrentAccess(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Pre-create nodes for relationships
 	for i := 0; i < 100; i++ {
@@ -911,7 +911,7 @@ func TestConcurrentAccess(t *testing.T) {
 
 // TestMultipleLabels tests nodes with multiple labels
 func TestMultipleLabels(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	node := &Node{
 		ID:     "complex-node",
@@ -950,7 +950,7 @@ func TestMultipleLabels(t *testing.T) {
 
 // TestRelationshipProperties tests that relationship properties are preserved
 func TestRelationshipProperties(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	db.AddNode(&Node{ID: "node-1", Labels: []string{"A"}, Properties: map[string]interface{}{}})
 	db.AddNode(&Node{ID: "node-2", Labels: []string{"B"}, Properties: map[string]interface{}{}})
@@ -985,7 +985,7 @@ func TestRelationshipProperties(t *testing.T) {
 
 // TestNodeProperties tests that node properties are preserved
 func TestNodeProperties(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	props := map[string]interface{}{
 		"name":          "web-server",
@@ -1028,7 +1028,7 @@ func TestNodeProperties(t *testing.T) {
 
 // TestEmptyGraph tests operations on empty graph
 func TestEmptyGraph(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	if db.NodeCount() != 0 {
 		t.Error("Expected empty graph to have 0 nodes")
@@ -1059,7 +1059,7 @@ func TestEmptyGraph(t *testing.T) {
 
 // TestSpecialCharactersInIDs tests handling of special characters in IDs
 func TestSpecialCharactersInIDs(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	specialIDs := []string{
 		"arn:aws:ec2:us-east-1:123456789012:instance/i-0123456789abcdef0",
@@ -1099,7 +1099,7 @@ func TestSpecialCharactersInIDs(t *testing.T) {
 
 // TestFindPathBidirectional tests path finding in both directions
 func TestFindPathBidirectional(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create nodes
 	node1 := &Node{ID: "node-1", Labels: []string{"A"}, Properties: map[string]interface{}{}}
@@ -1137,7 +1137,7 @@ func TestFindPathBidirectional(t *testing.T) {
 
 // TestMatchWithMultipleFilters tests pattern matching with multiple property filters
 func TestMatchWithMultipleFilters(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create nodes with different properties
 	nodes := []*Node{
@@ -1202,7 +1202,7 @@ func TestMatchWithMultipleFilters(t *testing.T) {
 
 // TestFindDependenciesWithoutOutgoing tests finding dependencies when node has no outgoing relationships
 func TestFindDependenciesWithoutOutgoing(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create isolated node
 	db.AddNode(&Node{ID: "isolated", Labels: []string{"Test"}, Properties: map[string]interface{}{}})
@@ -1216,7 +1216,7 @@ func TestFindDependenciesWithoutOutgoing(t *testing.T) {
 
 // TestFindDependentsWithoutIncoming tests finding dependents when node has no incoming relationships
 func TestFindDependentsWithoutIncoming(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create isolated node
 	db.AddNode(&Node{ID: "isolated", Labels: []string{"Test"}, Properties: map[string]interface{}{}})
@@ -1230,7 +1230,7 @@ func TestFindDependentsWithoutIncoming(t *testing.T) {
 
 // TestFindDependenciesWithCircularReferences tests handling of circular dependencies
 func TestFindDependenciesWithCircularReferences(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create circular chain: A -> B -> C -> A
 	db.AddNode(&Node{ID: "a", Labels: []string{"A"}, Properties: map[string]interface{}{}})
@@ -1251,7 +1251,7 @@ func TestFindDependenciesWithCircularReferences(t *testing.T) {
 
 // TestImpactRadiusDistances tests that distances are correctly calculated in impact radius
 func TestImpactRadiusDistances(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create a star topology with center node
 	db.AddNode(&Node{ID: "center", Labels: []string{"Center"}, Properties: map[string]interface{}{}})
@@ -1285,7 +1285,7 @@ func TestImpactRadiusDistances(t *testing.T) {
 
 // TestFindPathSelfLoop tests finding path from node to itself
 func TestFindPathSelfLoop(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	node := &Node{ID: "self", Labels: []string{"Test"}, Properties: map[string]interface{}{}}
 	db.AddNode(node)
@@ -1307,7 +1307,7 @@ func TestFindPathSelfLoop(t *testing.T) {
 
 // TestAddNodeOverwrite tests that adding a node with same ID overwrites the previous one
 func TestAddNodeOverwrite(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	node1 := &Node{
 		ID:     "node-1",
@@ -1346,7 +1346,7 @@ func TestAddNodeOverwrite(t *testing.T) {
 
 // TestMatchNoStartLabels tests pattern matching without start label constraints
 func TestMatchNoStartLabels(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create nodes with different labels
 	db.AddNode(&Node{ID: "a", Labels: []string{"TypeA"}, Properties: map[string]interface{}{}})
@@ -1372,7 +1372,7 @@ func TestMatchNoStartLabels(t *testing.T) {
 
 // TestGetOutgoingRelationshipsEmpty tests getting outgoing relationships for node with none
 func TestGetOutgoingRelationshipsEmpty(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	db.AddNode(&Node{ID: "node-1", Labels: []string{"Test"}, Properties: map[string]interface{}{}})
 	db.AddNode(&Node{ID: "node-2", Labels: []string{"Test"}, Properties: map[string]interface{}{}})
@@ -1392,7 +1392,7 @@ func TestGetOutgoingRelationshipsEmpty(t *testing.T) {
 
 // TestGetIncomingRelationshipsEmpty tests getting incoming relationships for node with none
 func TestGetIncomingRelationshipsEmpty(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	db.AddNode(&Node{ID: "node-1", Labels: []string{"Test"}, Properties: map[string]interface{}{}})
 
@@ -1411,7 +1411,7 @@ func TestGetIncomingRelationshipsEmpty(t *testing.T) {
 
 // TestDeleteNodeNonExistent tests deleting a non-existent node
 func TestDeleteNodeNonExistent(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Add a node first
 	db.AddNode(&Node{ID: "node-1", Labels: []string{"Test"}, Properties: map[string]interface{}{}})
@@ -1427,7 +1427,7 @@ func TestDeleteNodeNonExistent(t *testing.T) {
 
 // TestNodeDeletionWithMultipleRelationships tests deleting node with many relationships
 func TestNodeDeletionWithMultipleRelationships(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Create a hub node connected to many others
 	hub := &Node{ID: "hub", Labels: []string{"Hub"}, Properties: map[string]interface{}{}}
@@ -2242,7 +2242,7 @@ func TestConvertTerraformResourceToCytoscapeDrifted(t *testing.T) {
 
 // TestAddRelationshipMissingStartNode tests adding relationship with missing start node
 func TestAddRelationshipMissingStartNode(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	endNode := &Node{ID: "node-2", Labels: []string{"Resource"}, Properties: map[string]interface{}{}}
 	db.AddNode(endNode)
@@ -2267,7 +2267,7 @@ func TestAddRelationshipMissingStartNode(t *testing.T) {
 
 // TestAddRelationshipMissingEndNode tests adding relationship with missing end node
 func TestAddRelationshipMissingEndNode(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	startNode := &Node{ID: "node-1", Labels: []string{"Resource"}, Properties: map[string]interface{}{}}
 	db.AddNode(startNode)
@@ -2293,7 +2293,7 @@ func TestAddRelationshipMissingEndNode(t *testing.T) {
 
 // TestConcurrentNodeAddition tests concurrent node additions
 func TestConcurrentNodeAddition(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 	done := make(chan bool)
 
 	for i := 0; i < 10; i++ {
@@ -2323,7 +2323,7 @@ func TestConcurrentNodeAddition(t *testing.T) {
 
 // TestTraversalEdgeCases tests traversal edge cases
 func TestTraversalEdgeCases(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	// Add isolated node
 	db.AddNode(&Node{ID: "isolated", Labels: []string{"Resource"}, Properties: map[string]interface{}{}})
@@ -2753,7 +2753,7 @@ func TestHierarchyAssignResourceToVPC(t *testing.T) {
 
 // TestMatchPropertyFiltering tests Match pattern with property filtering
 func TestMatchPropertyFiltering(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	node1 := &Node{
 		ID:     "vpc-1",
@@ -2803,7 +2803,7 @@ func TestMatchPropertyFiltering(t *testing.T) {
 
 // TestFindNodesWithLabelsAll tests finding all nodes when no labels specified
 func TestFindNodesWithLabelsAll(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	nodes := []*Node{
 		{ID: "node-1", Labels: []string{"Resource"}, Properties: map[string]interface{}{}},
@@ -2825,7 +2825,7 @@ func TestFindNodesWithLabelsAll(t *testing.T) {
 
 // TestHasAllLabelsMultiple tests checking multiple labels on a node
 func TestHasAllLabelsMultiple(t *testing.T) {
-	db := NewGraphDatabase()
+	db := NewDatabase()
 
 	node := &Node{
 		ID:     "node-1",

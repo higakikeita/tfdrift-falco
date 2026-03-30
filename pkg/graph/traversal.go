@@ -20,7 +20,7 @@ type TraversalResult struct {
 
 // FindPath finds a path between two nodes using BFS
 // Example: Find path from EC2 to VPC
-func (db *GraphDatabase) FindPath(startID, endID string) (*Path, error) {
+func (db *Database) FindPath(startID, endID string) (*Path, error) {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -117,7 +117,7 @@ func (db *GraphDatabase) FindPath(startID, endID string) (*Path, error) {
 
 // FindImpactRadius finds all nodes within N hops of a starting node
 // Example: Find all resources affected within 3 hops of a changed VPC
-func (db *GraphDatabase) FindImpactRadius(startID string, maxDepth int) *TraversalResult {
+func (db *Database) FindImpactRadius(startID string, maxDepth int) *TraversalResult {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -181,7 +181,7 @@ func (db *GraphDatabase) FindImpactRadius(startID string, maxDepth int) *Travers
 
 // FindDependencies finds all transitive dependencies of a node
 // Example: Find all resources that an EC2 instance depends on
-func (db *GraphDatabase) FindDependencies(nodeID string, maxDepth int) []*Node {
+func (db *Database) FindDependencies(nodeID string, maxDepth int) []*Node {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -252,7 +252,7 @@ func (db *GraphDatabase) FindDependencies(nodeID string, maxDepth int) []*Node {
 
 // FindDependents finds all nodes that depend on this node
 // Example: Find all resources that would be affected if a VPC is changed
-func (db *GraphDatabase) FindDependents(nodeID string, maxDepth int) []*Node {
+func (db *Database) FindDependents(nodeID string, maxDepth int) []*Node {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -302,7 +302,7 @@ func (db *GraphDatabase) FindDependents(nodeID string, maxDepth int) []*Node {
 
 // FindCriticalPaths finds paths with highest dependency chains
 // Returns nodes that have many dependents (critical points of failure)
-func (db *GraphDatabase) FindCriticalPaths(minDependents int) []*Node {
+func (db *Database) FindCriticalPaths(minDependents int) []*Node {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -331,7 +331,7 @@ type MatchPattern struct {
 }
 
 // Match executes a pattern matching query
-func (db *GraphDatabase) Match(pattern *MatchPattern) [][]*Node {
+func (db *Database) Match(pattern *MatchPattern) [][]*Node {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
@@ -372,7 +372,7 @@ func (db *GraphDatabase) Match(pattern *MatchPattern) [][]*Node {
 }
 
 // Helper: find nodes with all specified labels
-func (db *GraphDatabase) findNodesWithLabels(labels []string) []*Node {
+func (db *Database) findNodesWithLabels(labels []string) []*Node {
 	if len(labels) == 0 {
 		// Return all nodes
 		nodes := make([]*Node, 0, len(db.nodes))
@@ -411,7 +411,7 @@ func (db *GraphDatabase) findNodesWithLabels(labels []string) []*Node {
 }
 
 // Helper: check if node has all labels
-func (db *GraphDatabase) hasAllLabels(node *Node, labels []string) bool {
+func (db *Database) hasAllLabels(node *Node, labels []string) bool {
 	for _, label := range labels {
 		if !db.hasLabel(node, label) {
 			return false
@@ -421,7 +421,7 @@ func (db *GraphDatabase) hasAllLabels(node *Node, labels []string) bool {
 }
 
 // Helper: check if node has a label
-func (db *GraphDatabase) hasLabel(node *Node, label string) bool {
+func (db *Database) hasLabel(node *Node, label string) bool {
 	for _, l := range node.Labels {
 		if l == label {
 			return true
@@ -431,7 +431,7 @@ func (db *GraphDatabase) hasLabel(node *Node, label string) bool {
 }
 
 // Helper: check if node matches property filters
-func (db *GraphDatabase) matchesProperties(node *Node, filter map[string]interface{}) bool {
+func (db *Database) matchesProperties(node *Node, filter map[string]interface{}) bool {
 	for key, expectedValue := range filter {
 		actualValue, exists := node.Properties[key]
 		if !exists || actualValue != expectedValue {
