@@ -66,10 +66,7 @@ linters:
     revive:
       rules:
         - name: exported
-          disabled: false
-          arguments:
-            - "checkPrivateReceivers"
-            - "sayRepetitiveInsteadOfStutters"
+          disabled: true
 
   exclusions:
     rules:

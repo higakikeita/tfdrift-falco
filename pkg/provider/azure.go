@@ -72,8 +72,10 @@ func NewAzureProvider(opts ...AzureProviderOption) *AzureProvider {
 	return p
 }
 
+// Name returns the provider name.
 func (p *AzureProvider) Name() string { return "azure" }
 
+// ParseEvent parses an Azure event into a normalized event.
 func (p *AzureProvider) ParseEvent(source string, fields map[string]string, rawEvent interface{}) *types.Event {
 	if source != "azure_activity" {
 		return nil
@@ -131,14 +133,17 @@ func (p *AzureProvider) ParseEvent(source string, fields map[string]string, rawE
 	return event
 }
 
+// IsRelevantEvent checks if an event is relevant for drift tracking.
 func (p *AzureProvider) IsRelevantEvent(eventName string) bool {
 	return p.mapper.MapEventToResource(eventName) != ""
 }
 
+// MapEventToResource maps an Azure event to a Terraform resource type.
 func (p *AzureProvider) MapEventToResource(eventName string, eventSource string) string {
 	return p.mapper.MapEventToResource(eventName)
 }
 
+// ExtractChanges extracts change details from event fields.
 func (p *AzureProvider) ExtractChanges(eventName string, fields map[string]string) map[string]interface{} {
 	changes := make(map[string]interface{})
 	if fields["azure.requestProperties"] != "" {
@@ -153,10 +158,12 @@ func (p *AzureProvider) ExtractChanges(eventName string, fields map[string]strin
 	return changes
 }
 
+// SupportedEventCount returns the number of supported event types.
 func (p *AzureProvider) SupportedEventCount() int {
 	return len(p.mapper.GetAllSupportedEvents())
 }
 
+// SupportedResourceTypes returns the list of supported Terraform resource types.
 func (p *AzureProvider) SupportedResourceTypes() []string {
 	typeSet := make(map[string]bool)
 	for _, event := range p.mapper.GetAllSupportedEvents() {

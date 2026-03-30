@@ -55,8 +55,10 @@ func NewGCPProvider(opts ...GCPProviderOption) *GCPProvider {
 	return p
 }
 
+// Name returns the provider name.
 func (p *GCPProvider) Name() string { return "gcp" }
 
+// ParseEvent parses a GCP event into a normalized event.
 func (p *GCPProvider) ParseEvent(source string, fields map[string]string, rawEvent interface{}) *types.Event {
 	if source != "gcpaudit" {
 		return nil
@@ -122,15 +124,18 @@ func (p *GCPProvider) ParseEvent(source string, fields map[string]string, rawEve
 	return event
 }
 
+// IsRelevantEvent checks if an event is relevant for drift tracking.
 func (p *GCPProvider) IsRelevantEvent(eventName string) bool {
 	// Delegate to the mapper: if the event maps to a resource, it's relevant
 	return p.mapper.MapEventToResource(eventName) != ""
 }
 
+// MapEventToResource maps a GCP event to a Terraform resource type.
 func (p *GCPProvider) MapEventToResource(eventName string, eventSource string) string {
 	return p.mapper.MapEventToResource(eventName)
 }
 
+// ExtractChanges extracts change details from event fields.
 func (p *GCPProvider) ExtractChanges(eventName string, fields map[string]string) map[string]interface{} {
 	// Extract available change information from fields
 	changes := make(map[string]interface{})
@@ -143,10 +148,12 @@ func (p *GCPProvider) ExtractChanges(eventName string, fields map[string]string)
 	return changes
 }
 
+// SupportedEventCount returns the number of supported event types.
 func (p *GCPProvider) SupportedEventCount() int {
 	return len(p.mapper.GetAllSupportedEvents())
 }
 
+// SupportedResourceTypes returns the list of supported Terraform resource types.
 func (p *GCPProvider) SupportedResourceTypes() []string {
 	// Deduplicate resource types from the mapper
 	typeSet := make(map[string]bool)
