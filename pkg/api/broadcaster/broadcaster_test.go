@@ -651,6 +651,10 @@ func TestBroadcaster_BroadcastFalcoEvent_WithMetadata(t *testing.T) {
 		Changes: map[string]interface{}{
 			"machine_type": "n1-standard-1",
 		},
+		Metadata: map[string]string{
+			"project_id":   "my-project",
+			"service_name": "compute.googleapis.com",
+		},
 	}
 
 	bc.BroadcastFalcoEvent(falcoEvent)
