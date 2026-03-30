@@ -42,7 +42,7 @@ function App() {
 
   const graphData = getGraphData();
 
-  const handleNodeClick = (nodeId: string, _nodeData: unknown) => {
+  const handleNodeClick = (nodeId: string) => {
     setSelectedNodeId(nodeId);
   };
 

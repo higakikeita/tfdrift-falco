@@ -14,10 +14,19 @@ func CompareStateWithActual(tfResources []*terraform.Resource, awsResources []*t
 	config := &comparator.ComparisonConfig{
 		ExtractTFID: extractTFResourceID,
 		ExtractCloudID: func(cloudResource interface{}) string {
-			return cloudResource.(*types.DiscoveredResource).ID
+			res, _ := cloudResource.(*types.DiscoveredResource)
+			if res == nil {
+				return ""
+			}
+			return res.ID
 		},
 		CompareAttributes: func(tfResource, cloudResource interface{}) []types.FieldDiff {
-			diffs := compareResourceAttributes(tfResource.(*terraform.Resource), cloudResource.(*types.DiscoveredResource))
+			tfRes, _ := tfResource.(*terraform.Resource)
+			cloudRes, _ := cloudResource.(*types.DiscoveredResource)
+			if tfRes == nil || cloudRes == nil {
+				return nil
+			}
+			diffs := compareResourceAttributes(tfRes, cloudRes)
 			if diffs == nil {
 				return nil
 			}
@@ -28,7 +37,10 @@ func CompareStateWithActual(tfResources []*terraform.Resource, awsResources []*t
 			return result
 		},
 		BuildUnmanaged: func(cloudResource interface{}) *types.ResourceDiff {
-			awsRes := cloudResource.(*types.DiscoveredResource)
+			awsRes, _ := cloudResource.(*types.DiscoveredResource)
+			if awsRes == nil {
+				return nil
+			}
 			return &types.ResourceDiff{
 				ResourceID:   awsRes.ID,
 				ResourceType: awsRes.Type,
@@ -38,7 +50,10 @@ func CompareStateWithActual(tfResources []*terraform.Resource, awsResources []*t
 			}
 		},
 		BuildMissing: func(tfResource interface{}) *types.TerraformResource {
-			tfRes := tfResource.(*terraform.Resource)
+			tfRes, _ := tfResource.(*terraform.Resource)
+			if tfRes == nil {
+				return nil
+			}
 			return &types.TerraformResource{
 				Type:       tfRes.Type,
 				Name:       tfRes.Name,
@@ -74,7 +89,10 @@ func convertCloudResources(resources []*types.DiscoveredResource) []interface{} 
 
 // extractTFResourceID extracts the AWS resource ID from Terraform resource attributes
 func extractTFResourceID(resource interface{}) string {
-	tfRes := resource.(*terraform.Resource)
+	tfRes, _ := resource.(*terraform.Resource)
+	if tfRes == nil {
+		return ""
+	}
 	// Try common ID fields
 	idFields := []string{"id", "instance_id", "db_instance_identifier", "vpc_id",
 		"subnet_id", "group_id", "cluster_name", "replication_group_id", "arn"}

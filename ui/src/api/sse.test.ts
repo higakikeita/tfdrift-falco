@@ -9,7 +9,7 @@ class MockEventSource {
   onmessage: ((event: MessageEvent) => void) | null = null;
   onerror: ((event: Event) => void) | null = null;
   readyState: number = 0;
-  addEventListener: (event: string, handler: (e: any) => void) => void = vi.fn();
+  addEventListener: (event: string, handler: (e: Record<string, unknown>) => void) => void = vi.fn();
   close: () => void = vi.fn();
 
   constructor(url: string) {
@@ -17,6 +17,7 @@ class MockEventSource {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 global.EventSource = MockEventSource as any;
 
 describe('useSSE hook', () => {
@@ -139,7 +140,6 @@ describe('useSSE hook', () => {
   });
 
   it('should support different event types', () => {
-    const eventTypes = ['connected', 'drift', 'falco', 'state_change', 'keep-alive', 'message'];
     const { result } = renderHook(() => useSSE({ autoConnect: false }));
 
     expect(result.current.lastEvent).toBe(null);
@@ -229,8 +229,6 @@ describe('useSSE hook', () => {
     const { result, rerender } = renderHook(() =>
       useSSE({ autoConnect: false })
     );
-
-    const initialState = result.current;
 
     rerender();
 

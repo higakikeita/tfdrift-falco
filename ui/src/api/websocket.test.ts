@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { useWebSocket, type WSMessage, type WSResponse } from './websocket';
 
 // Mock WebSocket
@@ -23,6 +23,7 @@ Object.defineProperty(MockWebSocket, 'OPEN', { value: 1 });
 Object.defineProperty(MockWebSocket, 'CLOSING', { value: 2 });
 Object.defineProperty(MockWebSocket, 'CLOSED', { value: 3 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 global.WebSocket = MockWebSocket as any;
 
 describe('useWebSocket hook', () => {
@@ -143,8 +144,6 @@ describe('useWebSocket hook', () => {
   });
 
   it('should support all message types', () => {
-    const { result } = renderHook(() => useWebSocket({ autoConnect: false }));
-
     const message: WSMessage = {
       type: 'subscribe',
       topic: 'drifts',
@@ -156,8 +155,6 @@ describe('useWebSocket hook', () => {
 
   it('should support all topic types', () => {
     const topics = ['all', 'drifts', 'events', 'state', 'stats'];
-
-    const { result } = renderHook(() => useWebSocket({ autoConnect: false }));
 
     topics.forEach(topic => {
       expect(['all', 'drifts', 'events', 'state', 'stats']).toContain(topic);

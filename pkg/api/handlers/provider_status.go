@@ -127,7 +127,9 @@ func (h *ProviderStatusHandler) GetProviderStatus(w http.ResponseWriter, r *http
 
 	// Sort by name for deterministic output
 	sort.Slice(result, func(i, j int) bool {
-		return result[i]["name"].(string) < result[j]["name"].(string)
+		nameI, _ := result[i]["name"].(string)
+		nameJ, _ := result[j]["name"].(string)
+		return nameI < nameJ
 	})
 
 	respondJSON(w, http.StatusOK, map[string]interface{}{

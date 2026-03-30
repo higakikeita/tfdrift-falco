@@ -30,6 +30,9 @@ func (h *StatsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 	graphData := h.store.BuildGraph()
 
 	// Compile comprehensive statistics
+	severityCounts, _ := baseStats["severity_counts"].(map[string]int)
+	resourceTypeCounts, _ := baseStats["resource_type_counts"].(map[string]int)
+
 	stats := map[string]interface{}{
 		// Graph structure
 		"graph": map[string]interface{}{
@@ -55,10 +58,10 @@ func (h *StatsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 		},
 
 		// Severity breakdown
-		"severity_breakdown": h.calculateSeverityPercentages(baseStats["severity_counts"].(map[string]int)),
+		"severity_breakdown": h.calculateSeverityPercentages(severityCounts),
 
 		// Top resource types with drifts
-		"top_resource_types": h.getTopResourceTypes(baseStats["resource_type_counts"].(map[string]int), 5),
+		"top_resource_types": h.getTopResourceTypes(resourceTypeCounts, 5),
 	}
 
 	respondJSON(w, http.StatusOK, stats)

@@ -4,13 +4,20 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 
 // Mock components and utilities
+interface CytoscapeGraphProps {
+  elements: { nodes: Array<{ id: string; label: string }>; edges: Array<{ id: string; source: string; target: string }> };
+  layout: string;
+  onNodeClick: (nodeId: string, nodeData: unknown) => void;
+  highlightedPath: string[];
+  className: string;
+}
+
 vi.mock('./components/CytoscapeGraph', () => ({
-  default: ({ elements, layout, onNodeClick, highlightedPath, className }: any) => (
+  default: ({ elements, layout, onNodeClick, highlightedPath, className }: CytoscapeGraphProps) => (
     <div
       data-testid="cytoscape-graph"
       data-elements-count={elements.nodes.length}
@@ -28,8 +35,12 @@ vi.mock('./components/CytoscapeGraph', () => ({
   ),
 }));
 
+interface WhyFalcoPageProps {
+  onBack: () => void;
+}
+
 vi.mock('./pages/WhyFalcoPage', () => ({
-  default: ({ onBack }: any) => (
+  default: ({ onBack }: WhyFalcoPageProps) => (
     <div data-testid="why-falco-page">
       <button onClick={onBack} data-testid="back-button">
         Back to Graph

@@ -2,7 +2,7 @@
  * NodeDetailPanel - Display detailed node information and relationships
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { X, Network, ArrowRight, ArrowLeft, Loader2, Target } from 'lucide-react';
 import { useDependencies, useDependents, useNodeNeighbors, useNode, useImpactRadius } from '../api/hooks';
 
@@ -41,8 +41,12 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
   const dependents: Node[] = (dependentsData as any)?.data?.dependents || [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const neighbors: Node[] = (neighborsData as any)?.data?.neighbors || [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const impactNodes: Node[] = (impactData as any)?.data?.nodes || [];
+
+  // Wrap impactNodes in useMemo to prevent dependency changes on every render
+  const impactNodes = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (impactData as any)?.data?.nodes || [];
+  }, [impactData]);
 
   const handleNodeClick = (clickedNodeId: string) => {
     if (onNodeSelect) {
