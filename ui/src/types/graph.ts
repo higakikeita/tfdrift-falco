@@ -119,6 +119,10 @@ export interface CytoscapeNode {
     parent?: string;
     [key: string]: unknown;
   };
+  position?: {
+    x: number;
+    y: number;
+  };
 }
 
 export interface CytoscapeEdge {

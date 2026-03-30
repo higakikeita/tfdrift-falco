@@ -68,7 +68,7 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
   // Update impact radius visualization when data changes
   React.useEffect(() => {
     if (showImpact && impactNodes.length > 0 && onShowImpactRadius) {
-      const nodeIds = impactNodes.map(n => n.id);
+      const nodeIds = impactNodes.map((n: Node) => n.id);
       onShowImpactRadius(nodeIds, impactDepth);
     }
   }, [showImpact, impactNodes, impactDepth, onShowImpactRadius]);

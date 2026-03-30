@@ -186,7 +186,7 @@ export const MinimalClusterNodeExpanded: Story = {
     };
     return <MinimalClusterNode data={data} />;
   },
-};
+} as unknown as Story;
 
 export const MinimalClusterNodeCollapsed: Story = {
   render: () => {
@@ -200,4 +200,4 @@ export const MinimalClusterNodeCollapsed: Story = {
     };
     return <MinimalClusterNode data={data} />;
   },
-};
+} as unknown as Story;
