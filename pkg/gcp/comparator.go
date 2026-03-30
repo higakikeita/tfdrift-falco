@@ -3,77 +3,85 @@ package gcp
 import (
 	"reflect"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/keitahigaki/tfdrift-falco/pkg/comparator"
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
 // CompareStateWithActual compares Terraform state with actual GCP resources
 // and returns the differences (unmanaged, missing, and modified resources).
-func CompareStateWithActual(tfResources []*TerraformResource, gcpResources []*DiscoveredResource) *DriftResult {
-	result := &DriftResult{
-		UnmanagedResources: []*DiscoveredResource{},
-		MissingResources:   []*TerraformResource{},
-		ModifiedResources:  []*ResourceDiff{},
-	}
-
-	// Build maps for efficient lookup
-	tfResourceMap := make(map[string]*TerraformResource)
-	for _, tfRes := range tfResources {
-		resourceID := extractTFResourceID(tfRes)
-		if resourceID != "" {
-			tfResourceMap[resourceID] = tfRes
-		}
-	}
-
-	gcpResourceMap := make(map[string]*DiscoveredResource)
-	for _, gcpRes := range gcpResources {
-		gcpResourceMap[gcpRes.ID] = gcpRes
-	}
-
-	log.Infof("Comparing state: %d Terraform resources vs %d GCP resources", len(tfResourceMap), len(gcpResourceMap))
-
-	// Find unmanaged resources (in GCP but not in Terraform)
-	for gcpID, gcpRes := range gcpResourceMap {
-		if _, exists := tfResourceMap[gcpID]; !exists {
-			// Also try matching by name for resources where ID format differs
-			if !matchesByName(gcpRes, tfResourceMap) {
-				log.Infof("Found unmanaged resource: %s (%s)", gcpID, gcpRes.Type)
-				result.UnmanagedResources = append(result.UnmanagedResources, gcpRes)
+func CompareStateWithActual(tfResources []*types.TerraformResource, gcpResources []*types.DiscoveredResource) *types.DriftResult {
+	config := &comparator.ComparisonConfig{
+		ExtractTFID: extractTFResourceID,
+		ExtractCloudID: func(cloudResource interface{}) string {
+			return cloudResource.(*types.DiscoveredResource).ID
+		},
+		CompareAttributes: func(tfResource, cloudResource interface{}) []types.FieldDiff {
+			diffs := compareResourceAttributes(tfResource.(*types.TerraformResource), cloudResource.(*types.DiscoveredResource))
+			if diffs == nil {
+				return nil
 			}
-		}
-	}
-
-	// Find missing resources (in Terraform but not in GCP) and modified resources
-	for tfID, tfRes := range tfResourceMap {
-		gcpRes, exists := gcpResourceMap[tfID]
-		if !exists {
-			// Try matching by name
-			gcpRes = findByName(tfRes, gcpResourceMap)
-		}
-
-		if gcpRes == nil {
-			log.Infof("Found missing resource: %s (%s)", tfID, tfRes.Type)
-			result.MissingResources = append(result.MissingResources, tfRes)
-		} else {
-			// Resource exists in both - check for modifications
-			diff := compareResourceAttributes(tfRes, gcpRes)
-			if diff != nil && len(diff.Differences) > 0 {
-				log.Infof("Found modified resource: %s (%d differences)", tfID, len(diff.Differences))
-				result.ModifiedResources = append(result.ModifiedResources, diff)
+			result := make([]types.FieldDiff, len(diffs))
+			for i, d := range diffs {
+				result[i] = *d
 			}
-		}
+			return result
+		},
+		BuildUnmanaged: func(cloudResource interface{}) *types.ResourceDiff {
+			gcpRes := cloudResource.(*types.DiscoveredResource)
+			return &types.ResourceDiff{
+				ResourceID:    gcpRes.ID,
+				ResourceType:  gcpRes.Type,
+				Provider:      "gcp",
+				ActualState:   gcpRes.Attributes,
+				Differences:   []types.FieldDiff{},
+			}
+		},
+		BuildMissing: func(tfResource interface{}) *types.TerraformResource {
+			tfRes := tfResource.(*types.TerraformResource)
+			// Extract ID from attributes if available
+			resourceID := extractTFResourceID(tfRes)
+			return &types.TerraformResource{
+				Type:       tfRes.Type,
+				Name:       tfRes.Name,
+				ID:         resourceID,
+				Provider:   "gcp",
+				Attributes: tfRes.Attributes,
+			}
+		},
+		// GCP supports matching by name when IDs differ
+		FindMatchingCloud: func(tfResource interface{}, cloudResourceMap map[string]interface{}) interface{} {
+			tfRes := tfResource.(*types.TerraformResource)
+			return findByNameInterface(tfRes, cloudResourceMap)
+		},
 	}
 
-	log.Infof("GCP drift detection complete: %d unmanaged, %d missing, %d modified",
-		len(result.UnmanagedResources), len(result.MissingResources), len(result.ModifiedResources))
+	result := comparator.CompareResources(config, convertTFResources(tfResources), convertCloudResources(gcpResources))
+	result.Provider = "gcp"
+	return result
+}
 
+// convertTFResources converts []*types.TerraformResource to []interface{}
+func convertTFResources(resources []*types.TerraformResource) []interface{} {
+	result := make([]interface{}, len(resources))
+	for i, r := range resources {
+		result[i] = r
+	}
+	return result
+}
+
+// convertCloudResources converts []*types.DiscoveredResource to []interface{}
+func convertCloudResources(resources []*types.DiscoveredResource) []interface{} {
+	result := make([]interface{}, len(resources))
+	for i, r := range resources {
+		result[i] = r
+	}
 	return result
 }
 
 // extractTFResourceID extracts the GCP resource ID from Terraform resource attributes.
 // GCP resources in Terraform state use various ID formats.
-func extractTFResourceID(tfRes *TerraformResource) string {
+func extractTFResourceID(resource interface{}) string {
+	tfRes := resource.(*types.TerraformResource)
 	idFields := []string{
 		"id", "self_link", "name",
 	}
@@ -87,55 +95,21 @@ func extractTFResourceID(tfRes *TerraformResource) string {
 	return ""
 }
 
-// matchesByName checks if a GCP resource matches any Terraform resource by name.
-func matchesByName(gcpRes *DiscoveredResource, tfMap map[string]*TerraformResource) bool {
-	for _, tfRes := range tfMap {
-		if tfRes.Type == gcpRes.Type {
-			if name, ok := tfRes.Attributes["name"].(string); ok && name == gcpRes.Name {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-// findByName finds a GCP resource matching the Terraform resource by name and type.
-func findByName(tfRes *TerraformResource, gcpMap map[string]*DiscoveredResource) *DiscoveredResource {
-	tfName, _ := tfRes.Attributes["name"].(string)
-	if tfName == "" {
-		return nil
-	}
-
-	for _, gcpRes := range gcpMap {
-		if gcpRes.Type == tfRes.Type && gcpRes.Name == tfName {
-			return gcpRes
-		}
-	}
-	return nil
-}
-
 // compareResourceAttributes compares attributes between Terraform state and actual GCP resource.
-func compareResourceAttributes(tfRes *TerraformResource, gcpRes *DiscoveredResource) *ResourceDiff {
+func compareResourceAttributes(tfRes *types.TerraformResource, gcpRes *types.DiscoveredResource) []*types.FieldDiff {
 	if tfRes.Type != gcpRes.Type {
 		return nil
 	}
 
-	diff := &ResourceDiff{
-		ResourceID:     gcpRes.ID,
-		ResourceType:   tfRes.Type,
-		TerraformState: tfRes.Attributes,
-		ActualState:    gcpRes.Attributes,
-		Differences:    []FieldDiff{},
-	}
-
 	fieldsToCompare := getComparableFields(tfRes.Type)
+	differences := []*types.FieldDiff{}
 
 	for _, field := range fieldsToCompare {
 		tfValue := comparator.GetNestedValue(tfRes.Attributes, field)
 		gcpValue := comparator.GetNestedValue(gcpRes.Attributes, field)
 
 		if !comparator.ValuesEqual(tfValue, gcpValue) {
-			diff.Differences = append(diff.Differences, FieldDiff{
+			differences = append(differences, &types.FieldDiff{
 				Field:          field,
 				TerraformValue: tfValue,
 				ActualValue:    gcpValue,
@@ -145,14 +119,14 @@ func compareResourceAttributes(tfRes *TerraformResource, gcpRes *DiscoveredResou
 
 	// Compare labels
 	if !labelsEqual(tfRes.Attributes, gcpRes.Labels) {
-		diff.Differences = append(diff.Differences, FieldDiff{
+		differences = append(differences, &types.FieldDiff{
 			Field:          "labels",
 			TerraformValue: getTerraformLabels(tfRes.Attributes),
 			ActualValue:    gcpRes.Labels,
 		})
 	}
 
-	return diff
+	return differences
 }
 
 // getComparableFields returns the list of fields to compare for a given GCP resource type.
@@ -178,7 +152,6 @@ func getComparableFields(resourceType string) []string {
 		return []string{}
 	}
 }
-
 
 // Internal wrapper functions for test compatibility.
 // These delegate to the shared comparator package functions.
@@ -219,4 +192,50 @@ func getTerraformLabels(attrs map[string]interface{}) map[string]string {
 	}
 
 	return labels
+}
+
+// matchesByName checks if a GCP resource matches any Terraform resource by name.
+// This is used for resources where ID format differs between TF and GCP.
+func matchesByName(gcpRes *types.DiscoveredResource, tfMap map[string]interface{}) bool {
+	for _, tfRes := range tfMap {
+		tfr := tfRes.(*types.TerraformResource)
+		if tfr.Type == gcpRes.Type {
+			if name, ok := tfr.Attributes["name"].(string); ok && name == gcpRes.Name {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// findByName finds a GCP resource matching the Terraform resource by name and type.
+// This is used for resources where ID format differs between TF and GCP.
+func findByName(tfRes *types.TerraformResource, gcpMap map[string]*types.DiscoveredResource) *types.DiscoveredResource {
+	tfName, _ := tfRes.Attributes["name"].(string)
+	if tfName == "" {
+		return nil
+	}
+
+	for _, gcpRes := range gcpMap {
+		if gcpRes.Type == tfRes.Type && gcpRes.Name == tfName {
+			return gcpRes
+		}
+	}
+	return nil
+}
+
+// findByNameInterface is a wrapper around findByName for the generic interface{} API
+func findByNameInterface(tfRes *types.TerraformResource, gcpMap map[string]interface{}) interface{} {
+	tfName, _ := tfRes.Attributes["name"].(string)
+	if tfName == "" {
+		return nil
+	}
+
+	for _, gcpResInterface := range gcpMap {
+		gcpRes := gcpResInterface.(*types.DiscoveredResource)
+		if gcpRes.Type == tfRes.Type && gcpRes.Name == tfName {
+			return gcpRes
+		}
+	}
+	return nil
 }

@@ -5,10 +5,11 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ec2Types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	rdsTypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
 	elbTypes "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
+	rdsTypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
 // TestExtractTFResourceID_EmptyAttributes tests extractTFResourceID with empty attributes
@@ -66,9 +67,9 @@ func TestExtractTFResourceID_PrefersPrimaryID(t *testing.T) {
 	resource := &terraform.Resource{
 		Type: "aws_db_instance",
 		Attributes: map[string]interface{}{
-			"id":                       "wrong-id",
-			"db_instance_identifier":   "correct-db-id",
-			"arn":                      "arn:aws:rds:us-east-1:123456789:db:mydb",
+			"id":                     "wrong-id",
+			"db_instance_identifier": "correct-db-id",
+			"arn":                    "arn:aws:rds:us-east-1:123456789:db:mydb",
 		},
 	}
 
@@ -128,7 +129,7 @@ func TestValuesEqual_EdgeCases(t *testing.T) {
 // TestGetNestedValue_ComplexPaths tests nested value retrieval with various path complexities
 func TestGetNestedValue_ComplexPaths(t *testing.T) {
 	data := map[string]interface{}{
-		"simple":    "value",
+		"simple": "value",
 		"level1": map[string]interface{}{
 			"level2": map[string]interface{}{
 				"level3": map[string]interface{}{
@@ -176,12 +177,12 @@ func TestGetNestedValue_ComplexPaths(t *testing.T) {
 func TestGetTerraformTags_NonStringValues(t *testing.T) {
 	attrs := map[string]interface{}{
 		"tags": map[string]interface{}{
-			"String":   "value",
-			"Number":   123,
-			"Boolean":  true,
-			"Null":     nil,
-			"Slice":    []string{"a", "b"},
-			"Map":      map[string]interface{}{},
+			"String":  "value",
+			"Number":  123,
+			"Boolean": true,
+			"Null":    nil,
+			"Slice":   []string{"a", "b"},
+			"Map":     map[string]interface{}{},
 		},
 	}
 
@@ -245,8 +246,8 @@ func TestTagsEqual_ManagedTagsFiltering(t *testing.T) {
 				"tags": map[string]interface{}{"Owner": "team"},
 			},
 			awsTags: map[string]string{
-				"Owner":                          "team",
-				"kubernetes.io/created-by":      "controller",
+				"Owner":                            "team",
+				"kubernetes.io/created-by":         "controller",
 				"kubernetes.io/cluster/my-cluster": "owned",
 			},
 			expected: true,
@@ -352,11 +353,11 @@ func TestCompareResourceAttributes_AllResourceTypes(t *testing.T) {
 			if result == nil && !tt.shouldMatch {
 				return
 			}
-			if result != nil && tt.shouldMatch && len(result.Differences) == 0 {
+			if tt.shouldMatch && len(result) == 0 {
 				return
 			}
-			if tt.shouldMatch && result != nil && len(result.Differences) > 0 {
-				t.Errorf("expected matching resources to have no differences, got %d differences", len(result.Differences))
+			if tt.shouldMatch && len(result) > 0 {
+				t.Errorf("expected matching resources to have no differences, got %d differences", len(result))
 			}
 		})
 	}
@@ -455,8 +456,8 @@ func TestCompareResourceAttributes_NoComparableFields(t *testing.T) {
 	result := compareResourceAttributes(tfRes, awsRes)
 
 	// Should not find differences because unknown type has no comparable fields
-	if result != nil && len(result.Differences) > 0 {
-		t.Errorf("expected no differences for unknown resource type, got %d", len(result.Differences))
+	if len(result) > 0 {
+		t.Errorf("expected no differences for unknown resource type, got %d", len(result))
 	}
 }
 
@@ -536,7 +537,7 @@ func TestDriftResult_AllFieldsPopulated(t *testing.T) {
 			{ID: "unmanaged-1", Type: "aws_vpc"},
 			{ID: "unmanaged-2", Type: "aws_subnet"},
 		},
-		MissingResources: []*terraform.Resource{
+		MissingResources: []*types.TerraformResource{
 			{Type: "aws_instance", Name: "missing-1"},
 			{Type: "aws_security_group", Name: "missing-2"},
 			{Type: "aws_db_instance", Name: "missing-3"},
@@ -600,9 +601,9 @@ func TestResourceDiff_AllFieldsPopulated(t *testing.T) {
 // TestFieldDiff_AllValueTypes tests FieldDiff with all different value types
 func TestFieldDiff_AllValueTypes(t *testing.T) {
 	types := []struct {
-		name           string
-		tfValue        interface{}
-		actualValue    interface{}
+		name        string
+		tfValue     interface{}
+		actualValue interface{}
 	}{
 		{"string", "value1", "value2"},
 		{"int", 100, 200},
@@ -665,27 +666,27 @@ func TestValuesEqual_ComplexTypes(t *testing.T) {
 		expected bool
 	}{
 		{
-			name: "identical slices",
-			a:    []string{"a", "b"},
-			b:    []string{"a", "b"},
+			name:     "identical slices",
+			a:        []string{"a", "b"},
+			b:        []string{"a", "b"},
 			expected: true,
 		},
 		{
-			name: "different slices",
-			a:    []string{"a", "b"},
-			b:    []string{"a", "c"},
+			name:     "different slices",
+			a:        []string{"a", "b"},
+			b:        []string{"a", "c"},
 			expected: false,
 		},
 		{
-			name: "identical maps",
-			a:    map[string]string{"key": "value"},
-			b:    map[string]string{"key": "value"},
+			name:     "identical maps",
+			a:        map[string]string{"key": "value"},
+			b:        map[string]string{"key": "value"},
 			expected: true,
 		},
 		{
-			name: "different maps",
-			a:    map[string]string{"key": "value1"},
-			b:    map[string]string{"key": "value2"},
+			name:     "different maps",
+			a:        map[string]string{"key": "value1"},
+			b:        map[string]string{"key": "value2"},
 			expected: false,
 		},
 	}
@@ -726,7 +727,7 @@ func TestCompareResourceAttributes_MissingAttributesInActual(t *testing.T) {
 	}
 
 	// Should detect differences for missing attributes (they'll be nil in actual)
-	if len(result.Differences) == 0 {
+	if len(result) == 0 {
 		t.Errorf("expected differences for missing attributes, got none")
 	}
 }
@@ -755,8 +756,8 @@ func TestCompareResourceAttributes_ExtraAttributesInActual(t *testing.T) {
 	}
 
 	// Extra attributes shouldn't cause differences (only comparable fields are checked)
-	if len(result.Differences) > 0 {
-		t.Errorf("extra attributes shouldn't cause differences, got %d", len(result.Differences))
+	if len(result) > 0 {
+		t.Errorf("extra attributes shouldn't cause differences, got %d", len(result))
 	}
 }
 
@@ -970,7 +971,7 @@ func TestCompareResourceAttributes_BooleanComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result.Differences) > 0 {
+	if result != nil && len(result) > 0 {
 		t.Errorf("expected no differences for matching boolean values")
 	}
 }
@@ -998,7 +999,7 @@ func TestCompareResourceAttributes_BooleanMismatch(t *testing.T) {
 	}
 
 	hasDifference := false
-	for _, diff := range result.Differences {
+	for _, diff := range result {
 		if diff.Field == "map_public_ip_on_launch" {
 			hasDifference = true
 			break
@@ -1027,7 +1028,7 @@ func TestCompareResourceAttributes_IntegerComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result.Differences) > 0 {
+	if result != nil && len(result) > 0 {
 		t.Errorf("expected no differences for matching integer values")
 	}
 }
@@ -1055,7 +1056,7 @@ func TestCompareResourceAttributes_IntegerMismatch(t *testing.T) {
 	}
 
 	hasDifference := false
-	for _, diff := range result.Differences {
+	for _, diff := range result {
 		if diff.Field == "allocated_storage" {
 			hasDifference = true
 			break
@@ -1208,7 +1209,7 @@ func TestCompareResourceAttributes_SecurityGroupComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result.Differences) > 0 {
+	if result != nil && len(result) > 0 {
 		t.Errorf("expected no differences for matching security groups")
 	}
 }
@@ -1235,7 +1236,7 @@ func TestCompareResourceAttributes_LoadBalancerComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result.Differences) > 0 {
+	if result != nil && len(result) > 0 {
 		t.Errorf("expected no differences for matching load balancers")
 	}
 }
@@ -1260,7 +1261,7 @@ func TestCompareResourceAttributes_EKSComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result.Differences) > 0 {
+	if result != nil && len(result) > 0 {
 		t.Errorf("expected no differences for matching EKS clusters")
 	}
 }
@@ -1287,7 +1288,7 @@ func TestCompareResourceAttributes_ElastiCacheComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result.Differences) > 0 {
+	if result != nil && len(result) > 0 {
 		t.Errorf("expected no differences for matching ElastiCache groups")
 	}
 }
@@ -1352,9 +1353,9 @@ func TestCompareStateWithActual_PartialAttributeMatch(t *testing.T) {
 			ID:   "prod-db",
 			Type: "aws_db_instance",
 			Attributes: map[string]interface{}{
-				"engine":           "postgres",
-				"engine_version":   "14.1", // Different!
-				"instance_class":   "db.t3.micro",
+				"engine":            "postgres",
+				"engine_version":    "14.1", // Different!
+				"instance_class":    "db.t3.micro",
 				"allocated_storage": 100,
 			},
 		},
@@ -1375,10 +1376,10 @@ func TestCompareResourceAttributes_VPCMultipleFields(t *testing.T) {
 	tfRes := &terraform.Resource{
 		Type: "aws_vpc",
 		Attributes: map[string]interface{}{
-			"id":                    "vpc-123",
-			"cidr_block":            "10.0.0.0/16",
-			"enable_dns_hostnames":  true,
-			"enable_dns_support":    true,
+			"id":                   "vpc-123",
+			"cidr_block":           "10.0.0.0/16",
+			"enable_dns_hostnames": true,
+			"enable_dns_support":   true,
 		},
 	}
 
@@ -1386,9 +1387,9 @@ func TestCompareResourceAttributes_VPCMultipleFields(t *testing.T) {
 		ID:   "vpc-123",
 		Type: "aws_vpc",
 		Attributes: map[string]interface{}{
-			"cidr_block":            "10.0.0.0/16",
-			"enable_dns_hostnames":  false,
-			"enable_dns_support":    true,
+			"cidr_block":           "10.0.0.0/16",
+			"enable_dns_hostnames": false,
+			"enable_dns_support":   true,
 		},
 	}
 
@@ -1398,7 +1399,7 @@ func TestCompareResourceAttributes_VPCMultipleFields(t *testing.T) {
 	}
 
 	hasDiff := false
-	for _, diff := range result.Differences {
+	for _, diff := range result {
 		if diff.Field == "enable_dns_hostnames" {
 			hasDiff = true
 			if diff.TerraformValue != true {
@@ -1449,10 +1450,10 @@ func TestCompareStateWithActual_SubnetMultipleAttributes(t *testing.T) {
 		{
 			Type: "aws_subnet",
 			Attributes: map[string]interface{}{
-				"id":                "subnet-123",
-				"vpc_id":            "vpc-123",
-				"cidr_block":        "10.0.1.0/24",
-				"availability_zone": "us-east-1a",
+				"id":                      "subnet-123",
+				"vpc_id":                  "vpc-123",
+				"cidr_block":              "10.0.1.0/24",
+				"availability_zone":       "us-east-1a",
 				"map_public_ip_on_launch": true,
 			},
 		},
@@ -1463,9 +1464,9 @@ func TestCompareStateWithActual_SubnetMultipleAttributes(t *testing.T) {
 			ID:   "subnet-123",
 			Type: "aws_subnet",
 			Attributes: map[string]interface{}{
-				"vpc_id":           "vpc-123",
-				"cidr_block":       "10.0.1.0/24",
-				"availability_zone": "us-east-1a",
+				"vpc_id":                  "vpc-123",
+				"cidr_block":              "10.0.1.0/24",
+				"availability_zone":       "us-east-1a",
 				"map_public_ip_on_launch": false,
 			},
 		},
@@ -1565,8 +1566,8 @@ func TestTagsEqual_IgnoredPrefixVariations(t *testing.T) {
 			}
 
 			awsTags := map[string]string{
-				"NormalTag":    "value",
-				tt.awsTag:     tt.awsTagValue,
+				"NormalTag": "value",
+				tt.awsTag:   tt.awsTagValue,
 			}
 
 			result := tagsEqual(tfAttrs, awsTags)
@@ -1601,11 +1602,11 @@ func TestCompareResourceAttributes_AllFieldsNil(t *testing.T) {
 func TestCompareStateWithActual_IntegrityCheck(t *testing.T) {
 	tfResources := []*terraform.Resource{
 		{
-			Type: "aws_vpc",
+			Type:       "aws_vpc",
 			Attributes: map[string]interface{}{"id": "vpc-1"},
 		},
 		{
-			Type: "aws_subnet",
+			Type:       "aws_subnet",
 			Attributes: map[string]interface{}{"id": "subnet-1"},
 		},
 	}
@@ -1725,7 +1726,7 @@ func TestDriftResult_ComplexScenario(t *testing.T) {
 			{ID: "sg-manual", Type: "aws_security_group", Name: "manual-sg"},
 			{ID: "subnet-manual", Type: "aws_subnet", Name: "manual-subnet"},
 		},
-		MissingResources: []*terraform.Resource{
+		MissingResources: []*types.TerraformResource{
 			{Type: "aws_instance", Name: "deleted-instance"},
 			{Type: "aws_db_instance", Name: "deleted-db"},
 		},
@@ -1792,10 +1793,10 @@ func TestCompareStateWithActual_RDSAndEKSResources(t *testing.T) {
 			ID:   "prod-postgres",
 			Type: "aws_db_instance",
 			Attributes: map[string]interface{}{
-				"engine":           "postgres",
-				"engine_version":   "13.7",
+				"engine":            "postgres",
+				"engine_version":    "13.7",
 				"allocated_storage": 100,
-				"multi_az":         true,
+				"multi_az":          true,
 			},
 		},
 		{
@@ -1840,8 +1841,8 @@ func TestCompareResourceAttributes_RDSInstance(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result.Differences) > 0 {
-		t.Errorf("expected no differences for matching RDS instances, got %d", len(result.Differences))
+	if result != nil && len(result) > 0 {
+		t.Errorf("expected no differences for matching RDS instances, got %d", len(result))
 	}
 }
 
@@ -2323,7 +2324,7 @@ func TestCompareResourceAttributes_AZComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result.Differences) > 0 {
+	if result != nil && len(result) > 0 {
 		t.Errorf("expected no differences for matching AZ")
 	}
 }
@@ -2346,7 +2347,7 @@ func TestCompareResourceAttributes_AZDifference(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result == nil || len(result.Differences) != 1 {
+	if result == nil || len(result) != 1 {
 		t.Errorf("expected 1 difference for different AZ")
 	}
 }
@@ -2356,7 +2357,7 @@ func TestExtractTFResourceID_FirstEmptyString(t *testing.T) {
 	resource := &terraform.Resource{
 		Type: "aws_test",
 		Attributes: map[string]interface{}{
-			"id":           "",
+			"id":          "",
 			"instance_id": "actual-id",
 		},
 	}
@@ -2375,7 +2376,7 @@ func TestTagsEqual_AllManagedTags(t *testing.T) {
 	}
 
 	awsTags := map[string]string{
-		"aws:managed":             "true",
+		"aws:managed":              "true",
 		"kubernetes.io/controlled": "true",
 	}
 
@@ -2405,7 +2406,7 @@ func TestCompareResourceAttributes_StringVsNumber(t *testing.T) {
 
 	result := compareResourceAttributes(tfRes, awsRes)
 	// String "100" and int 100 should be considered equal by valuesEqual
-	if result != nil && len(result.Differences) > 0 {
+	if result != nil && len(result) > 0 {
 		t.Errorf("expected string '100' to match int 100")
 	}
 }
@@ -2497,11 +2498,11 @@ func TestCompareResourceAttributes_WithTagOnlyDifference(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result == nil || len(result.Differences) != 1 {
+	if result == nil || len(result) != 1 {
 		t.Errorf("expected 1 tag difference")
 	}
-	if result.Differences[0].Field != "tags" {
-		t.Errorf("expected tags difference, got %s", result.Differences[0].Field)
+	if result[0].Field != "tags" {
+		t.Errorf("expected tags difference, got %s", result[0].Field)
 	}
 }
 
@@ -2510,7 +2511,7 @@ func TestCompareResourceAttributes_MultipleFieldsAndTagsDifference(t *testing.T)
 	tfRes := &terraform.Resource{
 		Type: "aws_vpc",
 		Attributes: map[string]interface{}{
-			"cidr_block": "10.0.0.0/16",
+			"cidr_block":           "10.0.0.0/16",
 			"enable_dns_hostnames": true,
 			"tags": map[string]interface{}{
 				"Name": "vpc1",
@@ -2522,7 +2523,7 @@ func TestCompareResourceAttributes_MultipleFieldsAndTagsDifference(t *testing.T)
 		ID:   "vpc-123",
 		Type: "aws_vpc",
 		Attributes: map[string]interface{}{
-			"cidr_block": "10.0.0.0/24",
+			"cidr_block":           "10.0.0.0/24",
 			"enable_dns_hostnames": false,
 		},
 		Tags: map[string]string{
@@ -2531,8 +2532,8 @@ func TestCompareResourceAttributes_MultipleFieldsAndTagsDifference(t *testing.T)
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result == nil || len(result.Differences) != 3 {
-		t.Errorf("expected 3 differences (cidr, dns, tags), got %d", len(result.Differences))
+	if result == nil || len(result) != 3 {
+		t.Errorf("expected 3 differences (cidr, dns, tags), got %d", len(result))
 	}
 }
 
@@ -2550,7 +2551,7 @@ func TestCompareResourceAttributes_NoAttributes(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result == nil || len(result.Differences) > 0 {
+	if result == nil || len(result) > 0 {
 		t.Errorf("expected no differences for resources with no attributes")
 	}
 }
@@ -2651,7 +2652,7 @@ func TestCompareResourceAttributes_SubnetVPCID(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result.Differences) > 0 {
+	if result != nil && len(result) > 0 {
 		t.Errorf("expected no differences for matching VPC ID")
 	}
 }
@@ -2674,7 +2675,7 @@ func TestCompareResourceAttributes_SubnetVPCIDMismatch(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result == nil || len(result.Differences) != 1 {
+	if result == nil || len(result) != 1 {
 		t.Errorf("expected 1 difference for VPC ID mismatch")
 	}
 }
@@ -2701,7 +2702,7 @@ func TestDiscoveredResource_JSONFields(t *testing.T) {
 func TestDriftResult_EmptySlices(t *testing.T) {
 	result := &DriftResult{
 		UnmanagedResources: []*DiscoveredResource{},
-		MissingResources:   []*terraform.Resource{},
+		MissingResources:   []*types.TerraformResource{},
 		ModifiedResources:  []*ResourceDiff{},
 	}
 
@@ -2859,9 +2860,9 @@ func TestValuesEqual_FormattedNumbers(t *testing.T) {
 // TestCompareResourceAttributes_ELBTypeScenarios tests various ELB type scenarios
 func TestCompareResourceAttributes_ELBTypeScenarios(t *testing.T) {
 	tests := []struct {
-		name    string
-		lbType  string
-		scheme  string
+		name        string
+		lbType      string
+		scheme      string
 		shouldMatch bool
 	}{
 		{"application alb", "application", "internet-facing", true},
@@ -2889,7 +2890,7 @@ func TestCompareResourceAttributes_ELBTypeScenarios(t *testing.T) {
 			}
 
 			result := compareResourceAttributes(tfRes, awsRes)
-			if !tt.shouldMatch && result != nil && len(result.Differences) == 0 {
+			if !tt.shouldMatch && result != nil && len(result) == 0 {
 				t.Errorf("expected differences")
 			}
 		})

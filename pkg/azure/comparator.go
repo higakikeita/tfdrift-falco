@@ -4,76 +4,84 @@ import (
 	"reflect"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/keitahigaki/tfdrift-falco/pkg/comparator"
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
 // CompareStateWithActual compares Terraform state with actual Azure resources
 // and returns the differences (unmanaged, missing, and modified resources).
-func CompareStateWithActual(tfResources []*TerraformResource, azureResources []*DiscoveredResource) *DriftResult {
-	result := &DriftResult{
-		UnmanagedResources: []*DiscoveredResource{},
-		MissingResources:   []*TerraformResource{},
-		ModifiedResources:  []*ResourceDiff{},
-	}
-
-	// Build maps for efficient lookup
-	tfResourceMap := make(map[string]*TerraformResource)
-	for _, tfRes := range tfResources {
-		resourceID := extractTFResourceID(tfRes)
-		if resourceID != "" {
-			tfResourceMap[resourceID] = tfRes
-		}
-	}
-
-	azureResourceMap := make(map[string]*DiscoveredResource)
-	for _, azRes := range azureResources {
-		azureResourceMap[azRes.ID] = azRes
-	}
-
-	log.Infof("Comparing state: %d Terraform resources vs %d Azure resources", len(tfResourceMap), len(azureResourceMap))
-
-	// Find unmanaged resources (in Azure but not in Terraform)
-	for azID, azRes := range azureResourceMap {
-		if _, exists := tfResourceMap[azID]; !exists {
-			// Also try matching by name for resources where ID format differs
-			if !matchesByName(azRes, tfResourceMap) {
-				log.Infof("Found unmanaged resource: %s (%s)", azID, azRes.Type)
-				result.UnmanagedResources = append(result.UnmanagedResources, azRes)
+func CompareStateWithActual(tfResources []*types.TerraformResource, azureResources []*types.DiscoveredResource) *types.DriftResult {
+	config := &comparator.ComparisonConfig{
+		ExtractTFID: extractTFResourceID,
+		ExtractCloudID: func(cloudResource interface{}) string {
+			return cloudResource.(*types.DiscoveredResource).ID
+		},
+		CompareAttributes: func(tfResource, cloudResource interface{}) []types.FieldDiff {
+			diffs := compareResourceAttributes(tfResource.(*types.TerraformResource), cloudResource.(*types.DiscoveredResource))
+			if diffs == nil {
+				return nil
 			}
-		}
-	}
-
-	// Find missing resources (in Terraform but not in Azure) and modified resources
-	for tfID, tfRes := range tfResourceMap {
-		azRes, exists := azureResourceMap[tfID]
-		if !exists {
-			// Try matching by name
-			azRes = findByName(tfRes, azureResourceMap)
-		}
-
-		if azRes == nil {
-			log.Infof("Found missing resource: %s (%s)", tfID, tfRes.Type)
-			result.MissingResources = append(result.MissingResources, tfRes)
-		} else {
-			// Resource exists in both - check for modifications
-			diff := compareResourceAttributes(tfRes, azRes)
-			if diff != nil && len(diff.Differences) > 0 {
-				log.Infof("Found modified resource: %s (%d differences)", tfID, len(diff.Differences))
-				result.ModifiedResources = append(result.ModifiedResources, diff)
+			result := make([]types.FieldDiff, len(diffs))
+			for i, d := range diffs {
+				result[i] = *d
 			}
-		}
+			return result
+		},
+		BuildUnmanaged: func(cloudResource interface{}) *types.ResourceDiff {
+			azRes := cloudResource.(*types.DiscoveredResource)
+			return &types.ResourceDiff{
+				ResourceID:    azRes.ID,
+				ResourceType:  azRes.Type,
+				Provider:      "azure",
+				ActualState:   azRes.Attributes,
+				Differences:   []types.FieldDiff{},
+			}
+		},
+		BuildMissing: func(tfResource interface{}) *types.TerraformResource {
+			tfRes := tfResource.(*types.TerraformResource)
+			// Extract ID from attributes if available
+			resourceID := extractTFResourceID(tfRes)
+			return &types.TerraformResource{
+				Type:       tfRes.Type,
+				Name:       tfRes.Name,
+				ID:         resourceID,
+				Provider:   "azure",
+				Attributes: tfRes.Attributes,
+			}
+		},
+		// Azure supports case-insensitive matching by name when IDs differ
+		FindMatchingCloud: func(tfResource interface{}, cloudResourceMap map[string]interface{}) interface{} {
+			tfRes := tfResource.(*types.TerraformResource)
+			return findByNameInterface(tfRes, cloudResourceMap)
+		},
 	}
 
-	log.Infof("Azure drift detection complete: %d unmanaged, %d missing, %d modified",
-		len(result.UnmanagedResources), len(result.MissingResources), len(result.ModifiedResources))
+	result := comparator.CompareResources(config, convertTFResources(tfResources), convertCloudResources(azureResources))
+	result.Provider = "azure"
+	return result
+}
 
+// convertTFResources converts []*types.TerraformResource to []interface{}
+func convertTFResources(resources []*types.TerraformResource) []interface{} {
+	result := make([]interface{}, len(resources))
+	for i, r := range resources {
+		result[i] = r
+	}
+	return result
+}
+
+// convertCloudResources converts []*types.DiscoveredResource to []interface{}
+func convertCloudResources(resources []*types.DiscoveredResource) []interface{} {
+	result := make([]interface{}, len(resources))
+	for i, r := range resources {
+		result[i] = r
+	}
 	return result
 }
 
 // extractTFResourceID extracts the Azure resource ID from Terraform resource attributes.
-func extractTFResourceID(tfRes *TerraformResource) string {
+func extractTFResourceID(resource interface{}) string {
+	tfRes := resource.(*types.TerraformResource)
 	idFields := []string{
 		"id", "name",
 	}
@@ -87,55 +95,21 @@ func extractTFResourceID(tfRes *TerraformResource) string {
 	return ""
 }
 
-// matchesByName checks if an Azure resource matches any Terraform resource by name.
-func matchesByName(azRes *DiscoveredResource, tfMap map[string]*TerraformResource) bool {
-	for _, tfRes := range tfMap {
-		if tfRes.Type == azRes.Type {
-			if name, ok := tfRes.Attributes["name"].(string); ok && strings.EqualFold(name, azRes.Name) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-// findByName finds an Azure resource matching the Terraform resource by name and type.
-func findByName(tfRes *TerraformResource, azureMap map[string]*DiscoveredResource) *DiscoveredResource {
-	tfName, _ := tfRes.Attributes["name"].(string)
-	if tfName == "" {
-		return nil
-	}
-
-	for _, azRes := range azureMap {
-		if azRes.Type == tfRes.Type && strings.EqualFold(azRes.Name, tfName) {
-			return azRes
-		}
-	}
-	return nil
-}
-
 // compareResourceAttributes compares attributes between Terraform state and actual Azure resource.
-func compareResourceAttributes(tfRes *TerraformResource, azRes *DiscoveredResource) *ResourceDiff {
+func compareResourceAttributes(tfRes *types.TerraformResource, azRes *types.DiscoveredResource) []*types.FieldDiff {
 	if tfRes.Type != azRes.Type {
 		return nil
 	}
 
-	diff := &ResourceDiff{
-		ResourceID:     azRes.ID,
-		ResourceType:   tfRes.Type,
-		TerraformState: tfRes.Attributes,
-		ActualState:    azRes.Attributes,
-		Differences:    []FieldDiff{},
-	}
-
 	fieldsToCompare := getComparableFields(tfRes.Type)
+	differences := []*types.FieldDiff{}
 
 	for _, field := range fieldsToCompare {
 		tfValue := comparator.GetNestedValue(tfRes.Attributes, field)
 		azValue := comparator.GetNestedValue(azRes.Attributes, field)
 
 		if !comparator.ValuesEqualCaseInsensitive(tfValue, azValue) {
-			diff.Differences = append(diff.Differences, FieldDiff{
+			differences = append(differences, &types.FieldDiff{
 				Field:          field,
 				TerraformValue: tfValue,
 				ActualValue:    azValue,
@@ -145,14 +119,14 @@ func compareResourceAttributes(tfRes *TerraformResource, azRes *DiscoveredResour
 
 	// Compare tags
 	if !tagsEqual(tfRes.Attributes, azRes.Tags) {
-		diff.Differences = append(diff.Differences, FieldDiff{
+		differences = append(differences, &types.FieldDiff{
 			Field:          "tags",
 			TerraformValue: getTerraformTags(tfRes.Attributes),
 			ActualValue:    azRes.Tags,
 		})
 	}
 
-	return diff
+	return differences
 }
 
 // getComparableFields returns the list of fields to compare for a given Azure resource type.
@@ -215,7 +189,6 @@ func getComparableFields(resourceType string) []string {
 	}
 }
 
-
 // Internal wrapper functions for test compatibility.
 // These delegate to the shared comparator package functions.
 
@@ -256,4 +229,49 @@ func getTerraformTags(attrs map[string]interface{}) map[string]string {
 	}
 
 	return tags
+}
+
+// matchesByName checks if an Azure resource matches any Terraform resource by name.
+// This is used for resources where ID format differs between TF and Azure.
+func matchesByName(azRes *types.DiscoveredResource, tfMap map[string]*types.TerraformResource) bool {
+	for _, tfRes := range tfMap {
+		if tfRes.Type == azRes.Type {
+			if name, ok := tfRes.Attributes["name"].(string); ok && strings.EqualFold(name, azRes.Name) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// findByName finds an Azure resource matching the Terraform resource by name and type.
+// This is used for resources where ID format differs between TF and Azure.
+func findByName(tfRes *types.TerraformResource, azureMap map[string]*types.DiscoveredResource) *types.DiscoveredResource {
+	tfName, _ := tfRes.Attributes["name"].(string)
+	if tfName == "" {
+		return nil
+	}
+
+	for _, azRes := range azureMap {
+		if azRes.Type == tfRes.Type && strings.EqualFold(azRes.Name, tfName) {
+			return azRes
+		}
+	}
+	return nil
+}
+
+// findByNameInterface is a wrapper around findByName for the generic interface{} API
+func findByNameInterface(tfRes *types.TerraformResource, azureMap map[string]interface{}) interface{} {
+	tfName, _ := tfRes.Attributes["name"].(string)
+	if tfName == "" {
+		return nil
+	}
+
+	for _, azResInterface := range azureMap {
+		azRes := azResInterface.(*types.DiscoveredResource)
+		if azRes.Type == tfRes.Type && strings.EqualFold(azRes.Name, tfName) {
+			return azRes
+		}
+	}
+	return nil
 }

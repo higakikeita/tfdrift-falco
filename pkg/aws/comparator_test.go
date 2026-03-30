@@ -54,7 +54,7 @@ func TestCompareStateWithActual_MissingResources(t *testing.T) {
 			Type: "aws_vpc",
 			Name: "main-vpc",
 			Attributes: map[string]interface{}{
-				"id":        "vpc-99999",
+				"id":         "vpc-99999",
 				"cidr_block": "10.0.0.0/16",
 			},
 		},
@@ -90,10 +90,10 @@ func TestCompareStateWithActual_ModifiedResources(t *testing.T) {
 			Type: "aws_vpc",
 			Name: "main-vpc",
 			Attributes: map[string]interface{}{
-				"id":                    "vpc-12345",
-				"cidr_block":            "10.0.0.0/16",
-				"enable_dns_hostnames":  true,
-				"enable_dns_support":    true,
+				"id":                   "vpc-12345",
+				"cidr_block":           "10.0.0.0/16",
+				"enable_dns_hostnames": true,
+				"enable_dns_support":   true,
 			},
 		},
 	}
@@ -155,7 +155,7 @@ func TestCompareStateWithActual_Mixed(t *testing.T) {
 			Name: "modified-db",
 			Attributes: map[string]interface{}{
 				"db_instance_identifier": "db-modified",
-				"allocated_storage":       100,
+				"allocated_storage":      100,
 			},
 		},
 	}
@@ -470,7 +470,7 @@ func TestGetTerraformTags(t *testing.T) {
 			name: "tags with mixed types",
 			attrs: map[string]interface{}{
 				"tags": map[string]interface{}{
-					"Valid": "value",
+					"Valid":   "value",
 					"Invalid": 123, // Should be skipped
 				},
 			},
@@ -558,7 +558,7 @@ func TestTagsEqual(t *testing.T) {
 			tfAttrs: map[string]interface{}{
 				"tags": map[string]interface{}{},
 			},
-			awsTags: map[string]string{},
+			awsTags:  map[string]string{},
 			expected: true,
 		},
 	}
@@ -700,11 +700,11 @@ func TestCompareResourceAttributes_WithTags(t *testing.T) {
 	}
 
 	// Should have one difference for tags
-	if len(result.Differences) != 1 {
-		t.Errorf("expected 1 difference, got %d", len(result.Differences))
+	if len(result) != 1 {
+		t.Errorf("expected 1 difference, got %d", len(result))
 	}
 
-	if result.Differences[0].Field != "tags" {
-		t.Errorf("expected 'tags' field difference, got %s", result.Differences[0].Field)
+	if result[0].Field != "tags" {
+		t.Errorf("expected 'tags' field difference, got %s", result[0].Field)
 	}
 }

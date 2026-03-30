@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
 // DiscoveryClient handles Azure resource discovery across a subscription.
@@ -44,46 +46,13 @@ type SKU struct {
 	Capacity int64  `json:"capacity,omitempty"`
 }
 
-// DiscoveredResource represents a resource found in Azure,
-// converted to a format suitable for Terraform drift comparison.
-type DiscoveredResource struct {
-	ID         string                 `json:"id"`
-	Type       string                 `json:"type"`       // Terraform resource type
-	Name       string                 `json:"name"`
-	Region     string                 `json:"region"`
-	Attributes map[string]interface{} `json:"attributes"`
-	Tags       map[string]string      `json:"tags,omitempty"`
-}
-
-// DriftResult represents the difference between Terraform and actual Azure state.
-type DriftResult struct {
-	UnmanagedResources []*DiscoveredResource `json:"unmanaged_resources"`
-	MissingResources   []*TerraformResource  `json:"missing_resources"`
-	ModifiedResources  []*ResourceDiff       `json:"modified_resources"`
-}
-
-// TerraformResource is a minimal representation for Azure drift results.
-type TerraformResource struct {
-	Type       string                 `json:"type"`
-	Name       string                 `json:"name"`
-	Attributes map[string]interface{} `json:"attributes,omitempty"`
-}
-
-// ResourceDiff represents differences in a single resource.
-type ResourceDiff struct {
-	ResourceID     string                 `json:"resource_id"`
-	ResourceType   string                 `json:"resource_type"`
-	TerraformState map[string]interface{} `json:"terraform_state"`
-	ActualState    map[string]interface{} `json:"actual_state"`
-	Differences    []FieldDiff            `json:"differences"`
-}
-
-// FieldDiff represents a difference in a specific field.
-type FieldDiff struct {
-	Field          string      `json:"field"`
-	TerraformValue interface{} `json:"terraform_value"`
-	ActualValue    interface{} `json:"actual_value"`
-}
+// Type aliases to use shared types from pkg/types
+// This allows discovery.go to continue using the old names while using the shared implementations
+type DiscoveredResource = types.DiscoveredResource
+type DriftResult = types.DriftResult
+type TerraformResource = types.TerraformResource
+type ResourceDiff = types.ResourceDiff
+type FieldDiff = types.FieldDiff
 
 // azureTypeToTerraform maps Azure resource types to Terraform resource types.
 var azureTypeToTerraform = map[string]string{

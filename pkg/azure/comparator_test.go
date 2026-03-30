@@ -656,14 +656,14 @@ func TestCompareResourceAttributes_WithTags(t *testing.T) {
 		},
 	}
 
-	result := compareResourceAttributes(tfRes, azRes)
-	if result == nil {
-		t.Fatalf("expected non-nil diff")
+	diffs := compareResourceAttributes(tfRes, azRes)
+	if diffs == nil {
+		t.Fatalf("expected non-nil diffs")
 	}
 
 	// Should find tag diff
 	foundTagDiff := false
-	for _, d := range result.Differences {
+	for _, d := range diffs {
 		if d.Field == "tags" {
 			foundTagDiff = true
 		}

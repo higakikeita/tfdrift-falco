@@ -3,70 +3,78 @@ package aws
 import (
 	"reflect"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/keitahigaki/tfdrift-falco/pkg/comparator"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
 // CompareStateWithActual compares Terraform state with actual AWS resources
 // and returns the differences (unmanaged, missing, and modified resources)
-func CompareStateWithActual(tfResources []*terraform.Resource, awsResources []*DiscoveredResource) *DriftResult {
-	result := &DriftResult{
-		UnmanagedResources: []*DiscoveredResource{},
-		MissingResources:   []*terraform.Resource{},
-		ModifiedResources:  []*ResourceDiff{},
-	}
-
-	// Build maps for efficient lookup
-	tfResourceMap := make(map[string]*terraform.Resource)
-	for _, tfRes := range tfResources {
-		// Extract the resource ID from Terraform state
-		resourceID := extractTFResourceID(tfRes)
-		if resourceID != "" {
-			tfResourceMap[resourceID] = tfRes
-		}
-	}
-
-	awsResourceMap := make(map[string]*DiscoveredResource)
-	for _, awsRes := range awsResources {
-		awsResourceMap[awsRes.ID] = awsRes
-	}
-
-	log.Infof("Comparing state: %d Terraform resources vs %d AWS resources", len(tfResourceMap), len(awsResourceMap))
-
-	// Find unmanaged resources (in AWS but not in Terraform)
-	for awsID, awsRes := range awsResourceMap {
-		if _, exists := tfResourceMap[awsID]; !exists {
-			log.Infof("Found unmanaged resource: %s (%s)", awsID, awsRes.Type)
-			result.UnmanagedResources = append(result.UnmanagedResources, awsRes)
-		}
-	}
-
-	// Find missing resources (in Terraform but not in AWS) and modified resources
-	for tfID, tfRes := range tfResourceMap {
-		awsRes, exists := awsResourceMap[tfID]
-		if !exists {
-			log.Infof("Found missing resource: %s (%s)", tfID, tfRes.Type)
-			result.MissingResources = append(result.MissingResources, tfRes)
-		} else {
-			// Resource exists in both - check for modifications
-			diff := compareResourceAttributes(tfRes, awsRes)
-			if diff != nil && len(diff.Differences) > 0 {
-				log.Infof("Found modified resource: %s (%d differences)", tfID, len(diff.Differences))
-				result.ModifiedResources = append(result.ModifiedResources, diff)
+func CompareStateWithActual(tfResources []*terraform.Resource, awsResources []*types.DiscoveredResource) *types.DriftResult {
+	config := &comparator.ComparisonConfig{
+		ExtractTFID: extractTFResourceID,
+		ExtractCloudID: func(cloudResource interface{}) string {
+			return cloudResource.(*types.DiscoveredResource).ID
+		},
+		CompareAttributes: func(tfResource, cloudResource interface{}) []types.FieldDiff {
+			diffs := compareResourceAttributes(tfResource.(*terraform.Resource), cloudResource.(*types.DiscoveredResource))
+			if diffs == nil {
+				return nil
 			}
-		}
+			result := make([]types.FieldDiff, len(diffs))
+			for i, d := range diffs {
+				result[i] = *d
+			}
+			return result
+		},
+		BuildUnmanaged: func(cloudResource interface{}) *types.ResourceDiff {
+			awsRes := cloudResource.(*types.DiscoveredResource)
+			return &types.ResourceDiff{
+				ResourceID:   awsRes.ID,
+				ResourceType: awsRes.Type,
+				Provider:     "aws",
+				ActualState:  awsRes.Attributes,
+				Differences:  []types.FieldDiff{},
+			}
+		},
+		BuildMissing: func(tfResource interface{}) *types.TerraformResource {
+			tfRes := tfResource.(*terraform.Resource)
+			return &types.TerraformResource{
+				Type:       tfRes.Type,
+				Name:       tfRes.Name,
+				ID:         extractTFResourceID(tfRes),
+				Provider:   "aws",
+				Attributes: tfRes.Attributes,
+			}
+		},
 	}
 
-	log.Infof("Drift detection complete: %d unmanaged, %d missing, %d modified",
-		len(result.UnmanagedResources), len(result.MissingResources), len(result.ModifiedResources))
+	result := comparator.CompareResources(config, convertTFResources(tfResources), convertCloudResources(awsResources))
+	result.Provider = "aws"
+	return result
+}
 
+// convertTFResources converts []*terraform.Resource to []interface{}
+func convertTFResources(resources []*terraform.Resource) []interface{} {
+	result := make([]interface{}, len(resources))
+	for i, r := range resources {
+		result[i] = r
+	}
+	return result
+}
+
+// convertCloudResources converts []*types.DiscoveredResource to []interface{}
+func convertCloudResources(resources []*types.DiscoveredResource) []interface{} {
+	result := make([]interface{}, len(resources))
+	for i, r := range resources {
+		result[i] = r
+	}
 	return result
 }
 
 // extractTFResourceID extracts the AWS resource ID from Terraform resource attributes
-func extractTFResourceID(tfRes *terraform.Resource) string {
+func extractTFResourceID(resource interface{}) string {
+	tfRes := resource.(*terraform.Resource)
 	// Try common ID fields
 	idFields := []string{"id", "instance_id", "db_instance_identifier", "vpc_id",
 		"subnet_id", "group_id", "cluster_name", "replication_group_id", "arn"}
@@ -81,29 +89,22 @@ func extractTFResourceID(tfRes *terraform.Resource) string {
 }
 
 // compareResourceAttributes compares attributes between Terraform state and actual AWS resource
-func compareResourceAttributes(tfRes *terraform.Resource, awsRes *DiscoveredResource) *ResourceDiff {
+func compareResourceAttributes(tfRes *terraform.Resource, awsRes *types.DiscoveredResource) []*types.FieldDiff {
 	if tfRes.Type != awsRes.Type {
 		// Type mismatch - shouldn't happen if IDs match
 		return nil
 	}
 
-	diff := &ResourceDiff{
-		ResourceID:     awsRes.ID,
-		ResourceType:   tfRes.Type,
-		TerraformState: tfRes.Attributes,
-		ActualState:    awsRes.Attributes,
-		Differences:    []FieldDiff{},
-	}
-
 	// Compare key attributes based on resource type
 	fieldsToCompare := getComparableFields(tfRes.Type)
+	differences := []*types.FieldDiff{}
 
 	for _, field := range fieldsToCompare {
 		tfValue := comparator.GetNestedValue(tfRes.Attributes, field)
 		awsValue := comparator.GetNestedValue(awsRes.Attributes, field)
 
 		if !comparator.ValuesEqual(tfValue, awsValue) {
-			diff.Differences = append(diff.Differences, FieldDiff{
+			differences = append(differences, &types.FieldDiff{
 				Field:          field,
 				TerraformValue: tfValue,
 				ActualValue:    awsValue,
@@ -113,14 +114,14 @@ func compareResourceAttributes(tfRes *terraform.Resource, awsRes *DiscoveredReso
 
 	// Compare tags separately
 	if !tagsEqual(tfRes.Attributes, awsRes.Tags) {
-		diff.Differences = append(diff.Differences, FieldDiff{
+		differences = append(differences, &types.FieldDiff{
 			Field:          "tags",
 			TerraformValue: getTerraformTags(tfRes.Attributes),
 			ActualValue:    awsRes.Tags,
 		})
 	}
 
-	return diff
+	return differences
 }
 
 // getComparableFields returns the list of fields to compare for a given resource type
@@ -147,7 +148,6 @@ func getComparableFields(resourceType string) []string {
 		return []string{}
 	}
 }
-
 
 // Internal wrapper functions for test compatibility.
 // These delegate to the shared comparator package functions.

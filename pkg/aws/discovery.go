@@ -8,65 +8,33 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2Types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
 // DiscoveryClient handles AWS resource discovery
 type DiscoveryClient struct {
-	region         string
-	ec2Client      *ec2.Client
-	rdsClient      *rds.Client
-	eksClient      *eks.Client
-	elasticache    *elasticache.Client
-	elbClient      *elasticloadbalancingv2.Client
+	region      string
+	ec2Client   EC2API
+	rdsClient   RDSAPI
+	eksClient   EKSAPI
+	elasticache ElastiCacheAPI
+	elbClient   ELBAPI
 }
 
-// DiscoveredResource represents a resource found in AWS
-type DiscoveredResource struct {
-	ID         string                 `json:"id"`
-	Type       string                 `json:"type"`
-	ARN        string                 `json:"arn,omitempty"`
-	Name       string                 `json:"name"`
-	Region     string                 `json:"region"`
-	Attributes map[string]interface{} `json:"attributes"`
-	Tags       map[string]string      `json:"tags,omitempty"`
-}
+// Type aliases to use shared types from pkg/types
+// This allows discovery.go to continue using the old names while using the shared implementations
+type DiscoveredResource = types.DiscoveredResource
+type ResourceDiff = types.ResourceDiff
+type FieldDiff = types.FieldDiff
+type DriftResult = types.DriftResult
 
-// DriftResult represents the difference between Terraform and actual AWS state
-type DriftResult struct {
-	// Resources in AWS but not in Terraform (manually created)
-	UnmanagedResources []*DiscoveredResource `json:"unmanaged_resources"`
-
-	// Resources in Terraform but not in AWS (manually deleted)
-	MissingResources []*terraform.Resource `json:"missing_resources"`
-
-	// Resources with configuration differences
-	ModifiedResources []*ResourceDiff `json:"modified_resources"`
-}
-
-// ResourceDiff represents differences in a single resource
-type ResourceDiff struct {
-	ResourceID         string                 `json:"resource_id"`
-	ResourceType       string                 `json:"resource_type"`
-	TerraformState     map[string]interface{} `json:"terraform_state"`
-	ActualState        map[string]interface{} `json:"actual_state"`
-	Differences        []FieldDiff            `json:"differences"`
-}
-
-// FieldDiff represents a difference in a specific field
-type FieldDiff struct {
-	Field          string      `json:"field"`
-	TerraformValue interface{} `json:"terraform_value"`
-	ActualValue    interface{} `json:"actual_value"`
-}
-
-// NewDiscoveryClient creates a new AWS discovery client
+// NewDiscoveryClient creates a new AWS discovery client with real AWS SDK clients
 func NewDiscoveryClient(ctx context.Context, region string) (*DiscoveryClient, error) {
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
 	if err != nil {
@@ -81,6 +49,26 @@ func NewDiscoveryClient(ctx context.Context, region string) (*DiscoveryClient, e
 		elasticache: elasticache.NewFromConfig(cfg),
 		elbClient:   elasticloadbalancingv2.NewFromConfig(cfg),
 	}, nil
+}
+
+// NewDiscoveryClientWithServices creates a DiscoveryClient with injected services
+// This is useful for testing with mock implementations
+func NewDiscoveryClientWithServices(
+	region string,
+	ec2 EC2API,
+	rds RDSAPI,
+	eksClient EKSAPI,
+	elastiCache ElastiCacheAPI,
+	elb ELBAPI,
+) *DiscoveryClient {
+	return &DiscoveryClient{
+		region:      region,
+		ec2Client:   ec2,
+		rdsClient:   rds,
+		eksClient:   eksClient,
+		elasticache: elastiCache,
+		elbClient:   elb,
+	}
 }
 
 // DiscoverAll discovers all supported AWS resources in the region
@@ -207,10 +195,10 @@ func (d *DiscoveryClient) discoverSubnets(ctx context.Context) ([]*DiscoveredRes
 			Name:   getTagValue(subnet.Tags, "Name"),
 			Region: d.region,
 			Attributes: map[string]interface{}{
-				"vpc_id":                       aws.ToString(subnet.VpcId),
-				"cidr_block":                   aws.ToString(subnet.CidrBlock),
-				"availability_zone":            aws.ToString(subnet.AvailabilityZone),
-				"map_public_ip_on_launch":      subnet.MapPublicIpOnLaunch,
+				"vpc_id":                          aws.ToString(subnet.VpcId),
+				"cidr_block":                      aws.ToString(subnet.CidrBlock),
+				"availability_zone":               aws.ToString(subnet.AvailabilityZone),
+				"map_public_ip_on_launch":         subnet.MapPublicIpOnLaunch,
 				"assign_ipv6_address_on_creation": subnet.AssignIpv6AddressOnCreation,
 			},
 			Tags: tags,
@@ -264,13 +252,13 @@ func (d *DiscoveryClient) discoverEC2Instances(ctx context.Context) ([]*Discover
 				Name:   getTagValue(instance.Tags, "Name"),
 				Region: d.region,
 				Attributes: map[string]interface{}{
-					"instance_type":      string(instance.InstanceType),
-					"subnet_id":          aws.ToString(instance.SubnetId),
-					"vpc_id":             aws.ToString(instance.VpcId),
-					"availability_zone":  aws.ToString(instance.Placement.AvailabilityZone),
-					"private_ip":         aws.ToString(instance.PrivateIpAddress),
-					"public_ip":          aws.ToString(instance.PublicIpAddress),
-					"state":              string(instance.State.Name),
+					"instance_type":     string(instance.InstanceType),
+					"subnet_id":         aws.ToString(instance.SubnetId),
+					"vpc_id":            aws.ToString(instance.VpcId),
+					"availability_zone": aws.ToString(instance.Placement.AvailabilityZone),
+					"private_ip":        aws.ToString(instance.PrivateIpAddress),
+					"public_ip":         aws.ToString(instance.PublicIpAddress),
+					"state":             string(instance.State.Name),
 				},
 				Tags: tags,
 			})

@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
 // TestExtractRDSTags_Behavior tests the RDS tag extraction helper behavior
@@ -172,10 +172,10 @@ func TestResourceDiff_MultipleFieldDifferences(t *testing.T) {
 		ResourceID:   "test-db",
 		ResourceType: "aws_db_instance",
 		TerraformState: map[string]interface{}{
-			"allocated_storage":  100,
-			"engine_version":     "13.7",
+			"allocated_storage":   100,
+			"engine_version":      "13.7",
 			"publicly_accessible": false,
-			"multi_az":           true,
+			"multi_az":            true,
 		},
 		ActualState: map[string]interface{}{
 			"allocated_storage":   200,
@@ -242,7 +242,7 @@ func TestResourceDiff_MultipleFieldDifferences(t *testing.T) {
 func TestDriftResult_LargeScale(t *testing.T) {
 	result := &DriftResult{
 		UnmanagedResources: make([]*DiscoveredResource, 50),
-		MissingResources:   make([]*terraform.Resource, 30),
+		MissingResources:   make([]*types.TerraformResource, 30),
 		ModifiedResources:  make([]*ResourceDiff, 20),
 	}
 
@@ -255,7 +255,7 @@ func TestDriftResult_LargeScale(t *testing.T) {
 	}
 
 	for i := 0; i < 30; i++ {
-		result.MissingResources[i] = &terraform.Resource{
+		result.MissingResources[i] = &types.TerraformResource{
 			Type: "aws_instance",
 		}
 	}
@@ -280,9 +280,9 @@ func TestDriftResult_LargeScale(t *testing.T) {
 // TestDiscoveredResource_NetworkingResources tests VPC-related resources
 func TestDiscoveredResource_NetworkingResources(t *testing.T) {
 	networkingResources := []struct {
-		name     string
-		resType  string
-		id       string
+		name    string
+		resType string
+		id      string
 	}{
 		{"VPC", "aws_vpc", "vpc-12345"},
 		{"Subnet", "aws_subnet", "subnet-12345"},
@@ -308,9 +308,9 @@ func TestDiscoveredResource_NetworkingResources(t *testing.T) {
 // TestDiscoveredResource_ComputeResources tests compute-related resources
 func TestDiscoveredResource_ComputeResources(t *testing.T) {
 	computeResources := []struct {
-		name     string
-		resType  string
-		id       string
+		name    string
+		resType string
+		id      string
 	}{
 		{"EC2 Instance", "aws_instance", "i-12345"},
 		{"EKS Cluster", "aws_eks_cluster", "my-cluster"},
@@ -335,9 +335,9 @@ func TestDiscoveredResource_ComputeResources(t *testing.T) {
 // TestDiscoveredResource_DatabaseResources tests database-related resources
 func TestDiscoveredResource_DatabaseResources(t *testing.T) {
 	databaseResources := []struct {
-		name     string
-		resType  string
-		id       string
+		name    string
+		resType string
+		id      string
 	}{
 		{"RDS Instance", "aws_db_instance", "db-prod"},
 		{"ElastiCache", "aws_elasticache_replication_group", "redis-cluster"},
@@ -416,34 +416,34 @@ func TestDiscoveredResource_TagVariations(t *testing.T) {
 // TestFieldDiff_VariousTypes tests FieldDiff with various value types
 func TestFieldDiff_VariousTypes(t *testing.T) {
 	tests := []struct {
-		name           string
-		tfValue        interface{}
-		actualValue    interface{}
+		name        string
+		tfValue     interface{}
+		actualValue interface{}
 	}{
 		{
-			name:           "string values",
-			tfValue:        "t3.micro",
-			actualValue:    "t3.small",
+			name:        "string values",
+			tfValue:     "t3.micro",
+			actualValue: "t3.small",
 		},
 		{
-			name:           "integer values",
-			tfValue:        100,
-			actualValue:    200,
+			name:        "integer values",
+			tfValue:     100,
+			actualValue: 200,
 		},
 		{
-			name:           "boolean values",
-			tfValue:        true,
-			actualValue:    false,
+			name:        "boolean values",
+			tfValue:     true,
+			actualValue: false,
 		},
 		{
-			name:           "string vs integer",
-			tfValue:        "100",
-			actualValue:    100,
+			name:        "string vs integer",
+			tfValue:     "100",
+			actualValue: 100,
 		},
 		{
-			name:           "nil values",
-			tfValue:        nil,
-			actualValue:    "value",
+			name:        "nil values",
+			tfValue:     nil,
+			actualValue: "value",
 		},
 	}
 

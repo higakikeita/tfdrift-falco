@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
 // GetNestedValue retrieves a value from a nested map using dot notation (e.g., "vpc_config.subnet_ids").
@@ -168,4 +172,109 @@ func FilterManagedLabelsCaseInsensitive(labels map[string]string, ignoredPrefixe
 	}
 
 	return filtered
+}
+
+// ComparisonConfig holds provider-specific callbacks for the generic comparison orchestrator.
+// Each callback allows providers to implement their own business logic while reusing the orchestration.
+type ComparisonConfig struct {
+	// ExtractTFID extracts the resource ID from a Terraform resource
+	ExtractTFID func(tfResource interface{}) string
+
+	// ExtractCloudID extracts the resource ID from a cloud resource
+	ExtractCloudID func(cloudResource interface{}) string
+
+	// CompareAttributes compares attributes between TF and cloud resources
+	// Returns a slice of FieldDiff for any differences found
+	CompareAttributes func(tfResource, cloudResource interface{}) []types.FieldDiff
+
+	// BuildUnmanaged creates a ResourceDiff for a cloud resource not in Terraform
+	BuildUnmanaged func(cloudResource interface{}) *types.ResourceDiff
+
+	// BuildMissing creates a TerraformResource for a TF resource not in cloud
+	BuildMissing func(tfResource interface{}) *types.TerraformResource
+
+	// FindMatchingCloud is optional: finds a cloud resource matching the given TF resource
+	// when exact ID match fails. Used by providers like GCP that support multiple ID formats.
+	// If not provided, only exact ID matching is used.
+	FindMatchingCloud func(tfResource interface{}, cloudResourceMap map[string]interface{}) interface{}
+}
+
+// CompareResources is the generic comparison orchestrator used by all cloud providers.
+// It unifies the comparison logic while allowing provider-specific callbacks for details.
+func CompareResources(config *ComparisonConfig, tfResources, cloudResources []interface{}) *types.DriftResult {
+	result := &types.DriftResult{
+		UnmanagedResources: []*types.DiscoveredResource{},
+		MissingResources:   []*types.TerraformResource{},
+		ModifiedResources:  []*types.ResourceDiff{},
+	}
+
+	// Build maps for efficient lookup
+	tfResourceMap := make(map[string]interface{})
+	for _, tfRes := range tfResources {
+		resourceID := config.ExtractTFID(tfRes)
+		if resourceID != "" {
+			tfResourceMap[resourceID] = tfRes
+		}
+	}
+
+	cloudResourceMap := make(map[string]interface{})
+	for _, cloudRes := range cloudResources {
+		cloudResourceMap[config.ExtractCloudID(cloudRes)] = cloudRes
+	}
+
+	log.Debugf("Comparing state: %d Terraform resources vs %d cloud resources", len(tfResourceMap), len(cloudResourceMap))
+
+	// Track matched resources to avoid duplicate processing
+	matchedCloudResources := make(map[string]bool)
+
+	// Find missing resources (in Terraform but not in cloud) and modified resources
+	for tfID, tfRes := range tfResourceMap {
+		cloudRes, exists := cloudResourceMap[tfID]
+
+		// If exact match not found and provider has fallback matching logic, try that
+		if !exists && config.FindMatchingCloud != nil {
+			cloudRes = config.FindMatchingCloud(tfRes, cloudResourceMap)
+			if cloudRes != nil {
+				// Mark this cloud resource as matched to avoid "unmanaged" classification
+				matchedCloudResources[config.ExtractCloudID(cloudRes)] = true
+			}
+		}
+
+		if cloudRes == nil {
+			log.Debugf("Found missing resource: %s", tfID)
+			result.MissingResources = append(result.MissingResources, config.BuildMissing(tfRes))
+		} else {
+			// Resource exists in both - check for modifications
+			differences := config.CompareAttributes(tfRes, cloudRes)
+			if differences != nil && len(differences) > 0 {
+				log.Debugf("Found modified resource: %s (%d differences)", tfID, len(differences))
+				// Build ResourceDiff from the differences - use the BuildUnmanaged callback to get base structure
+				diff := config.BuildUnmanaged(cloudRes)
+				if diff != nil {
+					diff.Differences = differences
+					result.ModifiedResources = append(result.ModifiedResources, diff)
+				}
+			}
+		}
+	}
+
+	// Find unmanaged resources (in cloud but not in Terraform)
+	for cloudID, cloudRes := range cloudResourceMap {
+		if _, exactMatch := tfResourceMap[cloudID]; !exactMatch && !matchedCloudResources[cloudID] {
+			log.Debugf("Found unmanaged resource: %s", cloudID)
+			// Build unmanaged resource using provider callback
+			unmanagedDiff := config.BuildUnmanaged(cloudRes)
+			result.UnmanagedResources = append(result.UnmanagedResources, &types.DiscoveredResource{
+				ID:         unmanagedDiff.ResourceID,
+				Type:       unmanagedDiff.ResourceType,
+				Provider:   unmanagedDiff.Provider,
+				Attributes: unmanagedDiff.ActualState,
+			})
+		}
+	}
+
+	log.Debugf("Drift detection complete: %d unmanaged, %d missing, %d modified",
+		len(result.UnmanagedResources), len(result.MissingResources), len(result.ModifiedResources))
+
+	return result
 }

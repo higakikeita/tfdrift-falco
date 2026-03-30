@@ -2,6 +2,8 @@ package comparator
 
 import (
 	"testing"
+
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
 func TestGetNestedValue(t *testing.T) {
@@ -455,4 +457,129 @@ func mapsEqual(a, b map[string]string) bool {
 		}
 	}
 	return true
+}
+
+func TestCompareResources(t *testing.T) {
+	tests := []struct {
+		name              string
+		config            *ComparisonConfig
+		tfResources       []interface{}
+		cloudResources    []interface{}
+		expectedUnmanaged int
+		expectedMissing   int
+		expectedModified  int
+	}{
+		{
+			name: "all resources match",
+			config: &ComparisonConfig{
+				ExtractTFID: func(r interface{}) string {
+					return r.(map[string]string)["id"]
+				},
+				ExtractCloudID: func(r interface{}) string {
+					return r.(map[string]string)["id"]
+				},
+				CompareAttributes: func(tf, cloud interface{}) []types.FieldDiff {
+					return nil // No differences
+				},
+				BuildUnmanaged: func(r interface{}) *types.ResourceDiff {
+					return nil
+				},
+				BuildMissing: func(r interface{}) *types.TerraformResource {
+					return nil
+				},
+			},
+			tfResources: []interface{}{
+				map[string]string{"id": "res1"},
+				map[string]string{"id": "res2"},
+			},
+			cloudResources: []interface{}{
+				map[string]string{"id": "res1"},
+				map[string]string{"id": "res2"},
+			},
+			expectedUnmanaged: 0,
+			expectedMissing:   0,
+			expectedModified:  0,
+		},
+		{
+			name: "unmanaged resource in cloud",
+			config: &ComparisonConfig{
+				ExtractTFID: func(r interface{}) string {
+					return r.(map[string]string)["id"]
+				},
+				ExtractCloudID: func(r interface{}) string {
+					return r.(map[string]string)["id"]
+				},
+				CompareAttributes: func(tf, cloud interface{}) []types.FieldDiff {
+					return nil
+				},
+				BuildUnmanaged: func(r interface{}) *types.ResourceDiff {
+					m := r.(map[string]string)
+					return &types.ResourceDiff{
+						ResourceID: m["id"],
+					}
+				},
+				BuildMissing: func(r interface{}) *types.TerraformResource {
+					return nil
+				},
+			},
+			tfResources: []interface{}{
+				map[string]string{"id": "res1"},
+			},
+			cloudResources: []interface{}{
+				map[string]string{"id": "res1"},
+				map[string]string{"id": "res2"}, // Unmanaged
+			},
+			expectedUnmanaged: 1,
+			expectedMissing:   0,
+			expectedModified:  0,
+		},
+		{
+			name: "missing resource in cloud",
+			config: &ComparisonConfig{
+				ExtractTFID: func(r interface{}) string {
+					return r.(map[string]string)["id"]
+				},
+				ExtractCloudID: func(r interface{}) string {
+					return r.(map[string]string)["id"]
+				},
+				CompareAttributes: func(tf, cloud interface{}) []types.FieldDiff {
+					return nil
+				},
+				BuildUnmanaged: func(r interface{}) *types.ResourceDiff {
+					return nil
+				},
+				BuildMissing: func(r interface{}) *types.TerraformResource {
+					m := r.(map[string]string)
+					return &types.TerraformResource{
+						ID: m["id"],
+					}
+				},
+			},
+			tfResources: []interface{}{
+				map[string]string{"id": "res1"},
+				map[string]string{"id": "res2"}, // Missing
+			},
+			cloudResources: []interface{}{
+				map[string]string{"id": "res1"},
+			},
+			expectedUnmanaged: 0,
+			expectedMissing:   1,
+			expectedModified:  0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := CompareResources(tt.config, tt.tfResources, tt.cloudResources)
+			if len(result.UnmanagedResources) != tt.expectedUnmanaged {
+				t.Errorf("unmanaged resources: got %d, want %d", len(result.UnmanagedResources), tt.expectedUnmanaged)
+			}
+			if len(result.MissingResources) != tt.expectedMissing {
+				t.Errorf("missing resources: got %d, want %d", len(result.MissingResources), tt.expectedMissing)
+			}
+			if len(result.ModifiedResources) != tt.expectedModified {
+				t.Errorf("modified resources: got %d, want %d", len(result.ModifiedResources), tt.expectedModified)
+			}
+		})
+	}
 }

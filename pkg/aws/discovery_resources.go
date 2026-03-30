@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	elbTypes "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	rdsTypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
 )
@@ -36,16 +36,16 @@ func (d *DiscoveryClient) discoverRDSInstances(ctx context.Context) ([]*Discover
 			Name:   aws.ToString(db.DBInstanceIdentifier),
 			Region: d.region,
 			Attributes: map[string]interface{}{
-				"engine":                  aws.ToString(db.Engine),
-				"engine_version":          aws.ToString(db.EngineVersion),
-				"instance_class":          aws.ToString(db.DBInstanceClass),
-				"allocated_storage":       db.AllocatedStorage,
-				"db_subnet_group_name":    aws.ToString(db.DBSubnetGroup.DBSubnetGroupName),
-				"vpc_security_group_ids":  securityGroupIDs,
-				"availability_zone":       aws.ToString(db.AvailabilityZone),
-				"multi_az":                db.MultiAZ,
-				"publicly_accessible":     db.PubliclyAccessible,
-				"status":                  aws.ToString(db.DBInstanceStatus),
+				"engine":                 aws.ToString(db.Engine),
+				"engine_version":         aws.ToString(db.EngineVersion),
+				"instance_class":         aws.ToString(db.DBInstanceClass),
+				"allocated_storage":      db.AllocatedStorage,
+				"db_subnet_group_name":   aws.ToString(db.DBSubnetGroup.DBSubnetGroupName),
+				"vpc_security_group_ids": securityGroupIDs,
+				"availability_zone":      aws.ToString(db.AvailabilityZone),
+				"multi_az":               db.MultiAZ,
+				"publicly_accessible":    db.PubliclyAccessible,
+				"status":                 aws.ToString(db.DBInstanceStatus),
 			},
 			Tags: tags,
 		})
@@ -184,13 +184,13 @@ func (d *DiscoveryClient) discoverLoadBalancers(ctx context.Context) ([]*Discove
 			Name:   aws.ToString(lb.LoadBalancerName),
 			Region: d.region,
 			Attributes: map[string]interface{}{
-				"type":               string(lb.Type),
-				"scheme":             string(lb.Scheme),
-				"vpc_id":             aws.ToString(lb.VpcId),
-				"subnets":            subnetIDs,
-				"security_groups":    securityGroupIDs,
-				"dns_name":           aws.ToString(lb.DNSName),
-				"state":              string(lb.State.Code),
+				"type":            string(lb.Type),
+				"scheme":          string(lb.Scheme),
+				"vpc_id":          aws.ToString(lb.VpcId),
+				"subnets":         subnetIDs,
+				"security_groups": securityGroupIDs,
+				"dns_name":        aws.ToString(lb.DNSName),
+				"state":           string(lb.State.Code),
 			},
 			Tags: tags,
 		})

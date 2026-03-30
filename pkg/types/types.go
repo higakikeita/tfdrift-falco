@@ -76,8 +76,10 @@ type DiscoveredResource struct {
 	ARN        string                 `json:"arn,omitempty"`
 	Name       string                 `json:"name"`
 	Region     string                 `json:"region"`
+	SelfLink   string                 `json:"self_link,omitempty"` // GCP: resource self link
 	Attributes map[string]interface{} `json:"attributes"`
 	Tags       map[string]string      `json:"tags,omitempty"`
+	Labels     map[string]string      `json:"labels,omitempty"` // GCP uses labels instead of tags
 	Metadata   map[string]string      `json:"metadata,omitempty"` // Provider-specific metadata
 }
 

@@ -137,13 +137,13 @@ func TestCompareResourceAttributes_AllDifferences(t *testing.T) {
 			"env": "dev",
 		},
 	}
-	diff := compareResourceAttributes(tfRes, gcpRes)
-	assert.NotNil(t, diff)
-	assert.Greater(t, len(diff.Differences), 0)
+	diffs := compareResourceAttributes(tfRes, gcpRes)
+	assert.NotNil(t, diffs)
+	assert.Greater(t, len(diffs), 0)
 
 	// Should have differences
 	fields := make(map[string]bool)
-	for _, d := range diff.Differences {
+	for _, d := range diffs {
 		fields[d.Field] = true
 	}
 	assert.True(t, fields["location"])
@@ -392,9 +392,9 @@ func TestCompareResourceAttributes_FirewallResource(t *testing.T) {
 			"disabled":  false,
 		},
 	}
-	diff := compareResourceAttributes(tfRes, gcpRes)
-	if diff != nil {
-		assert.Equal(t, 0, len(diff.Differences))
+	diffs := compareResourceAttributes(tfRes, gcpRes)
+	if diffs != nil {
+		assert.Equal(t, 0, len(diffs))
 	}
 }
 
@@ -418,9 +418,9 @@ func TestCompareResourceAttributes_SQLInstance(t *testing.T) {
 			"availability_type": "ZONAL",
 		},
 	}
-	diff := compareResourceAttributes(tfRes, gcpRes)
-	if diff != nil {
-		assert.Equal(t, 0, len(diff.Differences))
+	diffs := compareResourceAttributes(tfRes, gcpRes)
+	if diffs != nil {
+		assert.Equal(t, 0, len(diffs))
 	}
 }
 
@@ -442,9 +442,9 @@ func TestCompareResourceAttributes_SubnetworkResource(t *testing.T) {
 			"private_ip_google_access": true,
 		},
 	}
-	diff := compareResourceAttributes(tfRes, gcpRes)
-	if diff != nil {
-		assert.Equal(t, 0, len(diff.Differences))
+	diffs := compareResourceAttributes(tfRes, gcpRes)
+	if diffs != nil {
+		assert.Equal(t, 0, len(diffs))
 	}
 }
 
