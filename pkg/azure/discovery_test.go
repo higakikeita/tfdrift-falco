@@ -497,7 +497,7 @@ func TestNewDiscoveryClient_MissingSubscription(t *testing.T) {
 	if client != nil {
 		t.Errorf("expected nil client")
 	}
-	if err.Error() != "Azure subscription ID is required" {
+	if err.Error() != "azure subscription ID is required" {
 		t.Errorf("unexpected error message: %v", err)
 	}
 }
