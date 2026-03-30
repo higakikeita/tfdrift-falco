@@ -30,8 +30,8 @@ import (
 	"strings"
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
+	"github.com/keitahigaki/tfdrift-falco/pkg/parser"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
-	log "github.com/sirupsen/logrus"
 )
 
 // AuditParser parses GCP Audit Log events from Falco into TFDrift events.
@@ -43,6 +43,7 @@ import (
 // Thread-safe: Multiple goroutines can safely call Parse concurrently.
 type AuditParser struct {
 	mapper *ResourceMapper
+	base   *parser.BaseEventParser
 }
 
 // NewAuditParser creates a new GCP Audit Log parser with pre-initialized resource mappings.
@@ -50,9 +51,11 @@ type AuditParser struct {
 // The parser is configured with 100+ event-to-resource mappings covering major GCP services.
 // Returns a ready-to-use parser instance that can process Falco gcpaudit events.
 func NewAuditParser() *AuditParser {
-	return &AuditParser{
+	ap := &AuditParser{
 		mapper: NewResourceMapper(),
 	}
+	ap.base = parser.NewBaseEventParser(ap.createConfig())
+	return ap
 }
 
 // Parse converts a Falco output response into a TFDrift event for drift detection.
@@ -85,85 +88,74 @@ func NewAuditParser() *AuditParser {
 //	        event.EventName, event.ResourceType, event.ResourceID)
 //	}
 func (p *AuditParser) Parse(res *outputs.Response) *types.Event {
-	// Handle nil response
-	if res == nil {
-		log.Warn("Received nil response")
+	event := p.base.Parse(res)
+	if event == nil {
 		return nil
 	}
 
-	// Check if this is a GCP Audit Log event
-	if res.Source != "gcpaudit" {
-		return nil
+	// Set deprecated fields for backward compatibility
+	if event.Metadata != nil {
+		if region, ok := event.Metadata["region"]; ok {
+			event.Region = region
+		}
+		if projectID, ok := event.Metadata["project_id"]; ok {
+			event.ProjectID = projectID
+		}
+		if serviceName, ok := event.Metadata["service_name"]; ok {
+			event.ServiceName = serviceName
+		}
 	}
 
-	// Parse output fields
-	fields := res.OutputFields
+	return event
+}
 
-	// Extract GCP method name (equivalent to CloudTrail event name)
-	methodName, ok := fields["gcp.methodName"]
-	if !ok || methodName == "" {
-		log.Warnf("Missing gcp.methodName in Falco output")
-		return nil
-	}
+// createConfig creates the parser configuration for the BaseEventParser
+func (p *AuditParser) createConfig() parser.EventParserConfig {
+	return parser.EventParserConfig{
+		Provider:       "gcp",
+		ExpectedSource: "gcpaudit",
+		ExtractEventName: func(fields map[string]string) string {
+			return parser.GetStringField(fields, "gcp.methodName")
+		},
+		IsRelevantEvent: p.isRelevantEvent,
+		ExtractResourceID: func(eventName string, fields map[string]string) string {
+			resourceName := parser.GetStringField(fields, "gcp.resource.name")
+			if resourceName == "" {
+				return ""
+			}
+			return p.extractResourceIDFromName(resourceName)
+		},
+		MapResourceType: func(eventName string, fields map[string]string) string {
+			return p.mapper.MapEventToResource(eventName)
+		},
+		ExtractUserIdentity: func(fields map[string]string) types.UserIdentity {
+			resourceName := parser.GetStringField(fields, "gcp.resource.name")
+			projectID := p.extractProjectIDFromName(resourceName, fields)
+			return types.UserIdentity{
+				Type:      "ServiceAccount",
+				UserName:  parser.GetStringField(fields, "gcp.authenticationInfo.principalEmail"),
+				AccountID: projectID,
+			}
+		},
+		ExtractChanges: p.extractChanges,
+		ExtractMetadata: func(eventName string, fields map[string]string) map[string]string {
+			resourceName := parser.GetStringField(fields, "gcp.resource.name")
+			projectID := p.extractProjectIDFromName(resourceName, fields)
+			zone := p.extractZoneFromName(resourceName, fields)
+			region := p.extractRegionFromZone(zone)
 
-	// Check if this is a relevant event for drift detection
-	if !p.isRelevantEvent(methodName) {
-		log.Debugf("Event %s is not relevant for drift detection", methodName)
-		return nil
-	}
-
-	// Extract resource information
-	resourceName, ok := fields["gcp.resource.name"]
-	if !ok || resourceName == "" {
-		log.Debugf("Missing gcp.resource.name for event %s", methodName)
-		return nil
-	}
-
-	// Extract resource ID from resource name
-	resourceID := p.extractResourceID(resourceName)
-	if resourceID == "" {
-		log.Debugf("Could not extract resource ID from %s", resourceName)
-		return nil
-	}
-
-	// Map event to Terraform resource type
-	resourceType := p.mapper.MapEventToResource(methodName)
-	if resourceType == "" {
-		log.Debugf("No resource mapping for event %s", methodName)
-		return nil
-	}
-
-	// Extract project ID
-	projectID := p.extractProjectID(resourceName, fields)
-
-	// Extract zone/region
-	zone := p.extractZone(resourceName, fields)
-	region := p.extractRegion(zone)
-
-	// Extract user identity
-	userIdentity := types.UserIdentity{
-		Type:      "ServiceAccount", // GCP typically uses service accounts
-		UserName:  getStringField(fields, "gcp.authenticationInfo.principalEmail"),
-		AccountID: projectID,
-	}
-
-	// Extract service name
-	serviceName := getStringField(fields, "gcp.serviceName")
-
-	// Extract changes based on event type
-	changes := p.extractChanges(methodName, fields)
-
-	return &types.Event{
-		Provider:     "gcp",
-		EventName:    methodName,
-		ResourceType: resourceType,
-		ResourceID:   resourceID,
-		Region:       region,
-		ProjectID:    projectID,
-		ServiceName:  serviceName,
-		UserIdentity: userIdentity,
-		Changes:      changes,
-		RawEvent:     res,
+			metadata := make(map[string]string)
+			if region != "" {
+				metadata["region"] = region
+			}
+			if projectID != "" {
+				metadata["project_id"] = projectID
+			}
+			if serviceName := parser.GetStringField(fields, "gcp.serviceName"); serviceName != "" {
+				metadata["service_name"] = serviceName
+			}
+			return metadata
+		},
 	}
 }
 
@@ -537,9 +529,9 @@ func (p *AuditParser) isRelevantEvent(methodName string) bool {
 	return relevantEvents[methodName]
 }
 
-// extractResourceID extracts the resource ID from GCP resource name
+// extractResourceIDFromName extracts the resource ID from GCP resource name
 // Example: "projects/123/zones/us-central1-a/instances/vm-1" -> "vm-1"
-func (p *AuditParser) extractResourceID(resourceName string) string {
+func (p *AuditParser) extractResourceIDFromName(resourceName string) string {
 	parts := strings.Split(resourceName, "/")
 	if len(parts) > 0 {
 		return parts[len(parts)-1]
@@ -547,9 +539,9 @@ func (p *AuditParser) extractResourceID(resourceName string) string {
 	return ""
 }
 
-// extractProjectID extracts the project ID from resource name or fields
+// extractProjectIDFromName extracts the project ID from resource name or fields
 // Example: "projects/my-project-123/zones/..." -> "my-project-123"
-func (p *AuditParser) extractProjectID(resourceName string, fields map[string]string) string {
+func (p *AuditParser) extractProjectIDFromName(resourceName string, fields map[string]string) string {
 	// Try to extract from resource name
 	if strings.HasPrefix(resourceName, "projects/") {
 		parts := strings.Split(resourceName, "/")
@@ -559,12 +551,12 @@ func (p *AuditParser) extractProjectID(resourceName string, fields map[string]st
 	}
 
 	// Fallback to fields
-	return getStringField(fields, "gcp.resource.labels.project_id")
+	return parser.GetStringField(fields, "gcp.resource.labels.project_id")
 }
 
-// extractZone extracts the zone from resource name
+// extractZoneFromName extracts the zone from resource name
 // Example: "projects/123/zones/us-central1-a/instances/vm-1" -> "us-central1-a"
-func (p *AuditParser) extractZone(resourceName string, fields map[string]string) string {
+func (p *AuditParser) extractZoneFromName(resourceName string, fields map[string]string) string {
 	// Try to extract from resource name
 	if strings.Contains(resourceName, "/zones/") {
 		parts := strings.Split(resourceName, "/zones/")
@@ -577,12 +569,12 @@ func (p *AuditParser) extractZone(resourceName string, fields map[string]string)
 	}
 
 	// Fallback to fields
-	return getStringField(fields, "gcp.resource.labels.zone")
+	return parser.GetStringField(fields, "gcp.resource.labels.zone")
 }
 
-// extractRegion extracts region from zone
+// extractRegionFromZone extracts region from zone
 // Example: "us-central1-a" -> "us-central1"
-func (p *AuditParser) extractRegion(zone string) string {
+func (p *AuditParser) extractRegionFromZone(zone string) string {
 	if zone == "" {
 		return ""
 	}
@@ -597,102 +589,102 @@ func (p *AuditParser) extractRegion(zone string) string {
 }
 
 // extractChanges extracts attribute changes from GCP Audit Log
-func (p *AuditParser) extractChanges(methodName string, fields map[string]string) map[string]interface{} {
+func (p *AuditParser) extractChanges(eventName string, fields map[string]string) map[string]interface{} {
 	changes := make(map[string]interface{})
 
 	// Extract request and response
-	request := getStringField(fields, "gcp.request")
-	response := getStringField(fields, "gcp.response")
+	request := parser.GetStringField(fields, "gcp.request")
+	response := parser.GetStringField(fields, "gcp.response")
 
 	// Event-specific extraction
 	switch {
-	case strings.HasSuffix(methodName, ".setMetadata"):
+	case strings.HasSuffix(eventName, ".setMetadata"):
 		// Extract metadata changes
 		if request != "" {
 			changes["metadata"] = request
 		}
 
-	case strings.HasSuffix(methodName, ".setLabels"):
+	case strings.HasSuffix(eventName, ".setLabels"):
 		// Extract label changes
 		if request != "" {
 			changes["labels"] = request
 		}
 
-	case strings.HasSuffix(methodName, ".setTags"):
+	case strings.HasSuffix(eventName, ".setTags"):
 		// Extract tag changes
 		if request != "" {
 			changes["tags"] = request
 		}
 
-	case strings.HasSuffix(methodName, ".setMachineType"):
+	case strings.HasSuffix(eventName, ".setMachineType"):
 		// Extract machine type change
 		if request != "" {
 			changes["machine_type"] = request
 		}
 
-	case strings.HasSuffix(methodName, ".setServiceAccount"):
+	case strings.HasSuffix(eventName, ".setServiceAccount"):
 		// Extract service account change
 		if request != "" {
 			changes["service_account"] = request
 		}
 
-	case strings.HasSuffix(methodName, ".setDeletionProtection"):
+	case strings.HasSuffix(eventName, ".setDeletionProtection"):
 		// Extract deletion protection change
 		if request != "" {
 			changes["deletion_protection"] = request
 		}
 
-	case methodName == "SetIamPolicy" || strings.HasSuffix(methodName, ".SetIamPolicy"):
+	case eventName == "SetIamPolicy" || strings.HasSuffix(eventName, ".SetIamPolicy"):
 		// Extract IAM policy changes
 		if request != "" {
 			changes["policy"] = request
 		}
 
-	case strings.Contains(methodName, "UpdateDatabaseDdl"):
+	case strings.Contains(eventName, "UpdateDatabaseDdl"):
 		// Extract Spanner DDL updates
 		if request != "" {
 			changes["ddl"] = request
 		}
 
-	case strings.Contains(methodName, "UpdatePolicy") || strings.Contains(methodName, "SetIamPolicy"):
+	case strings.Contains(eventName, "UpdatePolicy") || strings.Contains(eventName, "SetIamPolicy"):
 		// Extract policy/binding changes
 		if request != "" {
 			changes["bindings"] = request
 		}
 
-	case strings.Contains(methodName, "changes.create") || strings.Contains(methodName, "dns.changes"):
+	case strings.Contains(eventName, "changes.create") || strings.Contains(eventName, "dns.changes"):
 		// Extract DNS record changes (rrdata)
 		if request != "" {
 			changes["rrdata"] = request
 		}
 
-	case strings.Contains(methodName, "SecurityPolicy") || strings.Contains(methodName, "securityPolicies"):
+	case strings.Contains(eventName, "SecurityPolicy") || strings.Contains(eventName, "securityPolicies"):
 		// Extract security policy rule changes
 		if request != "" {
 			changes["rules"] = request
 		}
 
-	case strings.HasSuffix(methodName, ".ModifyPushConfig"):
+	case strings.HasSuffix(eventName, ".ModifyPushConfig"):
 		// Extract Pub/Sub push config changes
 		if request != "" {
 			changes["push_config"] = request
 		}
 
-	case strings.Contains(methodName, ".insert") || strings.Contains(methodName, ".create") ||
-		strings.Contains(methodName, ".Create") || strings.Contains(methodName, "Create"):
+	case strings.Contains(eventName, ".insert") || strings.Contains(eventName, ".create") ||
+		strings.Contains(eventName, ".Create") || strings.Contains(eventName, "Create"):
 		// Resource creation (covers compute .insert, gRPC Create* methods, Dataproc CreateCluster, etc.)
 		changes["_action"] = "create"
 		if response != "" {
 			changes["_created_resource"] = response
 		}
 
-	case strings.Contains(methodName, ".delete") || strings.Contains(methodName, ".Drop") ||
-		strings.Contains(methodName, ".Delete") || strings.Contains(methodName, "Delete"):
+	case strings.Contains(eventName, ".delete") || strings.Contains(eventName, ".Drop") ||
+		strings.Contains(eventName, ".Delete") || strings.Contains(eventName, "Delete"):
 		// Resource deletion (covers compute .delete, gRPC Delete* methods, Redis DeleteInstance, etc.)
 		changes["_action"] = "delete"
 
-	case strings.Contains(methodName, ".update") || strings.Contains(methodName, ".patch") ||
-		strings.Contains(methodName, ".Update") || strings.Contains(methodName, "Update"):
+	case strings.Contains(eventName, ".update") || strings.Contains(eventName, ".patch") ||
+		strings.Contains(eventName, ".Update") || strings.Contains(eventName, "Update"):
 		// Resource update (covers compute .update/.patch, gRPC Update* methods)
 		changes["_action"] = "update"
 		if request != "" {
@@ -711,13 +703,6 @@ func (p *AuditParser) extractChanges(methodName string, fields map[string]string
 	return changes
 }
 
-// getStringField safely gets a string field from Falco output fields
-func getStringField(fields map[string]string, key string) string {
-	if val, ok := fields[key]; ok {
-		return val
-	}
-	return ""
-}
 
 // ValidateEvent performs validation on parsed event
 func (p *AuditParser) ValidateEvent(event *types.Event) error {

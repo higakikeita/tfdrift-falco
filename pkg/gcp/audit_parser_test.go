@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
+	"github.com/keitahigaki/tfdrift-falco/pkg/parser"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -160,7 +161,7 @@ func TestAuditParser_extractResourceID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := parser.extractResourceID(tt.resourceName)
+			got := parser.extractResourceIDFromName(tt.resourceName)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -197,7 +198,7 @@ func TestAuditParser_extractProjectID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := parser.extractProjectID(tt.resourceName, tt.fields)
+			got := parser.extractProjectIDFromName(tt.resourceName, tt.fields)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -234,7 +235,7 @@ func TestAuditParser_extractZone(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := parser.extractZone(tt.resourceName, tt.fields)
+			got := parser.extractZoneFromName(tt.resourceName, tt.fields)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -257,7 +258,7 @@ func TestAuditParser_extractRegion(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := parser.extractRegion(tt.zone)
+			got := parser.extractRegionFromZone(tt.zone)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -444,7 +445,7 @@ func Test_getStringField(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := getStringField(tt.fields, tt.key)
+			got := parser.GetStringField(tt.fields, tt.key)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -600,7 +601,7 @@ func TestAuditParser_extractResourceID_MultipleSlashes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := parser.extractResourceID(tt.resourceName)
+			got := parser.extractResourceIDFromName(tt.resourceName)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -643,7 +644,7 @@ func TestAuditParser_extractProjectID_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := parser.extractProjectID(tt.resourceName, tt.fields)
+			got := parser.extractProjectIDFromName(tt.resourceName, tt.fields)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -666,7 +667,7 @@ func TestAuditParser_extractRegion_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := parser.extractRegion(tt.zone)
+			got := parser.extractRegionFromZone(tt.zone)
 			assert.Equal(t, tt.want, got)
 		})
 	}

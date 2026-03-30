@@ -281,14 +281,14 @@ func TestAuditParser_ExtractChanges_SecurityPolicy(t *testing.T) {
 func TestAuditParser_ExtractProjectID_WithPrefix(t *testing.T) {
 	parser := NewAuditParser()
 	resourceName := "projects/test-project-123/zones/us-central1-a/instances/vm-1"
-	projectID := parser.extractProjectID(resourceName, map[string]string{})
+	projectID := parser.extractProjectIDFromName(resourceName, map[string]string{})
 	assert.Equal(t, "test-project-123", projectID)
 }
 
 func TestAuditParser_ExtractZone_WithPrefix(t *testing.T) {
 	parser := NewAuditParser()
 	resourceName := "projects/123/zones/europe-west1-d/instances/vm-1"
-	zone := parser.extractZone(resourceName, map[string]string{})
+	zone := parser.extractZoneFromName(resourceName, map[string]string{})
 	assert.Equal(t, "europe-west1-d", zone)
 }
 
@@ -652,13 +652,13 @@ func TestAuditParser_Parse_SubnetworkCreation(t *testing.T) {
 
 func TestAuditParser_ExtractResourceID_Empty(t *testing.T) {
 	parser := NewAuditParser()
-	id := parser.extractResourceID("")
+	id := parser.extractResourceIDFromName("")
 	assert.Equal(t, "", id)
 }
 
 func TestAuditParser_ExtractResourceID_SingleSegment(t *testing.T) {
 	parser := NewAuditParser()
-	id := parser.extractResourceID("resource-name")
+	id := parser.extractResourceIDFromName("resource-name")
 	assert.Equal(t, "resource-name", id)
 }
 

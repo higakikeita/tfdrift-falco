@@ -30,8 +30,8 @@ import (
 	"strings"
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
+	"github.com/keitahigaki/tfdrift-falco/pkg/parser"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
-	log "github.com/sirupsen/logrus"
 )
 
 // ActivityParser parses Azure Activity Log events from Falco into TFDrift events.
@@ -43,6 +43,7 @@ import (
 // Thread-safe: Multiple goroutines can safely call Parse concurrently.
 type ActivityParser struct {
 	mapper *ResourceMapper
+	base   *parser.BaseEventParser
 }
 
 // NewActivityParser creates a new Azure Activity Log parser with pre-initialized resource mappings.
@@ -50,9 +51,11 @@ type ActivityParser struct {
 // The parser is configured with 200+ event-to-resource mappings covering major Azure services.
 // Returns a ready-to-use parser instance that can process Falco azure_activity events.
 func NewActivityParser() *ActivityParser {
-	return &ActivityParser{
+	ap := &ActivityParser{
 		mapper: NewResourceMapper(),
 	}
+	ap.base = parser.NewBaseEventParser(ap.createConfig())
+	return ap
 }
 
 // Parse converts a Falco output response into a TFDrift event for drift detection.
@@ -85,80 +88,64 @@ func NewActivityParser() *ActivityParser {
 //	        event.EventName, event.ResourceType, event.ResourceID)
 //	}
 func (p *ActivityParser) Parse(res *outputs.Response) *types.Event {
-	// Handle nil response
-	if res == nil {
-		log.Warn("Received nil response")
+	event := p.base.Parse(res)
+	if event == nil {
 		return nil
 	}
 
-	// Check if this is an Azure Activity Log event
-	if res.Source != "azure_activity" {
-		return nil
+	// Set deprecated field for backward compatibility
+	if event.Metadata != nil {
+		if region, ok := event.Metadata["region"]; ok {
+			event.Region = region
+		}
 	}
 
-	// Parse output fields
-	fields := res.OutputFields
+	return event
+}
 
-	// Extract Azure operation name (e.g., "Microsoft.Compute/virtualMachines/write")
-	operationName, ok := fields["azure.operationName"]
-	if !ok || operationName == "" {
-		log.Warnf("Missing azure.operationName in Falco output")
-		return nil
-	}
-
-	// Check if this is a relevant event for drift detection
-	if !p.isRelevantEvent(operationName) {
-		log.Debugf("Event %s is not relevant for drift detection", operationName)
-		return nil
-	}
-
-	// Extract resource ID
-	resourceID, ok := fields["azure.resourceId"]
-	if !ok || resourceID == "" {
-		log.Debugf("Missing azure.resourceId for event %s", operationName)
-		return nil
-	}
-
-	// Extract short resource name from full Azure resource ID
-	shortID := p.extractResourceName(resourceID)
-	if shortID == "" {
-		log.Debugf("Could not extract resource name from %s", resourceID)
-		return nil
-	}
-
-	// Map to Terraform resource type
-	resourceType := p.mapper.MapEventToResource(operationName)
-	if resourceType == "" {
-		log.Debugf("No resource mapping for event %s", operationName)
-		return nil
-	}
-
-	// Extract subscription and resource group
-	subscriptionID := p.extractSubscriptionID(resourceID)
-	_ = p.extractResourceGroup(resourceID) // TODO: use in Metadata when Event is extended
-
-	// Extract region
-	region := getStringField(fields, "azure.resourceLocation")
-
-	// Extract user identity
-	userIdentity := types.UserIdentity{
-		Type:      "AzureAD",
-		UserName:  getStringField(fields, "azure.caller"),
-		AccountID: subscriptionID,
-	}
-
-	// Extract changes based on event type
-	changes := p.extractChanges(operationName, fields)
-
-	return &types.Event{
-		Provider:     "azure",
-		EventName:    operationName,
-		ResourceType: resourceType,
-		ResourceID:   shortID,
-		Region:       region,
-		UserIdentity: userIdentity,
-		Changes:      changes,
-		RawEvent:     res,
+// createConfig creates the parser configuration for the BaseEventParser
+func (p *ActivityParser) createConfig() parser.EventParserConfig {
+	return parser.EventParserConfig{
+		Provider:       "azure",
+		ExpectedSource: "azure_activity",
+		ExtractEventName: func(fields map[string]string) string {
+			return parser.GetStringField(fields, "azure.operationName")
+		},
+		IsRelevantEvent: p.isRelevantEvent,
+		ExtractResourceID: func(eventName string, fields map[string]string) string {
+			resourceID := parser.GetStringField(fields, "azure.resourceId")
+			if resourceID == "" {
+				return ""
+			}
+			return p.extractResourceNameFromID(resourceID)
+		},
+		MapResourceType: func(eventName string, fields map[string]string) string {
+			return p.mapper.MapEventToResource(eventName)
+		},
+		ExtractUserIdentity: func(fields map[string]string) types.UserIdentity {
+			resourceID := parser.GetStringField(fields, "azure.resourceId")
+			subscriptionID := p.extractSubscriptionIDFromID(resourceID)
+			return types.UserIdentity{
+				Type:      "AzureAD",
+				UserName:  parser.GetStringField(fields, "azure.caller"),
+				AccountID: subscriptionID,
+			}
+		},
+		ExtractChanges: p.extractChanges,
+		ExtractMetadata: func(eventName string, fields map[string]string) map[string]string {
+			resourceID := parser.GetStringField(fields, "azure.resourceId")
+			metadata := make(map[string]string)
+			if region := parser.GetStringField(fields, "azure.resourceLocation"); region != "" {
+				metadata["region"] = region
+			}
+			if subscriptionID := p.extractSubscriptionIDFromID(resourceID); subscriptionID != "" {
+				metadata["subscription_id"] = subscriptionID
+			}
+			if resourceGroup := p.extractResourceGroupFromID(resourceID); resourceGroup != "" {
+				metadata["resource_group"] = resourceGroup
+			}
+			return metadata
+		},
 	}
 }
 
@@ -343,9 +330,9 @@ func (p *ActivityParser) isRelevantEvent(operationName string) bool {
 	return relevantEvents[operationName]
 }
 
-// extractResourceName extracts the resource name from an Azure resource ID
+// extractResourceNameFromID extracts the resource name from an Azure resource ID
 // Example: "/subscriptions/sub-123/resourceGroups/rg-test/providers/Microsoft.Compute/virtualMachines/my-vm" -> "my-vm"
-func (p *ActivityParser) extractResourceName(resourceID string) string {
+func (p *ActivityParser) extractResourceNameFromID(resourceID string) string {
 	parts := strings.Split(resourceID, "/")
 	if len(parts) > 0 {
 		return parts[len(parts)-1]
@@ -353,9 +340,9 @@ func (p *ActivityParser) extractResourceName(resourceID string) string {
 	return ""
 }
 
-// extractSubscriptionID extracts the subscription ID from an Azure resource ID
+// extractSubscriptionIDFromID extracts the subscription ID from an Azure resource ID
 // Example: "/subscriptions/sub-123/resourceGroups/..." -> "sub-123"
-func (p *ActivityParser) extractSubscriptionID(resourceID string) string {
+func (p *ActivityParser) extractSubscriptionIDFromID(resourceID string) string {
 	parts := strings.Split(resourceID, "/")
 	for i, part := range parts {
 		if part == "subscriptions" && i+1 < len(parts) {
@@ -365,9 +352,9 @@ func (p *ActivityParser) extractSubscriptionID(resourceID string) string {
 	return ""
 }
 
-// extractResourceGroup extracts the resource group name from an Azure resource ID
+// extractResourceGroupFromID extracts the resource group name from an Azure resource ID
 // Example: "/subscriptions/sub-123/resourceGroups/rg-test/..." -> "rg-test"
-func (p *ActivityParser) extractResourceGroup(resourceID string) string {
+func (p *ActivityParser) extractResourceGroupFromID(resourceID string) string {
 	parts := strings.Split(resourceID, "/")
 	for i, part := range parts {
 		if part == "resourceGroups" && i+1 < len(parts) {
@@ -378,18 +365,18 @@ func (p *ActivityParser) extractResourceGroup(resourceID string) string {
 }
 
 // extractChanges extracts attribute changes from Azure Activity Log
-func (p *ActivityParser) extractChanges(operationName string, fields map[string]string) map[string]interface{} {
+func (p *ActivityParser) extractChanges(eventName string, fields map[string]string) map[string]interface{} {
 	changes := make(map[string]interface{})
 
 	// Extract request properties (what was requested/changed)
-	requestProperties := getStringField(fields, "azure.requestProperties")
+	requestProperties := parser.GetStringField(fields, "azure.requestProperties")
 
 	// Extract response properties (what resulted)
-	responseProperties := getStringField(fields, "azure.responseProperties")
+	responseProperties := parser.GetStringField(fields, "azure.responseProperties")
 
 	// Event-specific extraction
 	switch {
-	case strings.Contains(operationName, "/write"):
+	case strings.Contains(eventName, "/write"):
 		// Resource modification/creation
 		changes["_action"] = "write"
 		if requestProperties != "" {
@@ -399,25 +386,25 @@ func (p *ActivityParser) extractChanges(operationName string, fields map[string]
 			changes["_response"] = responseProperties
 		}
 
-	case strings.Contains(operationName, "/delete"):
+	case strings.Contains(eventName, "/delete"):
 		// Resource deletion
 		changes["_action"] = "delete"
 
-	case strings.HasSuffix(operationName, "/action"):
+	case strings.HasSuffix(eventName, "/action"):
 		// Action operation (start, stop, restart, deallocate, etc.)
-		actionType := operationName[strings.LastIndex(operationName, "/")+1:]
+		actionType := eventName[strings.LastIndex(eventName, "/")+1:]
 		actionType = strings.TrimSuffix(actionType, "/action")
 		changes["_action"] = actionType
 	}
 
 	// Include correlation ID for tracking
-	correlationID := getStringField(fields, "azure.correlationId")
+	correlationID := parser.GetStringField(fields, "azure.correlationId")
 	if correlationID != "" {
 		changes["_correlation_id"] = correlationID
 	}
 
 	// Include operation status
-	status := getStringField(fields, "azure.status")
+	status := parser.GetStringField(fields, "azure.status")
 	if status != "" {
 		changes["_status"] = status
 	}
@@ -425,13 +412,6 @@ func (p *ActivityParser) extractChanges(operationName string, fields map[string]
 	return changes
 }
 
-// getStringField safely gets a string field from Falco output fields
-func getStringField(fields map[string]string, key string) string {
-	if val, ok := fields[key]; ok {
-		return val
-	}
-	return ""
-}
 
 // ValidateEvent performs validation on parsed event
 func (p *ActivityParser) ValidateEvent(event *types.Event) error {

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
+	"github.com/keitahigaki/tfdrift-falco/pkg/parser"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -187,7 +188,7 @@ func TestActivityParser_ExtractResourceName(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		got := parser.extractResourceName(tt.resourceID)
+		got := parser.extractResourceNameFromID(tt.resourceID)
 		assert.Equal(t, tt.want, got, "resourceID: %s", tt.resourceID)
 	}
 }
@@ -210,7 +211,7 @@ func TestActivityParser_ExtractSubscriptionID(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		got := parser.extractSubscriptionID(tt.resourceID)
+		got := parser.extractSubscriptionIDFromID(tt.resourceID)
 		assert.Equal(t, tt.want, got, "resourceID: %s", tt.resourceID)
 	}
 }
@@ -233,7 +234,7 @@ func TestActivityParser_ExtractResourceGroup(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		got := parser.extractResourceGroup(tt.resourceID)
+		got := parser.extractResourceGroupFromID(tt.resourceID)
 		assert.Equal(t, tt.want, got, "resourceID: %s", tt.resourceID)
 	}
 }
@@ -522,9 +523,9 @@ func TestGetStringField(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := getStringField(fields, tt.key)
+		result := parser.GetStringField(fields, tt.key)
 		if result != tt.expected {
-			t.Errorf("getStringField(%s): expected %q, got %q", tt.key, tt.expected, result)
+			t.Errorf("parser.GetStringField(%s): expected %q, got %q", tt.key, tt.expected, result)
 		}
 	}
 }
@@ -545,9 +546,9 @@ func TestActivityParser_ExtractResourceName_EdgeCases(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := parser.extractResourceName(tt.resourceID)
+		result := parser.extractResourceNameFromID(tt.resourceID)
 		if result != tt.expected {
-			t.Errorf("extractResourceName(%s): expected %q, got %q", tt.resourceID, tt.expected, result)
+			t.Errorf("extractResourceNameFromID(%s): expected %q, got %q", tt.resourceID, tt.expected, result)
 		}
 	}
 }
@@ -566,9 +567,9 @@ func TestActivityParser_ExtractSubscriptionID_EdgeCases(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := parser.extractSubscriptionID(tt.resourceID)
+		result := parser.extractSubscriptionIDFromID(tt.resourceID)
 		if result != tt.expected {
-			t.Errorf("extractSubscriptionID(%s): expected %q, got %q", tt.resourceID, tt.expected, result)
+			t.Errorf("extractSubscriptionIDFromID(%s): expected %q, got %q", tt.resourceID, tt.expected, result)
 		}
 	}
 }
@@ -587,9 +588,9 @@ func TestActivityParser_ExtractResourceGroup_EdgeCases(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := parser.extractResourceGroup(tt.resourceID)
+		result := parser.extractResourceGroupFromID(tt.resourceID)
 		if result != tt.expected {
-			t.Errorf("extractResourceGroup(%s): expected %q, got %q", tt.resourceID, tt.expected, result)
+			t.Errorf("extractResourceGroupFromID(%s): expected %q, got %q", tt.resourceID, tt.expected, result)
 		}
 	}
 }
