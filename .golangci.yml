@@ -51,6 +51,7 @@ linters:
       checks:
         - "all"
         - "-ST1018"  # Unicode control chars in string literals (intentional in autodetect.go)
+        - "-SA1019"  # Deprecated field usage (intentional backward compatibility)
 
     gosec:
       excludes:

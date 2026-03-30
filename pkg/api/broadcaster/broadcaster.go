@@ -99,16 +99,6 @@ func (b *Broadcaster) BroadcastFalcoEvent(event types.Event) {
 		if v, ok := event.Metadata["service_name"]; ok {
 			payload["service_name"] = v
 		}
-	} else {
-		if event.Region != "" {
-			payload["region"] = event.Region
-		}
-		if event.ProjectID != "" {
-			payload["project_id"] = event.ProjectID
-		}
-		if event.ServiceName != "" {
-			payload["service_name"] = event.ServiceName
-		}
 	}
 
 	broadcastEvent := Event{

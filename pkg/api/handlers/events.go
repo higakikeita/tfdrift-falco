@@ -58,7 +58,7 @@ func (h *EventsHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 			"changes":       event.Changes,
 		}
 
-		// Use Metadata map if available, otherwise fall back to deprecated fields
+		// Populate optional fields from Metadata map
 		if event.Metadata != nil {
 			if v, ok := event.Metadata["region"]; ok {
 				eventData["region"] = v
@@ -68,16 +68,6 @@ func (h *EventsHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 			}
 			if v, ok := event.Metadata["service_name"]; ok {
 				eventData["service_name"] = v
-			}
-		} else {
-			if event.Region != "" {
-				eventData["region"] = event.Region
-			}
-			if event.ProjectID != "" {
-				eventData["project_id"] = event.ProjectID
-			}
-			if event.ServiceName != "" {
-				eventData["service_name"] = event.ServiceName
 			}
 		}
 
@@ -114,7 +104,7 @@ func (h *EventsHandler) GetEvent(w http.ResponseWriter, r *http.Request) {
 				"raw_event":     event.RawEvent,
 			}
 
-			// Use Metadata map if available, otherwise fall back to deprecated fields
+			// Populate optional fields from Metadata map
 			if event.Metadata != nil {
 				if v, ok := event.Metadata["region"]; ok {
 					eventData["region"] = v
@@ -124,16 +114,6 @@ func (h *EventsHandler) GetEvent(w http.ResponseWriter, r *http.Request) {
 				}
 				if v, ok := event.Metadata["service_name"]; ok {
 					eventData["service_name"] = v
-				}
-			} else {
-				if event.Region != "" {
-					eventData["region"] = event.Region
-				}
-				if event.ProjectID != "" {
-					eventData["project_id"] = event.ProjectID
-				}
-				if event.ServiceName != "" {
-					eventData["service_name"] = event.ServiceName
 				}
 			}
 
