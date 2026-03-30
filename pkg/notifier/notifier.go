@@ -16,10 +16,10 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// Manager manages notification delivery
+// Manager manages notification delivery.
 type Manager struct {
 	cfg       config.NotificationsConfig
-	formatter *diff.DiffFormatter
+	formatter *diff.Formatter
 }
 
 // NewManager creates a new notification manager

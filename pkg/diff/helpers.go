@@ -10,7 +10,7 @@ import (
 )
 
 // formatValueChange formats the old -> new value change
-func (f *DiffFormatter) formatValueChange(oldValue, newValue interface{}) string {
+func (f *Formatter) formatValueChange(oldValue, newValue interface{}) string {
 	var b strings.Builder
 
 	// Handle different types
@@ -38,7 +38,7 @@ func (f *DiffFormatter) formatValueChange(oldValue, newValue interface{}) string
 }
 
 // formatValue formats a value for display
-func (f *DiffFormatter) formatValue(value interface{}) string {
+func (f *Formatter) formatValue(value interface{}) string {
 	if value == nil {
 		return "null"
 	}
@@ -56,7 +56,7 @@ func (f *DiffFormatter) formatValue(value interface{}) string {
 }
 
 // isComplexType checks if a value is a complex type (map, slice, struct)
-func (f *DiffFormatter) isComplexType(value interface{}) bool {
+func (f *Formatter) isComplexType(value interface{}) bool {
 	if value == nil {
 		return false
 	}
@@ -68,7 +68,7 @@ func (f *DiffFormatter) isComplexType(value interface{}) bool {
 }
 
 // formatTerraformCode formats the Terraform code reference
-func (f *DiffFormatter) formatTerraformCode(alert *types.DriftAlert) string {
+func (f *Formatter) formatTerraformCode(alert *types.DriftAlert) string {
 	var b strings.Builder
 
 	// Example Terraform code showing the current state
@@ -83,7 +83,7 @@ func (f *DiffFormatter) formatTerraformCode(alert *types.DriftAlert) string {
 }
 
 // formatTerraformResource formats a Terraform resource block
-func (f *DiffFormatter) formatTerraformResource(alert *types.DriftAlert, value interface{}) string {
+func (f *Formatter) formatTerraformResource(alert *types.DriftAlert, value interface{}) string {
 	var b strings.Builder
 
 	b.WriteString(fmt.Sprintf("  resource \"%s\" \"%s\" {\n",
@@ -97,7 +97,7 @@ func (f *DiffFormatter) formatTerraformResource(alert *types.DriftAlert, value i
 }
 
 // formatTerraformValue formats a value in Terraform syntax
-func (f *DiffFormatter) formatTerraformValue(value interface{}) string {
+func (f *Formatter) formatTerraformValue(value interface{}) string {
 	if value == nil {
 		return "null"
 	}
@@ -127,7 +127,7 @@ func (f *DiffFormatter) formatTerraformValue(value interface{}) string {
 }
 
 // formatRecommendations formats recommended actions
-func (f *DiffFormatter) formatRecommendations(alert *types.DriftAlert) string {
+func (f *Formatter) formatRecommendations(alert *types.DriftAlert) string {
 	var b strings.Builder
 
 	b.WriteString("  1. Review the change with the user who made it\n")
@@ -142,7 +142,7 @@ func (f *DiffFormatter) formatRecommendations(alert *types.DriftAlert) string {
 }
 
 // color applies ANSI color codes if color is enabled
-func (f *DiffFormatter) color(colorCode, text string) string {
+func (f *Formatter) color(colorCode, text string) string {
 	if !f.colorEnabled {
 		return text
 	}
@@ -150,7 +150,7 @@ func (f *DiffFormatter) color(colorCode, text string) string {
 }
 
 // getSeverityColor returns the appropriate color for a severity level
-func (f *DiffFormatter) getSeverityColor(severity string) string {
+func (f *Formatter) getSeverityColor(severity string) string {
 	switch severity {
 	case "critical":
 		return ColorRed
@@ -166,7 +166,7 @@ func (f *DiffFormatter) getSeverityColor(severity string) string {
 }
 
 // indentLines indents all lines of a string
-func (f *DiffFormatter) indentLines(text string, spaces int, color string) string {
+func (f *Formatter) indentLines(text string, spaces int, color string) string {
 	indent := strings.Repeat(" ", spaces)
 	lines := strings.Split(text, "\n")
 	for i, line := range lines {

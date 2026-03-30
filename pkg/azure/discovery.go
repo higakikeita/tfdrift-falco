@@ -51,9 +51,17 @@ type SKU struct {
 
 // DiscoveredResource is an alias for types.DiscoveredResource.
 type DiscoveredResource = types.DiscoveredResource
+
+// DriftResult is an alias for types.DriftResult.
 type DriftResult = types.DriftResult
+
+// TerraformResource is an alias for types.TerraformResource.
 type TerraformResource = types.TerraformResource
+
+// ResourceDiff is an alias for types.ResourceDiff.
 type ResourceDiff = types.ResourceDiff
+
+// FieldDiff is an alias for types.FieldDiff.
 type FieldDiff = types.FieldDiff
 
 // azureTypeToTerraform maps Azure resource types to Terraform resource types.

@@ -7,8 +7,8 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
-// FormatMarkdown formats the drift for Markdown (GitHub, Slack, etc.)
-func (f *DiffFormatter) FormatMarkdown(alert *types.DriftAlert) string {
+// FormatMarkdown formats the drift for Markdown (GitHub, Slack, etc.).
+func (f *Formatter) FormatMarkdown(alert *types.DriftAlert) string {
 	var b strings.Builder
 
 	// Title
@@ -60,8 +60,8 @@ func (f *DiffFormatter) FormatMarkdown(alert *types.DriftAlert) string {
 	return b.String()
 }
 
-// FormatUnmanagedResourceMarkdown formats an unmanaged resource alert for Slack/Discord
-func (f *DiffFormatter) FormatUnmanagedResourceMarkdown(alert *types.UnmanagedResourceAlert) string {
+// FormatUnmanagedResourceMarkdown formats an unmanaged resource alert for Slack/Discord.
+func (f *Formatter) FormatUnmanagedResourceMarkdown(alert *types.UnmanagedResourceAlert) string {
 	var b strings.Builder
 
 	emoji := "⚠️"

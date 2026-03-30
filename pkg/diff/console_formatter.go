@@ -8,8 +8,8 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
-// FormatConsole formats the drift for console output with colors
-func (f *DiffFormatter) FormatConsole(alert *types.DriftAlert) string {
+// FormatConsole formats the drift for console output with colors.
+func (f *Formatter) FormatConsole(alert *types.DriftAlert) string {
 	var b strings.Builder
 
 	// Header
@@ -74,8 +74,8 @@ func (f *DiffFormatter) FormatConsole(alert *types.DriftAlert) string {
 	return b.String()
 }
 
-// FormatUnmanagedResource formats an unmanaged resource alert for console output
-func (f *DiffFormatter) FormatUnmanagedResource(alert *types.UnmanagedResourceAlert) string {
+// FormatUnmanagedResource formats an unmanaged resource alert for console output.
+func (f *Formatter) FormatUnmanagedResource(alert *types.UnmanagedResourceAlert) string {
 	var b strings.Builder
 
 	// Header

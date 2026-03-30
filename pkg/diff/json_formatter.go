@@ -6,8 +6,8 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
-// FormatJSON formats the drift as JSON
-func (f *DiffFormatter) FormatJSON(alert *types.DriftAlert) (string, error) {
+// FormatJSON formats the drift as JSON.
+func (f *Formatter) FormatJSON(alert *types.DriftAlert) (string, error) {
 	// Create a structured diff object
 	diff := map[string]interface{}{
 		"severity":      alert.Severity,

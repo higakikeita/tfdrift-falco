@@ -1,13 +1,13 @@
 package diff
 
-// DiffFormatter formats drift differences in various output formats
-type DiffFormatter struct {
+// Formatter formats drift differences in various output formats.
+type Formatter struct {
 	colorEnabled bool
 }
 
-// NewFormatter creates a new diff formatter
-func NewFormatter(colorEnabled bool) *DiffFormatter {
-	return &DiffFormatter{
+// NewFormatter creates a new diff formatter.
+func NewFormatter(colorEnabled bool) *Formatter {
+	return &Formatter{
 		colorEnabled: colorEnabled,
 	}
 }

@@ -25,7 +25,7 @@ type Detector struct {
 	providerRegistry  *provider.Registry            // Provider registry for handling multiple clouds
 	falcoSubscriber   *falco.Subscriber
 	notifier          *notifier.Manager
-	formatter         *diff.DiffFormatter
+	formatter         *diff.Formatter
 	importer          *terraform.Importer
 	approvalManager   *terraform.ApprovalManager
 	broadcaster       *broadcaster.Broadcaster

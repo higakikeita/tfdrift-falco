@@ -7,8 +7,8 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
-// FormatUnifiedDiff formats the drift as a unified diff (Git-style)
-func (f *DiffFormatter) FormatUnifiedDiff(alert *types.DriftAlert) string {
+// FormatUnifiedDiff formats the drift as a unified diff (Git-style).
+func (f *Formatter) FormatUnifiedDiff(alert *types.DriftAlert) string {
 	var b strings.Builder
 
 	b.WriteString(fmt.Sprintf("--- terraform/%s.%s\t(Terraform State)\n",
@@ -31,8 +31,8 @@ func (f *DiffFormatter) FormatUnifiedDiff(alert *types.DriftAlert) string {
 	return b.String()
 }
 
-// FormatSideBySide formats the drift as side-by-side comparison
-func (f *DiffFormatter) FormatSideBySide(alert *types.DriftAlert) string {
+// FormatSideBySide formats the drift as side-by-side comparison.
+func (f *Formatter) FormatSideBySide(alert *types.DriftAlert) string {
 	var b strings.Builder
 
 	oldStr := f.formatValue(alert.OldValue)
