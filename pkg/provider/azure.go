@@ -184,7 +184,7 @@ func (p *AzureProvider) SupportedResourceTypes() []string {
 func (p *AzureProvider) DiscoverResources(ctx context.Context, opts DiscoveryOptions) ([]*types.DiscoveredResource, error) {
 	subscriptionID := p.subscriptionID
 	if subscriptionID == "" {
-		return nil, fmt.Errorf("Azure subscription ID is required for resource discovery; use WithAzureSubscriptionID option")
+		return nil, fmt.Errorf("azure subscription ID is required for resource discovery; use WithAzureSubscriptionID option")
 	}
 
 	regions := opts.Regions

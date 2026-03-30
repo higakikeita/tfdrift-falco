@@ -149,7 +149,7 @@ var azureTypeToTerraform = map[string]string{
 // regions specifies which locations to scan (empty = all locations).
 func NewDiscoveryClient(subscriptionID string, regions []string, lister ResourceLister) (*DiscoveryClient, error) {
 	if subscriptionID == "" {
-		return nil, fmt.Errorf("Azure subscription ID is required")
+		return nil, fmt.Errorf("azure subscription ID is required")
 	}
 
 	return &DiscoveryClient{

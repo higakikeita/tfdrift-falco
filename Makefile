@@ -216,6 +216,22 @@ ci: deps fmt lint test-coverage-threshold test-race
 ci-local: fmt lint test-coverage
 	@echo "✅ Local CI checks passed!"
 
+## pre-commit: Run all pre-commit checks (fmt + lint + test)
+pre-commit: fmt lint test
+	@echo "✅ All pre-commit checks passed!"
+
+## version: Print current version
+version:
+	@echo "$(VERSION)"
+
+## security-check: Run security checks (gosec + nancy)
+security-check:
+	@echo "Running security checks..."
+	@which gosec > /dev/null || (echo "gosec not installed. Run: go install github.com/securego/gosec/v2/cmd/gosec@latest" && exit 1)
+	gosec -quiet ./...
+	@which nancy > /dev/null || (echo "nancy not installed. See: https://github.com/sonatype-nexus-community/nancy" && exit 1)
+	$(GO) list -json -m all | nancy sleuth
+
 ## test-integration: Run integration tests
 test-integration:
 	@echo "Running integration tests..."

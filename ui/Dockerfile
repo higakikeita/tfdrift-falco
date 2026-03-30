@@ -15,6 +15,8 @@ WORKDIR /build
 COPY package*.json ./
 
 # Install dependencies and align React versions
+# --legacy-peer-deps: Required due to peer dependency mismatches in React 19 ecosystem
+# The following step aligns react-dom and react-is to the installed react version
 RUN npm ci --legacy-peer-deps && \
     REACT_VER=$(node -e "console.log(require('./node_modules/react/package.json').version)") && \
     npm install react-dom@$REACT_VER react-is --legacy-peer-deps --save

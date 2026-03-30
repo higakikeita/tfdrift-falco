@@ -76,13 +76,13 @@ type AzureRMBackendConfig struct {
 //   - error: Configuration validation errors
 func NewAzureRMBackend(cfg AzureRMBackendConfig) (*AzureRMBackend, error) {
 	if cfg.StorageAccountName == "" {
-		return nil, fmt.Errorf("Azure storage account name is required")
+		return nil, fmt.Errorf("azure storage account name is required")
 	}
 	if cfg.ContainerName == "" {
-		return nil, fmt.Errorf("Azure container name is required")
+		return nil, fmt.Errorf("azure container name is required")
 	}
 	if cfg.BlobName == "" {
-		return nil, fmt.Errorf("Azure blob name is required")
+		return nil, fmt.Errorf("azure blob name is required")
 	}
 
 	return &AzureRMBackend{
@@ -127,7 +127,7 @@ func (b *AzureRMBackend) Load(ctx context.Context) ([]byte, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("Azure Blob Storage returned status %d: %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("azure Blob Storage returned status %d: %s", resp.StatusCode, string(body))
 	}
 
 	data, err := io.ReadAll(resp.Body)

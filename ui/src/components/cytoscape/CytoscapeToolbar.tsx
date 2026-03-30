@@ -89,6 +89,7 @@ export const CytoscapeToolbar: React.FC<CytoscapeToolbarProps> = ({
           onClick={() => cy?.fit()}
           className="px-3 py-2 bg-white rounded-lg shadow-md hover:bg-gray-100 text-sm font-medium"
           title="Fit to view"
+          aria-label="Fit graph to view"
         >
           🔍 Fit
         </button>
@@ -96,6 +97,7 @@ export const CytoscapeToolbar: React.FC<CytoscapeToolbarProps> = ({
           onClick={() => cy?.center()}
           className="px-3 py-2 bg-white rounded-lg shadow-md hover:bg-gray-100 text-sm font-medium"
           title="Center view"
+          aria-label="Center graph view"
         >
           🎯 Center
         </button>
@@ -105,6 +107,8 @@ export const CytoscapeToolbar: React.FC<CytoscapeToolbarProps> = ({
             showOptionsPanel ? 'bg-blue-500 text-white' : 'bg-white hover:bg-gray-100'
           }`}
           title="Show/Hide Options"
+          aria-label="Toggle display options panel"
+          aria-expanded={showOptionsPanel}
         >
           ⚙️ Options
         </button>
@@ -112,6 +116,7 @@ export const CytoscapeToolbar: React.FC<CytoscapeToolbarProps> = ({
           onClick={handleExport}
           className="px-3 py-2 bg-white rounded-lg shadow-md hover:bg-gray-100 text-sm font-medium"
           title="Export as PNG"
+          aria-label="Export graph as PNG image"
         >
           📸 Export
         </button>
@@ -137,6 +142,7 @@ export const CytoscapeToolbar: React.FC<CytoscapeToolbarProps> = ({
               onClick={() => setShowOptionsPanel(false)}
               className="text-gray-400 hover:text-gray-600 text-lg leading-none"
               title="Close"
+              aria-label="Close options panel"
             >
               ×
             </button>

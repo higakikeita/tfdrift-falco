@@ -3,7 +3,7 @@ name: tfdrift-falco
 description: Real-time, multi-cloud Terraform drift detection with Falco integration
 type: application
 version: 0.1.0
-appVersion: "0.9.0"
+appVersion: "0.9.0"  # Keep in sync with Makefile VERSION
 keywords:
   - terraform
   - drift-detection
