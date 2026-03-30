@@ -1,3 +1,4 @@
+// Package models provides data models for the API layer.
 package models
 
 // PaginationParams represents pagination query parameters

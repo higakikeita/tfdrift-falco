@@ -1,3 +1,4 @@
+// Package broadcaster provides event broadcasting to WebSocket clients.
 package broadcaster
 
 import (
@@ -78,20 +79,42 @@ func (b *Broadcaster) BroadcastDriftAlert(alert types.DriftAlert) {
 
 // BroadcastFalcoEvent broadcasts a Falco event
 func (b *Broadcaster) BroadcastFalcoEvent(event types.Event) {
+	payload := map[string]interface{}{
+		"provider":      event.Provider,
+		"event_name":    event.EventName,
+		"resource_type": event.ResourceType,
+		"resource_id":   event.ResourceID,
+		"user_identity": event.UserIdentity,
+		"changes":       event.Changes,
+	}
+
+	// Use Metadata map if available, otherwise fall back to deprecated fields
+	if event.Metadata != nil {
+		if v, ok := event.Metadata["region"]; ok {
+			payload["region"] = v
+		}
+		if v, ok := event.Metadata["project_id"]; ok {
+			payload["project_id"] = v
+		}
+		if v, ok := event.Metadata["service_name"]; ok {
+			payload["service_name"] = v
+		}
+	} else {
+		if event.Region != "" {
+			payload["region"] = event.Region
+		}
+		if event.ProjectID != "" {
+			payload["project_id"] = event.ProjectID
+		}
+		if event.ServiceName != "" {
+			payload["service_name"] = event.ServiceName
+		}
+	}
+
 	broadcastEvent := Event{
 		Type:      "falco",
 		Timestamp: "", // Will be set by caller if needed
-		Payload: map[string]interface{}{
-			"provider":      event.Provider,
-			"event_name":    event.EventName,
-			"resource_type": event.ResourceType,
-			"resource_id":   event.ResourceID,
-			"user_identity": event.UserIdentity,
-			"changes":       event.Changes,
-			"region":        event.Region,
-			"project_id":    event.ProjectID,
-			"service_name":  event.ServiceName,
-		},
+		Payload:   payload,
 	}
 	b.Broadcast(broadcastEvent)
 }

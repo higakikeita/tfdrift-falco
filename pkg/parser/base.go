@@ -1,3 +1,4 @@
+// Package parser provides event parsing infrastructure.
 package parser
 
 import (

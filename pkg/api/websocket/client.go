@@ -1,3 +1,4 @@
+// Package websocket provides WebSocket client and connection management.
 package websocket
 
 import (

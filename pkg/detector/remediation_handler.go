@@ -1,3 +1,4 @@
+// Package detector provides drift detection and analysis.
 package detector
 
 import (

@@ -1,3 +1,4 @@
+// Package graph provides in-memory graph storage for drift detection results.
 package graph
 
 import (

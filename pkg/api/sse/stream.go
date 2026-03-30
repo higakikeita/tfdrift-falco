@@ -1,3 +1,4 @@
+// Package sse provides server-sent events streaming for real-time API updates.
 package sse
 
 import (

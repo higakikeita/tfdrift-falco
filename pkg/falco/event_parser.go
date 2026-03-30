@@ -1,3 +1,4 @@
+// Package falco provides event parsing and processing from Falco.
 package falco
 
 import (

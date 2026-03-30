@@ -1,3 +1,4 @@
+// Package handlers provides HTTP handlers for the API.
 package handlers
 
 import (
@@ -55,10 +56,31 @@ func (h *EventsHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 			"resource_id":   event.ResourceID,
 			"user_identity": event.UserIdentity,
 			"changes":       event.Changes,
-			"region":        event.Region,
-			"project_id":    event.ProjectID,
-			"service_name":  event.ServiceName,
 		}
+
+		// Use Metadata map if available, otherwise fall back to deprecated fields
+		if event.Metadata != nil {
+			if v, ok := event.Metadata["region"]; ok {
+				eventData["region"] = v
+			}
+			if v, ok := event.Metadata["project_id"]; ok {
+				eventData["project_id"] = v
+			}
+			if v, ok := event.Metadata["service_name"]; ok {
+				eventData["service_name"] = v
+			}
+		} else {
+			if event.Region != "" {
+				eventData["region"] = event.Region
+			}
+			if event.ProjectID != "" {
+				eventData["project_id"] = event.ProjectID
+			}
+			if event.ServiceName != "" {
+				eventData["service_name"] = event.ServiceName
+			}
+		}
+
 		filteredEvents = append(filteredEvents, eventData)
 	}
 
@@ -89,10 +111,30 @@ func (h *EventsHandler) GetEvent(w http.ResponseWriter, r *http.Request) {
 				"resource_id":   event.ResourceID,
 				"user_identity": event.UserIdentity,
 				"changes":       event.Changes,
-				"region":        event.Region,
-				"project_id":    event.ProjectID,
-				"service_name":  event.ServiceName,
 				"raw_event":     event.RawEvent,
+			}
+
+			// Use Metadata map if available, otherwise fall back to deprecated fields
+			if event.Metadata != nil {
+				if v, ok := event.Metadata["region"]; ok {
+					eventData["region"] = v
+				}
+				if v, ok := event.Metadata["project_id"]; ok {
+					eventData["project_id"] = v
+				}
+				if v, ok := event.Metadata["service_name"]; ok {
+					eventData["service_name"] = v
+				}
+			} else {
+				if event.Region != "" {
+					eventData["region"] = event.Region
+				}
+				if event.ProjectID != "" {
+					eventData["project_id"] = event.ProjectID
+				}
+				if event.ServiceName != "" {
+					eventData["service_name"] = event.ServiceName
+				}
 			}
 
 			respondJSON(w, http.StatusOK, eventData)
