@@ -105,16 +105,16 @@ func (h *ProviderStatusHandler) GetProviderStatus(w http.ResponseWriter, r *http
 		}
 
 		entry := map[string]interface{}{
-			"name":             name,
-			"status":           status,
-			"event_count":      p.SupportedEventCount(),
-			"resource_types":   len(p.SupportedResourceTypes()),
-			"has_discovery":    caps.Discovery,
-			"has_comparison":   caps.Comparison,
-			"events_received":  stats.EventsReceived,
-			"events_matched":   stats.EventsMatched,
-			"error_count":      stats.ErrorCount,
-			"uptime_seconds":   int64(time.Since(h.startAt).Seconds()),
+			"name":            name,
+			"status":          status,
+			"event_count":     p.SupportedEventCount(),
+			"resource_types":  len(p.SupportedResourceTypes()),
+			"has_discovery":   caps.Discovery,
+			"has_comparison":  caps.Comparison,
+			"events_received": stats.EventsReceived,
+			"events_matched":  stats.EventsMatched,
+			"error_count":     stats.ErrorCount,
+			"uptime_seconds":  int64(time.Since(h.startAt).Seconds()),
 		}
 
 		if !stats.LastEventAt.IsZero() {
@@ -133,10 +133,10 @@ func (h *ProviderStatusHandler) GetProviderStatus(w http.ResponseWriter, r *http
 	})
 
 	respondJSON(w, http.StatusOK, map[string]interface{}{
-		"providers":  result,
-		"count":      len(result),
-		"uptime":     int64(time.Since(h.startAt).Seconds()),
-		"timestamp":  time.Now().Format(time.RFC3339),
+		"providers": result,
+		"count":     len(result),
+		"uptime":    int64(time.Since(h.startAt).Seconds()),
+		"timestamp": time.Now().Format(time.RFC3339),
 	})
 }
 

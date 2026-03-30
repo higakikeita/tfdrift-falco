@@ -289,10 +289,10 @@ func (p *AuditParser) isRelevantEvent(methodName string) bool {
 		"compute.sslCertificates.delete": true,
 
 		// Compute Engine - Cloud Armor / Security Policies
-		"compute.securityPolicies.insert":    true,
-		"compute.securityPolicies.delete":    true,
-		"compute.securityPolicies.patch":     true,
-		"compute.securityPolicies.addRule":   true,
+		"compute.securityPolicies.insert":     true,
+		"compute.securityPolicies.delete":     true,
+		"compute.securityPolicies.patch":      true,
+		"compute.securityPolicies.addRule":    true,
 		"compute.securityPolicies.removeRule": true,
 
 		// IAM - Project Level
@@ -370,10 +370,10 @@ func (p *AuditParser) isRelevantEvent(methodName string) bool {
 		"google.pubsub.v1.Publisher.UpdateTopic": true,
 
 		// Pub/Sub - Subscriptions
-		"google.pubsub.v1.Subscriber.CreateSubscription":   true,
-		"google.pubsub.v1.Subscriber.DeleteSubscription":   true,
-		"google.pubsub.v1.Subscriber.ModifyPushConfig":     true,
-		"google.pubsub.v1.Subscriber.UpdateSubscription":   true,
+		"google.pubsub.v1.Subscriber.CreateSubscription": true,
+		"google.pubsub.v1.Subscriber.DeleteSubscription": true,
+		"google.pubsub.v1.Subscriber.ModifyPushConfig":   true,
+		"google.pubsub.v1.Subscriber.UpdateSubscription": true,
 
 		// BigQuery - Datasets
 		"google.cloud.bigquery.v2.DatasetService.InsertDataset": true,
@@ -415,9 +415,9 @@ func (p *AuditParser) isRelevantEvent(methodName string) bool {
 		"google.spanner.admin.instance.v1.InstanceAdmin.UpdateInstance": true,
 
 		// Cloud Spanner - Databases
-		"google.spanner.admin.database.v1.DatabaseAdmin.CreateDatabase":     true,
-		"google.spanner.admin.database.v1.DatabaseAdmin.DropDatabase":       true,
-		"google.spanner.admin.database.v1.DatabaseAdmin.UpdateDatabaseDdl":  true,
+		"google.spanner.admin.database.v1.DatabaseAdmin.CreateDatabase":    true,
+		"google.spanner.admin.database.v1.DatabaseAdmin.DropDatabase":      true,
+		"google.spanner.admin.database.v1.DatabaseAdmin.UpdateDatabaseDdl": true,
 
 		// Firestore - Indexes
 		"google.firestore.admin.v1.FirestoreAdmin.CreateIndex": true,
@@ -702,7 +702,6 @@ func (p *AuditParser) extractChanges(eventName string, fields map[string]string)
 
 	return changes
 }
-
 
 // ValidateEvent performs validation on parsed event
 func (p *AuditParser) ValidateEvent(event *types.Event) error {

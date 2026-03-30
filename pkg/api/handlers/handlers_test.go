@@ -1100,7 +1100,6 @@ func TestGetEvents_WithData(t *testing.T) {
 	}
 }
 
-
 // ===== DriftsHandler Tests =====
 
 func TestNewDriftsHandler(t *testing.T) {
@@ -1432,7 +1431,6 @@ func TestNewGraphQueryHandler(t *testing.T) {
 		t.Fatal("expected graphStore to be set correctly")
 	}
 }
-
 
 func TestGetNodesByLabel_Missing(t *testing.T) {
 	store := graph.NewStore()

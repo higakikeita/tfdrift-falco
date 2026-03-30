@@ -419,8 +419,8 @@ func TestCreatePR_MultipleFilesCommit(t *testing.T) {
 		BranchName: "fix/multi-file-123",
 		CommitMsg:  "Fix multiple resources",
 		Files: map[string]string{
-			"terraform/main.tf":     "resource \"aws_instance\" \"web\" {}",
-			"terraform/outputs.tf":  "output \"instance_id\" {}",
+			"terraform/main.tf":      "resource \"aws_instance\" \"web\" {}",
+			"terraform/outputs.tf":   "output \"instance_id\" {}",
 			"terraform/variables.tf": "variable \"instance_type\" {}",
 		},
 	}

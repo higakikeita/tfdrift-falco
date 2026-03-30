@@ -6,10 +6,10 @@ import (
 
 // Engine provides role-based access control functionality
 type Engine struct {
-	mu               sync.RWMutex
-	userRoles        map[string]Role // maps user ID to role
-	rolePermissions  map[Role]map[Resource][]Permission
-	roleHierarchy    map[Role]int
+	mu              sync.RWMutex
+	userRoles       map[string]Role // maps user ID to role
+	rolePermissions map[Role]map[Resource][]Permission
+	roleHierarchy   map[Role]int
 }
 
 // NewEngine creates a new RBAC engine
@@ -122,4 +122,3 @@ func (e *Engine) GetRoleHierarchyLevel(role Role) (int, bool) {
 	level, ok := e.roleHierarchy[role]
 	return level, ok
 }
-

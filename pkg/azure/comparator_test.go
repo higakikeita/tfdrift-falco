@@ -456,9 +456,9 @@ func TestGetNestedValue(t *testing.T) {
 		expected interface{}
 	}{
 		{
-			name: "top-level field",
-			data: map[string]interface{}{"location": "eastus"},
-			path: "location",
+			name:     "top-level field",
+			data:     map[string]interface{}{"location": "eastus"},
+			path:     "location",
 			expected: "eastus",
 		},
 		{
@@ -468,19 +468,19 @@ func TestGetNestedValue(t *testing.T) {
 					"cidr": "10.0.0.0/16",
 				},
 			},
-			path: "network.cidr",
+			path:     "network.cidr",
 			expected: "10.0.0.0/16",
 		},
 		{
-			name: "missing field",
-			data: map[string]interface{}{"location": "eastus"},
-			path: "missing",
+			name:     "missing field",
+			data:     map[string]interface{}{"location": "eastus"},
+			path:     "missing",
 			expected: nil,
 		},
 		{
-			name: "path through non-map",
-			data: map[string]interface{}{"value": "string"},
-			path: "value.nested",
+			name:     "path through non-map",
+			data:     map[string]interface{}{"value": "string"},
+			path:     "value.nested",
 			expected: nil,
 		},
 	}

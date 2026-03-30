@@ -29,11 +29,11 @@ type GitHubClient struct {
 
 // PRRequest represents a pull request creation request.
 type PRRequest struct {
-	Title     string
-	Body      string
+	Title      string
+	Body       string
 	BranchName string
-	Files     map[string]string // path -> content
-	CommitMsg string
+	Files      map[string]string // path -> content
+	CommitMsg  string
 }
 
 // PRResult represents the result of a PR creation.
@@ -62,8 +62,8 @@ type treeItem struct {
 }
 
 type treeRequest struct {
-	Tree    []treeItem `json:"tree"`
-	BaseTree string    `json:"base_tree"`
+	Tree     []treeItem `json:"tree"`
+	BaseTree string     `json:"base_tree"`
 }
 
 type treeResponse struct {

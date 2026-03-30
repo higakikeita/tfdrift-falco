@@ -10,10 +10,10 @@ import (
 
 // mockProvider is a test implementation of the Provider interface
 type mockProvider struct {
-	name           string
-	source         string
-	eventCount     int
-	resourceTypes  []string
+	name          string
+	source        string
+	eventCount    int
+	resourceTypes []string
 }
 
 func (m *mockProvider) Name() string { return m.name }

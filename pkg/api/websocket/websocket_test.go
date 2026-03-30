@@ -598,9 +598,9 @@ func TestWSMessage_ComplexPayload(t *testing.T) {
 	payloadJSON, _ := json.Marshal(payload)
 
 	msg := WSMessage{
-		Type:     "query",
-		Topic:    "drifts",
-		Payload:  payloadJSON,
+		Type:    "query",
+		Topic:   "drifts",
+		Payload: payloadJSON,
 	}
 
 	data, err := json.Marshal(msg)

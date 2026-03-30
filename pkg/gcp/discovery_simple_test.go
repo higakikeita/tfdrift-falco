@@ -3,8 +3,8 @@ package gcp
 import (
 	"testing"
 
-	compute "google.golang.org/api/compute/v1"
 	"github.com/stretchr/testify/assert"
+	compute "google.golang.org/api/compute/v1"
 )
 
 // TestDiscoverAll_HelperFunctions tests the helper functions used by discovery

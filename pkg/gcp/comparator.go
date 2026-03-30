@@ -44,11 +44,11 @@ func CompareStateWithActual(tfResources []*types.TerraformResource, gcpResources
 				return &types.ResourceDiff{Provider: "gcp"}
 			}
 			return &types.ResourceDiff{
-				ResourceID:    gcpRes.ID,
-				ResourceType:  gcpRes.Type,
-				Provider:      "gcp",
-				ActualState:   gcpRes.Attributes,
-				Differences:   []types.FieldDiff{},
+				ResourceID:   gcpRes.ID,
+				ResourceType: gcpRes.Type,
+				Provider:     "gcp",
+				ActualState:  gcpRes.Attributes,
+				Differences:  []types.FieldDiff{},
 			}
 		},
 		BuildMissing: func(tfResource interface{}) *types.TerraformResource {

@@ -89,20 +89,20 @@ func FormatProposalJSON(proposal *types.RemediationProposal) ([]byte, error) {
 
 	// Create a JSON-serializable version with proper types
 	jsonProposal := map[string]interface{}{
-		"id":               proposal.ID,
-		"alert_type":       proposal.AlertType,
-		"provider":         proposal.Provider,
-		"resource_type":    proposal.ResourceType,
-		"resource_id":      proposal.ResourceID,
-		"resource_name":    proposal.ResourceName,
-		"severity":         proposal.Severity,
-		"description":      proposal.Description,
-		"terraform_code":   proposal.TerraformCode,
-		"import_command":   proposal.ImportCommand,
-		"plan_command":     proposal.PlanCommand,
-		"status":           proposal.Status,
-		"created_at":       proposal.CreatedAt,
-		"attributes":       proposal.Attributes,
+		"id":             proposal.ID,
+		"alert_type":     proposal.AlertType,
+		"provider":       proposal.Provider,
+		"resource_type":  proposal.ResourceType,
+		"resource_id":    proposal.ResourceID,
+		"resource_name":  proposal.ResourceName,
+		"severity":       proposal.Severity,
+		"description":    proposal.Description,
+		"terraform_code": proposal.TerraformCode,
+		"import_command": proposal.ImportCommand,
+		"plan_command":   proposal.PlanCommand,
+		"status":         proposal.Status,
+		"created_at":     proposal.CreatedAt,
+		"attributes":     proposal.Attributes,
 	}
 
 	if proposal.PRUrl != "" {

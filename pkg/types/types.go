@@ -71,15 +71,15 @@ type DriftAlert struct {
 // This is the provider-agnostic version; each provider maps its native resources to this.
 type DiscoveredResource struct {
 	ID         string                 `json:"id"`
-	Type       string                 `json:"type"`       // Terraform resource type (e.g., "aws_instance", "google_compute_instance")
-	Provider   string                 `json:"provider"`   // Provider name (e.g., "aws", "gcp", "azure")
+	Type       string                 `json:"type"`     // Terraform resource type (e.g., "aws_instance", "google_compute_instance")
+	Provider   string                 `json:"provider"` // Provider name (e.g., "aws", "gcp", "azure")
 	ARN        string                 `json:"arn,omitempty"`
 	Name       string                 `json:"name"`
 	Region     string                 `json:"region"`
 	SelfLink   string                 `json:"self_link,omitempty"` // GCP: resource self link
 	Attributes map[string]interface{} `json:"attributes"`
 	Tags       map[string]string      `json:"tags,omitempty"`
-	Labels     map[string]string      `json:"labels,omitempty"` // GCP uses labels instead of tags
+	Labels     map[string]string      `json:"labels,omitempty"`   // GCP uses labels instead of tags
 	Metadata   map[string]string      `json:"metadata,omitempty"` // Provider-specific metadata
 }
 
@@ -138,22 +138,22 @@ type UnmanagedResourceAlert struct {
 
 // RemediationProposal represents a single remediation action
 type RemediationProposal struct {
-	ID              string                 `json:"id"`
-	AlertType       string                 `json:"alert_type"`       // "drift" or "unmanaged"
-	Provider        string                 `json:"provider"`
-	ResourceType    string                 `json:"resource_type"`
-	ResourceID      string                 `json:"resource_id"`
-	ResourceName    string                 `json:"resource_name"`
-	Severity        string                 `json:"severity"`
-	Description     string                 `json:"description"`
-	TerraformCode   string                 `json:"terraform_code"`   // Generated HCL
-	ImportCommand   string                 `json:"import_command"`   // terraform import command
-	PlanCommand     string                 `json:"plan_command"`     // terraform plan command
-	Status          string                 `json:"status"`           // pending/approved/rejected/applied
-	PRUrl           string                 `json:"pr_url,omitempty"`
-	PRNumber        int                    `json:"pr_number,omitempty"`
-	CreatedAt       string                 `json:"created_at"`
-	Attributes      map[string]interface{} `json:"attributes,omitempty"`
+	ID            string                 `json:"id"`
+	AlertType     string                 `json:"alert_type"` // "drift" or "unmanaged"
+	Provider      string                 `json:"provider"`
+	ResourceType  string                 `json:"resource_type"`
+	ResourceID    string                 `json:"resource_id"`
+	ResourceName  string                 `json:"resource_name"`
+	Severity      string                 `json:"severity"`
+	Description   string                 `json:"description"`
+	TerraformCode string                 `json:"terraform_code"` // Generated HCL
+	ImportCommand string                 `json:"import_command"` // terraform import command
+	PlanCommand   string                 `json:"plan_command"`   // terraform plan command
+	Status        string                 `json:"status"`         // pending/approved/rejected/applied
+	PRUrl         string                 `json:"pr_url,omitempty"`
+	PRNumber      int                    `json:"pr_number,omitempty"`
+	CreatedAt     string                 `json:"created_at"`
+	Attributes    map[string]interface{} `json:"attributes,omitempty"`
 }
 
 const (

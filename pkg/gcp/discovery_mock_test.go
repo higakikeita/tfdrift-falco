@@ -71,14 +71,14 @@ func TestDiscoverAll_WithMocks(t *testing.T) {
 	}
 
 	expected := map[string]int{
-		"google_compute_network":      2,
-		"google_compute_subnetwork":   1,
-		"google_compute_firewall":     1,
-		"google_compute_instance":     1,
-		"google_storage_bucket":       1,
+		"google_compute_network":       2,
+		"google_compute_subnetwork":    1,
+		"google_compute_firewall":      1,
+		"google_compute_instance":      1,
+		"google_storage_bucket":        1,
 		"google_sql_database_instance": 1,
-		"google_container_cluster":    1,
-		"google_cloud_run_v2_service": 1,
+		"google_container_cluster":     1,
+		"google_cloud_run_v2_service":  1,
 	}
 
 	for typ, count := range expected {

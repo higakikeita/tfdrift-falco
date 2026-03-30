@@ -84,7 +84,7 @@ func initializeEventMapping() map[string]string {
 	return map[string]string{
 		// ==================== COMPUTE ====================
 		// Virtual Machines
-		"Microsoft.Compute/virtualMachines/write":              "azurerm_virtual_machine",
+		"Microsoft.Compute/virtualMachines/write":             "azurerm_virtual_machine",
 		"Microsoft.Compute/virtualMachines/delete":            "azurerm_virtual_machine",
 		"Microsoft.Compute/virtualMachines/start/action":      "azurerm_virtual_machine",
 		"Microsoft.Compute/virtualMachines/powerOff/action":   "azurerm_virtual_machine",
@@ -115,18 +115,18 @@ func initializeEventMapping() map[string]string {
 		"Microsoft.Network/networkSecurityGroups/securityRules/delete": "azurerm_network_security_rule",
 
 		// Virtual Networks
-		"Microsoft.Network/virtualNetworks/write":   "azurerm_virtual_network",
-		"Microsoft.Network/virtualNetworks/delete":  "azurerm_virtual_network",
-		"Microsoft.Network/virtualNetworks/subnets/write":   "azurerm_subnet",
-		"Microsoft.Network/virtualNetworks/subnets/delete":  "azurerm_subnet",
+		"Microsoft.Network/virtualNetworks/write":          "azurerm_virtual_network",
+		"Microsoft.Network/virtualNetworks/delete":         "azurerm_virtual_network",
+		"Microsoft.Network/virtualNetworks/subnets/write":  "azurerm_subnet",
+		"Microsoft.Network/virtualNetworks/subnets/delete": "azurerm_subnet",
 
 		// Load Balancers
-		"Microsoft.Network/loadBalancers/write":  "azurerm_lb",
-		"Microsoft.Network/loadBalancers/delete": "azurerm_lb",
+		"Microsoft.Network/loadBalancers/write":                      "azurerm_lb",
+		"Microsoft.Network/loadBalancers/delete":                     "azurerm_lb",
 		"Microsoft.Network/loadBalancers/backendAddressPools/write":  "azurerm_lb_backend_address_pool",
 		"Microsoft.Network/loadBalancers/backendAddressPools/delete": "azurerm_lb_backend_address_pool",
-		"Microsoft.Network/loadBalancers/rules/write":  "azurerm_lb_rule",
-		"Microsoft.Network/loadBalancers/rules/delete": "azurerm_lb_rule",
+		"Microsoft.Network/loadBalancers/rules/write":                "azurerm_lb_rule",
+		"Microsoft.Network/loadBalancers/rules/delete":               "azurerm_lb_rule",
 
 		// Public IP Addresses
 		"Microsoft.Network/publicIPAddresses/write":  "azurerm_public_ip",
@@ -137,32 +137,32 @@ func initializeEventMapping() map[string]string {
 		"Microsoft.Network/networkInterfaces/delete": "azurerm_network_interface",
 
 		// Route Tables
-		"Microsoft.Network/routeTables/write":   "azurerm_route_table",
-		"Microsoft.Network/routeTables/delete":  "azurerm_route_table",
-		"Microsoft.Network/routeTables/routes/write":   "azurerm_route",
-		"Microsoft.Network/routeTables/routes/delete":  "azurerm_route",
+		"Microsoft.Network/routeTables/write":         "azurerm_route_table",
+		"Microsoft.Network/routeTables/delete":        "azurerm_route_table",
+		"Microsoft.Network/routeTables/routes/write":  "azurerm_route",
+		"Microsoft.Network/routeTables/routes/delete": "azurerm_route",
 
 		// Application Gateway
 		"Microsoft.Network/applicationGateways/write":  "azurerm_application_gateway",
 		"Microsoft.Network/applicationGateways/delete": "azurerm_application_gateway",
 
 		// Firewall
-		"Microsoft.Network/azureFirewalls/write":      "azurerm_firewall",
-		"Microsoft.Network/azureFirewalls/delete":     "azurerm_firewall",
-		"Microsoft.Network/firewallPolicies/write":    "azurerm_firewall_policy",
-		"Microsoft.Network/firewallPolicies/delete":   "azurerm_firewall_policy",
-		"Microsoft.Network/firewallPolicies/ruleCollectionGroups/write":   "azurerm_firewall_policy_rule_collection_group",
-		"Microsoft.Network/firewallPolicies/ruleCollectionGroups/delete":  "azurerm_firewall_policy_rule_collection_group",
+		"Microsoft.Network/azureFirewalls/write":                         "azurerm_firewall",
+		"Microsoft.Network/azureFirewalls/delete":                        "azurerm_firewall",
+		"Microsoft.Network/firewallPolicies/write":                       "azurerm_firewall_policy",
+		"Microsoft.Network/firewallPolicies/delete":                      "azurerm_firewall_policy",
+		"Microsoft.Network/firewallPolicies/ruleCollectionGroups/write":  "azurerm_firewall_policy_rule_collection_group",
+		"Microsoft.Network/firewallPolicies/ruleCollectionGroups/delete": "azurerm_firewall_policy_rule_collection_group",
 
 		// Private Endpoints
 		"Microsoft.Network/privateEndpoints/write":  "azurerm_private_endpoint",
 		"Microsoft.Network/privateEndpoints/delete": "azurerm_private_endpoint",
 
 		// CDN
-		"Microsoft.Cdn/profiles/write":   "azurerm_cdn_profile",
-		"Microsoft.Cdn/profiles/delete":  "azurerm_cdn_profile",
-		"Microsoft.Cdn/profiles/endpoints/write":   "azurerm_cdn_endpoint",
-		"Microsoft.Cdn/profiles/endpoints/delete":  "azurerm_cdn_endpoint",
+		"Microsoft.Cdn/profiles/write":            "azurerm_cdn_profile",
+		"Microsoft.Cdn/profiles/delete":           "azurerm_cdn_profile",
+		"Microsoft.Cdn/profiles/endpoints/write":  "azurerm_cdn_endpoint",
+		"Microsoft.Cdn/profiles/endpoints/delete": "azurerm_cdn_endpoint",
 
 		// Front Door
 		"Microsoft.Network/frontDoors/write":  "azurerm_frontdoor",
@@ -194,22 +194,22 @@ func initializeEventMapping() map[string]string {
 		"Microsoft.Storage/storageAccounts/delete": "azurerm_storage_account",
 
 		// Blob Services
-		"Microsoft.Storage/storageAccounts/blobServices/write":   "azurerm_storage_blob",
-		"Microsoft.Storage/storageAccounts/blobServices/delete":  "azurerm_storage_blob",
-		"Microsoft.Storage/storageAccounts/blobServices/containers/write":   "azurerm_storage_container",
-		"Microsoft.Storage/storageAccounts/blobServices/containers/delete":  "azurerm_storage_container",
+		"Microsoft.Storage/storageAccounts/blobServices/write":             "azurerm_storage_blob",
+		"Microsoft.Storage/storageAccounts/blobServices/delete":            "azurerm_storage_blob",
+		"Microsoft.Storage/storageAccounts/blobServices/containers/write":  "azurerm_storage_container",
+		"Microsoft.Storage/storageAccounts/blobServices/containers/delete": "azurerm_storage_container",
 
 		// File Shares
-		"Microsoft.Storage/storageAccounts/fileServices/shares/write":   "azurerm_storage_share",
-		"Microsoft.Storage/storageAccounts/fileServices/shares/delete":  "azurerm_storage_share",
+		"Microsoft.Storage/storageAccounts/fileServices/shares/write":  "azurerm_storage_share",
+		"Microsoft.Storage/storageAccounts/fileServices/shares/delete": "azurerm_storage_share",
 
 		// Queues
-		"Microsoft.Storage/storageAccounts/queueServices/queues/write":   "azurerm_storage_queue",
-		"Microsoft.Storage/storageAccounts/queueServices/queues/delete":  "azurerm_storage_queue",
+		"Microsoft.Storage/storageAccounts/queueServices/queues/write":  "azurerm_storage_queue",
+		"Microsoft.Storage/storageAccounts/queueServices/queues/delete": "azurerm_storage_queue",
 
 		// Tables
-		"Microsoft.Storage/storageAccounts/tableServices/tables/write":   "azurerm_storage_table",
-		"Microsoft.Storage/storageAccounts/tableServices/tables/delete":  "azurerm_storage_table",
+		"Microsoft.Storage/storageAccounts/tableServices/tables/write":  "azurerm_storage_table",
+		"Microsoft.Storage/storageAccounts/tableServices/tables/delete": "azurerm_storage_table",
 
 		// ==================== DATABASE ====================
 		// SQL Server
@@ -245,12 +245,12 @@ func initializeEventMapping() map[string]string {
 		"Microsoft.DBforPostgreSQL/servers/databases/delete": "azurerm_postgresql_database",
 
 		// Cosmos DB
-		"Microsoft.DocumentDB/databaseAccounts/write":  "azurerm_cosmosdb_account",
-		"Microsoft.DocumentDB/databaseAccounts/delete": "azurerm_cosmosdb_account",
-		"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/write":   "azurerm_cosmosdb_sql_database",
-		"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/delete":  "azurerm_cosmosdb_sql_database",
-		"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/write":   "azurerm_cosmosdb_sql_container",
-		"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/delete":  "azurerm_cosmosdb_sql_container",
+		"Microsoft.DocumentDB/databaseAccounts/write":                          "azurerm_cosmosdb_account",
+		"Microsoft.DocumentDB/databaseAccounts/delete":                         "azurerm_cosmosdb_account",
+		"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/write":             "azurerm_cosmosdb_sql_database",
+		"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/delete":            "azurerm_cosmosdb_sql_database",
+		"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/write":  "azurerm_cosmosdb_sql_container",
+		"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/delete": "azurerm_cosmosdb_sql_container",
 
 		// ==================== KEY VAULT & SECURITY ====================
 		// Key Vault
@@ -339,9 +339,9 @@ func initializeEventMapping() map[string]string {
 
 		// ==================== MONITORING ====================
 		// Alert Rules
-		"Microsoft.Insights/metricAlerts/write":        "azurerm_monitor_metric_alert",
-		"Microsoft.Insights/metricAlerts/delete":       "azurerm_monitor_metric_alert",
-		"Microsoft.Insights/scheduledQueryRules/write": "azurerm_monitor_scheduled_query_rules_alert",
+		"Microsoft.Insights/metricAlerts/write":         "azurerm_monitor_metric_alert",
+		"Microsoft.Insights/metricAlerts/delete":        "azurerm_monitor_metric_alert",
+		"Microsoft.Insights/scheduledQueryRules/write":  "azurerm_monitor_scheduled_query_rules_alert",
 		"Microsoft.Insights/scheduledQueryRules/delete": "azurerm_monitor_scheduled_query_rules_alert",
 
 		// Action Groups

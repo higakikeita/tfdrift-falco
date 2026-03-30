@@ -19,11 +19,11 @@ import (
 
 // Subscriber subscribes to Falco outputs via gRPC
 type Subscriber struct {
-	cfg        config.FalcoConfig
-	client     *client.Client
-	grpcConn   *grpc.ClientConn
-	isInsecure bool
-	gcpParser   *gcp.AuditParser     // GCP Audit Log parser
+	cfg         config.FalcoConfig
+	client      *client.Client
+	grpcConn    *grpc.ClientConn
+	isInsecure  bool
+	gcpParser   *gcp.AuditParser      // GCP Audit Log parser
 	azureParser *azure.ActivityParser // Azure Activity Log parser
 }
 

@@ -26,11 +26,11 @@ func DefaultRateLimitConfig() *RateLimitConfig {
 
 // TokenBucket implements a simple token bucket rate limiter
 type TokenBucket struct {
-	tokens    float64
-	maxTokens int64
-	lastTime  time.Time
+	tokens     float64
+	maxTokens  int64
+	lastTime   time.Time
 	refillRate float64
-	mu        sync.Mutex
+	mu         sync.Mutex
 }
 
 // NewTokenBucket creates a new token bucket
@@ -147,7 +147,7 @@ func RateLimit(cfg *RateLimitConfig) func(http.Handler) http.Handler {
 				w.Header().Set("X-RateLimit-Limit", "exceeded")
 
 				log.WithFields(log.Fields{
-					"client_ip":  clientIP,
+					"client_ip":   clientIP,
 					"retry_after": retryAfter,
 				}).Warn("Rate limit exceeded")
 
@@ -159,4 +159,3 @@ func RateLimit(cfg *RateLimitConfig) func(http.Handler) http.Handler {
 		})
 	}
 }
-

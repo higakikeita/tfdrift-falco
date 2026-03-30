@@ -522,9 +522,9 @@ func TestBroadcaster_BroadcastDriftAlert_HighSeverity(t *testing.T) {
 		OldValue:     map[string]string{"Environment": "prod"},
 		NewValue:     map[string]string{"Environment": "staging"},
 		UserIdentity: types.UserIdentity{
-			Type:      "IAMUser",
+			Type:        "IAMUser",
 			PrincipalID: "AIDAI23HXD2O5Q5T5EXAMPLE",
-			UserName:  "john.doe",
+			UserName:    "john.doe",
 		},
 		MatchedRules: []string{"rule1", "rule2"},
 		Timestamp:    "2024-01-01T12:00:00Z",
@@ -1003,9 +1003,9 @@ func TestBroadcaster_BroadcastUnmanagedResource_WithAttributes(t *testing.T) {
 		Name:     "unmanaged-data-bucket",
 		Region:   "us-west-2",
 		Attributes: map[string]interface{}{
-			"versioning":  true,
-			"encryption":  "AES256",
-			"acl":         "private",
+			"versioning": true,
+			"encryption": "AES256",
+			"acl":        "private",
 		},
 	}
 

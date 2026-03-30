@@ -448,9 +448,9 @@ func TestS3Backend_ImplementsBackendInterface(t *testing.T) {
 // Test NewS3Backend with region trimming
 func TestS3Backend_RegionWhitespaceTrimming(t *testing.T) {
 	tests := []struct {
-		name            string
-		inputRegion     string
-		expectedRegion  string
+		name           string
+		inputRegion    string
+		expectedRegion string
 	}{
 		{"Region with leading space", " us-west-2", "us-west-2"},
 		{"Region with trailing space", "us-west-2 ", "us-west-2"},

@@ -30,8 +30,10 @@ func (m *mockBasicProvider) ParseEvent(source string, fields map[string]string, 
 		Metadata:  make(map[string]string),
 	}
 }
-func (m *mockBasicProvider) IsRelevantEvent(eventName string) bool                              { return true }
-func (m *mockBasicProvider) MapEventToResource(eventName string, eventSource string) string      { return "mock_resource" }
+func (m *mockBasicProvider) IsRelevantEvent(eventName string) bool { return true }
+func (m *mockBasicProvider) MapEventToResource(eventName string, eventSource string) string {
+	return "mock_resource"
+}
 func (m *mockBasicProvider) ExtractChanges(eventName string, fields map[string]string) map[string]interface{} {
 	return nil
 }
@@ -215,15 +217,15 @@ func TestAWSProviderParseEventMetadata(t *testing.T) {
 
 	// Use AuthorizeSecurityGroupIngress which has explicit field mapping
 	event := p.ParseEvent("aws_cloudtrail", map[string]string{
-		"ct.name":              "AuthorizeSecurityGroupIngress",
-		"ct.src":               "ec2.amazonaws.com",
-		"ct.region":            "us-west-2",
-		"ct.request.groupid":   "sg-12345678",
-		"ct.user.type":         "IAMUser",
-		"ct.user.principalid":  "AIDAEXAMPLE",
-		"ct.user.arn":          "arn:aws:iam::123456:user/test",
-		"ct.user.accountid":    "123456789012",
-		"ct.user":              "test-user",
+		"ct.name":             "AuthorizeSecurityGroupIngress",
+		"ct.src":              "ec2.amazonaws.com",
+		"ct.region":           "us-west-2",
+		"ct.request.groupid":  "sg-12345678",
+		"ct.user.type":        "IAMUser",
+		"ct.user.principalid": "AIDAEXAMPLE",
+		"ct.user.arn":         "arn:aws:iam::123456:user/test",
+		"ct.user.accountid":   "123456789012",
+		"ct.user":             "test-user",
 	}, nil)
 
 	require.NotNil(t, event)

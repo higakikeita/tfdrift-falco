@@ -75,9 +75,9 @@ func (s *MockFalcoServer) PublishEvent(event *outputs.Response) {
 
 // EventRequest represents an event request body for HTTP API
 type EventRequest struct {
-	Rule       string                 `json:"rule"`
-	Priority   string                 `json:"priority"`
-	SourceName string                 `json:"source_name"`
+	Rule         string                 `json:"rule"`
+	Priority     string                 `json:"priority"`
+	SourceName   string                 `json:"source_name"`
 	OutputFields map[string]interface{} `json:"output_fields"`
 }
 
@@ -159,20 +159,20 @@ func (h *HTTPServer) handleEC2Change(w http.ResponseWriter, r *http.Request) {
 	}
 
 	outputFields := map[string]interface{}{
-		"source.ip":      "10.0.0.1",
-		"user.name":      "admin",
-		"evt.action":     "RunInstances",
-		"ec2.instance_id": "i-0123456789abcdef0",
-		"ec2.region":     "us-east-1",
-		"aws.service":    "ec2",
-		"evt.type":       "api_call",
-		"cloudtrail.eventname": "ModifyInstanceAttribute",
-		"cloudtrail.eventID":   "12345-67890-abcde",
+		"source.ip":                  "10.0.0.1",
+		"user.name":                  "admin",
+		"evt.action":                 "RunInstances",
+		"ec2.instance_id":            "i-0123456789abcdef0",
+		"ec2.region":                 "us-east-1",
+		"aws.service":                "ec2",
+		"evt.type":                   "api_call",
+		"cloudtrail.eventname":       "ModifyInstanceAttribute",
+		"cloudtrail.eventID":         "12345-67890-abcde",
 		"cloudtrail.sourceIPAddress": "203.0.113.42",
-		"cloudtrail.userAgent": "aws-cli/2.0",
+		"cloudtrail.userAgent":       "aws-cli/2.0",
 		"cloudtrail.requestParameters": map[string]interface{}{
-			"instanceId":              "i-0123456789abcdef0",
-			"disableApiTermination":   map[string]bool{"value": true},
+			"instanceId":            "i-0123456789abcdef0",
+			"disableApiTermination": map[string]bool{"value": true},
 		},
 	}
 
@@ -199,15 +199,15 @@ func (h *HTTPServer) handleSecurityGroupChange(w http.ResponseWriter, r *http.Re
 	}
 
 	outputFields := map[string]interface{}{
-		"source.ip":      "10.0.0.1",
-		"user.name":      "admin",
-		"evt.action":     "AuthorizeSecurityGroupIngress",
-		"ec2.sg_id":      "sg-0123456789abcdef0",
-		"ec2.region":     "us-east-1",
-		"aws.service":    "ec2",
-		"evt.type":       "api_call",
-		"cloudtrail.eventname": "AuthorizeSecurityGroupIngress",
-		"cloudtrail.eventID":   "12345-67890-fghij",
+		"source.ip":                  "10.0.0.1",
+		"user.name":                  "admin",
+		"evt.action":                 "AuthorizeSecurityGroupIngress",
+		"ec2.sg_id":                  "sg-0123456789abcdef0",
+		"ec2.region":                 "us-east-1",
+		"aws.service":                "ec2",
+		"evt.type":                   "api_call",
+		"cloudtrail.eventname":       "AuthorizeSecurityGroupIngress",
+		"cloudtrail.eventID":         "12345-67890-fghij",
 		"cloudtrail.sourceIPAddress": "203.0.113.42",
 		"cloudtrail.requestParameters": map[string]interface{}{
 			"groupId": "sg-0123456789abcdef0",
@@ -247,14 +247,14 @@ func (h *HTTPServer) handleS3Change(w http.ResponseWriter, r *http.Request) {
 	}
 
 	outputFields := map[string]interface{}{
-		"source.ip":      "10.0.0.1",
-		"user.name":      "admin",
-		"evt.action":     "PutBucketEncryption",
-		"s3.bucket_name": "my-test-bucket",
-		"aws.service":    "s3",
-		"evt.type":       "api_call",
-		"cloudtrail.eventname": "PutBucketEncryption",
-		"cloudtrail.eventID":   "12345-67890-klmno",
+		"source.ip":                  "10.0.0.1",
+		"user.name":                  "admin",
+		"evt.action":                 "PutBucketEncryption",
+		"s3.bucket_name":             "my-test-bucket",
+		"aws.service":                "s3",
+		"evt.type":                   "api_call",
+		"cloudtrail.eventname":       "PutBucketEncryption",
+		"cloudtrail.eventID":         "12345-67890-klmno",
 		"cloudtrail.sourceIPAddress": "203.0.113.42",
 		"cloudtrail.requestParameters": map[string]interface{}{
 			"bucketName": "my-test-bucket",

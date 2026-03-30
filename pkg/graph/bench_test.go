@@ -57,10 +57,10 @@ func BenchmarkAddRelationship(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		rel := &Relationship{
-			ID:        fmt.Sprintf("rel-%d", i),
-			Type:      DEPENDS_ON,
-			StartNode: fmt.Sprintf("node-%d", i),
-			EndNode:   fmt.Sprintf("node-%d", i+1),
+			ID:         fmt.Sprintf("rel-%d", i),
+			Type:       DEPENDS_ON,
+			StartNode:  fmt.Sprintf("node-%d", i),
+			EndNode:    fmt.Sprintf("node-%d", i+1),
 			Properties: map[string]interface{}{},
 		}
 		_ = db.AddRelationship(rel)
@@ -89,10 +89,10 @@ func BenchmarkGetRelationshipsByType(b *testing.B) {
 		}
 
 		_ = db.AddRelationship(&Relationship{
-			ID:        fmt.Sprintf("rel-%d", i),
-			Type:      relType,
-			StartNode: fmt.Sprintf("node-%d", i),
-			EndNode:   fmt.Sprintf("node-%d", i+1),
+			ID:         fmt.Sprintf("rel-%d", i),
+			Type:       relType,
+			StartNode:  fmt.Sprintf("node-%d", i),
+			EndNode:    fmt.Sprintf("node-%d", i+1),
 			Properties: map[string]interface{}{},
 		})
 	}
@@ -144,10 +144,10 @@ func BenchmarkFindPath(b *testing.B) {
 	// Link them in a chain
 	for i := 0; i < numNodes-1; i++ {
 		_ = db.AddRelationship(&Relationship{
-			ID:        fmt.Sprintf("rel-%d", i),
-			Type:      DEPENDS_ON,
-			StartNode: fmt.Sprintf("node-%d", i),
-			EndNode:   fmt.Sprintf("node-%d", i+1),
+			ID:         fmt.Sprintf("rel-%d", i),
+			Type:       DEPENDS_ON,
+			StartNode:  fmt.Sprintf("node-%d", i),
+			EndNode:    fmt.Sprintf("node-%d", i+1),
 			Properties: map[string]interface{}{},
 		})
 	}
@@ -178,10 +178,10 @@ func BenchmarkFindDependencies(b *testing.B) {
 	for i := 0; i < numNodes-3; i++ {
 		for j := 1; j <= 3; j++ {
 			_ = db.AddRelationship(&Relationship{
-				ID:        fmt.Sprintf("rel-%d-%d", i, j),
-				Type:      DEPENDS_ON,
-				StartNode: fmt.Sprintf("node-%d", i),
-				EndNode:   fmt.Sprintf("node-%d", i+j),
+				ID:         fmt.Sprintf("rel-%d-%d", i, j),
+				Type:       DEPENDS_ON,
+				StartNode:  fmt.Sprintf("node-%d", i),
+				EndNode:    fmt.Sprintf("node-%d", i+j),
 				Properties: map[string]interface{}{},
 			})
 		}
@@ -253,10 +253,10 @@ func BenchmarkGetAllRelationships(b *testing.B) {
 
 	for i := 0; i < numNodes-1; i++ {
 		_ = db.AddRelationship(&Relationship{
-			ID:        fmt.Sprintf("rel-%d", i),
-			Type:      DEPENDS_ON,
-			StartNode: fmt.Sprintf("node-%d", i),
-			EndNode:   fmt.Sprintf("node-%d", i+1),
+			ID:         fmt.Sprintf("rel-%d", i),
+			Type:       DEPENDS_ON,
+			StartNode:  fmt.Sprintf("node-%d", i),
+			EndNode:    fmt.Sprintf("node-%d", i+1),
 			Properties: map[string]interface{}{},
 		})
 	}
@@ -284,10 +284,10 @@ func BenchmarkGetOutgoingRelationships(b *testing.B) {
 	// All other nodes depend on node-0
 	for i := 1; i < numNodes; i++ {
 		_ = db.AddRelationship(&Relationship{
-			ID:        fmt.Sprintf("rel-%d", i),
-			Type:      DEPENDS_ON,
-			StartNode: "node-0",
-			EndNode:   fmt.Sprintf("node-%d", i),
+			ID:         fmt.Sprintf("rel-%d", i),
+			Type:       DEPENDS_ON,
+			StartNode:  "node-0",
+			EndNode:    fmt.Sprintf("node-%d", i),
 			Properties: map[string]interface{}{},
 		})
 	}
@@ -315,18 +315,18 @@ func BenchmarkGetNeighbors(b *testing.B) {
 	// Create bidirectional relationships
 	for i := 0; i < numNodes-1; i++ {
 		_ = db.AddRelationship(&Relationship{
-			ID:        fmt.Sprintf("rel-out-%d", i),
-			Type:      DEPENDS_ON,
-			StartNode: fmt.Sprintf("node-%d", i),
-			EndNode:   fmt.Sprintf("node-%d", i+1),
+			ID:         fmt.Sprintf("rel-out-%d", i),
+			Type:       DEPENDS_ON,
+			StartNode:  fmt.Sprintf("node-%d", i),
+			EndNode:    fmt.Sprintf("node-%d", i+1),
 			Properties: map[string]interface{}{},
 		})
 
 		_ = db.AddRelationship(&Relationship{
-			ID:        fmt.Sprintf("rel-in-%d", i),
-			Type:      DEPENDS_ON,
-			StartNode: fmt.Sprintf("node-%d", i+1),
-			EndNode:   fmt.Sprintf("node-%d", i),
+			ID:         fmt.Sprintf("rel-in-%d", i),
+			Type:       DEPENDS_ON,
+			StartNode:  fmt.Sprintf("node-%d", i+1),
+			EndNode:    fmt.Sprintf("node-%d", i),
 			Properties: map[string]interface{}{},
 		})
 	}
@@ -355,10 +355,10 @@ func BenchmarkClear(b *testing.B) {
 
 		for j := 0; j < numNodes-1; j++ {
 			_ = db.AddRelationship(&Relationship{
-				ID:        fmt.Sprintf("rel-%d", j),
-				Type:      DEPENDS_ON,
-				StartNode: fmt.Sprintf("node-%d", j),
-				EndNode:   fmt.Sprintf("node-%d", j+1),
+				ID:         fmt.Sprintf("rel-%d", j),
+				Type:       DEPENDS_ON,
+				StartNode:  fmt.Sprintf("node-%d", j),
+				EndNode:    fmt.Sprintf("node-%d", j+1),
 				Properties: map[string]interface{}{},
 			})
 		}

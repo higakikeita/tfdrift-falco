@@ -353,7 +353,7 @@ func TestActivityParser_ExtractChanges(t *testing.T) {
 			name:          "write operation",
 			operationName: "Microsoft.Compute/virtualMachines/write",
 			fields: map[string]string{
-				"azure.requestProperties": `{"vmSize":"Standard_D2s_v3"}`,
+				"azure.requestProperties":  `{"vmSize":"Standard_D2s_v3"}`,
 				"azure.responseProperties": `{"id":"vm-123"}`,
 			},
 			checkFunc: func(t *testing.T, changes map[string]interface{}) {

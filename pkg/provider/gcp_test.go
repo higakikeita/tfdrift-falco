@@ -254,13 +254,13 @@ func TestGCPCompareState_BothResourcesEmpty(t *testing.T) {
 func TestGCPParseEvent_CorrectSource(t *testing.T) {
 	p := NewGCPProvider()
 	event := p.ParseEvent("gcpaudit", map[string]string{
-		"gcp.methodName":  "compute.instances.insert",
+		"gcp.methodName":    "compute.instances.insert",
 		"gcp.resource.name": "projects/test-project/zones/us-central1-a/instances/instance-1",
-		"gcp.user":        "user@example.com",
-		"gcp.projectId":   "test-project",
-		"gcp.serviceName": "compute.googleapis.com",
-		"gcp.zone":        "us-central1-a",
-		"gcp.region":      "us-central1",
+		"gcp.user":          "user@example.com",
+		"gcp.projectId":     "test-project",
+		"gcp.serviceName":   "compute.googleapis.com",
+		"gcp.zone":          "us-central1-a",
+		"gcp.region":        "us-central1",
 	}, nil)
 
 	require.NotNil(t, event)
@@ -301,11 +301,11 @@ func TestGCPParseEvent_IrrelevantEvent(t *testing.T) {
 func TestGCPParseEvent_PreParsedEvent(t *testing.T) {
 	p := NewGCPProvider()
 	preparsed := &types.Event{
-		Provider:  "gcp",
-		EventName: "compute.instances.insert",
-		ProjectID: "test-project",
+		Provider:    "gcp",
+		EventName:   "compute.instances.insert",
+		ProjectID:   "test-project",
 		ServiceName: "compute.googleapis.com",
-		Metadata:  map[string]string{"key": "value"},
+		Metadata:    map[string]string{"key": "value"},
 	}
 	event := p.ParseEvent("gcpaudit", map[string]string{}, preparsed)
 
@@ -332,13 +332,13 @@ func TestGCPParseEvent_PreParsedEventNilMetadata(t *testing.T) {
 func TestGCPParseEvent_AllMetadataFields(t *testing.T) {
 	p := NewGCPProvider()
 	event := p.ParseEvent("gcpaudit", map[string]string{
-		"gcp.methodName":   "storage.buckets.create",
+		"gcp.methodName":    "storage.buckets.create",
 		"gcp.resource.name": "projects/test-project/buckets/my-bucket",
-		"gcp.user":         "user@example.com",
-		"gcp.projectId":    "test-project",
-		"gcp.serviceName":  "storage.googleapis.com",
-		"gcp.zone":         "us-central1-a",
-		"gcp.region":       "us-central1",
+		"gcp.user":          "user@example.com",
+		"gcp.projectId":     "test-project",
+		"gcp.serviceName":   "storage.googleapis.com",
+		"gcp.zone":          "us-central1-a",
+		"gcp.region":        "us-central1",
 	}, nil)
 
 	require.NotNil(t, event)

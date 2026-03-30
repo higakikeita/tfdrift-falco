@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 )
 
@@ -18,6 +18,6 @@ func TestAWSClientImplementsInterfaces(t *testing.T) {
 	var _ EKSAPI = (*eks.Client)(nil)
 	var _ ElastiCacheAPI = (*elasticache.Client)(nil)
 	var _ ELBAPI = (*elasticloadbalancingv2.Client)(nil)
-	
+
 	t.Log("All AWS SDK clients correctly implement their respective interfaces")
 }

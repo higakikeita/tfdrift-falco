@@ -34,9 +34,9 @@ func (g *RemediationGenerator) GenerateForDrift(alert *types.DriftAlert) *types.
 		Status:       types.RemediationPending,
 		CreatedAt:    time.Now().UTC().Format(time.RFC3339),
 		Attributes: map[string]interface{}{
-			"attribute":  alert.Attribute,
-			"old_value":  alert.OldValue,
-			"new_value":  alert.NewValue,
+			"attribute": alert.Attribute,
+			"old_value": alert.OldValue,
+			"new_value": alert.NewValue,
 		},
 	}
 

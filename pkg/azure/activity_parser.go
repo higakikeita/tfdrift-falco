@@ -153,7 +153,7 @@ func (p *ActivityParser) createConfig() parser.EventParserConfig {
 func (p *ActivityParser) isRelevantEvent(operationName string) bool {
 	relevantEvents := map[string]bool{
 		// Compute - Virtual Machines
-		"Microsoft.Compute/virtualMachines/write":              true,
+		"Microsoft.Compute/virtualMachines/write":             true,
 		"Microsoft.Compute/virtualMachines/delete":            true,
 		"Microsoft.Compute/virtualMachines/start/action":      true,
 		"Microsoft.Compute/virtualMachines/powerOff/action":   true,
@@ -171,15 +171,15 @@ func (p *ActivityParser) isRelevantEvent(operationName string) bool {
 		"Microsoft.Network/networkSecurityGroups/securityRules/delete": true,
 
 		// Network - Virtual Networks
-		"Microsoft.Network/virtualNetworks/write":        true,
-		"Microsoft.Network/virtualNetworks/delete":       true,
-		"Microsoft.Network/virtualNetworks/subnets/write":   true,
-		"Microsoft.Network/virtualNetworks/subnets/delete":  true,
+		"Microsoft.Network/virtualNetworks/write":          true,
+		"Microsoft.Network/virtualNetworks/delete":         true,
+		"Microsoft.Network/virtualNetworks/subnets/write":  true,
+		"Microsoft.Network/virtualNetworks/subnets/delete": true,
 
 		// Network - Load Balancer
-		"Microsoft.Network/loadBalancers/write":    true,
-		"Microsoft.Network/loadBalancers/delete":   true,
-		"Microsoft.Network/loadBalancers/backendAddressPools/write": true,
+		"Microsoft.Network/loadBalancers/write":                      true,
+		"Microsoft.Network/loadBalancers/delete":                     true,
+		"Microsoft.Network/loadBalancers/backendAddressPools/write":  true,
 		"Microsoft.Network/loadBalancers/backendAddressPools/delete": true,
 
 		// Network - Public IP
@@ -191,42 +191,42 @@ func (p *ActivityParser) isRelevantEvent(operationName string) bool {
 		"Microsoft.Network/networkInterfaces/delete": true,
 
 		// Network - Route Tables
-		"Microsoft.Network/routeTables/write":   true,
-		"Microsoft.Network/routeTables/delete":  true,
-		"Microsoft.Network/routeTables/routes/write":   true,
-		"Microsoft.Network/routeTables/routes/delete":  true,
+		"Microsoft.Network/routeTables/write":         true,
+		"Microsoft.Network/routeTables/delete":        true,
+		"Microsoft.Network/routeTables/routes/write":  true,
+		"Microsoft.Network/routeTables/routes/delete": true,
 
 		// Network - CDN
-		"Microsoft.Cdn/profiles/write":   true,
-		"Microsoft.Cdn/profiles/delete":  true,
-		"Microsoft.Cdn/profiles/endpoints/write":   true,
-		"Microsoft.Cdn/profiles/endpoints/delete":  true,
+		"Microsoft.Cdn/profiles/write":            true,
+		"Microsoft.Cdn/profiles/delete":           true,
+		"Microsoft.Cdn/profiles/endpoints/write":  true,
+		"Microsoft.Cdn/profiles/endpoints/delete": true,
 
 		// Network - Front Door
-		"Microsoft.Network/frontDoors/write":   true,
-		"Microsoft.Network/frontDoors/delete":  true,
+		"Microsoft.Network/frontDoors/write":  true,
+		"Microsoft.Network/frontDoors/delete": true,
 
 		// Network - Application Gateway
-		"Microsoft.Network/applicationGateways/write":   true,
-		"Microsoft.Network/applicationGateways/delete":  true,
+		"Microsoft.Network/applicationGateways/write":  true,
+		"Microsoft.Network/applicationGateways/delete": true,
 
 		// Network - Firewall
-		"Microsoft.Network/azureFirewalls/write":   true,
-		"Microsoft.Network/azureFirewalls/delete":  true,
-		"Microsoft.Network/firewallPolicies/write":   true,
-		"Microsoft.Network/firewallPolicies/delete":  true,
+		"Microsoft.Network/azureFirewalls/write":    true,
+		"Microsoft.Network/azureFirewalls/delete":   true,
+		"Microsoft.Network/firewallPolicies/write":  true,
+		"Microsoft.Network/firewallPolicies/delete": true,
 
 		// Network - Private Endpoints
-		"Microsoft.Network/privateEndpoints/write":   true,
-		"Microsoft.Network/privateEndpoints/delete":  true,
+		"Microsoft.Network/privateEndpoints/write":  true,
+		"Microsoft.Network/privateEndpoints/delete": true,
 
 		// Storage - Storage Accounts
 		"Microsoft.Storage/storageAccounts/write":  true,
 		"Microsoft.Storage/storageAccounts/delete": true,
 
 		// Storage - Blob Services
-		"Microsoft.Storage/storageAccounts/blobServices/write":   true,
-		"Microsoft.Storage/storageAccounts/blobServices/delete":  true,
+		"Microsoft.Storage/storageAccounts/blobServices/write":  true,
+		"Microsoft.Storage/storageAccounts/blobServices/delete": true,
 
 		// SQL - Servers
 		"Microsoft.Sql/servers/write":  true,
@@ -241,12 +241,12 @@ func (p *ActivityParser) isRelevantEvent(operationName string) bool {
 		"Microsoft.DocumentDB/databaseAccounts/delete": true,
 
 		// Key Vault
-		"Microsoft.KeyVault/vaults/write":  true,
-		"Microsoft.KeyVault/vaults/delete": true,
-		"Microsoft.KeyVault/vaults/secrets/write":   true,
-		"Microsoft.KeyVault/vaults/secrets/delete":  true,
-		"Microsoft.KeyVault/vaults/keys/write":   true,
-		"Microsoft.KeyVault/vaults/keys/delete":  true,
+		"Microsoft.KeyVault/vaults/write":          true,
+		"Microsoft.KeyVault/vaults/delete":         true,
+		"Microsoft.KeyVault/vaults/secrets/write":  true,
+		"Microsoft.KeyVault/vaults/secrets/delete": true,
+		"Microsoft.KeyVault/vaults/keys/write":     true,
+		"Microsoft.KeyVault/vaults/keys/delete":    true,
 
 		// App Service - Web Apps & Function Apps
 		"Microsoft.Web/sites/write":  true,
@@ -265,30 +265,30 @@ func (p *ActivityParser) isRelevantEvent(operationName string) bool {
 		"Microsoft.ContainerRegistry/registries/delete": true,
 
 		// DNS
-		"Microsoft.Network/dnszones/write":     true,
-		"Microsoft.Network/dnszones/delete":    true,
-		"Microsoft.Network/dnszones/recordSets/write":   true,
-		"Microsoft.Network/dnszones/recordSets/delete":  true,
+		"Microsoft.Network/dnszones/write":             true,
+		"Microsoft.Network/dnszones/delete":            true,
+		"Microsoft.Network/dnszones/recordSets/write":  true,
+		"Microsoft.Network/dnszones/recordSets/delete": true,
 
 		// Redis Cache
 		"Microsoft.Cache/redis/write":  true,
 		"Microsoft.Cache/redis/delete": true,
 
 		// Service Bus
-		"Microsoft.ServiceBus/namespaces/write":  true,
-		"Microsoft.ServiceBus/namespaces/delete": true,
-		"Microsoft.ServiceBus/namespaces/queues/write":   true,
-		"Microsoft.ServiceBus/namespaces/queues/delete":  true,
-		"Microsoft.ServiceBus/namespaces/topics/write":   true,
-		"Microsoft.ServiceBus/namespaces/topics/delete":  true,
+		"Microsoft.ServiceBus/namespaces/write":         true,
+		"Microsoft.ServiceBus/namespaces/delete":        true,
+		"Microsoft.ServiceBus/namespaces/queues/write":  true,
+		"Microsoft.ServiceBus/namespaces/queues/delete": true,
+		"Microsoft.ServiceBus/namespaces/topics/write":  true,
+		"Microsoft.ServiceBus/namespaces/topics/delete": true,
 
 		// Event Grid
 		"Microsoft.EventGrid/topics/write":  true,
 		"Microsoft.EventGrid/topics/delete": true,
 
 		// Monitoring - Alert Rules
-		"Microsoft.Insights/metricAlerts/write":  true,
-		"Microsoft.Insights/metricAlerts/delete": true,
+		"Microsoft.Insights/metricAlerts/write":         true,
+		"Microsoft.Insights/metricAlerts/delete":        true,
 		"Microsoft.Insights/scheduledQueryRules/write":  true,
 		"Microsoft.Insights/scheduledQueryRules/delete": true,
 
@@ -321,10 +321,10 @@ func (p *ActivityParser) isRelevantEvent(operationName string) bool {
 		"Microsoft.Authorization/locks/delete": true,
 
 		// API Management
-		"Microsoft.ApiManagement/service/write":  true,
-		"Microsoft.ApiManagement/service/delete": true,
-		"Microsoft.ApiManagement/service/apis/write":   true,
-		"Microsoft.ApiManagement/service/apis/delete":  true,
+		"Microsoft.ApiManagement/service/write":       true,
+		"Microsoft.ApiManagement/service/delete":      true,
+		"Microsoft.ApiManagement/service/apis/write":  true,
+		"Microsoft.ApiManagement/service/apis/delete": true,
 	}
 
 	return relevantEvents[operationName]
@@ -411,7 +411,6 @@ func (p *ActivityParser) extractChanges(eventName string, fields map[string]stri
 
 	return changes
 }
-
 
 // ValidateEvent performs validation on parsed event
 func (p *ActivityParser) ValidateEvent(event *types.Event) error {

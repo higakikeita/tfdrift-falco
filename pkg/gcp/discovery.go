@@ -7,9 +7,9 @@ import (
 
 	compute "google.golang.org/api/compute/v1"
 	container "google.golang.org/api/container/v1"
+	"google.golang.org/api/option"
 	run "google.golang.org/api/run/v2"
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
-	"google.golang.org/api/option"
 
 	"cloud.google.com/go/storage"
 	log "github.com/sirupsen/logrus"
@@ -215,12 +215,12 @@ func subnetworkToDiscovered(projectID string, s *compute.Subnetwork) *Discovered
 		Region:   region,
 		SelfLink: s.SelfLink,
 		Attributes: map[string]interface{}{
-			"name":                       s.Name,
-			"network":                    s.Network,
-			"ip_cidr_range":              s.IpCidrRange,
-			"region":                     region,
-			"private_ip_google_access":   s.PrivateIpGoogleAccess,
-			"purpose":                    s.Purpose,
+			"name":                     s.Name,
+			"network":                  s.Network,
+			"ip_cidr_range":            s.IpCidrRange,
+			"region":                   region,
+			"private_ip_google_access": s.PrivateIpGoogleAccess,
+			"purpose":                  s.Purpose,
 		},
 	}
 }
@@ -414,16 +414,16 @@ func (d *DiscoveryClient) discoverGKEClusters(ctx context.Context) ([]*Discovere
 		}
 
 		attrs := map[string]interface{}{
-			"name":                  cluster.Name,
-			"location":              cluster.Location,
-			"network":               cluster.Network,
-			"subnetwork":            cluster.Subnetwork,
-			"cluster_ipv4_cidr":     cluster.ClusterIpv4Cidr,
-			"services_ipv4_cidr":    cluster.ServicesIpv4Cidr,
+			"name":                   cluster.Name,
+			"location":               cluster.Location,
+			"network":                cluster.Network,
+			"subnetwork":             cluster.Subnetwork,
+			"cluster_ipv4_cidr":      cluster.ClusterIpv4Cidr,
+			"services_ipv4_cidr":     cluster.ServicesIpv4Cidr,
 			"current_master_version": cluster.CurrentMasterVersion,
-			"current_node_version":  cluster.CurrentNodeVersion,
-			"status":                cluster.Status,
-			"initial_node_count":    cluster.InitialNodeCount,
+			"current_node_version":   cluster.CurrentNodeVersion,
+			"status":                 cluster.Status,
+			"initial_node_count":     cluster.InitialNodeCount,
 		}
 
 		resources = append(resources, &DiscoveredResource{

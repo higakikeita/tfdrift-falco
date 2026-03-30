@@ -16,10 +16,10 @@ func TestValuesEqual_NilBothNil(t *testing.T) {
 
 func TestValuesEqual_BooleanStringComparisons(t *testing.T) {
 	tests := []struct {
-		name  string
-		a     interface{}
-		b     interface{}
-		want  bool
+		name string
+		a    interface{}
+		b    interface{}
+		want bool
 	}{
 		{"bool_true_string_true", true, "true", true},
 		{"bool_false_string_false", false, "false", true},
@@ -59,15 +59,15 @@ func TestGetNestedValue_NonMapIntermediate(t *testing.T) {
 func TestLabelsEqual_WithGoogLabels(t *testing.T) {
 	tfAttrs := map[string]interface{}{
 		"labels": map[string]interface{}{
-			"env":       "prod",
-			"team":      "backend",
+			"env":  "prod",
+			"team": "backend",
 		},
 	}
 	gcpLabels := map[string]string{
-		"env":                 "prod",
-		"team":                "backend",
-		"goog-managed-by":     "terraform",
-		"gke-cluster-name":    "my-cluster",
+		"env":              "prod",
+		"team":             "backend",
+		"goog-managed-by":  "terraform",
+		"gke-cluster-name": "my-cluster",
 	}
 	assert.True(t, labelsEqual(tfAttrs, gcpLabels))
 }
@@ -359,10 +359,10 @@ func TestAuditParser_Parse_ComplexResourceName(t *testing.T) {
 func TestGetTerraformLabels_NonStringValues(t *testing.T) {
 	attrs := map[string]interface{}{
 		"labels": map[string]interface{}{
-			"env":      "prod",
-			"count":    42,
-			"enabled":  true,
-			"version":  3.14,
+			"env":     "prod",
+			"count":   42,
+			"enabled": true,
+			"version": 3.14,
 		},
 	}
 	labels := getTerraformLabels(attrs)
@@ -402,9 +402,9 @@ func TestCompareResourceAttributes_SQLInstance(t *testing.T) {
 	tfRes := &TerraformResource{
 		Type: "google_sql_database_instance",
 		Attributes: map[string]interface{}{
-			"database_version": "MYSQL_8_0",
-			"region":           "us-central1",
-			"tier":             "db-f1-micro",
+			"database_version":  "MYSQL_8_0",
+			"region":            "us-central1",
+			"tier":              "db-f1-micro",
 			"availability_type": "ZONAL",
 		},
 	}
@@ -412,9 +412,9 @@ func TestCompareResourceAttributes_SQLInstance(t *testing.T) {
 		Type: "google_sql_database_instance",
 		ID:   "prod-db",
 		Attributes: map[string]interface{}{
-			"database_version": "MYSQL_8_0",
-			"region":           "us-central1",
-			"tier":             "db-f1-micro",
+			"database_version":  "MYSQL_8_0",
+			"region":            "us-central1",
+			"tier":              "db-f1-micro",
 			"availability_type": "ZONAL",
 		},
 	}
@@ -428,8 +428,8 @@ func TestCompareResourceAttributes_SubnetworkResource(t *testing.T) {
 	tfRes := &TerraformResource{
 		Type: "google_compute_subnetwork",
 		Attributes: map[string]interface{}{
-			"ip_cidr_range":           "10.0.0.0/24",
-			"network":                 "default",
+			"ip_cidr_range":            "10.0.0.0/24",
+			"network":                  "default",
 			"private_ip_google_access": true,
 		},
 	}
@@ -437,8 +437,8 @@ func TestCompareResourceAttributes_SubnetworkResource(t *testing.T) {
 		Type: "google_compute_subnetwork",
 		ID:   "default-us-central1",
 		Attributes: map[string]interface{}{
-			"ip_cidr_range":           "10.0.0.0/24",
-			"network":                 "default",
+			"ip_cidr_range":            "10.0.0.0/24",
+			"network":                  "default",
 			"private_ip_google_access": true,
 		},
 	}
@@ -621,9 +621,9 @@ func TestAuditParser_Parse_FirewallCreation(t *testing.T) {
 	res := &outputs.Response{
 		Source: "gcpaudit",
 		OutputFields: map[string]string{
-			"gcp.methodName":        "compute.firewalls.insert",
-			"gcp.resource.name":     "projects/123/global/firewalls/allow-ssh",
-			"gcp.serviceName":       "compute.googleapis.com",
+			"gcp.methodName":                        "compute.firewalls.insert",
+			"gcp.resource.name":                     "projects/123/global/firewalls/allow-ssh",
+			"gcp.serviceName":                       "compute.googleapis.com",
 			"gcp.authenticationInfo.principalEmail": "user@example.com",
 		},
 	}
@@ -638,9 +638,9 @@ func TestAuditParser_Parse_SubnetworkCreation(t *testing.T) {
 	res := &outputs.Response{
 		Source: "gcpaudit",
 		OutputFields: map[string]string{
-			"gcp.methodName":        "compute.subnetworks.insert",
-			"gcp.resource.name":     "projects/proj/regions/us-west1/subnetworks/subnet-1",
-			"gcp.serviceName":       "compute.googleapis.com",
+			"gcp.methodName":                        "compute.subnetworks.insert",
+			"gcp.resource.name":                     "projects/proj/regions/us-west1/subnetworks/subnet-1",
+			"gcp.serviceName":                       "compute.googleapis.com",
 			"gcp.authenticationInfo.principalEmail": "terraform@proj.iam.gserviceaccount.com",
 		},
 	}
@@ -661,4 +661,3 @@ func TestAuditParser_ExtractResourceID_SingleSegment(t *testing.T) {
 	id := parser.extractResourceIDFromName("resource-name")
 	assert.Equal(t, "resource-name", id)
 }
-

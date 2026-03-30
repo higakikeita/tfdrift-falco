@@ -98,8 +98,8 @@ func TestHasLabel(t *testing.T) {
 	db := NewDatabase()
 
 	node := &Node{
-		ID:     "test-node",
-		Labels: []string{"Resource", "EC2", "Drifted"},
+		ID:         "test-node",
+		Labels:     []string{"Resource", "EC2", "Drifted"},
 		Properties: map[string]interface{}{},
 	}
 
@@ -180,10 +180,10 @@ func TestRelationshipValidation(t *testing.T) {
 
 	// Try to create relationship where end node doesn't exist
 	rel := &Relationship{
-		ID:        "rel-invalid",
-		Type:      DEPENDS_ON,
-		StartNode: "ec2-1",
-		EndNode:   "non-existent",
+		ID:         "rel-invalid",
+		Type:       DEPENDS_ON,
+		StartNode:  "ec2-1",
+		EndNode:    "non-existent",
 		Properties: map[string]interface{}{},
 	}
 
@@ -212,18 +212,18 @@ func TestGetOutgoingRelationships(t *testing.T) {
 
 	// Create outgoing relationships from ec2
 	rel1 := &Relationship{
-		ID:        "rel-1",
-		Type:      DEPENDS_ON,
-		StartNode: "ec2-1",
-		EndNode:   "subnet-1",
+		ID:         "rel-1",
+		Type:       DEPENDS_ON,
+		StartNode:  "ec2-1",
+		EndNode:    "subnet-1",
 		Properties: map[string]interface{}{},
 	}
 
 	rel2 := &Relationship{
-		ID:        "rel-2",
-		Type:      SECURES,
-		StartNode: "sg-1",
-		EndNode:   "ec2-1",
+		ID:         "rel-2",
+		Type:       SECURES,
+		StartNode:  "sg-1",
+		EndNode:    "ec2-1",
 		Properties: map[string]interface{}{},
 	}
 
@@ -258,18 +258,18 @@ func TestGetIncomingRelationships(t *testing.T) {
 
 	// Create relationships
 	rel1 := &Relationship{
-		ID:        "rel-1",
-		Type:      DEPENDS_ON,
-		StartNode: "ec2-1",
-		EndNode:   "subnet-1",
+		ID:         "rel-1",
+		Type:       DEPENDS_ON,
+		StartNode:  "ec2-1",
+		EndNode:    "subnet-1",
 		Properties: map[string]interface{}{},
 	}
 
 	rel2 := &Relationship{
-		ID:        "rel-2",
-		Type:      SECURES,
-		StartNode: "sg-1",
-		EndNode:   "ec2-1",
+		ID:         "rel-2",
+		Type:       SECURES,
+		StartNode:  "sg-1",
+		EndNode:    "ec2-1",
 		Properties: map[string]interface{}{},
 	}
 
@@ -308,24 +308,24 @@ func TestGetRelationshipsByType(t *testing.T) {
 	// Create relationships
 	relationships := []*Relationship{
 		{
-			ID:        "rel-1",
-			Type:      DEPENDS_ON,
-			StartNode: "ec2-1",
-			EndNode:   "subnet-1",
+			ID:         "rel-1",
+			Type:       DEPENDS_ON,
+			StartNode:  "ec2-1",
+			EndNode:    "subnet-1",
 			Properties: map[string]interface{}{},
 		},
 		{
-			ID:        "rel-2",
-			Type:      PART_OF,
-			StartNode: "subnet-1",
-			EndNode:   "vpc-1",
+			ID:         "rel-2",
+			Type:       PART_OF,
+			StartNode:  "subnet-1",
+			EndNode:    "vpc-1",
 			Properties: map[string]interface{}{},
 		},
 		{
-			ID:        "rel-3",
-			Type:      DEPENDS_ON,
-			StartNode: "subnet-1",
-			EndNode:   "vpc-1",
+			ID:         "rel-3",
+			Type:       DEPENDS_ON,
+			StartNode:  "subnet-1",
+			EndNode:    "vpc-1",
 			Properties: map[string]interface{}{},
 		},
 	}
@@ -1260,10 +1260,10 @@ func TestImpactRadiusDistances(t *testing.T) {
 		id := "leaf-" + string(rune('0'+i))
 		db.AddNode(&Node{ID: id, Labels: []string{"Leaf"}, Properties: map[string]interface{}{}})
 		db.AddRelationship(&Relationship{
-			ID:        "rel-" + string(rune('0'+i)),
-			Type:      CONNECTS_TO,
-			StartNode: "center",
-			EndNode:   id,
+			ID:         "rel-" + string(rune('0'+i)),
+			Type:       CONNECTS_TO,
+			StartNode:  "center",
+			EndNode:    id,
 			Properties: map[string]interface{}{},
 		})
 	}
@@ -1441,19 +1441,19 @@ func TestNodeDeletionWithMultipleRelationships(t *testing.T) {
 
 		// Outgoing from hub
 		db.AddRelationship(&Relationship{
-			ID:        "out-" + id,
-			Type:      DEPENDS_ON,
-			StartNode: "hub",
-			EndNode:   id,
+			ID:         "out-" + id,
+			Type:       DEPENDS_ON,
+			StartNode:  "hub",
+			EndNode:    id,
 			Properties: map[string]interface{}{},
 		})
 
 		// Incoming to hub
 		db.AddRelationship(&Relationship{
-			ID:        "in-" + id,
-			Type:      DEPENDS_ON,
-			StartNode: id,
-			EndNode:   "hub",
+			ID:         "in-" + id,
+			Type:       DEPENDS_ON,
+			StartNode:  id,
+			EndNode:    "hub",
 			Properties: map[string]interface{}{},
 		})
 	}
@@ -1885,8 +1885,8 @@ func TestExtractResourceName(t *testing.T) {
 		{
 			name: "fallback to tf name",
 			resource: &terraform.Resource{
-				Name: "tf-resource",
-				Type: "aws_instance",
+				Name:       "tf-resource",
+				Type:       "aws_instance",
 				Attributes: map[string]interface{}{},
 			},
 			expected: "tf-resource",
@@ -1894,8 +1894,8 @@ func TestExtractResourceName(t *testing.T) {
 		{
 			name: "fallback to resource type",
 			resource: &terraform.Resource{
-				Name: "",
-				Type: "aws_instance",
+				Name:       "",
+				Type:       "aws_instance",
 				Attributes: map[string]interface{}{},
 			},
 			expected: "aws_instance",
@@ -2021,11 +2021,11 @@ func TestBuildHierarchyWithSubnet(t *testing.T) {
 			Type: "aws_subnet",
 			Name: "public-subnet",
 			Attributes: map[string]interface{}{
-				"id":                       "subnet-87654321",
-				"vpc_id":                   "vpc-12345678",
-				"cidr_block":               "10.0.1.0/24",
-				"availability_zone":        "us-east-1a",
-				"map_public_ip_on_launch":  true,
+				"id":                      "subnet-87654321",
+				"vpc_id":                  "vpc-12345678",
+				"cidr_block":              "10.0.1.0/24",
+				"availability_zone":       "us-east-1a",
+				"map_public_ip_on_launch": true,
 			},
 		},
 	}
@@ -2249,10 +2249,10 @@ func TestAddRelationshipMissingStartNode(t *testing.T) {
 	db.AddNode(endNode)
 
 	rel := &Relationship{
-		ID:        "rel-1",
-		Type:      DEPENDS_ON,
-		StartNode: "missing-node",
-		EndNode:   "node-2",
+		ID:         "rel-1",
+		Type:       DEPENDS_ON,
+		StartNode:  "missing-node",
+		EndNode:    "node-2",
 		Properties: map[string]interface{}{},
 	}
 
@@ -2274,10 +2274,10 @@ func TestAddRelationshipMissingEndNode(t *testing.T) {
 	db.AddNode(startNode)
 
 	rel := &Relationship{
-		ID:        "rel-1",
-		Type:      DEPENDS_ON,
-		StartNode: "node-1",
-		EndNode:   "missing-node",
+		ID:         "rel-1",
+		Type:       DEPENDS_ON,
+		StartNode:  "node-1",
+		EndNode:    "missing-node",
 		Properties: map[string]interface{}{},
 	}
 
@@ -2290,7 +2290,6 @@ func TestAddRelationshipMissingEndNode(t *testing.T) {
 		t.Errorf("Expected ErrNodeNotFound, got %v", err)
 	}
 }
-
 
 // TestConcurrentNodeAddition tests concurrent node additions
 func TestConcurrentNodeAddition(t *testing.T) {
@@ -2519,8 +2518,8 @@ func TestExtractRelationshipsRDS(t *testing.T) {
 		Type: "aws_db_instance",
 		Name: "prod-db",
 		Attributes: map[string]interface{}{
-			"id":                   "prod-db-instance",
-			"db_subnet_group_name": "subnet-group-1",
+			"id":                     "prod-db-instance",
+			"db_subnet_group_name":   "subnet-group-1",
 			"vpc_security_group_ids": []interface{}{"sg-123", "sg-456"},
 		},
 	}
@@ -2602,9 +2601,9 @@ func TestAddResourceSpecificPropertiesSubnet(t *testing.T) {
 	resource := &terraform.Resource{
 		Type: "aws_subnet",
 		Attributes: map[string]interface{}{
-			"cidr_block":               "10.0.1.0/24",
-			"availability_zone":        "us-east-1a",
-			"map_public_ip_on_launch":  true,
+			"cidr_block":              "10.0.1.0/24",
+			"availability_zone":       "us-east-1a",
+			"map_public_ip_on_launch": true,
 		},
 	}
 
@@ -2629,10 +2628,10 @@ func TestAddResourceSpecificPropertiesEC2(t *testing.T) {
 	resource := &terraform.Resource{
 		Type: "aws_instance",
 		Attributes: map[string]interface{}{
-			"instance_type": "t3.medium",
+			"instance_type":  "t3.medium",
 			"instance_state": "running",
-			"private_ip":    "10.0.1.100",
-			"public_ip":     "203.0.113.1",
+			"private_ip":     "10.0.1.100",
+			"public_ip":      "203.0.113.1",
 		},
 	}
 
@@ -2669,9 +2668,9 @@ func TestHierarchyAssignResourceToSubnet(t *testing.T) {
 			Type: "aws_subnet",
 			Name: "public-subnet",
 			Attributes: map[string]interface{}{
-				"id":         "subnet-87654321",
-				"vpc_id":     "vpc-12345678",
-				"cidr_block": "10.0.1.0/24",
+				"id":                "subnet-87654321",
+				"vpc_id":            "vpc-12345678",
+				"cidr_block":        "10.0.1.0/24",
 				"availability_zone": "us-east-1a",
 			},
 		},
@@ -2778,10 +2777,10 @@ func TestMatchPropertyFiltering(t *testing.T) {
 	db.AddNode(node2)
 
 	db.AddRelationship(&Relationship{
-		ID:        "rel-1",
-		Type:      CONTAINS,
-		StartNode: "vpc-1",
-		EndNode:   "subnet-1",
+		ID:         "rel-1",
+		Type:       CONTAINS,
+		StartNode:  "vpc-1",
+		EndNode:    "subnet-1",
 		Properties: map[string]interface{}{},
 	})
 
@@ -2829,8 +2828,8 @@ func TestHasAllLabelsMultiple(t *testing.T) {
 	db := NewDatabase()
 
 	node := &Node{
-		ID:     "node-1",
-		Labels: []string{"Resource", "EC2", "Drifted"},
+		ID:         "node-1",
+		Labels:     []string{"Resource", "EC2", "Drifted"},
 		Properties: map[string]interface{}{},
 	}
 
@@ -2858,8 +2857,8 @@ func TestBuildDependencyEdgesEC2(t *testing.T) {
 			Type: "aws_instance",
 			Name: "web-server",
 			Attributes: map[string]interface{}{
-				"id":        "i-123",
-				"subnet_id": "subnet-456",
+				"id":                     "i-123",
+				"subnet_id":              "subnet-456",
 				"vpc_security_group_ids": []interface{}{"sg-789"},
 			},
 		},

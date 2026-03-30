@@ -26,17 +26,17 @@ type EvalResult struct {
 
 // DriftInput is the input document passed to Rego policies for drift evaluation.
 type DriftInput struct {
-	Type         string      `json:"type"`          // "drift" or "unmanaged"
-	Provider     string      `json:"provider"`
-	ResourceType string      `json:"resource_type"`
-	ResourceID   string      `json:"resource_id"`
-	ResourceName string      `json:"resource_name"`
-	Attribute    string      `json:"attribute,omitempty"`
-	OldValue     interface{} `json:"old_value,omitempty"`
-	NewValue     interface{} `json:"new_value,omitempty"`
-	Severity     string      `json:"severity"`
-	UserIdentity UserInput   `json:"user_identity"`
-	Timestamp    string      `json:"timestamp,omitempty"`
+	Type         string                 `json:"type"` // "drift" or "unmanaged"
+	Provider     string                 `json:"provider"`
+	ResourceType string                 `json:"resource_type"`
+	ResourceID   string                 `json:"resource_id"`
+	ResourceName string                 `json:"resource_name"`
+	Attribute    string                 `json:"attribute,omitempty"`
+	OldValue     interface{}            `json:"old_value,omitempty"`
+	NewValue     interface{}            `json:"new_value,omitempty"`
+	Severity     string                 `json:"severity"`
+	UserIdentity UserInput              `json:"user_identity"`
+	Timestamp    string                 `json:"timestamp,omitempty"`
 	Changes      map[string]interface{} `json:"changes,omitempty"`
 }
 

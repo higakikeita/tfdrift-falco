@@ -248,16 +248,16 @@ func TestCrossCloudCorrelator_ResourcePatternScoreMultiplier(t *testing.T) {
 
 func TestResourceCategory_AllCategories(t *testing.T) {
 	categories := map[string][]string{
-		"compute": {"aws_instance", "google_compute_instance", "azurerm_virtual_machine"},
-		"network": {"aws_vpc", "google_compute_network", "azurerm_virtual_network"},
-		"firewall": {"aws_security_group", "google_compute_firewall", "azurerm_network_security_group"},
+		"compute":       {"aws_instance", "google_compute_instance", "azurerm_virtual_machine"},
+		"network":       {"aws_vpc", "google_compute_network", "azurerm_virtual_network"},
+		"firewall":      {"aws_security_group", "google_compute_firewall", "azurerm_network_security_group"},
 		"load_balancer": {"aws_lb", "google_compute_backend_service"},
-		"storage": {"aws_s3_bucket", "google_storage_bucket", "azurerm_storage_account"},
-		"database": {"aws_db_instance", "google_sql_database_instance"},
-		"kubernetes": {"aws_eks_cluster", "google_container_cluster"},
-		"dns": {"aws_route53_zone", "google_dns_managed_zone"},
-		"iam": {"aws_iam_role", "google_service_account", "azurerm_role_assignment"},
-		"secrets": {"aws_secretsmanager_secret", "google_secret_manager_secret"},
+		"storage":       {"aws_s3_bucket", "google_storage_bucket", "azurerm_storage_account"},
+		"database":      {"aws_db_instance", "google_sql_database_instance"},
+		"kubernetes":    {"aws_eks_cluster", "google_container_cluster"},
+		"dns":           {"aws_route53_zone", "google_dns_managed_zone"},
+		"iam":           {"aws_iam_role", "google_service_account", "azurerm_role_assignment"},
+		"secrets":       {"aws_secretsmanager_secret", "google_secret_manager_secret"},
 	}
 
 	for expectedCategory, resources := range categories {

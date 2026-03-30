@@ -22,9 +22,9 @@ var (
 type AzureProvider struct {
 	parser         *azurepkg.ActivityParser
 	mapper         *azurepkg.ResourceMapper
-	subscriptionID string   // Azure subscription ID for resource discovery
-	regions        []string // configured Azure regions/locations
-	resourceGroup  string   // optional: limit discovery to a resource group
+	subscriptionID string                  // Azure subscription ID for resource discovery
+	regions        []string                // configured Azure regions/locations
+	resourceGroup  string                  // optional: limit discovery to a resource group
 	resourceLister azurepkg.ResourceLister // Azure SDK resource lister
 }
 

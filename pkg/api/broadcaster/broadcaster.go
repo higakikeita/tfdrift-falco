@@ -128,13 +128,13 @@ func (b *Broadcaster) BroadcastDriftResult(result *types.DriftResult) {
 	event := Event{
 		Type: "drift_result",
 		Payload: map[string]interface{}{
-			"provider":             result.Provider,
-			"unmanaged_count":      len(result.UnmanagedResources),
-			"missing_count":        len(result.MissingResources),
-			"modified_count":       len(result.ModifiedResources),
-			"unmanaged_resources":  result.UnmanagedResources,
-			"missing_resources":    result.MissingResources,
-			"modified_resources":   result.ModifiedResources,
+			"provider":            result.Provider,
+			"unmanaged_count":     len(result.UnmanagedResources),
+			"missing_count":       len(result.MissingResources),
+			"modified_count":      len(result.ModifiedResources),
+			"unmanaged_resources": result.UnmanagedResources,
+			"missing_resources":   result.MissingResources,
+			"modified_resources":  result.ModifiedResources,
 		},
 	}
 	b.Broadcast(event)

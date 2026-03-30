@@ -262,15 +262,15 @@ func TestAWSParseEvent_CorrectSource(t *testing.T) {
 	p := NewAWSProvider()
 	// Use AuthorizeSecurityGroupIngress which has explicit field mapping
 	event := p.ParseEvent("aws_cloudtrail", map[string]string{
-		"ct.name":              "AuthorizeSecurityGroupIngress",
-		"ct.src":               "ec2.amazonaws.com",
-		"ct.region":            "us-east-1",
-		"ct.request.groupid":   "sg-12345678",
-		"ct.user.type":         "IAMUser",
-		"ct.user.principalid":  "AIDAEXAMPLE",
-		"ct.user.arn":          "arn:aws:iam::123456789012:user/test-user",
-		"ct.user.accountid":    "123456789012",
-		"ct.user":              "test-user",
+		"ct.name":             "AuthorizeSecurityGroupIngress",
+		"ct.src":              "ec2.amazonaws.com",
+		"ct.region":           "us-east-1",
+		"ct.request.groupid":  "sg-12345678",
+		"ct.user.type":        "IAMUser",
+		"ct.user.principalid": "AIDAEXAMPLE",
+		"ct.user.arn":         "arn:aws:iam::123456789012:user/test-user",
+		"ct.user.accountid":   "123456789012",
+		"ct.user":             "test-user",
 	}, nil)
 
 	require.NotNil(t, event)
@@ -348,7 +348,6 @@ func TestAWSProviderCapabilities(t *testing.T) {
 	assert.True(t, caps.Discovery)
 	assert.True(t, caps.Comparison)
 }
-
 
 // --- Additional AWS Tests ---
 

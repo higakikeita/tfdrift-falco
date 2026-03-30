@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	falcoHTTPEndpoint = "http://localhost:8081"
+	falcoHTTPEndpoint  = "http://localhost:8081"
 	tfdriftAPIEndpoint = "http://localhost:8080"
 	testTimeout        = 30 * time.Second
 	healthCheckTimeout = 60 * time.Second

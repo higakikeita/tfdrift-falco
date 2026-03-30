@@ -482,7 +482,7 @@ func TestExtractLastSegment(t *testing.T) {
 		{"https://compute.googleapis.com/compute/v1/projects/p/zones/z/machineTypes/e2-medium", "e2-medium"},
 		{"simple-name", "simple-name"},
 		{"a/b/c", "c"},
-		{"", ""}, // empty string edge case
+		{"", ""},  // empty string edge case
 		{"/", ""}, // single slash returns empty
 	}
 

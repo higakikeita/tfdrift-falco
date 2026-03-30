@@ -35,12 +35,12 @@ type CorrelationGroup struct {
 
 // CrossCloudCorrelator correlates drift events across cloud providers.
 type CrossCloudCorrelator struct {
-	mu          sync.RWMutex
-	events      []timedEvent
-	groups      []CorrelationGroup
-	window      time.Duration // Time window for correlation
-	maxEvents   int           // Max events to keep in buffer
-	groupIDSeq  int
+	mu         sync.RWMutex
+	events     []timedEvent
+	groups     []CorrelationGroup
+	window     time.Duration // Time window for correlation
+	maxEvents  int           // Max events to keep in buffer
+	groupIDSeq int
 }
 
 // NewCrossCloudCorrelator creates a correlator with the given time window.

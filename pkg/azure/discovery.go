@@ -29,14 +29,14 @@ type ResourceLister interface {
 
 // Resource represents a raw Azure resource from the ARM API.
 type Resource struct {
-	ID         string            `json:"id"`
-	Name       string            `json:"name"`
-	Type       string            `json:"type"`       // e.g., "Microsoft.Compute/virtualMachines"
-	Location   string            `json:"location"`
-	Tags       map[string]string `json:"tags,omitempty"`
+	ID         string                 `json:"id"`
+	Name       string                 `json:"name"`
+	Type       string                 `json:"type"` // e.g., "Microsoft.Compute/virtualMachines"
+	Location   string                 `json:"location"`
+	Tags       map[string]string      `json:"tags,omitempty"`
 	Properties map[string]interface{} `json:"properties,omitempty"`
-	SKU        *SKU              `json:"sku,omitempty"`
-	Kind       string            `json:"kind,omitempty"`
+	SKU        *SKU                   `json:"sku,omitempty"`
+	Kind       string                 `json:"kind,omitempty"`
 }
 
 // SKU represents the Azure resource SKU.
@@ -68,79 +68,79 @@ type FieldDiff = types.FieldDiff
 var azureTypeToTerraform = map[string]string{
 	// Compute
 	"microsoft.compute/virtualmachines":         "azurerm_virtual_machine",
-	"microsoft.compute/virtualmachinescalesets":  "azurerm_virtual_machine_scale_set",
+	"microsoft.compute/virtualmachinescalesets": "azurerm_virtual_machine_scale_set",
 	"microsoft.compute/disks":                   "azurerm_managed_disk",
 	"microsoft.compute/images":                  "azurerm_image",
 	"microsoft.compute/snapshots":               "azurerm_snapshot",
 
 	// Networking
-	"microsoft.network/networksecuritygroups":    "azurerm_network_security_group",
-	"microsoft.network/virtualnetworks":          "azurerm_virtual_network",
-	"microsoft.network/publicipaddresses":        "azurerm_public_ip",
-	"microsoft.network/networkinterfaces":        "azurerm_network_interface",
-	"microsoft.network/loadbalancers":            "azurerm_lb",
-	"microsoft.network/routetables":              "azurerm_route_table",
-	"microsoft.network/applicationgateways":      "azurerm_application_gateway",
-	"microsoft.network/azurefirewalls":           "azurerm_firewall",
-	"microsoft.network/firewallpolicies":         "azurerm_firewall_policy",
-	"microsoft.network/privateendpoints":         "azurerm_private_endpoint",
-	"microsoft.network/frontdoors":               "azurerm_frontdoor",
-	"microsoft.network/trafficmanagerprofiles":   "azurerm_traffic_manager_profile",
-	"microsoft.network/expressroutecircuits":     "azurerm_express_route_circuit",
-	"microsoft.network/vpngateways":              "azurerm_vpn_gateway",
-	"microsoft.network/virtualnetworkgateways":   "azurerm_virtual_network_gateway",
-	"microsoft.network/localnetworkgateways":     "azurerm_local_network_gateway",
-	"microsoft.network/dnszones":                 "azurerm_dns_zone",
-	"microsoft.network/privatednszones":          "azurerm_private_dns_zone",
-	"microsoft.cdn/profiles":                     "azurerm_cdn_profile",
+	"microsoft.network/networksecuritygroups":  "azurerm_network_security_group",
+	"microsoft.network/virtualnetworks":        "azurerm_virtual_network",
+	"microsoft.network/publicipaddresses":      "azurerm_public_ip",
+	"microsoft.network/networkinterfaces":      "azurerm_network_interface",
+	"microsoft.network/loadbalancers":          "azurerm_lb",
+	"microsoft.network/routetables":            "azurerm_route_table",
+	"microsoft.network/applicationgateways":    "azurerm_application_gateway",
+	"microsoft.network/azurefirewalls":         "azurerm_firewall",
+	"microsoft.network/firewallpolicies":       "azurerm_firewall_policy",
+	"microsoft.network/privateendpoints":       "azurerm_private_endpoint",
+	"microsoft.network/frontdoors":             "azurerm_frontdoor",
+	"microsoft.network/trafficmanagerprofiles": "azurerm_traffic_manager_profile",
+	"microsoft.network/expressroutecircuits":   "azurerm_express_route_circuit",
+	"microsoft.network/vpngateways":            "azurerm_vpn_gateway",
+	"microsoft.network/virtualnetworkgateways": "azurerm_virtual_network_gateway",
+	"microsoft.network/localnetworkgateways":   "azurerm_local_network_gateway",
+	"microsoft.network/dnszones":               "azurerm_dns_zone",
+	"microsoft.network/privatednszones":        "azurerm_private_dns_zone",
+	"microsoft.cdn/profiles":                   "azurerm_cdn_profile",
 
 	// Storage
-	"microsoft.storage/storageaccounts":          "azurerm_storage_account",
+	"microsoft.storage/storageaccounts": "azurerm_storage_account",
 
 	// Database
-	"microsoft.sql/servers":                      "azurerm_mssql_server",
-	"microsoft.sql/servers/databases":            "azurerm_mssql_database",
-	"microsoft.dbformysql/servers":               "azurerm_mysql_server",
-	"microsoft.dbforpostgresql/servers":          "azurerm_postgresql_server",
-	"microsoft.documentdb/databaseaccounts":      "azurerm_cosmosdb_account",
+	"microsoft.sql/servers":                 "azurerm_mssql_server",
+	"microsoft.sql/servers/databases":       "azurerm_mssql_database",
+	"microsoft.dbformysql/servers":          "azurerm_mysql_server",
+	"microsoft.dbforpostgresql/servers":     "azurerm_postgresql_server",
+	"microsoft.documentdb/databaseaccounts": "azurerm_cosmosdb_account",
 
 	// Key Vault
-	"microsoft.keyvault/vaults":                  "azurerm_key_vault",
+	"microsoft.keyvault/vaults": "azurerm_key_vault",
 
 	// App Service
-	"microsoft.web/sites":                        "azurerm_app_service",
-	"microsoft.web/serverfarms":                  "azurerm_app_service_plan",
-	"microsoft.web/staticsites":                  "azurerm_static_web_app",
+	"microsoft.web/sites":       "azurerm_app_service",
+	"microsoft.web/serverfarms": "azurerm_app_service_plan",
+	"microsoft.web/staticsites": "azurerm_static_web_app",
 
 	// Kubernetes
 	"microsoft.containerservice/managedclusters": "azurerm_kubernetes_cluster",
 
 	// Containers
-	"microsoft.containerregistry/registries":     "azurerm_container_registry",
+	"microsoft.containerregistry/registries":      "azurerm_container_registry",
 	"microsoft.containerinstance/containergroups": "azurerm_container_group",
 
 	// Messaging
-	"microsoft.servicebus/namespaces":            "azurerm_servicebus_namespace",
-	"microsoft.eventgrid/topics":                 "azurerm_eventgrid_topic",
-	"microsoft.eventgrid/domains":                "azurerm_eventgrid_domain",
-	"microsoft.eventhub/namespaces":              "azurerm_eventhub_namespace",
+	"microsoft.servicebus/namespaces": "azurerm_servicebus_namespace",
+	"microsoft.eventgrid/topics":      "azurerm_eventgrid_topic",
+	"microsoft.eventgrid/domains":     "azurerm_eventgrid_domain",
+	"microsoft.eventhub/namespaces":   "azurerm_eventhub_namespace",
 
 	// Monitoring
-	"microsoft.insights/components":              "azurerm_application_insights",
-	"microsoft.operationalinsights/workspaces":   "azurerm_log_analytics_workspace",
+	"microsoft.insights/components":            "azurerm_application_insights",
+	"microsoft.operationalinsights/workspaces": "azurerm_log_analytics_workspace",
 
 	// Cache
-	"microsoft.cache/redis":                      "azurerm_redis_cache",
+	"microsoft.cache/redis": "azurerm_redis_cache",
 
 	// Other
-	"microsoft.resources/resourcegroups":         "azurerm_resource_group",
-	"microsoft.automation/automationaccounts":    "azurerm_automation_account",
-	"microsoft.logic/workflows":                  "azurerm_logic_app_workflow",
-	"microsoft.datafactory/factories":            "azurerm_data_factory",
-	"microsoft.search/searchservices":            "azurerm_search_service",
-	"microsoft.batch/batchaccounts":              "azurerm_batch_account",
-	"microsoft.synapse/workspaces":               "azurerm_synapse_workspace",
-	"microsoft.apimanagement/service":            "azurerm_api_management",
+	"microsoft.resources/resourcegroups":               "azurerm_resource_group",
+	"microsoft.automation/automationaccounts":          "azurerm_automation_account",
+	"microsoft.logic/workflows":                        "azurerm_logic_app_workflow",
+	"microsoft.datafactory/factories":                  "azurerm_data_factory",
+	"microsoft.search/searchservices":                  "azurerm_search_service",
+	"microsoft.batch/batchaccounts":                    "azurerm_batch_account",
+	"microsoft.synapse/workspaces":                     "azurerm_synapse_workspace",
+	"microsoft.apimanagement/service":                  "azurerm_api_management",
 	"microsoft.managedidentity/userassignedidentities": "azurerm_user_assigned_identity",
 }
 

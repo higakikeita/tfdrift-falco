@@ -161,13 +161,13 @@ func TestAzureRMBackend_BuildBlobURL_PathEscaping(t *testing.T) {
 
 func TestAzureRMBackend_ConfigAssignment(t *testing.T) {
 	tests := []struct {
-		name               string
-		cfg                AzureRMBackendConfig
-		expectedAccount    string
-		expectedContainer  string
-		expectedBlob       string
-		expectedAccessKey  string
-		expectedSASToken   string
+		name              string
+		cfg               AzureRMBackendConfig
+		expectedAccount   string
+		expectedContainer string
+		expectedBlob      string
+		expectedAccessKey string
+		expectedSASToken  string
 	}{
 		{
 			name: "with access key",

@@ -124,16 +124,16 @@ func TestCreateRemediationPR_DryRunMode(t *testing.T) {
 	}
 
 	proposal := &types.RemediationProposal{
-		ID:             "prop-123",
-		ResourceID:     "i-456",
-		ResourceType:   "aws_instance",
-		ResourceName:   "web-server",
-		Severity:       "high",
-		Status:         types.RemediationPending,
-		Description:    "Fix instance type drift",
-		TerraformCode:  "resource \"aws_instance\" \"web\" {\n  instance_type = \"t3.large\"\n}",
-		ImportCommand:  "terraform import aws_instance.web i-456",
-		PlanCommand:    "terraform plan",
+		ID:            "prop-123",
+		ResourceID:    "i-456",
+		ResourceType:  "aws_instance",
+		ResourceName:  "web-server",
+		Severity:      "high",
+		Status:        types.RemediationPending,
+		Description:   "Fix instance type drift",
+		TerraformCode: "resource \"aws_instance\" \"web\" {\n  instance_type = \"t3.large\"\n}",
+		ImportCommand: "terraform import aws_instance.web i-456",
+		PlanCommand:   "terraform plan",
 	}
 
 	detector.createRemediationPR(context.Background(), proposal)
@@ -366,11 +366,11 @@ func TestEvaluateUnmanagedPolicy_EventFields(t *testing.T) {
 			"allocated_storage": 1000,
 		},
 		UserIdentity: types.UserIdentity{
-			Type:     "IAMRole",
+			Type:        "IAMRole",
 			PrincipalID: "AIDAROLETEST",
-			ARN:      "arn:aws:iam::222222:role/lambda",
-			AccountID: "222222",
-			UserName: "lambda-execution",
+			ARN:         "arn:aws:iam::222222:role/lambda",
+			AccountID:   "222222",
+			UserName:    "lambda-execution",
 		},
 	}
 

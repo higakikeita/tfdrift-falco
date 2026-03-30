@@ -63,18 +63,18 @@ func TestRemoveNode_WithRelationships(t *testing.T) {
 
 	// Create relationships: node1 -> node2 and node3 -> node1
 	rel1 := &Relationship{
-		ID:        "rel-1",
-		Type:      DEPENDS_ON,
-		StartNode: "node-1",
-		EndNode:   "node-2",
+		ID:         "rel-1",
+		Type:       DEPENDS_ON,
+		StartNode:  "node-1",
+		EndNode:    "node-2",
 		Properties: map[string]interface{}{},
 	}
 
 	rel2 := &Relationship{
-		ID:        "rel-2",
-		Type:      DEPENDS_ON,
-		StartNode: "node-3",
-		EndNode:   "node-1",
+		ID:         "rel-2",
+		Type:       DEPENDS_ON,
+		StartNode:  "node-3",
+		EndNode:    "node-1",
 		Properties: map[string]interface{}{},
 	}
 
@@ -99,10 +99,10 @@ func TestAddRelationship_NodeNotFound(t *testing.T) {
 	db := NewDatabase()
 
 	rel := &Relationship{
-		ID:        "rel-1",
-		Type:      DEPENDS_ON,
-		StartNode: "nonexistent-1",
-		EndNode:   "nonexistent-2",
+		ID:         "rel-1",
+		Type:       DEPENDS_ON,
+		StartNode:  "nonexistent-1",
+		EndNode:    "nonexistent-2",
 		Properties: map[string]interface{}{},
 	}
 
@@ -207,10 +207,10 @@ func TestLargeGraphOperations(t *testing.T) {
 	// Add chain relationships
 	for i := 0; i < numNodes-1; i++ {
 		_ = db.AddRelationship(&Relationship{
-			ID:        "rel-" + string(rune(i)),
-			Type:      DEPENDS_ON,
-			StartNode: string(rune(i)),
-			EndNode:   string(rune(i + 1)),
+			ID:         "rel-" + string(rune(i)),
+			Type:       DEPENDS_ON,
+			StartNode:  string(rune(i)),
+			EndNode:    string(rune(i + 1)),
 			Properties: map[string]interface{}{},
 		})
 	}
@@ -403,10 +403,10 @@ func TestRelationshipWithProperties(t *testing.T) {
 		StartNode: "n1",
 		EndNode:   "n2",
 		Properties: map[string]interface{}{
-			"weight":        10,
-			"direction":     "forward",
-			"metadata":      map[string]interface{}{"key": "value"},
-			"tags":          []string{"important", "critical"},
+			"weight":    10,
+			"direction": "forward",
+			"metadata":  map[string]interface{}{"key": "value"},
+			"tags":      []string{"important", "critical"},
 		},
 	}
 

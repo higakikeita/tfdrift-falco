@@ -45,11 +45,11 @@ func CompareStateWithActual(tfResources []*types.TerraformResource, azureResourc
 				return &types.ResourceDiff{Provider: "azure"}
 			}
 			return &types.ResourceDiff{
-				ResourceID:    azRes.ID,
-				ResourceType:  azRes.Type,
-				Provider:      "azure",
-				ActualState:   azRes.Attributes,
-				Differences:   []types.FieldDiff{},
+				ResourceID:   azRes.ID,
+				ResourceType: azRes.Type,
+				Provider:     "azure",
+				ActualState:  azRes.Attributes,
+				Differences:  []types.FieldDiff{},
 			}
 		},
 		BuildMissing: func(tfResource interface{}) *types.TerraformResource {

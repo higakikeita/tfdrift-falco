@@ -18,7 +18,6 @@ func TestCrossCloudCorrelator_SameUserMultiCloud(t *testing.T) {
 		ResourceType: "aws_instance",
 		ResourceID:   "i-123",
 		UserIdentity: types.UserIdentity{UserName: "user@example.com"},
-
 	}
 	groups := c.AddEvent(awsEvent)
 	assert.Empty(t, groups, "Single provider event should not create a group")
@@ -30,7 +29,6 @@ func TestCrossCloudCorrelator_SameUserMultiCloud(t *testing.T) {
 		ResourceType: "azurerm_virtual_machine",
 		ResourceID:   "test-vm",
 		UserIdentity: types.UserIdentity{UserName: "user@example.com"},
-
 	}
 	groups = c.AddEvent(azureEvent)
 	assert.Len(t, groups, 2, "Same user across 2 clouds should create correlation groups (user + pattern)")
@@ -60,7 +58,6 @@ func TestCrossCloudCorrelator_ResourcePattern(t *testing.T) {
 		ResourceType: "aws_security_group",
 		ResourceID:   "sg-123",
 		UserIdentity: types.UserIdentity{UserName: "alice"},
-
 	})
 
 	// Azure NSG change from different user
@@ -70,7 +67,6 @@ func TestCrossCloudCorrelator_ResourcePattern(t *testing.T) {
 		ResourceType: "azurerm_network_security_group",
 		ResourceID:   "test-nsg",
 		UserIdentity: types.UserIdentity{UserName: "bob"},
-
 	})
 
 	// Should correlate by resource pattern (firewall category)
@@ -96,7 +92,6 @@ func TestCrossCloudCorrelator_NoCorrelationSameProvider(t *testing.T) {
 		ResourceType: "aws_instance",
 		ResourceID:   "i-123",
 		UserIdentity: types.UserIdentity{UserName: "user@example.com"},
-
 	})
 
 	groups := c.AddEvent(types.Event{
@@ -105,7 +100,6 @@ func TestCrossCloudCorrelator_NoCorrelationSameProvider(t *testing.T) {
 		ResourceType: "aws_security_group",
 		ResourceID:   "sg-456",
 		UserIdentity: types.UserIdentity{UserName: "user@example.com"},
-
 	})
 
 	assert.Empty(t, groups, "Same provider events should not create cross-cloud correlation")

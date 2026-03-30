@@ -3,8 +3,8 @@ package gcp
 import (
 	"testing"
 
-	compute "google.golang.org/api/compute/v1"
 	"github.com/stretchr/testify/assert"
+	compute "google.golang.org/api/compute/v1"
 )
 
 // NOTE: These tests use reflection to verify that discovery methods
@@ -119,12 +119,12 @@ func TestSubnetworkResource_Structure(t *testing.T) {
 		Region:   "us-central1",
 		SelfLink: "https://www.googleapis.com/compute/v1/projects/my-project/regions/us-central1/subnetworks/default",
 		Attributes: map[string]interface{}{
-			"name":                       "default",
-			"network":                    "https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default",
-			"ip_cidr_range":              "10.128.0.0/20",
-			"region":                     "us-central1",
-			"private_ip_google_access":   false,
-			"purpose":                    "PRIVATE",
+			"name":                     "default",
+			"network":                  "https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default",
+			"ip_cidr_range":            "10.128.0.0/20",
+			"region":                   "us-central1",
+			"private_ip_google_access": false,
+			"purpose":                  "PRIVATE",
 		},
 		Labels: map[string]string{},
 	}
@@ -143,14 +143,14 @@ func TestFirewallResource_Structure(t *testing.T) {
 		Region:   "global",
 		SelfLink: "https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/allow-ssh",
 		Attributes: map[string]interface{}{
-			"name":           "allow-ssh",
-			"network":        "https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default",
-			"direction":      "INGRESS",
-			"priority":       int64(1000),
-			"disabled":       false,
-			"description":    "",
-			"source_ranges":  []string{"0.0.0.0/0"},
-			"target_tags":    []string{"ssh"},
+			"name":          "allow-ssh",
+			"network":       "https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default",
+			"direction":     "INGRESS",
+			"priority":      int64(1000),
+			"disabled":      false,
+			"description":   "",
+			"source_ranges": []string{"0.0.0.0/0"},
+			"target_tags":   []string{"ssh"},
 		},
 		Labels: map[string]string{},
 	}
@@ -189,10 +189,10 @@ func TestInstanceResource_Structure(t *testing.T) {
 // TestBucketResource_Structure tests the structure of bucket resources
 func TestBucketResource_Structure(t *testing.T) {
 	res := &DiscoveredResource{
-		ID:       "my-data-bucket",
-		Type:     "google_storage_bucket",
-		Name:     "my-data-bucket",
-		Region:   "us",
+		ID:     "my-data-bucket",
+		Type:   "google_storage_bucket",
+		Name:   "my-data-bucket",
+		Region: "us",
 		Attributes: map[string]interface{}{
 			"name":          "my-data-bucket",
 			"location":      "us",
@@ -216,15 +216,15 @@ func TestSQLInstanceResource_Structure(t *testing.T) {
 		Region:   "us-central1",
 		SelfLink: "https://www.googleapis.com/sql/v1beta4/projects/my-project/instances/mysql-db",
 		Attributes: map[string]interface{}{
-			"name":             "mysql-db",
-			"database_version": "MYSQL_8_0",
-			"region":           "us-central1",
-			"state":            "RUNNABLE",
-			"connection_name":  "my-project:us-central1:mysql-db",
-			"tier":             "db-n1-standard-1",
+			"name":              "mysql-db",
+			"database_version":  "MYSQL_8_0",
+			"region":            "us-central1",
+			"state":             "RUNNABLE",
+			"connection_name":   "my-project:us-central1:mysql-db",
+			"tier":              "db-n1-standard-1",
 			"availability_type": "REGIONAL",
-			"disk_size":        int64(100),
-			"disk_type":        "PD_SSD",
+			"disk_size":         int64(100),
+			"disk_type":         "PD_SSD",
 		},
 		Labels: map[string]string{},
 	}
@@ -265,16 +265,16 @@ func TestGKEClusterResource_Structure(t *testing.T) {
 // TestCloudRunServiceResource_Structure tests the structure of Cloud Run service resources
 func TestCloudRunServiceResource_Structure(t *testing.T) {
 	res := &DiscoveredResource{
-		ID:       "projects/my-project/locations/us-central1/services/my-service",
-		Type:     "google_cloud_run_v2_service",
-		Name:     "my-service",
-		Region:   "us-central1",
+		ID:     "projects/my-project/locations/us-central1/services/my-service",
+		Type:   "google_cloud_run_v2_service",
+		Name:   "my-service",
+		Region: "us-central1",
 		Attributes: map[string]interface{}{
-			"name":     "my-service",
-			"location": "us-central1",
-			"uri":      "https://my-service-abcd1234-uc.a.run.app",
-			"ingress":  "INGRESS_TRAFFIC_ALL",
-			"service_account": "my-sa@my-project.iam.gserviceaccount.com",
+			"name":                             "my-service",
+			"location":                         "us-central1",
+			"uri":                              "https://my-service-abcd1234-uc.a.run.app",
+			"ingress":                          "INGRESS_TRAFFIC_ALL",
+			"service_account":                  "my-sa@my-project.iam.gserviceaccount.com",
 			"max_instance_request_concurrency": int64(100),
 		},
 		Labels: map[string]string{},
@@ -314,10 +314,10 @@ func TestSubnetworkToDiscovered_EdgeCases(t *testing.T) {
 		{
 			"Minimal subnetwork",
 			&compute.Subnetwork{
-				Name:           "subnet-min",
-				Region:         "https://www.googleapis.com/compute/v1/projects/p/regions/europe-west1",
-				IpCidrRange:    "192.168.0.0/16",
-				SelfLink:       "https://www.googleapis.com/compute/v1/projects/p/regions/europe-west1/subnetworks/subnet-min",
+				Name:        "subnet-min",
+				Region:      "https://www.googleapis.com/compute/v1/projects/p/regions/europe-west1",
+				IpCidrRange: "192.168.0.0/16",
+				SelfLink:    "https://www.googleapis.com/compute/v1/projects/p/regions/europe-west1/subnetworks/subnet-min",
 			},
 			"p",
 			func(t *testing.T, res *DiscoveredResource) {

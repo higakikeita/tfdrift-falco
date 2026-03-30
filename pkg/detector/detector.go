@@ -19,20 +19,20 @@ import (
 
 // Detector is the main drift detection engine
 type Detector struct {
-	cfg               *config.Config
-	stateManager      *terraform.StateManager       // Legacy: default state manager for backward compatibility
-	stateManagers     map[string]*terraform.StateManager // Multi-provider state managers
-	providerRegistry  *provider.Registry            // Provider registry for handling multiple clouds
-	falcoSubscriber   *falco.Subscriber
-	notifier          *notifier.Manager
-	formatter         *diff.Formatter
-	importer          *terraform.Importer
-	approvalManager   *terraform.ApprovalManager
-	broadcaster       *broadcaster.Broadcaster
-	graphStore        *graph.Store
-	policyEngine      *policy.Engine
-	eventCh           chan types.Event
-	wg                sync.WaitGroup
+	cfg              *config.Config
+	stateManager     *terraform.StateManager            // Legacy: default state manager for backward compatibility
+	stateManagers    map[string]*terraform.StateManager // Multi-provider state managers
+	providerRegistry *provider.Registry                 // Provider registry for handling multiple clouds
+	falcoSubscriber  *falco.Subscriber
+	notifier         *notifier.Manager
+	formatter        *diff.Formatter
+	importer         *terraform.Importer
+	approvalManager  *terraform.ApprovalManager
+	broadcaster      *broadcaster.Broadcaster
+	graphStore       *graph.Store
+	policyEngine     *policy.Engine
+	eventCh          chan types.Event
+	wg               sync.WaitGroup
 }
 
 // New creates a new Detector instance

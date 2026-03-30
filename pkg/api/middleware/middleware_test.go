@@ -322,21 +322,21 @@ func TestCORSMultipleOrigins(t *testing.T) {
 	handler := corsMiddleware.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
-	
+
 	origins := []string{
 		"http://localhost:5173",
 		"http://localhost:3000",
 		"http://localhost:8080",
 	}
-	
+
 	for _, origin := range origins {
 		req := httptest.NewRequest("OPTIONS", "/api/test", nil)
 		req.Header.Set("Origin", origin)
 		req.Header.Set("Access-Control-Request-Method", "GET")
-		
+
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusOK {
 			t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
 		}
@@ -352,14 +352,14 @@ func TestCORSMaxAge(t *testing.T) {
 	handler := corsMiddleware.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
-	
+
 	req := httptest.NewRequest("OPTIONS", "/api/test", nil)
 	req.Header.Set("Origin", "http://localhost:5173")
 	req.Header.Set("Access-Control-Request-Method", "POST")
-	
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
-	
+
 	maxAge := w.Header().Get("Access-Control-Max-Age")
 	if maxAge != "300" {
 		t.Errorf("expected Max-Age 300, got %s", maxAge)
@@ -374,18 +374,18 @@ func TestLoggerDifferentPaths(t *testing.T) {
 		"/api/v1/stats",
 		"/api/v1/providers/status",
 	}
-	
+
 	for _, path := range paths {
 		handler := Logger(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
-		
+
 		req := httptest.NewRequest("GET", path, nil)
 		req.RemoteAddr = "127.0.0.1:8000"
 		w := httptest.NewRecorder()
-		
+
 		handler.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusOK {
 			t.Errorf("expected status %d for path %s, got %d", http.StatusOK, path, w.Code)
 		}
@@ -402,17 +402,17 @@ func TestLoggerDifferentStatusCodes(t *testing.T) {
 		http.StatusNotFound,
 		http.StatusInternalServerError,
 	}
-	
+
 	for _, statusCode := range statusCodes {
 		handler := Logger(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(statusCode)
 		}))
-		
+
 		req := httptest.NewRequest("GET", "/api/test", nil)
 		w := httptest.NewRecorder()
-		
+
 		handler.ServeHTTP(w, req)
-		
+
 		if w.Code != statusCode {
 			t.Errorf("expected status %d, got %d", statusCode, w.Code)
 		}
@@ -426,12 +426,12 @@ func TestLoggerPreservesResponseBody(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(body))
 	}))
-	
+
 	req := httptest.NewRequest("GET", "/api/test", nil)
 	w := httptest.NewRecorder()
-	
+
 	handler.ServeHTTP(w, req)
-	
+
 	if w.Body.String() != body {
 		t.Errorf("expected body %s, got %s", body, w.Body.String())
 	}
@@ -443,13 +443,13 @@ func TestOTelHTTPWithTracingContext(t *testing.T) {
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
-	
+
 	req := httptest.NewRequest("GET", "/api/test", nil)
 	req.Header.Set("traceparent", "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")
-	
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
-	
+
 	if w.Code != http.StatusOK {
 		t.Errorf("expected status %d, got %d", http.StatusOK, w.Code)
 	}
@@ -458,18 +458,18 @@ func TestOTelHTTPWithTracingContext(t *testing.T) {
 // TestOTelHTTPDifferentMethods tests OTEL HTTP with different HTTP methods
 func TestOTelHTTPDifferentMethods(t *testing.T) {
 	methods := []string{"GET", "POST", "PUT", "DELETE", "PATCH"}
-	
+
 	for _, method := range methods {
 		middleware := OTelHTTP("test-service")
 		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
-		
+
 		req := httptest.NewRequest(method, "/api/test", nil)
 		w := httptest.NewRecorder()
-		
+
 		handler.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusOK {
 			t.Errorf("expected status %d for method %s, got %d", http.StatusOK, method, w.Code)
 		}
@@ -485,18 +485,18 @@ func TestOTelHTTPErrorHandling(t *testing.T) {
 		http.StatusNotFound,
 		http.StatusInternalServerError,
 	}
-	
+
 	for _, code := range errorCodes {
 		middleware := OTelHTTP("test-service")
 		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(code)
 		}))
-		
+
 		req := httptest.NewRequest("GET", "/api/test", nil)
 		w := httptest.NewRecorder()
-		
+
 		handler.ServeHTTP(w, req)
-		
+
 		if w.Code != code {
 			t.Errorf("expected status %d, got %d", code, w.Code)
 		}
@@ -507,10 +507,10 @@ func TestOTelHTTPErrorHandling(t *testing.T) {
 func TestResponseWriterMultipleWrites(t *testing.T) {
 	w := httptest.NewRecorder()
 	rw := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
-	
+
 	rw.Write([]byte("Hello "))
 	rw.Write([]byte("World"))
-	
+
 	if w.Body.String() != "Hello World" {
 		t.Errorf("expected 'Hello World', got '%s'", w.Body.String())
 	}
@@ -522,14 +522,14 @@ func TestCORSCredentialsAllowed(t *testing.T) {
 	handler := corsMiddleware.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
-	
+
 	req := httptest.NewRequest("OPTIONS", "/api/test", nil)
 	req.Header.Set("Origin", "http://localhost:5173")
 	req.Header.Set("Access-Control-Request-Method", "POST")
-	
+
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
-	
+
 	credentials := w.Header().Get("Access-Control-Allow-Credentials")
 	if credentials == "" {
 		t.Error("expected Access-Control-Allow-Credentials header")
@@ -542,12 +542,12 @@ func TestLoggerWithMethodCapture(t *testing.T) {
 		handler := Logger(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
-		
+
 		req := httptest.NewRequest(method, "/api/test", nil)
 		w := httptest.NewRecorder()
-		
+
 		handler.ServeHTTP(w, req)
-		
+
 		if w.Code != http.StatusOK {
 			t.Errorf("failed to process %s request", method)
 		}

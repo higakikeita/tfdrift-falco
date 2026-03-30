@@ -70,9 +70,9 @@ func TestGetNestedValue(t *testing.T) {
 			expected: nil,
 		},
 		{
-			name: "empty data",
-			data: map[string]interface{}{},
-			path: "key",
+			name:     "empty data",
+			data:     map[string]interface{}{},
+			path:     "key",
 			expected: nil,
 		},
 		{
@@ -344,9 +344,9 @@ func TestFilterManagedLabels(t *testing.T) {
 		{
 			name: "filter AWS managed tags",
 			labels: map[string]string{
-				"user-tag":            "value1",
+				"user-tag":           "value1",
 				"aws:cloudformation": "stack-id",
-				"custom":              "value2",
+				"custom":             "value2",
 				"kubernetes.io/name": "my-service",
 			},
 			prefixes: []string{"aws:", "kubernetes.io/"},

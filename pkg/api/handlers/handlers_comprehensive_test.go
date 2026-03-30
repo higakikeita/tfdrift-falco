@@ -188,9 +188,9 @@ func TestGraphQueryHandler_GetPath_MissingParams(t *testing.T) {
 	handler := NewGraphQueryHandler(store)
 
 	tests := []string{
-		"/api/v1/graph/path?from=node1",           // missing 'to'
-		"/api/v1/graph/path?to=node2",             // missing 'from'
-		"/api/v1/graph/path",                      // missing both
+		"/api/v1/graph/path?from=node1", // missing 'to'
+		"/api/v1/graph/path?to=node2",   // missing 'from'
+		"/api/v1/graph/path",            // missing both
 	}
 
 	for _, url := range tests {
@@ -296,7 +296,7 @@ func TestGraphQueryHandler_GetImpactRadius_InvalidDepth(t *testing.T) {
 	handler := NewGraphQueryHandler(store)
 
 	tests := []struct {
-		url string
+		url  string
 		desc string
 	}{
 		{"/api/v1/graph/impact/node?depth=0", "depth too low"},
@@ -642,13 +642,13 @@ func TestGraphQueryHandler_MatchPattern_Success(t *testing.T) {
 	db := store.GetGraphDB()
 
 	ec2 := &graph.Node{
-		ID:     "i-123",
-		Labels: []string{"Resource", "EC2"},
+		ID:         "i-123",
+		Labels:     []string{"Resource", "EC2"},
 		Properties: map[string]interface{}{"id": "i-123"},
 	}
 	subnet := &graph.Node{
-		ID:     "subnet-456",
-		Labels: []string{"Resource", "Subnet"},
+		ID:         "subnet-456",
+		Labels:     []string{"Resource", "Subnet"},
 		Properties: map[string]interface{}{"id": "subnet-456"},
 	}
 
@@ -1432,8 +1432,6 @@ func TestProviderStatusHandler_GetProviderSummary(t *testing.T) {
 }
 
 // ===== Helper Functions =====
-
-
 
 type MockProviderForTests struct {
 	name string

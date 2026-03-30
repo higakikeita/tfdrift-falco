@@ -181,9 +181,9 @@ func TestNewBackend_GCS(t *testing.T) {
 		{
 			name: "valid GCS config",
 			config: config.TerraformStateConfig{
-				Backend:    "gcs",
-				GCSBucket:  "my-bucket",
-				GCSPrefix:  "terraform.tfstate",
+				Backend:   "gcs",
+				GCSBucket: "my-bucket",
+				GCSPrefix: "terraform.tfstate",
 			},
 			wantError: false,
 			wantName:  "gcs",
@@ -243,11 +243,11 @@ func TestNewBackend_AzureRM(t *testing.T) {
 		{
 			name: "valid Azure config",
 			config: config.TerraformStateConfig{
-				Backend:                 "azurerm",
-				AzureStorageAccount:     "myaccount",
-				AzureContainerName:      "tfstate",
-				AzureBlobName:           "terraform.tfstate",
-				AzureAccessKey:          "mykey",
+				Backend:             "azurerm",
+				AzureStorageAccount: "myaccount",
+				AzureContainerName:  "tfstate",
+				AzureBlobName:       "terraform.tfstate",
+				AzureAccessKey:      "mykey",
 			},
 			wantError: false,
 			wantName:  "azurerm",

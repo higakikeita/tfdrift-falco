@@ -14,9 +14,9 @@ func TestDiscoveredResource_VirtualMachine(t *testing.T) {
 		Name:   "web-vm",
 		Region: "eastus",
 		Attributes: map[string]interface{}{
-			"vm_size":             "Standard_B2s",
-			"location":            "eastus",
-			"provisioning_state":  "Succeeded",
+			"vm_size":            "Standard_B2s",
+			"location":           "eastus",
+			"provisioning_state": "Succeeded",
 		},
 		Tags: map[string]string{
 			"environment": "production",
@@ -41,8 +41,8 @@ func TestDiscoveredResource_StorageAccount(t *testing.T) {
 		Name:   "mystorageacct",
 		Region: "eastus",
 		Attributes: map[string]interface{}{
-			"location":  "eastus",
-			"sku_name":  "Standard_LRS",
+			"location": "eastus",
+			"sku_name": "Standard_LRS",
 		},
 		Tags: map[string]string{},
 	}
@@ -79,7 +79,7 @@ func TestDiscoveredResource_VirtualNetwork(t *testing.T) {
 		Name:   "my-vnet",
 		Region: "eastus",
 		Attributes: map[string]interface{}{
-			"location":     "eastus",
+			"location":      "eastus",
 			"address_space": []string{"10.0.0.0/16"},
 		},
 		Tags: map[string]string{},
@@ -122,9 +122,9 @@ func TestDiscoveredResource_SQLServer(t *testing.T) {
 		Name:   "my-sqlserver",
 		Region: "eastus",
 		Attributes: map[string]interface{}{
-			"location":              "eastus",
-			"version":               "12.0",
-			"administrator_login":   "sqladmin",
+			"location":            "eastus",
+			"version":             "12.0",
+			"administrator_login": "sqladmin",
 		},
 		Tags: map[string]string{},
 	}
@@ -186,10 +186,10 @@ func TestDiscoveredResource_ContainerRegistry(t *testing.T) {
 		Name:   "myregistry",
 		Region: "eastus",
 		Attributes: map[string]interface{}{
-			"location":       "eastus",
-			"sku_name":       "Premium",
-			"admin_enabled":  true,
-			"login_server":   "myregistry.azurecr.io",
+			"location":      "eastus",
+			"sku_name":      "Premium",
+			"admin_enabled": true,
+			"login_server":  "myregistry.azurecr.io",
 		},
 		Tags: map[string]string{},
 	}
@@ -209,11 +209,11 @@ func TestDiscoveredResource_RedisCache(t *testing.T) {
 		Name:   "my-redis",
 		Region: "eastus",
 		Attributes: map[string]interface{}{
-			"location":   "eastus",
-			"sku_name":   "Premium",
-			"hostname":   "my-redis.redis.cache.windows.net",
-			"port":       6379,
-			"ssl_port":   6380,
+			"location": "eastus",
+			"sku_name": "Premium",
+			"hostname": "my-redis.redis.cache.windows.net",
+			"port":     6379,
+			"ssl_port": 6380,
 		},
 		Tags: map[string]string{},
 	}
@@ -254,9 +254,9 @@ func TestDiscoveredResource_PublicIP(t *testing.T) {
 		Name:   "my-pip",
 		Region: "eastus",
 		Attributes: map[string]interface{}{
-			"location":           "eastus",
-			"allocation_method":  "Static",
-			"ip_address":         "20.25.30.1",
+			"location":          "eastus",
+			"allocation_method": "Static",
+			"ip_address":        "20.25.30.1",
 		},
 		Tags: map[string]string{},
 	}
@@ -276,9 +276,9 @@ func TestDiscoveredResource_CosmosDB(t *testing.T) {
 		Name:   "my-cosmosdb",
 		Region: "eastus",
 		Attributes: map[string]interface{}{
-			"location":             "eastus",
-			"offer_type":           "Standard",
-			"consistency_level":    "Session",
+			"location":          "eastus",
+			"offer_type":        "Standard",
+			"consistency_level": "Session",
 		},
 		Tags: map[string]string{},
 	}
@@ -624,7 +624,6 @@ func TestDiscoveryClient_ConvertResource_WithKind(t *testing.T) {
 	}
 }
 
-
 func TestSupportedDiscoveryTypes(t *testing.T) {
 	types := SupportedDiscoveryTypes()
 
@@ -651,7 +650,6 @@ func TestSupportedDiscoveryTypes(t *testing.T) {
 		t.Errorf("expected azurerm_storage_account in supported types")
 	}
 }
-
 
 func TestCopyIfExists(t *testing.T) {
 	src := map[string]interface{}{
@@ -685,7 +683,7 @@ func TestDiscoveryClient_ExtractProperties_VirtualMachine(t *testing.T) {
 			"vmSize": "Standard_D2s_v3",
 		},
 		"osProfile": map[string]interface{}{
-			"computerName": "mycomputer",
+			"computerName":  "mycomputer",
 			"adminUsername": "azureuser",
 		},
 		"provisioningState": "Succeeded",
@@ -763,12 +761,12 @@ func TestDiscoveryClient_ExtractProperties_KubernetesCluster(t *testing.T) {
 	attrs := make(map[string]interface{})
 	properties := map[string]interface{}{
 		"kubernetesVersion": "1.26.0",
-		"dnsPrefix": "myaks",
-		"fqdn": "myaks.eastus.azmk8s.io",
+		"dnsPrefix":         "myaks",
+		"fqdn":              "myaks.eastus.azmk8s.io",
 		"networkProfile": map[string]interface{}{
 			"networkPlugin": "azure",
-			"serviceCidr": "10.1.0.0/16",
-			"podCidr": "10.244.0.0/16",
+			"serviceCidr":   "10.1.0.0/16",
+			"podCidr":       "10.244.0.0/16",
 		},
 	}
 
@@ -813,7 +811,7 @@ func TestDiscoveryClient_ExtractProperties_CosmosDB(t *testing.T) {
 	attrs := make(map[string]interface{})
 	properties := map[string]interface{}{
 		"databaseAccountOfferType": "Standard",
-		"documentEndpoint": "https://mydb.documents.azure.com:443/",
+		"documentEndpoint":         "https://mydb.documents.azure.com:443/",
 		"consistencyPolicy": map[string]interface{}{
 			"defaultConsistencyLevel": "Session",
 		},
@@ -857,4 +855,3 @@ func (m *MockResourceLister) ListResources(ctx context.Context, subscriptionID s
 	}
 	return m.resources, nil
 }
-

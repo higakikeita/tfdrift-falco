@@ -236,7 +236,7 @@ func TestResourceMapper_GetResourceTypesForService(t *testing.T) {
 	mapper := NewResourceMapper()
 
 	tests := []struct {
-		service string
+		service  string
 		minCount int
 	}{
 		{"Microsoft.Compute/", 5},
@@ -407,12 +407,12 @@ func TestResourceMapper_ServiceCoverage(t *testing.T) {
 
 	// Verify coverage for major Azure services
 	requiredServices := map[string]int{
-		"Microsoft.Compute/": 5,
-		"Microsoft.Network/": 15,
-		"Microsoft.Storage/": 3,
-		"Microsoft.Sql/": 4,
-		"Microsoft.KeyVault/": 4,
-		"Microsoft.Web/": 3,
+		"Microsoft.Compute/":          5,
+		"Microsoft.Network/":          15,
+		"Microsoft.Storage/":          3,
+		"Microsoft.Sql/":              4,
+		"Microsoft.KeyVault/":         4,
+		"Microsoft.Web/":              3,
 		"Microsoft.ContainerService/": 1,
 	}
 

@@ -3,8 +3,8 @@ package gcp
 import (
 	"testing"
 
-	compute "google.golang.org/api/compute/v1"
 	"github.com/stretchr/testify/assert"
+	compute "google.golang.org/api/compute/v1"
 )
 
 // Tests for DiscoveredResource structure and fields
@@ -43,9 +43,9 @@ func TestDiscoveredResource_StorageBucket(t *testing.T) {
 		Name:   "my-data-bucket",
 		Region: "us-central1",
 		Attributes: map[string]interface{}{
-			"location":       "US",
-			"storage_class":  "STANDARD",
-			"versioning":     true,
+			"location":      "US",
+			"storage_class": "STANDARD",
+			"versioning":    true,
 		},
 		Labels: map[string]string{},
 	}
@@ -60,10 +60,10 @@ func TestDiscoveredResource_StorageBucket(t *testing.T) {
 
 func TestDiscoveredResource_GKECluster(t *testing.T) {
 	resource := &DiscoveredResource{
-		ID:     "projects/my-project/zones/us-central1-a/clusters/prod-cluster",
-		Type:   "google_container_cluster",
-		Name:   "prod-cluster",
-		Region: "us-central1",
+		ID:       "projects/my-project/zones/us-central1-a/clusters/prod-cluster",
+		Type:     "google_container_cluster",
+		Name:     "prod-cluster",
+		Region:   "us-central1",
 		SelfLink: "https://container.googleapis.com/v1/projects/my-project/zones/us-central1-a/clusters/prod-cluster",
 		Attributes: map[string]interface{}{
 			"location":               "us-central1",
@@ -91,9 +91,9 @@ func TestDiscoveredResource_SQLInstance(t *testing.T) {
 		Name:   "my-database-instance",
 		Region: "us-central1",
 		Attributes: map[string]interface{}{
-			"database_version": "POSTGRES_13",
-			"region":           "us-central1",
-			"tier":             "db-f1-micro",
+			"database_version":  "POSTGRES_13",
+			"region":            "us-central1",
+			"tier":              "db-f1-micro",
 			"availability_type": "ZONAL",
 		},
 		Labels: map[string]string{},
@@ -385,7 +385,6 @@ func TestFieldDiff_BooleanValues(t *testing.T) {
 		t.Errorf("expected true")
 	}
 }
-
 
 // Tests for discovery helper functions
 

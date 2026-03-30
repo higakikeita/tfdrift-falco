@@ -32,11 +32,11 @@ func (h *ProvidersHandler) GetProviders(w http.ResponseWriter, r *http.Request) 
 		}
 
 		providerInfo := map[string]interface{}{
-			"name":            name,
-			"event_count":     p.SupportedEventCount(),
-			"resource_types":  p.SupportedResourceTypes(),
-			"has_discovery":   caps.Discovery,
-			"has_comparison":  caps.Comparison,
+			"name":           name,
+			"event_count":    p.SupportedEventCount(),
+			"resource_types": p.SupportedResourceTypes(),
+			"has_discovery":  caps.Discovery,
+			"has_comparison": caps.Comparison,
 		}
 
 		if caps.Discovery {
@@ -73,11 +73,11 @@ func (h *ProvidersHandler) GetProviderCapabilities(w http.ResponseWriter, r *htt
 	caps := provider.GetCapabilities(p)
 
 	result := map[string]interface{}{
-		"name":            name,
-		"event_count":     p.SupportedEventCount(),
-		"resource_types":  p.SupportedResourceTypes(),
-		"has_discovery":   caps.Discovery,
-		"has_comparison":  caps.Comparison,
+		"name":           name,
+		"event_count":    p.SupportedEventCount(),
+		"resource_types": p.SupportedResourceTypes(),
+		"has_discovery":  caps.Discovery,
+		"has_comparison": caps.Comparison,
 	}
 
 	if caps.Discovery {
