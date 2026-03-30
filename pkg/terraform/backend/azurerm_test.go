@@ -1,6 +1,10 @@
 package backend
 
 import (
+	"context"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -326,4 +330,195 @@ func TestAzureRMBackend_HTTPClientInitialized(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.NotNil(t, b.httpClient)
+}
+
+// Mock HTTP Transport for testing
+type MockTransport struct {
+	StatusCode int
+	Body       string
+}
+
+func (m *MockTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	return &http.Response{
+		StatusCode: m.StatusCode,
+		Body:       io.NopCloser(strings.NewReader(m.Body)),
+		Header:     make(http.Header),
+	}, nil
+}
+
+// Test AzureRMBackend Load with mock HTTP transport
+func TestAzureRMBackend_Load_NotFound(t *testing.T) {
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "notfound.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusNotFound,
+				Body:       `{"error": "blob not found"}`,
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	data, err := b.Load(ctx)
+	assert.Error(t, err)
+	assert.Nil(t, data)
+	assert.Contains(t, err.Error(), "404")
+}
+
+func TestAzureRMBackend_Load_ServerError(t *testing.T) {
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusInternalServerError,
+				Body:       `{"error": "internal server error"}`,
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	data, err := b.Load(ctx)
+	assert.Error(t, err)
+	assert.Nil(t, data)
+	assert.Contains(t, err.Error(), "500")
+}
+
+func TestAzureRMBackend_Load_Success(t *testing.T) {
+	stateContent := `{"version": 4, "resources": []}`
+
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusOK,
+				Body:       stateContent,
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	data, err := b.Load(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+	assert.Equal(t, []byte(stateContent), data)
+}
+
+func TestAzureRMBackend_Load_EmptyResponse(t *testing.T) {
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusOK,
+				Body:       "",
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	data, err := b.Load(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+	assert.Equal(t, 0, len(data))
+}
+
+func TestAzureRMBackend_Load_LargeBody(t *testing.T) {
+	largeBody := `{"version": 4, "resources": [` + strings.Repeat(`{"id":"resource"},`, 1000) + `]}`
+
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusOK,
+				Body:       largeBody,
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	data, err := b.Load(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+	assert.Greater(t, len(data), 1000)
+}
+
+func TestAzureRMBackend_Load_WithAccessKey(t *testing.T) {
+	b, err := NewAzureRMBackend(AzureRMBackendConfig{
+		StorageAccountName: "myaccount",
+		ContainerName:      "tfstate",
+		BlobName:           "terraform.tfstate",
+		AccessKey:          "myaccesskey123",
+	})
+	require.NoError(t, err)
+
+	// Verify accessKey was stored
+	assert.Equal(t, "myaccesskey123", b.accessKey)
+	assert.Equal(t, "", b.sasToken)
+}
+
+func TestAzureRMBackend_Name_Consistency(t *testing.T) {
+	b, err := NewAzureRMBackend(AzureRMBackendConfig{
+		StorageAccountName: "test",
+		ContainerName:      "test",
+		BlobName:           "test",
+	})
+	require.NoError(t, err)
+
+	// Name should always return the same value
+	assert.Equal(t, "azurerm", b.Name())
+	assert.Equal(t, "azurerm", b.Name())
+	assert.Equal(t, "azurerm", b.Name())
+}
+
+func TestAzureRMBackend_BuildBlobURL_NoSASToken(t *testing.T) {
+	b, err := NewAzureRMBackend(AzureRMBackendConfig{
+		StorageAccountName: "storageaccount",
+		ContainerName:      "container",
+		BlobName:           "blob.tfstate",
+		AccessKey:          "somekey",
+	})
+	require.NoError(t, err)
+
+	url := b.buildBlobURL()
+	// Should not contain SAS token
+	assert.NotContains(t, url, "?sv=")
+	assert.NotContains(t, url, "&sig=")
+	assert.Contains(t, url, "https://")
+	assert.Contains(t, url, "storageaccount.blob.core.windows.net")
+}
+
+func TestAzureRMBackend_Load_UnmarshalErrorInResponse(t *testing.T) {
+	// This tests the error handler when response body is returned with non-200 status
+	b := &AzureRMBackend{
+		storageAccountName: "test",
+		containerName:      "tfstate",
+		blobName:           "terraform.tfstate",
+		httpClient: &http.Client{
+			Transport: &MockTransport{
+				StatusCode: http.StatusUnauthorized,
+				Body:       `{"error": {"code": "AuthenticationFailed", "message": "Authentication failed"}}`,
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	data, err := b.Load(ctx)
+	assert.Error(t, err)
+	assert.Nil(t, data)
+	assert.Contains(t, err.Error(), "401")
 }

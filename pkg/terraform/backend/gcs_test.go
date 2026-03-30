@@ -578,6 +578,31 @@ func TestGCSBackend_ValidationErrors(t *testing.T) {
 	}
 }
 
+// Test GCSBackend Close with nil reference
+func TestGCSBackend_CloseNilClient(t *testing.T) {
+	backend := &GCSBackend{
+		bucket: "test-bucket",
+		prefix: "test.tfstate",
+		client: nil,
+	}
+
+	// Should not panic
+	err := backend.Close()
+	assert.NoError(t, err)
+}
+
+// Test GCSBackend Name consistency
+func TestGCSBackend_NameConsistency(t *testing.T) {
+	backend := &GCSBackend{
+		bucket: "test",
+		prefix: "test",
+		client: nil,
+	}
+
+	assert.Equal(t, "gcs", backend.Name())
+	assert.Equal(t, "gcs", backend.Name())
+}
+
 // Test GCSBackend interface compliance
 func TestGCSBackend_BackendInterfaceCompliance(t *testing.T) {
 	ctx := context.Background()

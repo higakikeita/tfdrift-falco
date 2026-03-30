@@ -338,3 +338,258 @@ func convertTestEventToTypes(te *testEvent) *types.Event {
 		ResourceID:   te.ResourceID,
 	}
 }
+
+func TestActivityParser_ExtractChanges(t *testing.T) {
+	parser := NewActivityParser()
+
+	tests := []struct {
+		name          string
+		operationName string
+		fields        map[string]string
+		checkFunc     func(t *testing.T, changes map[string]interface{})
+	}{
+		{
+			name:          "write operation",
+			operationName: "Microsoft.Compute/virtualMachines/write",
+			fields: map[string]string{
+				"azure.requestProperties": `{"vmSize":"Standard_D2s_v3"}`,
+				"azure.responseProperties": `{"id":"vm-123"}`,
+			},
+			checkFunc: func(t *testing.T, changes map[string]interface{}) {
+				if changes["_action"] != "write" {
+					t.Errorf("expected _action=write")
+				}
+			},
+		},
+		{
+			name:          "delete operation",
+			operationName: "Microsoft.Compute/virtualMachines/delete",
+			fields:        map[string]string{},
+			checkFunc: func(t *testing.T, changes map[string]interface{}) {
+				if changes["_action"] != "delete" {
+					t.Errorf("expected _action=delete")
+				}
+			},
+		},
+		{
+			name:          "action operation",
+			operationName: "Microsoft.Compute/virtualMachines/start/action",
+			fields:        map[string]string{},
+			checkFunc: func(t *testing.T, changes map[string]interface{}) {
+				// The extractChanges function returns "start/action" before trimming
+				if _, ok := changes["_action"]; !ok {
+					t.Errorf("expected _action to be present")
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			changes := parser.extractChanges(tt.operationName, tt.fields)
+			if tt.checkFunc != nil {
+				tt.checkFunc(t, changes)
+			}
+		})
+	}
+}
+
+func TestActivityParser_IsRelevantEvent(t *testing.T) {
+	parser := NewActivityParser()
+
+	tests := []struct {
+		name     string
+		event    string
+		expected bool
+	}{
+		{"VM write", "Microsoft.Compute/virtualMachines/write", true},
+		{"VM read", "Microsoft.Compute/virtualMachines/read", false},
+		{"NSG write", "Microsoft.Network/networkSecurityGroups/write", true},
+		{"Storage delete", "Microsoft.Storage/storageAccounts/delete", true},
+		{"Unknown operation", "Microsoft.Unknown/operation", false},
+	}
+
+	for _, tt := range tests {
+		result := parser.isRelevantEvent(tt.event)
+		if result != tt.expected {
+			t.Errorf("isRelevantEvent(%s): expected %v, got %v", tt.name, tt.expected, result)
+		}
+	}
+}
+
+func TestActivityParser_Parse_MissingFields(t *testing.T) {
+	parser := NewActivityParser()
+
+	tests := []struct {
+		name   string
+		fields map[string]string
+	}{
+		{
+			name: "missing operation name",
+			fields: map[string]string{
+				"azure.resourceId": "/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+			},
+		},
+		{
+			name: "missing resource ID",
+			fields: map[string]string{
+				"azure.operationName": "Microsoft.Compute/virtualMachines/write",
+			},
+		},
+		{
+			name: "empty operation name",
+			fields: map[string]string{
+				"azure.operationName": "",
+				"azure.resourceId":    "/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res := &outputs.Response{
+				Source:       "azure_activity",
+				OutputFields: tt.fields,
+			}
+
+			event := parser.Parse(res)
+			if event != nil {
+				t.Errorf("expected nil event for %s", tt.name)
+			}
+		})
+	}
+}
+
+func TestActivityParser_Parse_CompleteEvent(t *testing.T) {
+	parser := NewActivityParser()
+
+	res := &outputs.Response{
+		Source: "azure_activity",
+		OutputFields: map[string]string{
+			"azure.operationName":    "Microsoft.Compute/virtualMachines/write",
+			"azure.resourceId":       "/subscriptions/sub-123/resourceGroups/my-rg/providers/Microsoft.Compute/virtualMachines/my-vm",
+			"azure.caller":           "user@example.com",
+			"azure.resourceLocation": "eastus",
+			"azure.correlationId":    "abc-123-def",
+			"azure.status":           "Succeeded",
+		},
+	}
+
+	event := parser.Parse(res)
+
+	if event == nil {
+		t.Fatalf("expected non-nil event")
+	}
+
+	assert.Equal(t, "azure", event.Provider)
+	assert.Equal(t, "Microsoft.Compute/virtualMachines/write", event.EventName)
+	assert.Equal(t, "azurerm_virtual_machine", event.ResourceType)
+	assert.Equal(t, "my-vm", event.ResourceID)
+	assert.Equal(t, "eastus", event.Region)
+	assert.Equal(t, "user@example.com", event.UserIdentity.UserName)
+	assert.Equal(t, "sub-123", event.UserIdentity.AccountID)
+}
+
+func TestActivityParser_ValidateEvent_InvalidProvider(t *testing.T) {
+	parser := NewActivityParser()
+
+	event := &types.Event{
+		Provider:     "gcp",
+		EventName:    "operation",
+		ResourceType: "resource",
+		ResourceID:   "id",
+	}
+
+	err := parser.ValidateEvent(event)
+	if err == nil {
+		t.Errorf("expected error for invalid provider")
+	}
+}
+
+func TestGetStringField(t *testing.T) {
+	fields := map[string]string{
+		"key1": "value1",
+		"key2": "",
+	}
+
+	tests := []struct {
+		key      string
+		expected string
+	}{
+		{"key1", "value1"},
+		{"key2", ""},
+		{"missing", ""},
+	}
+
+	for _, tt := range tests {
+		result := getStringField(fields, tt.key)
+		if result != tt.expected {
+			t.Errorf("getStringField(%s): expected %q, got %q", tt.key, tt.expected, result)
+		}
+	}
+}
+
+func TestActivityParser_ExtractResourceName_EdgeCases(t *testing.T) {
+	parser := NewActivityParser()
+
+	tests := []struct {
+		resourceID string
+		expected   string
+	}{
+		{"/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/my-vm", "my-vm"},
+		{"/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg/securityRules/allow-http", "allow-http"},
+		{"/subscriptions/sub/resourceGroups/rg/providers/Microsoft.KeyVault/vaults/vault/secrets/secret", "secret"},
+		{"", ""},
+		{"/", ""},
+		{"/single", "single"},
+	}
+
+	for _, tt := range tests {
+		result := parser.extractResourceName(tt.resourceID)
+		if result != tt.expected {
+			t.Errorf("extractResourceName(%s): expected %q, got %q", tt.resourceID, tt.expected, result)
+		}
+	}
+}
+
+func TestActivityParser_ExtractSubscriptionID_EdgeCases(t *testing.T) {
+	parser := NewActivityParser()
+
+	tests := []struct {
+		resourceID string
+		expected   string
+	}{
+		{"/subscriptions/sub-123/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm", "sub-123"},
+		{"/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm", "12345678-1234-1234-1234-123456789012"},
+		{"/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm", ""},
+		{"", ""},
+	}
+
+	for _, tt := range tests {
+		result := parser.extractSubscriptionID(tt.resourceID)
+		if result != tt.expected {
+			t.Errorf("extractSubscriptionID(%s): expected %q, got %q", tt.resourceID, tt.expected, result)
+		}
+	}
+}
+
+func TestActivityParser_ExtractResourceGroup_EdgeCases(t *testing.T) {
+	parser := NewActivityParser()
+
+	tests := []struct {
+		resourceID string
+		expected   string
+	}{
+		{"/subscriptions/sub-123/resourceGroups/my-rg/providers/Microsoft.Compute/virtualMachines/vm", "my-rg"},
+		{"/subscriptions/sub-123/resourcegroups/MyRG/providers/Microsoft.Compute/virtualMachines/vm", ""}, // resourcegroups (lowercase) won't match
+		{"/subscriptions/sub-123/providers/Microsoft.Compute/virtualMachines/vm", ""},
+		{"", ""},
+	}
+
+	for _, tt := range tests {
+		result := parser.extractResourceGroup(tt.resourceID)
+		if result != tt.expected {
+			t.Errorf("extractResourceGroup(%s): expected %q, got %q", tt.resourceID, tt.expected, result)
+		}
+	}
+}

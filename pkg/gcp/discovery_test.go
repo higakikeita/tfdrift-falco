@@ -2,6 +2,9 @@ package gcp
 
 import (
 	"testing"
+
+	compute "google.golang.org/api/compute/v1"
+	"github.com/stretchr/testify/assert"
 )
 
 // Tests for DiscoveredResource structure and fields
@@ -383,3 +386,60 @@ func TestFieldDiff_BooleanValues(t *testing.T) {
 	}
 }
 
+
+// Tests for discovery helper functions
+
+func TestExtractZoneFromURL_Standard(t *testing.T) {
+	url := "https://www.googleapis.com/compute/v1/projects/my-project/zones/us-central1-a"
+	zone := extractZoneFromURL(url)
+	assert.Equal(t, "us-central1-a", zone)
+}
+
+func TestExtractZoneFromURL_WithPath(t *testing.T) {
+	url := "https://www.googleapis.com/compute/v1/projects/my-project/zones/europe-west1-b/instances/vm-1"
+	zone := extractZoneFromURL(url)
+	assert.Equal(t, "europe-west1-b", zone)
+}
+
+func TestExtractZoneFromURL_NoZone(t *testing.T) {
+	url := "https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default"
+	zone := extractZoneFromURL(url)
+	assert.Equal(t, url, zone)
+}
+
+func TestExtractLastSegment_URL(t *testing.T) {
+	url := "https://www.googleapis.com/compute/v1/projects/my-project/zones/us-central1-a/machineTypes/n1-standard-1"
+	segment := extractLastSegment(url)
+	assert.Equal(t, "n1-standard-1", segment)
+}
+
+func TestExtractLastSegment_Simple(t *testing.T) {
+	segment := extractLastSegment("bucket-name")
+	assert.Equal(t, "bucket-name", segment)
+}
+
+func TestExtractLastSegment_Path(t *testing.T) {
+	url := "projects/p/zones/z/instances/inst"
+	segment := extractLastSegment(url)
+	assert.Equal(t, "inst", segment)
+}
+
+func TestSubnetworkToDiscovered(t *testing.T) {
+	// Test the subnetworkToDiscovered helper function
+	projectID := "my-project"
+	subnetwork := &compute.Subnetwork{
+		Name:                  "subnet-1",
+		Network:               "https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default",
+		IpCidrRange:           "10.0.0.0/24",
+		Region:                "https://www.googleapis.com/compute/v1/projects/my-project/regions/us-central1",
+		PrivateIpGoogleAccess: true,
+		Purpose:               "PRIVATE",
+		SelfLink:              "https://www.googleapis.com/compute/v1/projects/my-project/regions/us-central1/subnetworks/subnet-1",
+	}
+
+	result := subnetworkToDiscovered(projectID, subnetwork)
+	assert.Equal(t, "google_compute_subnetwork", result.Type)
+	assert.Equal(t, "subnet-1", result.Name)
+	assert.Equal(t, "10.0.0.0/24", result.Attributes["ip_cidr_range"])
+	assert.Equal(t, true, result.Attributes["private_ip_google_access"])
+}

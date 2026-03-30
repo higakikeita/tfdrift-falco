@@ -261,3 +261,163 @@ func TestResourceMapper_CreateNewResourceMapper(t *testing.T) {
 	assert.NotNil(t, mapper, "Mapper should not be nil")
 	assert.Greater(t, len(mapper.eventToResource), 0, "Mapper should have events")
 }
+
+func TestResourceMapper_MapEventToResource_NotFound(t *testing.T) {
+	mapper := NewResourceMapper()
+
+	result := mapper.MapEventToResource("Microsoft.Unknown/unknown/write")
+	assert.Equal(t, "", result, "Expected empty string for unmapped event")
+}
+
+func TestResourceMapper_MapEventToResource_CaseSensitive(t *testing.T) {
+	mapper := NewResourceMapper()
+
+	// Exact match
+	result := mapper.MapEventToResource("Microsoft.Compute/virtualMachines/write")
+	assert.Equal(t, "azurerm_virtual_machine", result)
+
+	// Different case should not match (case-sensitive)
+	result = mapper.MapEventToResource("microsoft.compute/virtualmachines/write")
+	assert.Equal(t, "", result)
+}
+
+func TestResourceMapper_GetResourceTypesForService_AllServices(t *testing.T) {
+	mapper := NewResourceMapper()
+
+	services := []string{
+		"Microsoft.Compute/",
+		"Microsoft.Network/",
+		"Microsoft.Storage/",
+		"Microsoft.Sql/",
+		"Microsoft.DocumentDB/",
+		"Microsoft.KeyVault/",
+		"Microsoft.Web/",
+		"Microsoft.Cache/",
+	}
+
+	for _, service := range services {
+		types := mapper.GetResourceTypesForService(service)
+		assert.Greater(t, len(types), 0, "Service %s should have at least one resource type", service)
+
+		// Verify no empty strings
+		for _, rt := range types {
+			assert.NotEmpty(t, rt, "Resource type should not be empty for service %s", service)
+		}
+	}
+}
+
+func TestResourceMapper_GetResourceTypesForService_NonExistent(t *testing.T) {
+	mapper := NewResourceMapper()
+
+	types := mapper.GetResourceTypesForService("Microsoft.NonExistent/")
+	assert.Equal(t, 0, len(types), "Should return empty list for non-existent service")
+}
+
+func TestResourceMapper_GetAllSupportedEvents_Uniqueness(t *testing.T) {
+	mapper := NewResourceMapper()
+	events := mapper.GetAllSupportedEvents()
+
+	// Check for duplicates
+	seen := make(map[string]bool)
+	duplicates := 0
+	for _, event := range events {
+		if seen[event] {
+			duplicates++
+		}
+		seen[event] = true
+	}
+
+	assert.Equal(t, 0, duplicates, "Should have no duplicate events")
+}
+
+func TestResourceMapper_GetAllSupportedEvents_NoEmpty(t *testing.T) {
+	mapper := NewResourceMapper()
+	events := mapper.GetAllSupportedEvents()
+
+	for _, event := range events {
+		assert.NotEmpty(t, event, "Event should not be empty")
+		assert.True(t, len(event) > 0, "Event should have non-zero length")
+	}
+}
+
+func TestResourceMapper_MultipleMappers(t *testing.T) {
+	mapper1 := NewResourceMapper()
+	mapper2 := NewResourceMapper()
+
+	// Both should have the same mappings
+	assert.Equal(t, len(mapper1.eventToResource), len(mapper2.eventToResource))
+
+	// Test a specific mapping on both
+	assert.Equal(t,
+		mapper1.MapEventToResource("Microsoft.Compute/virtualMachines/write"),
+		mapper2.MapEventToResource("Microsoft.Compute/virtualMachines/write"),
+	)
+}
+
+func TestResourceMapper_CommonOperations(t *testing.T) {
+	mapper := NewResourceMapper()
+
+	tests := []struct {
+		operation        string
+		expectedResource string
+	}{
+		// Write operations
+		{"Microsoft.Compute/virtualMachines/write", "azurerm_virtual_machine"},
+		{"Microsoft.Network/virtualNetworks/write", "azurerm_virtual_network"},
+		{"Microsoft.Storage/storageAccounts/write", "azurerm_storage_account"},
+
+		// Delete operations
+		{"Microsoft.Compute/virtualMachines/delete", "azurerm_virtual_machine"},
+		{"Microsoft.Network/networkSecurityGroups/delete", "azurerm_network_security_group"},
+
+		// Action operations
+		{"Microsoft.Compute/virtualMachines/start/action", "azurerm_virtual_machine"},
+		{"Microsoft.Compute/virtualMachines/powerOff/action", "azurerm_virtual_machine"},
+		{"Microsoft.Compute/virtualMachines/deallocate/action", "azurerm_virtual_machine"},
+	}
+
+	for _, tt := range tests {
+		result := mapper.MapEventToResource(tt.operation)
+		assert.Equal(t, tt.expectedResource, result, "Operation %s should map to %s", tt.operation, tt.expectedResource)
+	}
+}
+
+func TestResourceMapper_NestedResources(t *testing.T) {
+	mapper := NewResourceMapper()
+
+	tests := []struct {
+		operation        string
+		expectedResource string
+	}{
+		{"Microsoft.Network/networkSecurityGroups/securityRules/write", "azurerm_network_security_rule"},
+		{"Microsoft.Network/loadBalancers/backendAddressPools/write", "azurerm_lb_backend_address_pool"},
+		{"Microsoft.Network/virtualNetworks/subnets/write", "azurerm_subnet"},
+		{"Microsoft.Sql/servers/databases/write", "azurerm_mssql_database"},
+		{"Microsoft.KeyVault/vaults/secrets/write", "azurerm_key_vault_secret"},
+	}
+
+	for _, tt := range tests {
+		result := mapper.MapEventToResource(tt.operation)
+		assert.Equal(t, tt.expectedResource, result, "Nested operation %s should map to %s", tt.operation, tt.expectedResource)
+	}
+}
+
+func TestResourceMapper_ServiceCoverage(t *testing.T) {
+	mapper := NewResourceMapper()
+
+	// Verify coverage for major Azure services
+	requiredServices := map[string]int{
+		"Microsoft.Compute/": 5,
+		"Microsoft.Network/": 15,
+		"Microsoft.Storage/": 3,
+		"Microsoft.Sql/": 4,
+		"Microsoft.KeyVault/": 4,
+		"Microsoft.Web/": 3,
+		"Microsoft.ContainerService/": 1,
+	}
+
+	for service, minCount := range requiredServices {
+		types := mapper.GetResourceTypesForService(service)
+		assert.GreaterOrEqual(t, len(types), minCount, "Service %s should have at least %d resource types", service, minCount)
+	}
+}

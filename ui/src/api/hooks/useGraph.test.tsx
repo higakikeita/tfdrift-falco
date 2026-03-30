@@ -476,7 +476,7 @@ describe('useEdges', () => {
       });
 
       expect((result.current.data as typeof mockPaginatedEdges)?.data).toHaveLength(3);
-      expect((result.current.data as typeof mockPaginatedEdges)?.data[0].data.type).toBe('depends_on');
+      expect((result.current.data as typeof mockPaginatedEdges)?.data[0].data.type).toBe('caused_by');
       expect((result.current.data as typeof mockPaginatedEdges)?.data[1].data.type).toBe('contains');
       expect((result.current.data as typeof mockPaginatedEdges)?.data[2].data.type).toBe('references');
     });

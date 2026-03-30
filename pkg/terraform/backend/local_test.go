@@ -446,3 +446,96 @@ func TestLocalBackend_Load_LargeFile(t *testing.T) {
 	assert.Equal(t, largeContent, data)
 	assert.Equal(t, 1024*1024, len(data))
 }
+
+// Test LocalBackend default path
+func TestLocalBackend_DefaultPath(t *testing.T) {
+	// Create default terraform.tfstate in current directory
+	tmpDir := t.TempDir()
+	oldCwd, err := os.Getwd()
+	require.NoError(t, err)
+	defer os.Chdir(oldCwd)
+
+	os.Chdir(tmpDir)
+
+	// Create terraform.tfstate
+	err = os.WriteFile("terraform.tfstate", []byte(`{"version": 4}`), 0600)
+	require.NoError(t, err)
+
+	backend, err := NewLocalBackend("")
+	require.NoError(t, err)
+	assert.NotNil(t, backend)
+}
+
+// Test LocalBackend with various state file formats
+func TestLocalBackend_Load_ValidStateFormats(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	tests := []struct {
+		name    string
+		content string
+	}{
+		{
+			name:    "minimal state",
+			content: `{"version": 4}`,
+		},
+		{
+			name:    "state with outputs",
+			content: `{"version": 4, "outputs": {"instance_id": {"value": "i-12345"}}}`,
+		},
+		{
+			name:    "state with resources",
+			content: `{"version": 4, "resources": [{"type": "aws_instance", "name": "example"}]}`,
+		},
+		{
+			name:    "empty content",
+			content: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			statePath := filepath.Join(tmpDir, "state_"+tt.name+".tfstate")
+			err := os.WriteFile(statePath, []byte(tt.content), 0600)
+			require.NoError(t, err)
+
+			backend, err := NewLocalBackend(statePath)
+			require.NoError(t, err)
+
+			data, err := backend.Load(context.Background())
+			assert.NoError(t, err)
+			assert.Equal(t, []byte(tt.content), data)
+		})
+	}
+}
+
+// Test LocalBackend with invalid paths
+func TestLocalBackend_InvalidPaths(t *testing.T) {
+	tests := []struct {
+		name string
+		path string
+	}{
+		{"absolute path to nonexistent", "/tmp/nonexistent/terraform.tfstate"},
+		{"relative path nonexistent", "nonexistent/terraform.tfstate"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			backend, err := NewLocalBackend(tt.path)
+			assert.Error(t, err)
+			assert.Nil(t, backend)
+		})
+	}
+}
+
+// Test LocalBackend Name consistency
+func TestLocalBackend_NameConsistency(t *testing.T) {
+	tmpDir := t.TempDir()
+	statePath := filepath.Join(tmpDir, "terraform.tfstate")
+	os.WriteFile(statePath, []byte(`{"version": 4}`), 0600)
+
+	backend, _ := NewLocalBackend(statePath)
+
+	assert.Equal(t, "local", backend.Name())
+	assert.Equal(t, "local", backend.Name())
+	assert.Equal(t, "local", backend.Name())
+}

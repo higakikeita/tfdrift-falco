@@ -519,3 +519,57 @@ func TestS3Backend_ErrorMessages(t *testing.T) {
 		})
 	}
 }
+
+// Test S3Backend internal fields
+func TestS3Backend_InternalFields(t *testing.T) {
+	cfg := S3BackendConfig{
+		Bucket: "my-bucket",
+		Key:    "path/to/terraform.tfstate",
+		Region: "eu-west-1",
+	}
+
+	backend, err := NewS3Backend(cfg)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "my-bucket", backend.bucket)
+	assert.Equal(t, "path/to/terraform.tfstate", backend.key)
+	assert.Equal(t, "eu-west-1", backend.region)
+	assert.NotNil(t, backend.client)
+}
+
+// Test S3Backend Name consistency
+func TestS3Backend_NameConsistency(t *testing.T) {
+	backend, err := NewS3Backend(S3BackendConfig{
+		Bucket: "test-bucket",
+		Key:    "test.tfstate",
+		Region: "us-east-1",
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, "s3", backend.Name())
+	assert.Equal(t, "s3", backend.Name())
+}
+
+// Test S3Backend region defaults to us-east-1
+func TestS3Backend_RegionDefaulToUsEast1(t *testing.T) {
+	backend, err := NewS3Backend(S3BackendConfig{
+		Bucket: "test-bucket",
+		Key:    "test.tfstate",
+		Region: "",
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, "us-east-1", backend.region)
+}
+
+// Test S3Backend with whitespace in region
+func TestS3Backend_RegionWithWhitespace(t *testing.T) {
+	backend, err := NewS3Backend(S3BackendConfig{
+		Bucket: "test-bucket",
+		Key:    "test.tfstate",
+		Region: "  us-west-2  ",
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, "us-west-2", backend.region)
+}

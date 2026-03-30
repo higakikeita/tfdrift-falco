@@ -1,6 +1,7 @@
 package azure
 
 import (
+	"context"
 	"testing"
 )
 
@@ -468,5 +469,392 @@ func TestFieldDiff_BooleanValues(t *testing.T) {
 	if diff.ActualValue != true {
 		t.Errorf("expected true")
 	}
+}
+
+// Tests for discovery client and helper functions
+
+func TestNewDiscoveryClient_ValidConfig(t *testing.T) {
+	lister := &MockResourceLister{
+		resources: []*AzureResource{},
+	}
+
+	client, err := NewDiscoveryClient("sub-123", []string{"eastus"}, lister)
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
+	if client == nil {
+		t.Errorf("expected non-nil client")
+	}
+}
+
+func TestNewDiscoveryClient_MissingSubscription(t *testing.T) {
+	lister := &MockResourceLister{}
+	client, err := NewDiscoveryClient("", []string{}, lister)
+
+	if err == nil {
+		t.Errorf("expected error for missing subscription ID")
+	}
+	if client != nil {
+		t.Errorf("expected nil client")
+	}
+	if err.Error() != "Azure subscription ID is required" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+func TestDiscoveryClient_WithResourceGroup(t *testing.T) {
+	lister := &MockResourceLister{}
+	client, _ := NewDiscoveryClient("sub-123", []string{}, lister)
+
+	result := client.WithResourceGroup("my-rg")
+	if result != client {
+		t.Errorf("expected chaining to return same client")
+	}
+	if client.resourceGroup != "my-rg" {
+		t.Errorf("expected resourceGroup to be set")
+	}
+}
+
+func TestDiscoveryClient_DiscoverAll_NilLister(t *testing.T) {
+	client := &DiscoveryClient{
+		subscriptionID: "sub-123",
+		resourceLister: nil,
+	}
+
+	resources, err := client.DiscoverAll(nil)
+
+	if err == nil {
+		t.Errorf("expected error for nil lister")
+	}
+	if resources != nil {
+		t.Errorf("expected nil resources")
+	}
+}
+
+func TestDiscoveryClient_DiscoverAll_WithRegionFilter(t *testing.T) {
+	lister := &MockResourceLister{
+		resources: []*AzureResource{
+			{
+				ID:       "/subscriptions/sub-123/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
+				Name:     "vm1",
+				Type:     "Microsoft.Compute/virtualMachines",
+				Location: "eastus",
+			},
+			{
+				ID:       "/subscriptions/sub-123/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm2",
+				Name:     "vm2",
+				Type:     "Microsoft.Compute/virtualMachines",
+				Location: "westus",
+			},
+		},
+	}
+
+	client, _ := NewDiscoveryClient("sub-123", []string{"eastus"}, lister)
+	resources, err := client.DiscoverAll(nil)
+
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if len(resources) != 1 {
+		t.Errorf("expected 1 resource after region filter, got %d", len(resources))
+	}
+	if resources[0].Name != "vm1" {
+		t.Errorf("expected vm1, got %s", resources[0].Name)
+	}
+}
+
+func TestDiscoveryClient_ConvertResource_UnsupportedType(t *testing.T) {
+	client := &DiscoveryClient{}
+	resource := &AzureResource{
+		Type: "Microsoft.Unknown/resource",
+		Name: "test",
+	}
+
+	converted := client.convertResource(resource)
+	if converted != nil {
+		t.Errorf("expected nil for unsupported type")
+	}
+}
+
+func TestDiscoveryClient_ConvertResource_WithSKU(t *testing.T) {
+	client := &DiscoveryClient{}
+	resource := &AzureResource{
+		ID:       "/subscriptions/sub-123/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa1",
+		Type:     "Microsoft.Storage/storageAccounts",
+		Name:     "sa1",
+		Location: "eastus",
+		SKU: &SKU{
+			Name:     "Standard_LRS",
+			Tier:     "Standard",
+			Capacity: 10,
+		},
+	}
+
+	converted := client.convertResource(resource)
+	if converted == nil {
+		t.Fatalf("expected non-nil converted resource")
+	}
+	if converted.Attributes["sku_name"] != "Standard_LRS" {
+		t.Errorf("expected sku_name Standard_LRS")
+	}
+	if converted.Attributes["sku_tier"] != "Standard" {
+		t.Errorf("expected sku_tier Standard")
+	}
+	if converted.Attributes["sku_capacity"] != int64(10) {
+		t.Errorf("expected sku_capacity 10")
+	}
+}
+
+func TestDiscoveryClient_ConvertResource_WithKind(t *testing.T) {
+	client := &DiscoveryClient{}
+	resource := &AzureResource{
+		ID:       "/subscriptions/sub-123/resourceGroups/rg/providers/Microsoft.Web/sites/app1",
+		Type:     "Microsoft.Web/sites",
+		Name:     "app1",
+		Location: "eastus",
+		Kind:     "functionapp",
+	}
+
+	converted := client.convertResource(resource)
+	if converted == nil {
+		t.Fatalf("expected non-nil converted resource")
+	}
+	if converted.Attributes["kind"] != "functionapp" {
+		t.Errorf("expected kind functionapp")
+	}
+}
+
+
+func TestSupportedDiscoveryTypes(t *testing.T) {
+	types := SupportedDiscoveryTypes()
+
+	if len(types) == 0 {
+		t.Errorf("expected non-empty list of supported types")
+	}
+
+	// Check for some known types
+	hasVM := false
+	hasStorage := false
+	for _, t := range types {
+		if t == "azurerm_virtual_machine" {
+			hasVM = true
+		}
+		if t == "azurerm_storage_account" {
+			hasStorage = true
+		}
+	}
+
+	if !hasVM {
+		t.Errorf("expected azurerm_virtual_machine in supported types")
+	}
+	if !hasStorage {
+		t.Errorf("expected azurerm_storage_account in supported types")
+	}
+}
+
+
+func TestCopyIfExists(t *testing.T) {
+	src := map[string]interface{}{
+		"key1": "value1",
+		"key2": nil,
+	}
+	dst := make(map[string]interface{})
+
+	copyIfExists(src, dst, "key1", "newkey1")
+	if dst["newkey1"] != "value1" {
+		t.Errorf("expected value1 to be copied")
+	}
+
+	copyIfExists(src, dst, "key2", "newkey2")
+	if _, exists := dst["newkey2"]; exists {
+		t.Errorf("expected nil values not to be copied")
+	}
+
+	copyIfExists(src, dst, "nonexistent", "newkey3")
+	if _, exists := dst["newkey3"]; exists {
+		t.Errorf("expected nonexistent keys not to be copied")
+	}
+}
+
+func TestDiscoveryClient_ExtractProperties_VirtualMachine(t *testing.T) {
+	client := &DiscoveryClient{}
+	attrs := make(map[string]interface{})
+	properties := map[string]interface{}{
+		"vmId": "vm-123",
+		"hardwareProfile": map[string]interface{}{
+			"vmSize": "Standard_D2s_v3",
+		},
+		"osProfile": map[string]interface{}{
+			"computerName": "mycomputer",
+			"adminUsername": "azureuser",
+		},
+		"provisioningState": "Succeeded",
+	}
+
+	client.extractProperties("azurerm_virtual_machine", properties, attrs)
+
+	if attrs["vm_id"] != "vm-123" {
+		t.Errorf("expected vm_id to be extracted")
+	}
+	if attrs["vm_size"] != "Standard_D2s_v3" {
+		t.Errorf("expected vm_size to be extracted")
+	}
+	if attrs["computer_name"] != "mycomputer" {
+		t.Errorf("expected computer_name to be extracted")
+	}
+	if attrs["provisioning_state"] != "Succeeded" {
+		t.Errorf("expected provisioning_state to be extracted")
+	}
+}
+
+func TestDiscoveryClient_ExtractProperties_VirtualNetwork(t *testing.T) {
+	client := &DiscoveryClient{}
+	attrs := make(map[string]interface{})
+	properties := map[string]interface{}{
+		"addressSpace": map[string]interface{}{
+			"addressPrefixes": []interface{}{"10.0.0.0/16", "10.1.0.0/16"},
+		},
+		"dhcpOptions": map[string]interface{}{
+			"dnsServers": []interface{}{"8.8.8.8", "8.8.4.4"},
+		},
+	}
+
+	client.extractProperties("azurerm_virtual_network", properties, attrs)
+
+	addressSpace, ok := attrs["address_space"].([]interface{})
+	if !ok || len(addressSpace) != 2 {
+		t.Errorf("expected address_space to be extracted as slice")
+	}
+
+	dnsServers, ok := attrs["dns_servers"].([]interface{})
+	if !ok || len(dnsServers) != 2 {
+		t.Errorf("expected dns_servers to be extracted as slice")
+	}
+}
+
+func TestDiscoveryClient_ExtractProperties_StorageAccount(t *testing.T) {
+	client := &DiscoveryClient{}
+	attrs := make(map[string]interface{})
+	properties := map[string]interface{}{
+		"primaryEndpoints": map[string]interface{}{
+			"blob": "https://mysa.blob.core.windows.net/",
+		},
+		"encryption": map[string]interface{}{
+			"services": map[string]interface{}{
+				"blob": map[string]interface{}{
+					"enabled": true,
+				},
+			},
+		},
+	}
+
+	client.extractProperties("azurerm_storage_account", properties, attrs)
+
+	if attrs["primary_blob_endpoint"] != "https://mysa.blob.core.windows.net/" {
+		t.Errorf("expected primary_blob_endpoint to be extracted")
+	}
+	if attrs["blob_encryption_enabled"] != true {
+		t.Errorf("expected blob_encryption_enabled to be extracted")
+	}
+}
+
+func TestDiscoveryClient_ExtractProperties_KubernetesCluster(t *testing.T) {
+	client := &DiscoveryClient{}
+	attrs := make(map[string]interface{})
+	properties := map[string]interface{}{
+		"kubernetesVersion": "1.26.0",
+		"dnsPrefix": "myaks",
+		"fqdn": "myaks.eastus.azmk8s.io",
+		"networkProfile": map[string]interface{}{
+			"networkPlugin": "azure",
+			"serviceCidr": "10.1.0.0/16",
+			"podCidr": "10.244.0.0/16",
+		},
+	}
+
+	client.extractProperties("azurerm_kubernetes_cluster", properties, attrs)
+
+	if attrs["kubernetes_version"] != "1.26.0" {
+		t.Errorf("expected kubernetes_version")
+	}
+	if attrs["network_plugin"] != "azure" {
+		t.Errorf("expected network_plugin")
+	}
+}
+
+func TestDiscoveryClient_ExtractProperties_KeyVault(t *testing.T) {
+	client := &DiscoveryClient{}
+	attrs := make(map[string]interface{})
+	properties := map[string]interface{}{
+		"properties": map[string]interface{}{
+			"tenantId": "12345678-1234-1234-1234-123456789012",
+			"sku": map[string]interface{}{
+				"name": "standard",
+			},
+			"enabledForDeployment": true,
+		},
+	}
+
+	client.extractProperties("azurerm_key_vault", properties, attrs)
+
+	if attrs["tenant_id"] != "12345678-1234-1234-1234-123456789012" {
+		t.Errorf("expected tenant_id")
+	}
+	if attrs["sku_name"] != "standard" {
+		t.Errorf("expected sku_name")
+	}
+	if attrs["enabled_for_deployment"] != true {
+		t.Errorf("expected enabled_for_deployment")
+	}
+}
+
+func TestDiscoveryClient_ExtractProperties_CosmosDB(t *testing.T) {
+	client := &DiscoveryClient{}
+	attrs := make(map[string]interface{})
+	properties := map[string]interface{}{
+		"databaseAccountOfferType": "Standard",
+		"documentEndpoint": "https://mydb.documents.azure.com:443/",
+		"consistencyPolicy": map[string]interface{}{
+			"defaultConsistencyLevel": "Session",
+		},
+	}
+
+	client.extractProperties("azurerm_cosmosdb_account", properties, attrs)
+
+	if attrs["offer_type"] != "Standard" {
+		t.Errorf("expected offer_type")
+	}
+	if attrs["consistency_level"] != "Session" {
+		t.Errorf("expected consistency_level")
+	}
+}
+
+func TestDiscoveryClient_DiscoverAll_WithError(t *testing.T) {
+	lister := &MockResourceLister{
+		err: context.DeadlineExceeded,
+	}
+
+	client, _ := NewDiscoveryClient("sub-123", []string{}, lister)
+	resources, err := client.DiscoverAll(context.Background())
+
+	if err == nil {
+		t.Errorf("expected error to be propagated")
+	}
+	if resources != nil {
+		t.Errorf("expected nil resources on error")
+	}
+}
+
+// Mock ResourceLister for testing
+type MockResourceLister struct {
+	resources []*AzureResource
+	err       error
+}
+
+func (m *MockResourceLister) ListResources(ctx context.Context, subscriptionID string, resourceGroup string) ([]*AzureResource, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.resources, nil
 }
 
