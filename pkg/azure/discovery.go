@@ -24,11 +24,11 @@ type DiscoveryClient struct {
 // In production, this is backed by Azure SDK's armresources client.
 type ResourceLister interface {
 	// ListResources lists Azure resources, optionally filtered by resource group.
-	ListResources(ctx context.Context, subscriptionID string, resourceGroup string) ([]*AzureResource, error)
+	ListResources(ctx context.Context, subscriptionID string, resourceGroup string) ([]*Resource, error)
 }
 
-// AzureResource represents a raw Azure resource from the ARM API.
-type AzureResource struct {
+// Resource represents a raw Azure resource from the ARM API.
+type Resource struct {
 	ID         string            `json:"id"`
 	Name       string            `json:"name"`
 	Type       string            `json:"type"`       // e.g., "Microsoft.Compute/virtualMachines"
@@ -48,6 +48,8 @@ type SKU struct {
 
 // Type aliases to use shared types from pkg/types
 // This allows discovery.go to continue using the old names while using the shared implementations
+
+// DiscoveredResource is an alias for types.DiscoveredResource.
 type DiscoveredResource = types.DiscoveredResource
 type DriftResult = types.DriftResult
 type TerraformResource = types.TerraformResource
@@ -189,7 +191,7 @@ func (d *DiscoveryClient) DiscoverAll(ctx context.Context) ([]*DiscoveredResourc
 
 // convertResource converts an Azure ARM resource to a DiscoveredResource.
 // Returns nil if the resource type is not supported for Terraform mapping.
-func (d *DiscoveryClient) convertResource(res *AzureResource) *DiscoveredResource {
+func (d *DiscoveryClient) convertResource(res *Resource) *DiscoveredResource {
 	// Normalize the Azure type to lowercase for matching
 	azureType := strings.ToLower(res.Type)
 

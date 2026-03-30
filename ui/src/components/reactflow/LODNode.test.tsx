@@ -4,7 +4,7 @@ import { LODNode, shouldUseLOD, getLODThresholds } from './LODNode';
 
 // Mock the Handle and useStore from reactflow
 vi.mock('reactflow', () => ({
-  Handle: ({ type, position, className }: any) => (
+  Handle: ({ type, position, className }: Record<string, unknown>) => (
     <div data-testid={`handle-${type}`} className={className} data-position={position} />
   ),
   Position: {
@@ -21,7 +21,7 @@ vi.mock('reactflow', () => ({
 
 // Mock OfficialCloudIcon
 vi.mock('../icons/OfficialCloudIcons', () => ({
-  OfficialCloudIcon: ({ type, size }: any) => (
+  OfficialCloudIcon: ({ type, size }: Record<string, unknown>) => (
     <div data-testid="cloud-icon" data-type={type} data-size={size}>
       Icon
     </div>
@@ -30,7 +30,7 @@ vi.mock('../icons/OfficialCloudIcons', () => ({
 
 // Mock CustomNode
 vi.mock('./CustomNode', () => ({
-  CustomNode: ({ data }: any) => (
+  CustomNode: ({ data }: Record<string, unknown>) => (
     <div data-testid="custom-node" data-label={data.label}>
       {data.label}
     </div>
@@ -152,7 +152,7 @@ describe('LODNode', () => {
 
     severities.forEach(severity => {
       const { container } = render(
-        <LODNode {...mockNodeProps({ severity: severity as any })} />
+        <LODNode {...mockNodeProps({ severity: severity as unknown as 'critical' | 'high' | 'medium' | 'low' | undefined })} />
       );
       expect(container.firstChild).toBeInTheDocument();
     });

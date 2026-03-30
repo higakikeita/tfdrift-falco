@@ -29,9 +29,17 @@ type DiscoveryClient struct {
 
 // Type aliases to use shared types from pkg/types
 // This allows discovery.go to continue using the old names while using the shared implementations
+
+// DiscoveredResource is an alias for types.DiscoveredResource.
 type DiscoveredResource = types.DiscoveredResource
+
+// ResourceDiff is an alias for types.ResourceDiff.
 type ResourceDiff = types.ResourceDiff
+
+// FieldDiff is an alias for types.FieldDiff.
 type FieldDiff = types.FieldDiff
+
+// DriftResult is an alias for types.DriftResult.
 type DriftResult = types.DriftResult
 
 // NewDiscoveryClient creates a new AWS discovery client with real AWS SDK clients

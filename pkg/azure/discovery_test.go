@@ -475,7 +475,7 @@ func TestFieldDiff_BooleanValues(t *testing.T) {
 
 func TestNewDiscoveryClient_ValidConfig(t *testing.T) {
 	lister := &MockResourceLister{
-		resources: []*AzureResource{},
+		resources: []*Resource{},
 	}
 
 	client, err := NewDiscoveryClient("sub-123", []string{"eastus"}, lister)
@@ -533,7 +533,7 @@ func TestDiscoveryClient_DiscoverAll_NilLister(t *testing.T) {
 
 func TestDiscoveryClient_DiscoverAll_WithRegionFilter(t *testing.T) {
 	lister := &MockResourceLister{
-		resources: []*AzureResource{
+		resources: []*Resource{
 			{
 				ID:       "/subscriptions/sub-123/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
 				Name:     "vm1",
@@ -565,7 +565,7 @@ func TestDiscoveryClient_DiscoverAll_WithRegionFilter(t *testing.T) {
 
 func TestDiscoveryClient_ConvertResource_UnsupportedType(t *testing.T) {
 	client := &DiscoveryClient{}
-	resource := &AzureResource{
+	resource := &Resource{
 		Type: "Microsoft.Unknown/resource",
 		Name: "test",
 	}
@@ -578,7 +578,7 @@ func TestDiscoveryClient_ConvertResource_UnsupportedType(t *testing.T) {
 
 func TestDiscoveryClient_ConvertResource_WithSKU(t *testing.T) {
 	client := &DiscoveryClient{}
-	resource := &AzureResource{
+	resource := &Resource{
 		ID:       "/subscriptions/sub-123/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa1",
 		Type:     "Microsoft.Storage/storageAccounts",
 		Name:     "sa1",
@@ -607,7 +607,7 @@ func TestDiscoveryClient_ConvertResource_WithSKU(t *testing.T) {
 
 func TestDiscoveryClient_ConvertResource_WithKind(t *testing.T) {
 	client := &DiscoveryClient{}
-	resource := &AzureResource{
+	resource := &Resource{
 		ID:       "/subscriptions/sub-123/resourceGroups/rg/providers/Microsoft.Web/sites/app1",
 		Type:     "Microsoft.Web/sites",
 		Name:     "app1",
@@ -847,11 +847,11 @@ func TestDiscoveryClient_DiscoverAll_WithError(t *testing.T) {
 
 // Mock ResourceLister for testing
 type MockResourceLister struct {
-	resources []*AzureResource
+	resources []*Resource
 	err       error
 }
 
-func (m *MockResourceLister) ListResources(ctx context.Context, subscriptionID string, resourceGroup string) ([]*AzureResource, error) {
+func (m *MockResourceLister) ListResources(ctx context.Context, subscriptionID string, resourceGroup string) ([]*Resource, error) {
 	if m.err != nil {
 		return nil, m.err
 	}

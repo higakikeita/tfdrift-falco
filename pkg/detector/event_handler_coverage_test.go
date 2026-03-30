@@ -237,7 +237,7 @@ func TestStart_WithValidConfig(t *testing.T) {
 	defer cancel()
 
 	// Start should complete within timeout
-	err = detector.Start(ctx)
+	_ = detector.Start(ctx)
 	<-ctx.Done()
 	time.Sleep(50 * time.Millisecond)
 

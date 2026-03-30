@@ -10,7 +10,7 @@ import type { NodeProps } from 'reactflow';
 
 // Mock reactflow components
 vi.mock('reactflow', () => ({
-  Handle: ({ type, position, className }: any) => (
+  Handle: ({ type, position, className }: Record<string, unknown>) => (
     <div data-testid={`handle-${type}`} data-position={position} className={className} />
   ),
   Position: {
@@ -23,9 +23,9 @@ vi.mock('reactflow', () => ({
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => ({
-  ChevronDown: (props: any) => <span data-testid="chevron-down" {...props} />,
-  ChevronRight: (props: any) => <span data-testid="chevron-right" {...props} />,
-  Package: (props: any) => <span data-testid="package-icon" {...props} />,
+  ChevronDown: (props: Record<string, unknown>) => <span data-testid="chevron-down" {...props} />,
+  ChevronRight: (props: Record<string, unknown>) => <span data-testid="chevron-right" {...props} />,
+  Package: (props: Record<string, unknown>) => <span data-testid="package-icon" {...props} />,
 }));
 
 describe('ClusterNode', () => {
@@ -43,7 +43,7 @@ describe('ClusterNode', () => {
     selected: false,
     isConnecting: false,
     xNode: undefined,
-  } as any;
+  } as unknown as NodeProps;
 
   describe('Rendering', () => {
     it('should render cluster node with label', () => {

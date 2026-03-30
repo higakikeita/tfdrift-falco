@@ -53,7 +53,7 @@ export const ClusterNode = memo(({ data, selected }: NodeProps<ClusterNodeData>)
   // Sort severities by priority
   const severityOrder = ['critical', 'high', 'medium', 'low'];
   const sortedSeverities = Object.entries(severityCounts)
-    .filter(([_, count]) => count > 0)
+    .filter(([, count]) => count > 0)
     .sort(([a], [b]) => severityOrder.indexOf(a) - severityOrder.indexOf(b));
 
   return (

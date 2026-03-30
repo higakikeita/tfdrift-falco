@@ -44,7 +44,7 @@ func TestCrossCloudCorrelator_GetGroups(t *testing.T) {
 
 	// Verify it's a copy (modifying returned slice doesn't affect internal state)
 	originalLen := len(groups)
-	groups = append(groups, CorrelationGroup{ID: "fake"})
+	_ = append(groups, CorrelationGroup{ID: "fake"})
 	groupsAgain := c.GetGroups()
 	assert.Equal(t, originalLen, len(groupsAgain), "Returned slice should be a copy")
 }

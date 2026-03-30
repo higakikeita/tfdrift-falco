@@ -10,7 +10,7 @@ vi.mock('lucide-react', () => ({
 }));
 
 vi.mock('../../api/sse', () => ({
-  useSSE: (opts: { autoConnect: boolean }) => {
+  useSSE: () => {
     return {
       isConnected: true,
       lastEvent: null,
@@ -30,7 +30,7 @@ vi.mock('../../stores/toastStore', () => ({
 }));
 
 vi.mock('../../lib/utils', () => ({
-  cn: (...args: unknown[]) => '',
+  cn: () => '',
 }));
 
 import { NotificationPanel } from './NotificationPanel';

@@ -38,6 +38,7 @@ type responseWriter struct {
 	statusCode int
 }
 
+// WriteHeader captures the HTTP response status code.
 func (rw *responseWriter) WriteHeader(statusCode int) {
 	rw.statusCode = statusCode
 	rw.ResponseWriter.WriteHeader(statusCode)

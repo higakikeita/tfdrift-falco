@@ -61,6 +61,7 @@ type otelResponseWriter struct {
 	statusCode int
 }
 
+// WriteHeader captures the HTTP response status code.
 func (w *otelResponseWriter) WriteHeader(code int) {
 	w.statusCode = code
 	w.ResponseWriter.WriteHeader(code)
