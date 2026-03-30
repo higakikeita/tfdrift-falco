@@ -1,13 +1,11 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"sort"
 	"sync"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
 	"github.com/keitahigaki/tfdrift-falco/pkg/provider"
 )
 
@@ -132,16 +130,11 @@ func (h *ProviderStatusHandler) GetProviderStatus(w http.ResponseWriter, r *http
 		return result[i]["name"].(string) < result[j]["name"].(string)
 	})
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data: map[string]interface{}{
-			"providers":  result,
-			"count":      len(result),
-			"uptime":     int64(time.Since(h.startAt).Seconds()),
-			"timestamp":  time.Now().Format(time.RFC3339),
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"providers":  result,
+		"count":      len(result),
+		"uptime":     int64(time.Since(h.startAt).Seconds()),
+		"timestamp":  time.Now().Format(time.RFC3339),
 	})
 }
 
@@ -169,20 +162,15 @@ func (h *ProviderStatusHandler) GetProviderSummary(w http.ResponseWriter, r *htt
 		}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data: map[string]interface{}{
-			"total_providers":    len(capabilities),
-			"active_providers":   activeCount,
-			"total_events":       totalEvents,
-			"total_matched":      totalMatched,
-			"total_errors":       totalErrors,
-			"providers":          providerNames,
-			"match_rate_percent": matchRate(totalEvents, totalMatched),
-			"uptime_seconds":     int64(time.Since(h.startAt).Seconds()),
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"total_providers":    len(capabilities),
+		"active_providers":   activeCount,
+		"total_events":       totalEvents,
+		"total_matched":      totalMatched,
+		"total_errors":       totalErrors,
+		"providers":          providerNames,
+		"match_rate_percent": matchRate(totalEvents, totalMatched),
+		"uptime_seconds":     int64(time.Since(h.startAt).Seconds()),
 	})
 }
 

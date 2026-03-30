@@ -1,11 +1,12 @@
 package azure
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/keitahigaki/tfdrift-falco/pkg/comparator"
 )
 
 // CompareStateWithActual compares Terraform state with actual Azure resources
@@ -130,10 +131,10 @@ func compareResourceAttributes(tfRes *TerraformResource, azRes *DiscoveredResour
 	fieldsToCompare := getComparableFields(tfRes.Type)
 
 	for _, field := range fieldsToCompare {
-		tfValue := getNestedValue(tfRes.Attributes, field)
-		azValue := getNestedValue(azRes.Attributes, field)
+		tfValue := comparator.GetNestedValue(tfRes.Attributes, field)
+		azValue := comparator.GetNestedValue(azRes.Attributes, field)
 
-		if !valuesEqual(tfValue, azValue) {
+		if !comparator.ValuesEqualCaseInsensitive(tfValue, azValue) {
 			diff.Differences = append(diff.Differences, FieldDiff{
 				Field:          field,
 				TerraformValue: tfValue,
@@ -214,91 +215,29 @@ func getComparableFields(resourceType string) []string {
 	}
 }
 
-// getNestedValue retrieves a value from a nested map using dot notation.
+
+// Internal wrapper functions for test compatibility.
+// These delegate to the shared comparator package functions.
+
+// getNestedValue is a wrapper around comparator.GetNestedValue for test compatibility.
 func getNestedValue(data map[string]interface{}, path string) interface{} {
-	parts := strings.Split(path, ".")
-	current := data
-
-	for i, part := range parts {
-		value, exists := current[part]
-		if !exists {
-			return nil
-		}
-
-		if i == len(parts)-1 {
-			return value
-		}
-
-		if nextMap, ok := value.(map[string]interface{}); ok {
-			current = nextMap
-		} else {
-			return nil
-		}
-	}
-
-	return nil
+	return comparator.GetNestedValue(data, path)
 }
 
-// valuesEqual compares two values for equality, handling different types.
-// Azure locations and resource names are case-insensitive.
+// valuesEqual is a wrapper around comparator.ValuesEqualCaseInsensitive for test compatibility.
+// Azure uses case-insensitive comparison.
 func valuesEqual(a, b interface{}) bool {
-	if a == nil && b == nil {
-		return true
-	}
-	if a == nil || b == nil {
-		return false
-	}
-
-	// Try string comparison for mixed types
-	aStr := fmt.Sprintf("%v", a)
-	bStr := fmt.Sprintf("%v", b)
-
-	// Handle boolean comparisons
-	if aBool, ok := a.(bool); ok {
-		if bStr == "true" {
-			return aBool
-		}
-		if bStr == "false" {
-			return !aBool
-		}
-	}
-
-	// String-to-string: case-insensitive (Azure locations are case-insensitive)
-	if _, aIsStr := a.(string); aIsStr {
-		if _, bIsStr := b.(string); bIsStr {
-			return strings.EqualFold(aStr, bStr)
-		}
-	}
-
-	// Handle numeric/other comparisons with same type
-	if reflect.TypeOf(a).Kind() == reflect.TypeOf(b).Kind() {
-		return reflect.DeepEqual(a, b)
-	}
-
-	// Fallback to case-insensitive string comparison
-	return strings.EqualFold(aStr, bStr)
+	return comparator.ValuesEqualCaseInsensitive(a, b)
 }
 
-// tagsEqual compares tags between Terraform state and Azure.
+// tagsEqual compares tags between Terraform state and Azure (provider-specific logic)
 func tagsEqual(tfAttrs map[string]interface{}, azureTags map[string]string) bool {
 	tfTags := getTerraformTags(tfAttrs)
 
 	// Ignore Azure-managed tags
 	ignoredPrefixes := []string{"hidden-", "ms-resource-usage"}
 
-	filteredAzureTags := make(map[string]string)
-	for k, v := range azureTags {
-		ignored := false
-		for _, prefix := range ignoredPrefixes {
-			if strings.HasPrefix(strings.ToLower(k), prefix) {
-				ignored = true
-				break
-			}
-		}
-		if !ignored {
-			filteredAzureTags[k] = v
-		}
-	}
+	filteredAzureTags := comparator.FilterManagedLabelsCaseInsensitive(azureTags, ignoredPrefixes)
 
 	return reflect.DeepEqual(tfTags, filteredAzureTags)
 }

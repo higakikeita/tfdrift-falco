@@ -1,12 +1,9 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	log "github.com/sirupsen/logrus"
 )
@@ -44,12 +41,7 @@ func (h *StateHandler) GetState(w http.ResponseWriter, r *http.Request) {
 		"outputs_count":     0, // Outputs not currently tracked
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data:    summary,
-	})
+	respondJSON(w, http.StatusOK, summary)
 }
 
 // GetResources handles GET /api/v1/state/resources
@@ -57,9 +49,7 @@ func (h *StateHandler) GetResources(w http.ResponseWriter, r *http.Request) {
 	log.Debug("GET /api/v1/state/resources")
 
 	// Parse pagination parameters
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	params := models.NewPaginationParams(page, limit)
+	params := ParsePagination(r, 50)
 
 	// Get all resources
 	resources := h.stateManager.GetAllResources()
@@ -76,32 +66,10 @@ func (h *StateHandler) GetResources(w http.ResponseWriter, r *http.Request) {
 
 	// Apply pagination
 	total := len(allResources)
-	start := params.Offset()
-	end := start + params.Limit
+	paginatedResources := Paginate(allResources, params)
 
-	if start > total {
-		start = total
-	}
-	if end > total {
-		end = total
-	}
-
-	paginatedResources := allResources[start:end]
-
-	response := models.PaginatedResponse{
-		Data:       paginatedResources,
-		Page:       params.Page,
-		Limit:      params.Limit,
-		Total:      total,
-		TotalPages: models.CalculateTotalPages(total, params.Limit),
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data:    response,
-	})
+	response := PaginatedResponseData(paginatedResources, params, total)
+	respondJSON(w, http.StatusOK, response)
 }
 
 // GetResource handles GET /api/v1/state/resource/:id
@@ -123,23 +91,5 @@ func (h *StateHandler) GetResource(w http.ResponseWriter, r *http.Request) {
 		"attributes": resource.Attributes,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data:    resourceData,
-	})
-}
-
-// respondError sends an error response
-func respondError(w http.ResponseWriter, code int, message string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: false,
-		Error: &models.APIError{
-			Code:    code,
-			Message: message,
-		},
-	})
+	respondJSON(w, http.StatusOK, resourceData)
 }

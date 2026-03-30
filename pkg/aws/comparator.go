@@ -1,12 +1,11 @@
 package aws
 
 import (
-	"fmt"
 	"reflect"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/keitahigaki/tfdrift-falco/pkg/comparator"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 )
 
@@ -100,10 +99,10 @@ func compareResourceAttributes(tfRes *terraform.Resource, awsRes *DiscoveredReso
 	fieldsToCompare := getComparableFields(tfRes.Type)
 
 	for _, field := range fieldsToCompare {
-		tfValue := getNestedValue(tfRes.Attributes, field)
-		awsValue := getNestedValue(awsRes.Attributes, field)
+		tfValue := comparator.GetNestedValue(tfRes.Attributes, field)
+		awsValue := comparator.GetNestedValue(awsRes.Attributes, field)
 
-		if !valuesEqual(tfValue, awsValue) {
+		if !comparator.ValuesEqual(tfValue, awsValue) {
 			diff.Differences = append(diff.Differences, FieldDiff{
 				Field:          field,
 				TerraformValue: tfValue,
@@ -149,88 +148,28 @@ func getComparableFields(resourceType string) []string {
 	}
 }
 
-// getNestedValue retrieves a value from a nested map using dot notation (e.g., "vpc_config.subnet_ids")
+
+// Internal wrapper functions for test compatibility.
+// These delegate to the shared comparator package functions.
+
+// getNestedValue is a wrapper around comparator.GetNestedValue for test compatibility.
 func getNestedValue(data map[string]interface{}, path string) interface{} {
-	parts := strings.Split(path, ".")
-	current := data
-
-	for i, part := range parts {
-		value, exists := current[part]
-		if !exists {
-			return nil
-		}
-
-		if i == len(parts)-1 {
-			return value
-		}
-
-		// Navigate deeper
-		if nextMap, ok := value.(map[string]interface{}); ok {
-			current = nextMap
-		} else {
-			return nil
-		}
-	}
-
-	return nil
+	return comparator.GetNestedValue(data, path)
 }
 
-// valuesEqual compares two values for equality, handling different types
+// valuesEqual is a wrapper around comparator.ValuesEqual for test compatibility.
 func valuesEqual(a, b interface{}) bool {
-	if a == nil && b == nil {
-		return true
-	}
-	if a == nil || b == nil {
-		return false
-	}
-
-	// Convert to strings for comparison if types differ
-	aStr := fmt.Sprintf("%v", a)
-	bStr := fmt.Sprintf("%v", b)
-
-	// Handle boolean comparisons
-	if aBool, ok := a.(bool); ok {
-		if bBool, ok := b.(bool); ok {
-			return aBool == bBool
-		}
-		// Try to parse string as boolean
-		if bStr == "true" {
-			return aBool == true
-		}
-		if bStr == "false" {
-			return aBool == false
-		}
-	}
-
-	// Handle numeric comparisons
-	if reflect.TypeOf(a).Kind() == reflect.TypeOf(b).Kind() {
-		return reflect.DeepEqual(a, b)
-	}
-
-	// Fallback to string comparison
-	return aStr == bStr
+	return comparator.ValuesEqual(a, b)
 }
 
-// tagsEqual compares tags between Terraform state and AWS
+// tagsEqual compares tags between Terraform state and AWS (provider-specific logic)
 func tagsEqual(tfAttrs map[string]interface{}, awsTags map[string]string) bool {
 	tfTags := getTerraformTags(tfAttrs)
 
 	// Ignore AWS-managed tags
 	ignoredPrefixes := []string{"aws:", "kubernetes.io/"}
 
-	filteredAwsTags := make(map[string]string)
-	for k, v := range awsTags {
-		ignored := false
-		for _, prefix := range ignoredPrefixes {
-			if strings.HasPrefix(k, prefix) {
-				ignored = true
-				break
-			}
-		}
-		if !ignored {
-			filteredAwsTags[k] = v
-		}
-	}
+	filteredAwsTags := comparator.FilterManagedLabels(awsTags, ignoredPrefixes)
 
 	return reflect.DeepEqual(tfTags, filteredAwsTags)
 }

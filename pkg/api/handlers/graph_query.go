@@ -30,22 +30,12 @@ func (h *GraphQueryHandler) GetNode(w http.ResponseWriter, r *http.Request) {
 	db := h.graphStore.GetGraphDB()
 	node := db.GetNode(nodeID)
 
-	w.Header().Set("Content-Type", "application/json")
-
 	if node == nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "Node not found",
-		})
+		respondError(w, http.StatusNotFound, "Node not found")
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data":    node,
-	})
+	respondJSON(w, http.StatusOK, node)
 }
 
 // GetNodesByLabel returns all nodes with a specific label
@@ -53,28 +43,18 @@ func (h *GraphQueryHandler) GetNode(w http.ResponseWriter, r *http.Request) {
 func (h *GraphQueryHandler) GetNodesByLabel(w http.ResponseWriter, r *http.Request) {
 	label := r.URL.Query().Get("label")
 
-	w.Header().Set("Content-Type", "application/json")
-
 	if label == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "label parameter is required",
-		})
+		respondError(w, http.StatusBadRequest, "label parameter is required")
 		return
 	}
 
 	db := h.graphStore.GetGraphDB()
 	nodes := db.GetNodesByLabel(label)
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"label": label,
-			"count": len(nodes),
-			"nodes": nodes,
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"label": label,
+		"count": len(nodes),
+		"nodes": nodes,
 	})
 }
 
@@ -84,14 +64,8 @@ func (h *GraphQueryHandler) GetPath(w http.ResponseWriter, r *http.Request) {
 	fromID := r.URL.Query().Get("from")
 	toID := r.URL.Query().Get("to")
 
-	w.Header().Set("Content-Type", "application/json")
-
 	if fromID == "" || toID == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "from and to parameters are required",
-		})
+		respondError(w, http.StatusBadRequest, "from and to parameters are required")
 		return
 	}
 
@@ -99,23 +73,15 @@ func (h *GraphQueryHandler) GetPath(w http.ResponseWriter, r *http.Request) {
 	path, err := db.FindPath(fromID, toID)
 
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   err.Error(),
-		})
+		respondError(w, http.StatusNotFound, err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"from":   fromID,
-			"to":     toID,
-			"path":   path,
-			"length": path.Length,
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"from":   fromID,
+		"to":     toID,
+		"path":   path,
+		"length": path.Length,
 	})
 }
 
@@ -128,31 +94,21 @@ func (h *GraphQueryHandler) GetImpactRadius(w http.ResponseWriter, r *http.Reque
 		depthStr = "3"
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
 	depth, err := strconv.Atoi(depthStr)
 	if err != nil || depth < 1 || depth > 10 {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "depth must be between 1 and 10",
-		})
+		respondError(w, http.StatusBadRequest, "depth must be between 1 and 10")
 		return
 	}
 
 	db := h.graphStore.GetGraphDB()
 	result := db.FindImpactRadius(nodeID, depth)
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"node_id":        nodeID,
-			"depth":          depth,
-			"affected_count": len(result.Nodes),
-			"nodes":          result.Nodes,
-			"distances":      result.Distances,
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"node_id":        nodeID,
+		"depth":          depth,
+		"affected_count": len(result.Nodes),
+		"nodes":          result.Nodes,
+		"distances":      result.Distances,
 	})
 }
 
@@ -165,15 +121,9 @@ func (h *GraphQueryHandler) GetDependencies(w http.ResponseWriter, r *http.Reque
 		depthStr = "5"
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
 	depth, err := strconv.Atoi(depthStr)
 	if err != nil || depth < 1 || depth > 10 {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "depth must be between 1 and 10",
-		})
+		respondError(w, http.StatusBadRequest, "depth must be between 1 and 10")
 		return
 	}
 
@@ -182,15 +132,11 @@ func (h *GraphQueryHandler) GetDependencies(w http.ResponseWriter, r *http.Reque
 	dependencies := db.FindDependencies(nodeID, depth)
 	log.Infof("[GetDependencies Handler] FindDependencies returned %d dependencies", len(dependencies))
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"node_id":      nodeID,
-			"depth":        depth,
-			"count":        len(dependencies),
-			"dependencies": dependencies,
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"node_id":      nodeID,
+		"depth":        depth,
+		"count":        len(dependencies),
+		"dependencies": dependencies,
 	})
 }
 
@@ -203,15 +149,9 @@ func (h *GraphQueryHandler) GetDependents(w http.ResponseWriter, r *http.Request
 		depthStr = "5"
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
 	depth, err := strconv.Atoi(depthStr)
 	if err != nil || depth < 1 || depth > 10 {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "depth must be between 1 and 10",
-		})
+		respondError(w, http.StatusBadRequest, "depth must be between 1 and 10")
 		return
 	}
 
@@ -220,15 +160,11 @@ func (h *GraphQueryHandler) GetDependents(w http.ResponseWriter, r *http.Request
 	dependents := db.FindDependents(nodeID, depth)
 	log.Infof("[GetDependents Handler] FindDependents returned %d dependents", len(dependents))
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"node_id":    nodeID,
-			"depth":      depth,
-			"count":      len(dependents),
-			"dependents": dependents,
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"node_id":    nodeID,
+		"depth":      depth,
+		"count":      len(dependents),
+		"dependents": dependents,
 	})
 }
 
@@ -240,29 +176,19 @@ func (h *GraphQueryHandler) GetCriticalNodes(w http.ResponseWriter, r *http.Requ
 		minStr = "3"
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
 	min, err := strconv.Atoi(minStr)
 	if err != nil || min < 1 {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "min must be a positive integer",
-		})
+		respondError(w, http.StatusBadRequest, "min must be a positive integer")
 		return
 	}
 
 	db := h.graphStore.GetGraphDB()
 	criticalNodes := db.FindCriticalPaths(min)
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"min_dependents": min,
-			"count":          len(criticalNodes),
-			"critical_nodes": criticalNodes,
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"min_dependents": min,
+		"count":          len(criticalNodes),
+		"critical_nodes": criticalNodes,
 	})
 }
 
@@ -274,15 +200,10 @@ func (h *GraphQueryHandler) GetNeighbors(w http.ResponseWriter, r *http.Request)
 	db := h.graphStore.GetGraphDB()
 	neighbors := db.GetNeighbors(nodeID)
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"node_id":   nodeID,
-			"count":     len(neighbors),
-			"neighbors": neighbors,
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"node_id":   nodeID,
+		"count":     len(neighbors),
+		"neighbors": neighbors,
 	})
 }
 
@@ -297,8 +218,6 @@ func (h *GraphQueryHandler) GetRelationships(w http.ResponseWriter, r *http.Requ
 
 	db := h.graphStore.GetGraphDB()
 
-	w.Header().Set("Content-Type", "application/json")
-
 	var relationships []*graph.Relationship
 
 	switch direction {
@@ -311,23 +230,15 @@ func (h *GraphQueryHandler) GetRelationships(w http.ResponseWriter, r *http.Requ
 		incoming := db.GetIncomingRelationships(nodeID)
 		relationships = append(outgoing, incoming...)
 	default:
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "direction must be 'outgoing', 'incoming', or 'both'",
-		})
+		respondError(w, http.StatusBadRequest, "direction must be 'outgoing', 'incoming', or 'both'")
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"node_id":       nodeID,
-			"direction":     direction,
-			"count":         len(relationships),
-			"relationships": relationships,
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"node_id":       nodeID,
+		"direction":     direction,
+		"count":         len(relationships),
+		"relationships": relationships,
 	})
 }
 
@@ -352,16 +263,11 @@ func (h *GraphQueryHandler) GetGraphStats(w http.ResponseWriter, r *http.Request
 		typeCounts[rel.Type]++
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"node_count":            db.NodeCount(),
-			"relationship_count":    db.RelationshipCount(),
-			"nodes_by_label":        labelCounts,
-			"relationships_by_type": typeCounts,
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"node_count":            db.NodeCount(),
+		"relationship_count":    db.RelationshipCount(),
+		"nodes_by_label":        labelCounts,
+		"relationships_by_type": typeCounts,
 	})
 }
 
@@ -376,14 +282,8 @@ func (h *GraphQueryHandler) MatchPattern(w http.ResponseWriter, r *http.Request)
 		EndFilter   map[string]interface{} `json:"end_filter"`
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success": false,
-			"error":   "Invalid request body",
-		})
+		respondError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
@@ -397,13 +297,9 @@ func (h *GraphQueryHandler) MatchPattern(w http.ResponseWriter, r *http.Request)
 	db := h.graphStore.GetGraphDB()
 	matches := db.Match(pattern)
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"pattern": pattern,
-			"count":   len(matches),
-			"matches": matches,
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"pattern": pattern,
+		"count":   len(matches),
+		"matches": matches,
 	})
 }

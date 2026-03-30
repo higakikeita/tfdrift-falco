@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
@@ -28,10 +27,5 @@ func (h *HealthHandler) GetHealth(w http.ResponseWriter, r *http.Request) {
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data:    response,
-	})
+	respondJSON(w, http.StatusOK, response)
 }

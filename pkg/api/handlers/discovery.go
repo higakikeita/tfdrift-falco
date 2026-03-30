@@ -2,14 +2,12 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
 	"github.com/keitahigaki/tfdrift-falco/pkg/aws"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 )
@@ -57,16 +55,11 @@ func (h *DiscoveryHandler) DiscoverAWSResources(w http.ResponseWriter, r *http.R
 
 	log.Infof("Discovered %d AWS resources", len(awsResources))
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data: map[string]interface{}{
-			"region":          region,
-			"total_resources": len(awsResources),
-			"resources":       awsResources,
-			"timestamp":       time.Now().Format(time.RFC3339),
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"region":          region,
+		"total_resources": len(awsResources),
+		"resources":       awsResources,
+		"timestamp":       time.Now().Format(time.RFC3339),
 	})
 }
 
@@ -113,22 +106,17 @@ func (h *DiscoveryHandler) DetectDrift(w http.ResponseWriter, r *http.Request) {
 		len(driftResult.MissingResources),
 		len(driftResult.ModifiedResources))
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data: map[string]interface{}{
-			"region":    region,
-			"timestamp": time.Now().Format(time.RFC3339),
-			"summary": map[string]interface{}{
-				"terraform_resources": len(tfResources),
-				"aws_resources":       len(awsResources),
-				"unmanaged_count":     len(driftResult.UnmanagedResources),
-				"missing_count":       len(driftResult.MissingResources),
-				"modified_count":      len(driftResult.ModifiedResources),
-			},
-			"drift": driftResult,
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"region":    region,
+		"timestamp": time.Now().Format(time.RFC3339),
+		"summary": map[string]interface{}{
+			"terraform_resources": len(tfResources),
+			"aws_resources":       len(awsResources),
+			"unmanaged_count":     len(driftResult.UnmanagedResources),
+			"missing_count":       len(driftResult.MissingResources),
+			"modified_count":      len(driftResult.ModifiedResources),
 		},
+		"drift": driftResult,
 	})
 }
 
@@ -183,25 +171,20 @@ func (h *DiscoveryHandler) GetDriftSummary(w http.ResponseWriter, r *http.Reques
 		modifiedByType[res.ResourceType]++
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data: map[string]interface{}{
-			"region":    region,
-			"timestamp": time.Now().Format(time.RFC3339),
-			"counts": map[string]interface{}{
-				"terraform_resources": len(tfResources),
-				"aws_resources":       len(awsResources),
-				"unmanaged":           len(driftResult.UnmanagedResources),
-				"missing":             len(driftResult.MissingResources),
-				"modified":            len(driftResult.ModifiedResources),
-			},
-			"breakdown": map[string]interface{}{
-				"unmanaged_by_type": unmanagedByType,
-				"missing_by_type":   missingByType,
-				"modified_by_type":  modifiedByType,
-			},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"region":    region,
+		"timestamp": time.Now().Format(time.RFC3339),
+		"counts": map[string]interface{}{
+			"terraform_resources": len(tfResources),
+			"aws_resources":       len(awsResources),
+			"unmanaged":           len(driftResult.UnmanagedResources),
+			"missing":             len(driftResult.MissingResources),
+			"modified":            len(driftResult.ModifiedResources),
+		},
+		"breakdown": map[string]interface{}{
+			"unmanaged_by_type": unmanagedByType,
+			"missing_by_type":   missingByType,
+			"modified_by_type":  modifiedByType,
 		},
 	})
 }

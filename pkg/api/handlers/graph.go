@@ -1,11 +1,8 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
-	"strconv"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
 	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
 	log "github.com/sirupsen/logrus"
 )
@@ -29,12 +26,7 @@ func (h *GraphHandler) GetGraph(w http.ResponseWriter, r *http.Request) {
 	// Build the graph from stored data
 	graphData := h.store.BuildGraph()
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data:    graphData,
-	})
+	respondJSON(w, http.StatusOK, graphData)
 }
 
 // GetNodes handles GET /api/v1/graph/nodes with pagination
@@ -42,41 +34,17 @@ func (h *GraphHandler) GetNodes(w http.ResponseWriter, r *http.Request) {
 	log.Debug("GET /api/v1/graph/nodes")
 
 	// Parse pagination parameters
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	params := models.NewPaginationParams(page, limit)
+	params := ParsePagination(r, 50)
 
 	// Build full graph
 	graphData := h.store.BuildGraph()
 
 	// Apply pagination
 	total := len(graphData.Nodes)
-	start := params.Offset()
-	end := start + params.Limit
+	paginatedNodes := Paginate(graphData.Nodes, params)
 
-	if start > total {
-		start = total
-	}
-	if end > total {
-		end = total
-	}
-
-	paginatedNodes := graphData.Nodes[start:end]
-
-	response := models.PaginatedResponse{
-		Data:       paginatedNodes,
-		Page:       params.Page,
-		Limit:      params.Limit,
-		Total:      total,
-		TotalPages: models.CalculateTotalPages(total, params.Limit),
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data:    response,
-	})
+	response := PaginatedResponseData(paginatedNodes, params, total)
+	respondJSON(w, http.StatusOK, response)
 }
 
 // GetEdges handles GET /api/v1/graph/edges with pagination
@@ -84,39 +52,15 @@ func (h *GraphHandler) GetEdges(w http.ResponseWriter, r *http.Request) {
 	log.Debug("GET /api/v1/graph/edges")
 
 	// Parse pagination parameters
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	params := models.NewPaginationParams(page, limit)
+	params := ParsePagination(r, 50)
 
 	// Build full graph
 	graphData := h.store.BuildGraph()
 
 	// Apply pagination
 	total := len(graphData.Edges)
-	start := params.Offset()
-	end := start + params.Limit
+	paginatedEdges := Paginate(graphData.Edges, params)
 
-	if start > total {
-		start = total
-	}
-	if end > total {
-		end = total
-	}
-
-	paginatedEdges := graphData.Edges[start:end]
-
-	response := models.PaginatedResponse{
-		Data:       paginatedEdges,
-		Page:       params.Page,
-		Limit:      params.Limit,
-		Total:      total,
-		TotalPages: models.CalculateTotalPages(total, params.Limit),
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data:    response,
-	})
+	response := PaginatedResponseData(paginatedEdges, params, total)
+	respondJSON(w, http.StatusOK, response)
 }

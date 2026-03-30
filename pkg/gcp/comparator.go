@@ -1,11 +1,11 @@
 package gcp
 
 import (
-	"fmt"
 	"reflect"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/keitahigaki/tfdrift-falco/pkg/comparator"
 )
 
 // CompareStateWithActual compares Terraform state with actual GCP resources
@@ -131,10 +131,10 @@ func compareResourceAttributes(tfRes *TerraformResource, gcpRes *DiscoveredResou
 	fieldsToCompare := getComparableFields(tfRes.Type)
 
 	for _, field := range fieldsToCompare {
-		tfValue := getNestedValue(tfRes.Attributes, field)
-		gcpValue := getNestedValue(gcpRes.Attributes, field)
+		tfValue := comparator.GetNestedValue(tfRes.Attributes, field)
+		gcpValue := comparator.GetNestedValue(gcpRes.Attributes, field)
 
-		if !valuesEqual(tfValue, gcpValue) {
+		if !comparator.ValuesEqual(tfValue, gcpValue) {
 			diff.Differences = append(diff.Differences, FieldDiff{
 				Field:          field,
 				TerraformValue: tfValue,
@@ -179,83 +179,28 @@ func getComparableFields(resourceType string) []string {
 	}
 }
 
-// getNestedValue retrieves a value from a nested map using dot notation.
+
+// Internal wrapper functions for test compatibility.
+// These delegate to the shared comparator package functions.
+
+// getNestedValue is a wrapper around comparator.GetNestedValue for test compatibility.
 func getNestedValue(data map[string]interface{}, path string) interface{} {
-	parts := strings.Split(path, ".")
-	current := data
-
-	for i, part := range parts {
-		value, exists := current[part]
-		if !exists {
-			return nil
-		}
-
-		if i == len(parts)-1 {
-			return value
-		}
-
-		if nextMap, ok := value.(map[string]interface{}); ok {
-			current = nextMap
-		} else {
-			return nil
-		}
-	}
-
-	return nil
+	return comparator.GetNestedValue(data, path)
 }
 
-// valuesEqual compares two values for equality, handling different types.
+// valuesEqual is a wrapper around comparator.ValuesEqual for test compatibility.
 func valuesEqual(a, b interface{}) bool {
-	if a == nil && b == nil {
-		return true
-	}
-	if a == nil || b == nil {
-		return false
-	}
-
-	// Try string comparison for mixed types
-	aStr := fmt.Sprintf("%v", a)
-	bStr := fmt.Sprintf("%v", b)
-
-	// Handle boolean comparisons
-	if aBool, ok := a.(bool); ok {
-		if bStr == "true" {
-			return aBool
-		}
-		if bStr == "false" {
-			return !aBool
-		}
-	}
-
-	// Handle numeric comparisons with same type
-	if reflect.TypeOf(a).Kind() == reflect.TypeOf(b).Kind() {
-		return reflect.DeepEqual(a, b)
-	}
-
-	// Fallback to string comparison
-	return aStr == bStr
+	return comparator.ValuesEqual(a, b)
 }
 
-// labelsEqual compares labels between Terraform state and GCP.
+// labelsEqual compares labels between Terraform state and GCP (provider-specific logic)
 func labelsEqual(tfAttrs map[string]interface{}, gcpLabels map[string]string) bool {
 	tfLabels := getTerraformLabels(tfAttrs)
 
 	// Ignore GCP-managed labels
 	ignoredPrefixes := []string{"goog-", "gke-"}
 
-	filteredGCPLabels := make(map[string]string)
-	for k, v := range gcpLabels {
-		ignored := false
-		for _, prefix := range ignoredPrefixes {
-			if strings.HasPrefix(k, prefix) {
-				ignored = true
-				break
-			}
-		}
-		if !ignored {
-			filteredGCPLabels[k] = v
-		}
-	}
+	filteredGCPLabels := comparator.FilterManagedLabels(gcpLabels, ignoredPrefixes)
 
 	return reflect.DeepEqual(tfLabels, filteredGCPLabels)
 }

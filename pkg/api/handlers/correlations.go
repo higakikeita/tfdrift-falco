@@ -1,11 +1,9 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
 	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
 )
 
@@ -32,15 +30,10 @@ func (h *CorrelationsHandler) GetCorrelations(w http.ResponseWriter, r *http.Req
 		groups = h.correlator.GetGroupsByProvider(providerFilter)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data: map[string]interface{}{
-			"correlations": groups,
-			"count":        len(groups),
-			"timestamp":    time.Now().Format(time.RFC3339),
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"correlations": groups,
+		"count":        len(groups),
+		"timestamp":    time.Now().Format(time.RFC3339),
 	})
 }
 
@@ -48,11 +41,5 @@ func (h *CorrelationsHandler) GetCorrelations(w http.ResponseWriter, r *http.Req
 // GET /api/v1/correlations/stats
 func (h *CorrelationsHandler) GetCorrelationStats(w http.ResponseWriter, r *http.Request) {
 	stats := h.correlator.Stats()
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data:    stats,
-	})
+	respondJSON(w, http.StatusOK, stats)
 }

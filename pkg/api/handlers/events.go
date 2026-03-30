@@ -1,12 +1,9 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
 	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
 	log "github.com/sirupsen/logrus"
 )
@@ -28,9 +25,7 @@ func (h *EventsHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 	log.Debug("GET /api/v1/events")
 
 	// Parse pagination parameters
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	params := models.NewPaginationParams(page, limit)
+	params := ParsePagination(r, 50)
 
 	// Parse filter parameters
 	severity := r.URL.Query().Get("severity")
@@ -69,32 +64,10 @@ func (h *EventsHandler) GetEvents(w http.ResponseWriter, r *http.Request) {
 
 	// Apply pagination
 	total := len(filteredEvents)
-	start := params.Offset()
-	end := start + params.Limit
+	paginatedEvents := Paginate(filteredEvents, params)
 
-	if start > total {
-		start = total
-	}
-	if end > total {
-		end = total
-	}
-
-	paginatedEvents := filteredEvents[start:end]
-
-	response := models.PaginatedResponse{
-		Data:       paginatedEvents,
-		Page:       params.Page,
-		Limit:      params.Limit,
-		Total:      total,
-		TotalPages: models.CalculateTotalPages(total, params.Limit),
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data:    response,
-	})
+	response := PaginatedResponseData(paginatedEvents, params, total)
+	respondJSON(w, http.StatusOK, response)
 }
 
 // GetEvent handles GET /api/v1/events/:id
@@ -122,12 +95,7 @@ func (h *EventsHandler) GetEvent(w http.ResponseWriter, r *http.Request) {
 				"raw_event":     event.RawEvent,
 			}
 
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(models.APIResponse{
-				Success: true,
-				Data:    eventData,
-			})
+			respondJSON(w, http.StatusOK, eventData)
 			return
 		}
 	}

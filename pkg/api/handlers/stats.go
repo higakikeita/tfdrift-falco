@@ -1,10 +1,8 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
 	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
 	log "github.com/sirupsen/logrus"
 )
@@ -63,12 +61,7 @@ func (h *StatsHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 		"top_resource_types": h.getTopResourceTypes(baseStats["resource_type_counts"].(map[string]int), 5),
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data:    stats,
-	})
+	respondJSON(w, http.StatusOK, stats)
 }
 
 // calculateSeverityPercentages calculates percentage distribution of severities

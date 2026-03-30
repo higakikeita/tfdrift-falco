@@ -1,11 +1,9 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
 	"github.com/keitahigaki/tfdrift-falco/pkg/provider"
 )
 
@@ -50,15 +48,10 @@ func (h *ProvidersHandler) GetProviders(w http.ResponseWriter, r *http.Request) 
 		providers = append(providers, providerInfo)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data: map[string]interface{}{
-			"providers": providers,
-			"count":     len(providers),
-			"timestamp": time.Now().Format(time.RFC3339),
-		},
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"providers": providers,
+		"count":     len(providers),
+		"timestamp": time.Now().Format(time.RFC3339),
 	})
 }
 
@@ -93,10 +86,5 @@ func (h *ProvidersHandler) GetProviderCapabilities(w http.ResponseWriter, r *htt
 		}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data:    result,
-	})
+	respondJSON(w, http.StatusOK, result)
 }

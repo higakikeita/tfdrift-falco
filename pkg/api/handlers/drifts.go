@@ -1,12 +1,9 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
 	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
 	log "github.com/sirupsen/logrus"
 )
@@ -28,9 +25,7 @@ func (h *DriftsHandler) GetDrifts(w http.ResponseWriter, r *http.Request) {
 	log.Debug("GET /api/v1/drifts")
 
 	// Parse pagination parameters
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	params := models.NewPaginationParams(page, limit)
+	params := ParsePagination(r, 50)
 
 	// Parse filter parameters
 	severity := r.URL.Query().Get("severity")
@@ -71,32 +66,10 @@ func (h *DriftsHandler) GetDrifts(w http.ResponseWriter, r *http.Request) {
 
 	// Apply pagination
 	total := len(filteredDrifts)
-	start := params.Offset()
-	end := start + params.Limit
+	paginatedDrifts := Paginate(filteredDrifts, params)
 
-	if start > total {
-		start = total
-	}
-	if end > total {
-		end = total
-	}
-
-	paginatedDrifts := filteredDrifts[start:end]
-
-	response := models.PaginatedResponse{
-		Data:       paginatedDrifts,
-		Page:       params.Page,
-		Limit:      params.Limit,
-		Total:      total,
-		TotalPages: models.CalculateTotalPages(total, params.Limit),
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(models.APIResponse{
-		Success: true,
-		Data:    response,
-	})
+	response := PaginatedResponseData(paginatedDrifts, params, total)
+	respondJSON(w, http.StatusOK, response)
 }
 
 // GetDrift handles GET /api/v1/drifts/:id
@@ -125,12 +98,7 @@ func (h *DriftsHandler) GetDrift(w http.ResponseWriter, r *http.Request) {
 				"alert_type":    drift.AlertType,
 			}
 
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(models.APIResponse{
-				Success: true,
-				Data:    driftData,
-			})
+			respondJSON(w, http.StatusOK, driftData)
 			return
 		}
 	}
