@@ -13,10 +13,22 @@ func CompareStateWithActual(tfResources []*types.TerraformResource, gcpResources
 	config := &comparator.ComparisonConfig{
 		ExtractTFID: extractTFResourceID,
 		ExtractCloudID: func(cloudResource interface{}) string {
-			return cloudResource.(*types.DiscoveredResource).ID
+			res, ok := cloudResource.(*types.DiscoveredResource)
+			if !ok {
+				return ""
+			}
+			return res.ID
 		},
 		CompareAttributes: func(tfResource, cloudResource interface{}) []types.FieldDiff {
-			diffs := compareResourceAttributes(tfResource.(*types.TerraformResource), cloudResource.(*types.DiscoveredResource))
+			tfRes, ok := tfResource.(*types.TerraformResource)
+			if !ok {
+				return nil
+			}
+			cloudRes, ok := cloudResource.(*types.DiscoveredResource)
+			if !ok {
+				return nil
+			}
+			diffs := compareResourceAttributes(tfRes, cloudRes)
 			if diffs == nil {
 				return nil
 			}
@@ -27,7 +39,10 @@ func CompareStateWithActual(tfResources []*types.TerraformResource, gcpResources
 			return result
 		},
 		BuildUnmanaged: func(cloudResource interface{}) *types.ResourceDiff {
-			gcpRes := cloudResource.(*types.DiscoveredResource)
+			gcpRes, ok := cloudResource.(*types.DiscoveredResource)
+			if !ok {
+				return &types.ResourceDiff{Provider: "gcp"}
+			}
 			return &types.ResourceDiff{
 				ResourceID:    gcpRes.ID,
 				ResourceType:  gcpRes.Type,
@@ -37,7 +52,10 @@ func CompareStateWithActual(tfResources []*types.TerraformResource, gcpResources
 			}
 		},
 		BuildMissing: func(tfResource interface{}) *types.TerraformResource {
-			tfRes := tfResource.(*types.TerraformResource)
+			tfRes, ok := tfResource.(*types.TerraformResource)
+			if !ok {
+				return &types.TerraformResource{Provider: "gcp"}
+			}
 			// Extract ID from attributes if available
 			resourceID := extractTFResourceID(tfRes)
 			return &types.TerraformResource{
@@ -50,7 +68,10 @@ func CompareStateWithActual(tfResources []*types.TerraformResource, gcpResources
 		},
 		// GCP supports matching by name when IDs differ
 		FindMatchingCloud: func(tfResource interface{}, cloudResourceMap map[string]interface{}) interface{} {
-			tfRes := tfResource.(*types.TerraformResource)
+			tfRes, ok := tfResource.(*types.TerraformResource)
+			if !ok {
+				return nil
+			}
 			return findByNameInterface(tfRes, cloudResourceMap)
 		},
 	}
@@ -81,7 +102,10 @@ func convertCloudResources(resources []*types.DiscoveredResource) []interface{} 
 // extractTFResourceID extracts the GCP resource ID from Terraform resource attributes.
 // GCP resources in Terraform state use various ID formats.
 func extractTFResourceID(resource interface{}) string {
-	tfRes := resource.(*types.TerraformResource)
+	tfRes, ok := resource.(*types.TerraformResource)
+	if !ok {
+		return ""
+	}
 	idFields := []string{
 		"id", "self_link", "name",
 	}
@@ -198,7 +222,10 @@ func getTerraformLabels(attrs map[string]interface{}) map[string]string {
 // This is used for resources where ID format differs between TF and GCP.
 func matchesByName(gcpRes *types.DiscoveredResource, tfMap map[string]interface{}) bool {
 	for _, tfRes := range tfMap {
-		tfr := tfRes.(*types.TerraformResource)
+		tfr, ok := tfRes.(*types.TerraformResource)
+		if !ok {
+			continue
+		}
 		if tfr.Type == gcpRes.Type {
 			if name, ok := tfr.Attributes["name"].(string); ok && name == gcpRes.Name {
 				return true
@@ -232,7 +259,10 @@ func findByNameInterface(tfRes *types.TerraformResource, gcpMap map[string]inter
 	}
 
 	for _, gcpResInterface := range gcpMap {
-		gcpRes := gcpResInterface.(*types.DiscoveredResource)
+		gcpRes, ok := gcpResInterface.(*types.DiscoveredResource)
+		if !ok {
+			continue
+		}
 		if gcpRes.Type == tfRes.Type && gcpRes.Name == tfName {
 			return gcpRes
 		}

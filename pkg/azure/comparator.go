@@ -14,10 +14,22 @@ func CompareStateWithActual(tfResources []*types.TerraformResource, azureResourc
 	config := &comparator.ComparisonConfig{
 		ExtractTFID: extractTFResourceID,
 		ExtractCloudID: func(cloudResource interface{}) string {
-			return cloudResource.(*types.DiscoveredResource).ID
+			res, ok := cloudResource.(*types.DiscoveredResource)
+			if !ok {
+				return ""
+			}
+			return res.ID
 		},
 		CompareAttributes: func(tfResource, cloudResource interface{}) []types.FieldDiff {
-			diffs := compareResourceAttributes(tfResource.(*types.TerraformResource), cloudResource.(*types.DiscoveredResource))
+			tfRes, ok := tfResource.(*types.TerraformResource)
+			if !ok {
+				return nil
+			}
+			cloudRes, ok := cloudResource.(*types.DiscoveredResource)
+			if !ok {
+				return nil
+			}
+			diffs := compareResourceAttributes(tfRes, cloudRes)
 			if diffs == nil {
 				return nil
 			}
@@ -28,7 +40,10 @@ func CompareStateWithActual(tfResources []*types.TerraformResource, azureResourc
 			return result
 		},
 		BuildUnmanaged: func(cloudResource interface{}) *types.ResourceDiff {
-			azRes := cloudResource.(*types.DiscoveredResource)
+			azRes, ok := cloudResource.(*types.DiscoveredResource)
+			if !ok {
+				return &types.ResourceDiff{Provider: "azure"}
+			}
 			return &types.ResourceDiff{
 				ResourceID:    azRes.ID,
 				ResourceType:  azRes.Type,
@@ -38,7 +53,10 @@ func CompareStateWithActual(tfResources []*types.TerraformResource, azureResourc
 			}
 		},
 		BuildMissing: func(tfResource interface{}) *types.TerraformResource {
-			tfRes := tfResource.(*types.TerraformResource)
+			tfRes, ok := tfResource.(*types.TerraformResource)
+			if !ok {
+				return &types.TerraformResource{Provider: "azure"}
+			}
 			// Extract ID from attributes if available
 			resourceID := extractTFResourceID(tfRes)
 			return &types.TerraformResource{
@@ -51,7 +69,10 @@ func CompareStateWithActual(tfResources []*types.TerraformResource, azureResourc
 		},
 		// Azure supports case-insensitive matching by name when IDs differ
 		FindMatchingCloud: func(tfResource interface{}, cloudResourceMap map[string]interface{}) interface{} {
-			tfRes := tfResource.(*types.TerraformResource)
+			tfRes, ok := tfResource.(*types.TerraformResource)
+			if !ok {
+				return nil
+			}
 			return findByNameInterface(tfRes, cloudResourceMap)
 		},
 	}
@@ -81,7 +102,10 @@ func convertCloudResources(resources []*types.DiscoveredResource) []interface{} 
 
 // extractTFResourceID extracts the Azure resource ID from Terraform resource attributes.
 func extractTFResourceID(resource interface{}) string {
-	tfRes := resource.(*types.TerraformResource)
+	tfRes, ok := resource.(*types.TerraformResource)
+	if !ok {
+		return ""
+	}
 	idFields := []string{
 		"id", "name",
 	}
@@ -268,7 +292,10 @@ func findByNameInterface(tfRes *types.TerraformResource, azureMap map[string]int
 	}
 
 	for _, azResInterface := range azureMap {
-		azRes := azResInterface.(*types.DiscoveredResource)
+		azRes, ok := azResInterface.(*types.DiscoveredResource)
+		if !ok {
+			continue
+		}
 		if azRes.Type == tfRes.Type && strings.EqualFold(azRes.Name, tfName) {
 			return azRes
 		}

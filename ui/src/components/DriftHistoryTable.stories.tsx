@@ -110,12 +110,12 @@ export const RecentDrifts: Story = {
     drifts: Array.from({ length: 10 }, (_, i) => ({
       id: `drift-recent-${i + 1}`,
       timestamp: new Date(Date.now() - i * 60000).toISOString(),
-      severity: ['critical', 'high', 'medium', 'low'][i % 4] as any,
-      provider: ['aws', 'gcp'][i % 2] as any,
+      severity: (['critical', 'high', 'medium', 'low'] as const)[i % 4],
+      provider: (['aws', 'gcp'] as const)[i % 2],
       resourceType: ['s3:bucket', 'rds:instance', 'ec2:instance'][i % 3],
       resourceId: `recent-resource-${i + 1}`,
       resourceName: `Recent Resource ${i + 1}`,
-      changeType: ['created', 'modified', 'deleted'][i % 3] as any,
+      changeType: (['created', 'modified', 'deleted'] as const)[i % 3],
       attribute: 'Configuration',
       oldValue: null,
       newValue: '{}',
@@ -134,10 +134,10 @@ export const RecentDrifts: Story = {
 export const MixedSeverities: Story = {
   args: {
     drifts: [
-      ...generateDriftEvents(5).map((d, i) => ({ ...d, severity: 'critical' as const })),
-      ...generateDriftEvents(8).map((d, i) => ({ ...d, severity: 'high' as const })),
-      ...generateDriftEvents(10).map((d, i) => ({ ...d, severity: 'medium' as const })),
-      ...generateDriftEvents(7).map((d, i) => ({ ...d, severity: 'low' as const })),
+      ...generateDriftEvents(5).map((d) => ({ ...d, severity: 'critical' as const })),
+      ...generateDriftEvents(8).map((d) => ({ ...d, severity: 'high' as const })),
+      ...generateDriftEvents(10).map((d) => ({ ...d, severity: 'medium' as const })),
+      ...generateDriftEvents(7).map((d) => ({ ...d, severity: 'low' as const })),
     ],
     onSelectDrift: (drift) => console.log('Selected drift:', drift),
   },

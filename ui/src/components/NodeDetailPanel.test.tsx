@@ -55,7 +55,7 @@ describe('NodeDetailPanel component', () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
 
-    const { container } = render(<NodeDetailPanel {...defaultProps} onClose={onClose} />);
+    render(<NodeDetailPanel {...defaultProps} onClose={onClose} />);
 
     const buttons = screen.getAllByRole('button');
     // The first button in the header should be the close button
@@ -139,8 +139,7 @@ describe('NodeDetailPanel component', () => {
     expect(container.firstChild).toBeInTheDocument();
   });
 
-  it('should handle node selection callback', async () => {
-    const user = userEvent.setup();
+  it('should handle node selection callback', () => {
     const onNodeSelect = vi.fn();
 
     const { container } = render(<NodeDetailPanel {...defaultProps} onNodeSelect={onNodeSelect} />);
@@ -149,8 +148,7 @@ describe('NodeDetailPanel component', () => {
     expect(container.firstChild).toBeInTheDocument();
   });
 
-  it('should handle impact radius callback', async () => {
-    const user = userEvent.setup();
+  it('should handle impact radius callback', () => {
     const onShowImpactRadius = vi.fn();
 
     const { container } = render(<NodeDetailPanel {...defaultProps} onShowImpactRadius={onShowImpactRadius} />);
