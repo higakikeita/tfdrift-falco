@@ -971,7 +971,7 @@ func TestCompareResourceAttributes_BooleanComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result) > 0 {
+	if len(result) > 0 {
 		t.Errorf("expected no differences for matching boolean values")
 	}
 }
@@ -1028,7 +1028,7 @@ func TestCompareResourceAttributes_IntegerComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result) > 0 {
+	if len(result) > 0 {
 		t.Errorf("expected no differences for matching integer values")
 	}
 }
@@ -1209,7 +1209,7 @@ func TestCompareResourceAttributes_SecurityGroupComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result) > 0 {
+	if len(result) > 0 {
 		t.Errorf("expected no differences for matching security groups")
 	}
 }
@@ -1236,7 +1236,7 @@ func TestCompareResourceAttributes_LoadBalancerComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result) > 0 {
+	if len(result) > 0 {
 		t.Errorf("expected no differences for matching load balancers")
 	}
 }
@@ -1261,7 +1261,7 @@ func TestCompareResourceAttributes_EKSComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result) > 0 {
+	if len(result) > 0 {
 		t.Errorf("expected no differences for matching EKS clusters")
 	}
 }
@@ -1288,7 +1288,7 @@ func TestCompareResourceAttributes_ElastiCacheComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result) > 0 {
+	if len(result) > 0 {
 		t.Errorf("expected no differences for matching ElastiCache groups")
 	}
 }
@@ -1841,7 +1841,7 @@ func TestCompareResourceAttributes_RDSInstance(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result) > 0 {
+	if len(result) > 0 {
 		t.Errorf("expected no differences for matching RDS instances, got %d", len(result))
 	}
 }
@@ -2324,7 +2324,7 @@ func TestCompareResourceAttributes_AZComparison(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result) > 0 {
+	if len(result) > 0 {
 		t.Errorf("expected no differences for matching AZ")
 	}
 }
@@ -2406,7 +2406,7 @@ func TestCompareResourceAttributes_StringVsNumber(t *testing.T) {
 
 	result := compareResourceAttributes(tfRes, awsRes)
 	// String "100" and int 100 should be considered equal by valuesEqual
-	if result != nil && len(result) > 0 {
+	if len(result) > 0 {
 		t.Errorf("expected string '100' to match int 100")
 	}
 }
@@ -2652,7 +2652,7 @@ func TestCompareResourceAttributes_SubnetVPCID(t *testing.T) {
 	}
 
 	result := compareResourceAttributes(tfRes, awsRes)
-	if result != nil && len(result) > 0 {
+	if len(result) > 0 {
 		t.Errorf("expected no differences for matching VPC ID")
 	}
 }
@@ -2890,7 +2890,7 @@ func TestCompareResourceAttributes_ELBTypeScenarios(t *testing.T) {
 			}
 
 			result := compareResourceAttributes(tfRes, awsRes)
-			if !tt.shouldMatch && result != nil && len(result) == 0 {
+			if !tt.shouldMatch && len(result) == 0 {
 				t.Errorf("expected differences")
 			}
 		})

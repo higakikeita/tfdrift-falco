@@ -11,11 +11,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// contextKey is a custom type for context keys to avoid collisions
+type contextKey string
+
 // Context keys for RBAC
 var (
-	userIDCtxKey    = "user_id"
-	userRoleCtxKey  = "user_role"
-	rbacEnabledCtxKey = "rbac_enabled"
+	userIDCtxKey    = contextKey("user_id")
+	userRoleCtxKey  = contextKey("user_role")
+	rbacEnabledCtxKey = contextKey("rbac_enabled")
 )
 
 // ErrorResponse represents a JSON error response

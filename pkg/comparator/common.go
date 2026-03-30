@@ -246,7 +246,7 @@ func CompareResources(config *ComparisonConfig, tfResources, cloudResources []in
 		} else {
 			// Resource exists in both - check for modifications
 			differences := config.CompareAttributes(tfRes, cloudRes)
-			if differences != nil && len(differences) > 0 {
+			if len(differences) > 0 {
 				log.Debugf("Found modified resource: %s (%d differences)", tfID, len(differences))
 				// Build ResourceDiff from the differences - use the BuildUnmanaged callback to get base structure
 				diff := config.BuildUnmanaged(cloudRes)

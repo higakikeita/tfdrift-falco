@@ -193,7 +193,7 @@ func TestDiscoverAll_EmptyResults(t *testing.T) {
 		t.Fatalf("DiscoverAll failed: %v", err)
 	}
 
-	if resources != nil && len(resources) != 0 {
+	if len(resources) != 0 {
 		t.Errorf("expected nil or empty resources, got %d", len(resources))
 	}
 }

@@ -293,7 +293,7 @@ func TestGetUserID(t *testing.T) {
 	assert.False(t, ok)
 
 	// Test with context
-	ctx = context.WithValue(ctx, "user_id", "user123")
+	ctx = context.WithValue(ctx, contextKey("user_id"), "user123")
 	userID, ok := GetUserID(ctx)
 	assert.True(t, ok)
 	assert.Equal(t, "user123", userID)
@@ -306,7 +306,7 @@ func TestGetUserRole(t *testing.T) {
 	assert.False(t, ok)
 
 	// Test with context
-	ctx = context.WithValue(ctx, "user_role", rbac.RoleViewer)
+	ctx = context.WithValue(ctx, contextKey("user_role"), rbac.RoleViewer)
 	role, ok := GetUserRole(ctx)
 	assert.True(t, ok)
 	assert.Equal(t, rbac.RoleViewer, role)

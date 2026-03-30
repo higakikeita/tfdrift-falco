@@ -128,7 +128,8 @@ func (rl *RateLimiter) getOrCreateBucket(ip string) *TokenBucket {
 		rl.config.BurstSize,
 		rl.config.RequestsPerSecond,
 	))
-	return val.(*TokenBucket)
+	bucket, _ := val.(*TokenBucket)
+	return bucket
 }
 
 // RateLimit middleware enforces per-IP rate limiting
