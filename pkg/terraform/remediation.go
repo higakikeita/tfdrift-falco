@@ -125,7 +125,7 @@ func (g *RemediationGenerator) generateHCL(resourceType, resourceName string, at
 }
 
 // generateDriftFixHCL generates HCL that fixes a specific attribute drift
-func (g *RemediationGenerator) generateDriftFixHCL(resourceType, resourceName string, attribute string, oldValue, newValue interface{}) string {
+func (g *RemediationGenerator) generateDriftFixHCL(resourceType, resourceName string, attribute string, _, newValue interface{}) string {
 	if resourceName == "" {
 		resourceName = "resource"
 	}

@@ -16,9 +16,8 @@ type contextKey string
 
 // Context keys for RBAC
 var (
-	userIDCtxKey    = contextKey("user_id")
-	userRoleCtxKey  = contextKey("user_role")
-	rbacEnabledCtxKey = contextKey("rbac_enabled")
+	userIDCtxKey   = contextKey("user_id")
+	userRoleCtxKey = contextKey("user_role")
 )
 
 // ErrorResponse represents a JSON error response

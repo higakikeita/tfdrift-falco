@@ -68,9 +68,9 @@ type Database struct {
 	// Type-based relationship indexes
 	relationshipsByType map[string]map[string]*Relationship // type -> {rel_id -> relationship}
 
-	// Pre-allocated slices for common operations (performance optimization)
-	nodePool []*Node
-	relPool  []*Relationship
+	// Reserved for future pre-allocation optimization
+	// nodePool []*Node
+	// relPool  []*Relationship
 }
 
 // NewDatabase creates a new in-memory graph database

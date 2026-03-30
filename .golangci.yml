@@ -65,6 +65,7 @@ linters:
         - "-ST1020"  # Comment on exported function form (noisy)
         - "-SA1012"  # Nil context in tests (intentional for error path testing)
         - "-SA4006"  # Unused value (false positives in test code)
+        - "-S1040"   # Type assertion to same type (style preference)
 
     gosec:
       excludes:

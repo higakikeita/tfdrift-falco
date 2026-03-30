@@ -845,9 +845,7 @@ func TestGCSBackend_Config_BucketVariations(t *testing.T) {
 
 		if err != nil {
 			// Skip if credentials not available
-			if _, ok := err.(error); ok {
-				continue
-			}
+			continue
 		} else if backend != nil {
 			assert.Equal(t, bucket, backend.bucket)
 			_ = backend.Close()
