@@ -449,3 +449,555 @@ func TestResourceDiff_ComplexAttributes(t *testing.T) {
 		t.Errorf("expected 1 difference, got %d", len(diff.Differences))
 	}
 }
+
+// Tests for helper functions
+
+func TestExtractTFResourceID_WithID(t *testing.T) {
+	// Test extracting ID when "id" field is present
+	tfRes := &terraform.Resource{
+		Type: "aws_vpc",
+		Attributes: map[string]interface{}{
+			"id":         "vpc-12345",
+			"cidr_block": "10.0.0.0/16",
+		},
+	}
+
+	id := extractTFResourceID(tfRes)
+	if id != "vpc-12345" {
+		t.Errorf("expected vpc-12345, got %s", id)
+	}
+}
+
+func TestExtractTFResourceID_WithInstanceID(t *testing.T) {
+	// Test extracting ID when "instance_id" field is present
+	tfRes := &terraform.Resource{
+		Type: "aws_instance",
+		Attributes: map[string]interface{}{
+			"instance_id":   "i-12345",
+			"instance_type": "t3.micro",
+		},
+	}
+
+	id := extractTFResourceID(tfRes)
+	if id != "i-12345" {
+		t.Errorf("expected i-12345, got %s", id)
+	}
+}
+
+func TestExtractTFResourceID_WithDBInstanceIdentifier(t *testing.T) {
+	// Test extracting ID when "db_instance_identifier" field is present
+	tfRes := &terraform.Resource{
+		Type: "aws_db_instance",
+		Attributes: map[string]interface{}{
+			"db_instance_identifier": "db-prod",
+			"engine":                 "postgres",
+		},
+	}
+
+	id := extractTFResourceID(tfRes)
+	if id != "db-prod" {
+		t.Errorf("expected db-prod, got %s", id)
+	}
+}
+
+func TestExtractTFResourceID_WithVPCID(t *testing.T) {
+	// Test extracting ID when "vpc_id" field is present
+	tfRes := &terraform.Resource{
+		Type: "aws_subnet",
+		Attributes: map[string]interface{}{
+			"vpc_id":     "vpc-12345",
+			"cidr_block": "10.0.1.0/24",
+		},
+	}
+
+	id := extractTFResourceID(tfRes)
+	if id != "vpc-12345" {
+		t.Errorf("expected vpc-12345, got %s", id)
+	}
+}
+
+func TestExtractTFResourceID_WithSubnetID(t *testing.T) {
+	// Test extracting ID when only "subnet_id" field is present (no "id" field)
+	tfRes := &terraform.Resource{
+		Type: "aws_subnet",
+		Attributes: map[string]interface{}{
+			"subnet_id": "subnet-12345",
+		},
+	}
+
+	id := extractTFResourceID(tfRes)
+	if id != "subnet-12345" {
+		t.Errorf("expected subnet-12345, got %s", id)
+	}
+}
+
+func TestExtractTFResourceID_WithGroupID(t *testing.T) {
+	// Test extracting ID when only "group_id" field is present (no "id" field)
+	tfRes := &terraform.Resource{
+		Type: "aws_security_group",
+		Attributes: map[string]interface{}{
+			"group_id": "sg-12345",
+		},
+	}
+
+	id := extractTFResourceID(tfRes)
+	if id != "sg-12345" {
+		t.Errorf("expected sg-12345, got %s", id)
+	}
+}
+
+func TestExtractTFResourceID_WithARN(t *testing.T) {
+	// Test extracting ID when "arn" field is present (fallback)
+	tfRes := &terraform.Resource{
+		Type: "aws_eks_cluster",
+		Attributes: map[string]interface{}{
+			"arn": "arn:aws:eks:us-east-1:123456789:cluster/my-cluster",
+		},
+	}
+
+	id := extractTFResourceID(tfRes)
+	if id != "arn:aws:eks:us-east-1:123456789:cluster/my-cluster" {
+		t.Errorf("expected ARN, got %s", id)
+	}
+}
+
+func TestExtractTFResourceID_NoIDField(t *testing.T) {
+	// Test when no ID field is found
+	tfRes := &terraform.Resource{
+		Type: "aws_vpc",
+		Attributes: map[string]interface{}{
+			"cidr_block": "10.0.0.0/16",
+		},
+	}
+
+	id := extractTFResourceID(tfRes)
+	if id != "" {
+		t.Errorf("expected empty string, got %s", id)
+	}
+}
+
+func TestExtractTFResourceID_EmptyID(t *testing.T) {
+	// Test when ID field is empty string
+	tfRes := &terraform.Resource{
+		Type: "aws_vpc",
+		Attributes: map[string]interface{}{
+			"id":         "",
+			"cidr_block": "10.0.0.0/16",
+		},
+	}
+
+	id := extractTFResourceID(tfRes)
+	if id != "" {
+		t.Errorf("expected empty string for empty id field, got %s", id)
+	}
+}
+
+func TestExtractTFResourceID_PriorityOrder(t *testing.T) {
+	// Test that "id" field takes priority over other fields
+	tfRes := &terraform.Resource{
+		Type: "aws_instance",
+		Attributes: map[string]interface{}{
+			"id":          "vpc-priority",
+			"instance_id": "i-should-be-ignored",
+		},
+	}
+
+	id := extractTFResourceID(tfRes)
+	if id != "vpc-priority" {
+		t.Errorf("expected id to take priority, got %s", id)
+	}
+}
+
+func TestGetNestedValue_TopLevel(t *testing.T) {
+	// Test retrieving a top-level value
+	data := map[string]interface{}{
+		"cidr_block": "10.0.0.0/16",
+		"vpc_id":     "vpc-12345",
+	}
+
+	value := getNestedValue(data, "cidr_block")
+	if value != "10.0.0.0/16" {
+		t.Errorf("expected 10.0.0.0/16, got %v", value)
+	}
+}
+
+func TestGetNestedValue_Nested(t *testing.T) {
+	// Test retrieving a nested value using dot notation
+	data := map[string]interface{}{
+		"vpc_config": map[string]interface{}{
+			"subnet_ids": []string{"subnet-123", "subnet-456"},
+		},
+	}
+
+	value := getNestedValue(data, "vpc_config.subnet_ids")
+	if value == nil {
+		t.Errorf("expected to find nested value")
+	}
+}
+
+func TestGetNestedValue_NotFound(t *testing.T) {
+	// Test when value is not found
+	data := map[string]interface{}{
+		"cidr_block": "10.0.0.0/16",
+	}
+
+	value := getNestedValue(data, "nonexistent_field")
+	if value != nil {
+		t.Errorf("expected nil for nonexistent field, got %v", value)
+	}
+}
+
+func TestGetNestedValue_DeepNested(t *testing.T) {
+	// Test retrieving a deeply nested value
+	data := map[string]interface{}{
+		"level1": map[string]interface{}{
+			"level2": map[string]interface{}{
+				"level3": "deep_value",
+			},
+		},
+	}
+
+	value := getNestedValue(data, "level1.level2.level3")
+	if value != "deep_value" {
+		t.Errorf("expected deep_value, got %v", value)
+	}
+}
+
+func TestValuesEqual_BothNil(t *testing.T) {
+	// Test equality when both values are nil
+	if !valuesEqual(nil, nil) {
+		t.Errorf("expected nil == nil to be true")
+	}
+}
+
+func TestValuesEqual_OneNil(t *testing.T) {
+	// Test inequality when one value is nil
+	if valuesEqual("value", nil) {
+		t.Errorf("expected value != nil")
+	}
+	if valuesEqual(nil, "value") {
+		t.Errorf("expected nil != value")
+	}
+}
+
+func TestValuesEqual_SameString(t *testing.T) {
+	// Test equality for same strings
+	if !valuesEqual("test", "test") {
+		t.Errorf("expected test == test")
+	}
+}
+
+func TestValuesEqual_DifferentString(t *testing.T) {
+	// Test inequality for different strings
+	if valuesEqual("test1", "test2") {
+		t.Errorf("expected test1 != test2")
+	}
+}
+
+func TestValuesEqual_SameBool(t *testing.T) {
+	// Test equality for same booleans
+	if !valuesEqual(true, true) {
+		t.Errorf("expected true == true")
+	}
+	if !valuesEqual(false, false) {
+		t.Errorf("expected false == false")
+	}
+}
+
+func TestValuesEqual_DifferentBool(t *testing.T) {
+	// Test inequality for different booleans
+	if valuesEqual(true, false) {
+		t.Errorf("expected true != false")
+	}
+}
+
+func TestValuesEqual_BoolString(t *testing.T) {
+	// Test boolean to string comparison
+	if !valuesEqual(true, "true") {
+		t.Errorf("expected true == \"true\"")
+	}
+	if !valuesEqual(false, "false") {
+		t.Errorf("expected false == \"false\"")
+	}
+}
+
+func TestValuesEqual_SameNumber(t *testing.T) {
+	// Test equality for same numbers
+	if !valuesEqual(42, 42) {
+		t.Errorf("expected 42 == 42")
+	}
+}
+
+func TestValuesEqual_DifferentNumber(t *testing.T) {
+	// Test inequality for different numbers
+	if valuesEqual(42, 43) {
+		t.Errorf("expected 42 != 43")
+	}
+}
+
+func TestValuesEqual_StringConversion(t *testing.T) {
+	// Test string conversion for different types
+	if !valuesEqual(100, "100") {
+		t.Errorf("expected 100 == \"100\" via string conversion")
+	}
+}
+
+func TestGetTerraformTags_WithTags(t *testing.T) {
+	// Test extracting tags from "tags" field
+	attrs := map[string]interface{}{
+		"tags": map[string]interface{}{
+			"Environment": "production",
+			"Owner":       "team-a",
+		},
+	}
+
+	tags := getTerraformTags(attrs)
+	if len(tags) != 2 {
+		t.Errorf("expected 2 tags, got %d", len(tags))
+	}
+	if tags["Environment"] != "production" {
+		t.Errorf("expected Environment=production")
+	}
+}
+
+func TestGetTerraformTags_WithTagsAll(t *testing.T) {
+	// Test extracting tags from "tags_all" field (Terraform AWS provider v4+)
+	attrs := map[string]interface{}{
+		"tags_all": map[string]interface{}{
+			"Environment": "staging",
+			"Version":     "v1",
+		},
+	}
+
+	tags := getTerraformTags(attrs)
+	if len(tags) != 2 {
+		t.Errorf("expected 2 tags, got %d", len(tags))
+	}
+	if tags["Environment"] != "staging" {
+		t.Errorf("expected Environment=staging")
+	}
+}
+
+func TestGetTerraformTags_NoTags(t *testing.T) {
+	// Test when no tags field exists
+	attrs := map[string]interface{}{
+		"cidr_block": "10.0.0.0/16",
+	}
+
+	tags := getTerraformTags(attrs)
+	if len(tags) != 0 {
+		t.Errorf("expected 0 tags, got %d", len(tags))
+	}
+}
+
+func TestGetTerraformTags_EmptyTags(t *testing.T) {
+	// Test with empty tags map
+	attrs := map[string]interface{}{
+		"tags": map[string]interface{}{},
+	}
+
+	tags := getTerraformTags(attrs)
+	if len(tags) != 0 {
+		t.Errorf("expected 0 tags, got %d", len(tags))
+	}
+}
+
+func TestGetComparableFields_AWSVpc(t *testing.T) {
+	// Test comparable fields for aws_vpc
+	fields := getComparableFields("aws_vpc")
+	expectedFields := []string{"cidr_block", "enable_dns_hostnames", "enable_dns_support"}
+
+	if len(fields) != len(expectedFields) {
+		t.Errorf("expected %d fields, got %d", len(expectedFields), len(fields))
+	}
+}
+
+func TestGetComparableFields_AWSSubnet(t *testing.T) {
+	// Test comparable fields for aws_subnet
+	fields := getComparableFields("aws_subnet")
+	expectedFields := []string{"vpc_id", "cidr_block", "availability_zone", "map_public_ip_on_launch"}
+
+	if len(fields) != len(expectedFields) {
+		t.Errorf("expected %d fields, got %d", len(expectedFields), len(fields))
+	}
+}
+
+func TestGetComparableFields_AWSSecurityGroup(t *testing.T) {
+	// Test comparable fields for aws_security_group
+	fields := getComparableFields("aws_security_group")
+	expectedFields := []string{"vpc_id", "description", "name"}
+
+	if len(fields) != len(expectedFields) {
+		t.Errorf("expected %d fields, got %d", len(expectedFields), len(fields))
+	}
+}
+
+func TestGetComparableFields_AWSInstance(t *testing.T) {
+	// Test comparable fields for aws_instance
+	fields := getComparableFields("aws_instance")
+	if len(fields) == 0 {
+		t.Errorf("expected non-empty fields for aws_instance")
+	}
+}
+
+func TestGetComparableFields_AWSDBInstance(t *testing.T) {
+	// Test comparable fields for aws_db_instance
+	fields := getComparableFields("aws_db_instance")
+	if len(fields) == 0 {
+		t.Errorf("expected non-empty fields for aws_db_instance")
+	}
+}
+
+func TestGetComparableFields_AWSEKSCluster(t *testing.T) {
+	// Test comparable fields for aws_eks_cluster
+	fields := getComparableFields("aws_eks_cluster")
+	expectedFields := []string{"version", "role_arn"}
+
+	if len(fields) != len(expectedFields) {
+		t.Errorf("expected %d fields, got %d", len(expectedFields), len(fields))
+	}
+}
+
+func TestGetComparableFields_AWSElastiCache(t *testing.T) {
+	// Test comparable fields for aws_elasticache_replication_group
+	fields := getComparableFields("aws_elasticache_replication_group")
+	if len(fields) == 0 {
+		t.Errorf("expected non-empty fields for aws_elasticache_replication_group")
+	}
+}
+
+func TestGetComparableFields_AWSLoadBalancer(t *testing.T) {
+	// Test comparable fields for aws_lb
+	fields := getComparableFields("aws_lb")
+	expectedFields := []string{"type", "scheme", "vpc_id"}
+
+	if len(fields) != len(expectedFields) {
+		t.Errorf("expected %d fields, got %d", len(expectedFields), len(fields))
+	}
+}
+
+func TestGetComparableFields_Unknown(t *testing.T) {
+	// Test comparable fields for unknown resource type
+	fields := getComparableFields("aws_unknown_type")
+	if len(fields) != 0 {
+		t.Errorf("expected 0 fields for unknown type, got %d", len(fields))
+	}
+}
+
+func TestTagsEqual_SameTags(t *testing.T) {
+	// Test that same tags are equal
+	tfAttrs := map[string]interface{}{
+		"tags": map[string]interface{}{
+			"Environment": "prod",
+			"Owner":       "team-a",
+		},
+	}
+	awsTags := map[string]string{
+		"Environment": "prod",
+		"Owner":       "team-a",
+	}
+
+	if !tagsEqual(tfAttrs, awsTags) {
+		t.Errorf("expected tags to be equal")
+	}
+}
+
+func TestTagsEqual_DifferentTags(t *testing.T) {
+	// Test that different tags are not equal
+	tfAttrs := map[string]interface{}{
+		"tags": map[string]interface{}{
+			"Environment": "prod",
+		},
+	}
+	awsTags := map[string]string{
+		"Environment": "staging",
+	}
+
+	if tagsEqual(tfAttrs, awsTags) {
+		t.Errorf("expected tags to be different")
+	}
+}
+
+func TestTagsEqual_IgnoreAWSManagedTags(t *testing.T) {
+	// Test that AWS-managed tags are ignored
+	tfAttrs := map[string]interface{}{
+		"tags": map[string]interface{}{
+			"Environment": "prod",
+		},
+	}
+	awsTags := map[string]string{
+		"Environment": "prod",
+		"aws:cloudformation:stack-name": "my-stack",
+		"kubernetes.io/cluster/name":     "my-cluster",
+	}
+
+	if !tagsEqual(tfAttrs, awsTags) {
+		t.Errorf("expected AWS-managed tags to be ignored")
+	}
+}
+
+func TestTagsEqual_EmptyTags(t *testing.T) {
+	// Test with empty tags
+	tfAttrs := map[string]interface{}{
+		"tags": map[string]interface{}{},
+	}
+	awsTags := map[string]string{}
+
+	if !tagsEqual(tfAttrs, awsTags) {
+		t.Errorf("expected empty tags to be equal")
+	}
+}
+
+func TestCompareResourceAttributes_SameType(t *testing.T) {
+	// Test comparing resources of the same type
+	tfRes := &terraform.Resource{
+		Type: "aws_vpc",
+		Attributes: map[string]interface{}{
+			"id":                    "vpc-12345",
+			"cidr_block":            "10.0.0.0/16",
+			"enable_dns_hostnames":  true,
+			"enable_dns_support":    true,
+		},
+	}
+
+	awsRes := &DiscoveredResource{
+		ID:   "vpc-12345",
+		Type: "aws_vpc",
+		Attributes: map[string]interface{}{
+			"cidr_block":            "10.0.0.0/16",
+			"enable_dns_hostnames":  true,
+			"enable_dns_support":    true,
+		},
+		Tags: map[string]string{},
+	}
+
+	diff := compareResourceAttributes(tfRes, awsRes)
+	if diff == nil {
+		t.Errorf("expected diff to not be nil")
+	}
+	if diff.ResourceID != "vpc-12345" {
+		t.Errorf("expected ResourceID vpc-12345")
+	}
+}
+
+func TestCompareResourceAttributes_DiscoveryTypeMismatch(t *testing.T) {
+	// Test that type mismatch returns nil
+	tfRes := &terraform.Resource{
+		Type: "aws_vpc",
+		Attributes: map[string]interface{}{
+			"id": "vpc-12345",
+		},
+	}
+
+	awsRes := &DiscoveredResource{
+		ID:   "vpc-12345",
+		Type: "aws_subnet",
+		Attributes: map[string]interface{}{},
+		Tags: map[string]string{},
+	}
+
+	diff := compareResourceAttributes(tfRes, awsRes)
+	if diff != nil {
+		t.Errorf("expected diff to be nil for type mismatch")
+	}
+}

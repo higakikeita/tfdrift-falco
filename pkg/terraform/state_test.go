@@ -512,3 +512,179 @@ func TestState_Structure(t *testing.T) {
 	assert.Len(t, state.Resources, 1)
 	assert.Equal(t, "aws_instance", state.Resources[0].Type)
 }
+
+// Test StateManager GetStateMetadata
+func TestStateManager_GetStateMetadata(t *testing.T) {
+	path := filepath.Join("testdata", "simple.tfstate")
+	cfg := config.TerraformStateConfig{
+		Backend:   "local",
+		LocalPath: path,
+	}
+
+	sm, err := NewStateManager(cfg)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	err = sm.Load(ctx)
+	require.NoError(t, err)
+
+	metadata := sm.GetStateMetadata()
+	assert.NotNil(t, metadata)
+	assert.Equal(t, 4, metadata.Version)
+	assert.Equal(t, "1.5.0", metadata.TerraformVersion)
+}
+
+// Test StateManager GetAllResources
+func TestStateManager_GetAllResources(t *testing.T) {
+	path := filepath.Join("testdata", "simple.tfstate")
+	cfg := config.TerraformStateConfig{
+		Backend:   "local",
+		LocalPath: path,
+	}
+
+	sm, err := NewStateManager(cfg)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	err = sm.Load(ctx)
+	require.NoError(t, err)
+
+	resources := sm.GetAllResources()
+	assert.NotNil(t, resources)
+	assert.Equal(t, 3, len(resources))
+
+	// Verify all resources are properly populated
+	for _, res := range resources {
+		assert.NotEmpty(t, res.Type)
+		assert.NotEmpty(t, res.Mode)
+		assert.NotNil(t, res.Attributes)
+	}
+}
+
+// Test StateManager indexState empty state
+func TestStateManager_IndexState_Empty(t *testing.T) {
+	sm := &StateManager{
+		resources: make(map[string]*Resource),
+	}
+
+	state := State{
+		Version:          4,
+		TerraformVersion: "1.5.0",
+		Resources:        []ResourceDefinition{},
+	}
+
+	err := sm.indexState(state)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, sm.ResourceCount())
+	assert.NotNil(t, sm.stateMetadata)
+}
+
+// Test StateManager indexState with multiple instances
+func TestStateManager_IndexState_MultipleInstances(t *testing.T) {
+	sm := &StateManager{
+		resources: make(map[string]*Resource),
+	}
+
+	state := State{
+		Version:          4,
+		TerraformVersion: "1.5.0",
+		Resources: []ResourceDefinition{
+			{
+				Mode: "managed",
+				Type: "aws_instance",
+				Name: "app",
+				Instances: []ResourceInstance{
+					{
+						Attributes: map[string]interface{}{
+							"id": "i-001",
+						},
+					},
+					{
+						Attributes: map[string]interface{}{
+							"id": "i-002",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	err := sm.indexState(state)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, sm.ResourceCount())
+
+	// Verify both instances are indexed
+	r1, exists := sm.GetResource("i-001")
+	assert.True(t, exists)
+	assert.Equal(t, "aws_instance", r1.Type)
+
+	r2, exists := sm.GetResource("i-002")
+	assert.True(t, exists)
+	assert.Equal(t, "aws_instance", r2.Type)
+}
+
+// Test StateManager ResourceCount thread safety
+func TestStateManager_ResourceCount_ThreadSafe(t *testing.T) {
+	path := filepath.Join("testdata", "simple.tfstate")
+	cfg := config.TerraformStateConfig{
+		Backend:   "local",
+		LocalPath: path,
+	}
+
+	sm, err := NewStateManager(cfg)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	err = sm.Load(ctx)
+	require.NoError(t, err)
+
+	// Concurrent count calls
+	const goroutines = 100
+	results := make(chan int, goroutines)
+
+	for i := 0; i < goroutines; i++ {
+		go func() {
+			results <- sm.ResourceCount()
+		}()
+	}
+
+	// All should return the same count
+	expectedCount := 3
+	for i := 0; i < goroutines; i++ {
+		count := <-results
+		assert.Equal(t, expectedCount, count)
+	}
+}
+
+// Test StateManager concurrent GetResource
+func TestStateManager_ConcurrentGetResource(t *testing.T) {
+	path := filepath.Join("testdata", "simple.tfstate")
+	cfg := config.TerraformStateConfig{
+		Backend:   "local",
+		LocalPath: path,
+	}
+
+	sm, err := NewStateManager(cfg)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	err = sm.Load(ctx)
+	require.NoError(t, err)
+
+	// Concurrent reads
+	const goroutines = 100
+	done := make(chan bool, goroutines)
+
+	for i := 0; i < goroutines; i++ {
+		go func() {
+			res, exists := sm.GetResource("i-1234567890abcdef0")
+			assert.True(t, exists)
+			assert.NotNil(t, res)
+			done <- true
+		}()
+	}
+
+	for i := 0; i < goroutines; i++ {
+		<-done
+	}
+}

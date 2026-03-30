@@ -425,21 +425,180 @@ func TestGCSBackend_ConfigStructFields(t *testing.T) {
 	}
 }
 
-// Note: Testing Load() with actual errors (network errors, auth errors, etc.)
-// requires either:
-// 1. Integration tests with real GCS (disabled in CI)
-// 2. Mock GCS client (requires refactoring to inject dependencies)
-//
-// Example scenarios that would need mocking:
-// - Authentication failures (invalid credentials)
-// - Network errors (timeout, connection refused)
-// - Bucket not found (404 error)
-// - Object not found (404 error)
-// - Permission denied (403 error)
-// - Rate limiting (429 error)
-// - Large file handling
-// - Partial read errors
-// - Context cancellation during Load()
-//
-// These scenarios should be covered in integration tests with mocked GCS client
-// or in E2E tests with actual GCS buckets.
+// Test GCSBackend config assignment
+func TestGCSBackend_ConfigAssignment(t *testing.T) {
+	ctx := context.Background()
+
+	backend, err := NewGCSBackend(ctx, GCSBackendConfig{
+		Bucket:          "my-bucket",
+		Prefix:          "terraform.tfstate",
+		CredentialsFile: "/path/to/creds.json",
+	})
+
+	if err != nil {
+		// Skip if GCP credentials not available
+		t.Skipf("Skipping test due to GCP credentials not available: %v", err)
+		return
+	}
+
+	defer func() { _ = backend.Close() }()
+
+	assert.Equal(t, "my-bucket", backend.bucket)
+	assert.Equal(t, "terraform.tfstate", backend.prefix)
+	assert.NotNil(t, backend.client)
+}
+
+// Test GCSBackend multiple instances
+func TestGCSBackend_MultipleInstances(t *testing.T) {
+	ctx := context.Background()
+
+	configs := []GCSBackendConfig{
+		{Bucket: "bucket-1", Prefix: "prod.tfstate"},
+		{Bucket: "bucket-2", Prefix: "staging.tfstate"},
+	}
+
+	var backends []*GCSBackend
+	for _, cfg := range configs {
+		backend, err := NewGCSBackend(ctx, cfg)
+		if err != nil {
+			t.Skipf("Skipping test due to GCP credentials not available: %v", err)
+			return
+		}
+		backends = append(backends, backend)
+	}
+
+	defer func() {
+		for _, b := range backends {
+			_ = b.Close()
+		}
+	}()
+
+	assert.Equal(t, "bucket-1", backends[0].bucket)
+	assert.Equal(t, "bucket-2", backends[1].bucket)
+}
+
+// Test GCSBackend implements Backend interface
+func TestGCSBackend_ImplementsBackendInterface(t *testing.T) {
+	var _ Backend = (*GCSBackend)(nil)
+
+	ctx := context.Background()
+
+	backend, err := NewGCSBackend(ctx, GCSBackendConfig{
+		Bucket: "test-bucket",
+		Prefix: "test.tfstate",
+	})
+
+	if err != nil {
+		t.Skipf("Skipping test due to GCP credentials not available: %v", err)
+		return
+	}
+
+	defer func() { _ = backend.Close() }()
+
+	assert.NotNil(t, backend)
+	assert.Equal(t, "gcs", backend.Name())
+}
+
+// Test GCSBackend Close idempotence
+func TestGCSBackend_CloseIdempotent(t *testing.T) {
+	ctx := context.Background()
+
+	backend, err := NewGCSBackend(ctx, GCSBackendConfig{
+		Bucket: "test-bucket",
+		Prefix: "test.tfstate",
+	})
+
+	if err != nil {
+		t.Skipf("Skipping test due to GCP credentials not available: %v", err)
+		return
+	}
+
+	// Close multiple times
+	for i := 0; i < 3; i++ {
+		err := backend.Close()
+		assert.NoError(t, err, "Close call %d failed", i+1)
+	}
+}
+
+// Test GCSBackend Close with nil client
+func TestGCSBackend_CloseWithNilClient(t *testing.T) {
+	backend := &GCSBackend{
+		bucket: "test",
+		prefix: "test",
+		client: nil,
+	}
+
+	err := backend.Close()
+	assert.NoError(t, err)
+}
+
+// Test GCSBackend Name method
+func TestGCSBackend_NameMethod(t *testing.T) {
+	backend := &GCSBackend{
+		bucket: "test",
+		prefix: "test",
+	}
+
+	name := backend.Name()
+	assert.Equal(t, "gcs", name)
+
+	// Name should always return the same value
+	assert.Equal(t, "gcs", backend.Name())
+}
+
+// Test GCSBackend error validation
+func TestGCSBackend_ValidationErrors(t *testing.T) {
+	ctx := context.Background()
+
+	tests := []struct {
+		name          string
+		config        GCSBackendConfig
+		expectedError string
+	}{
+		{
+			name:          "Missing bucket",
+			config:        GCSBackendConfig{Prefix: "test.tfstate"},
+			expectedError: "GCS bucket is required",
+		},
+		{
+			name:          "Missing prefix",
+			config:        GCSBackendConfig{Bucket: "test-bucket"},
+			expectedError: "GCS prefix (object key) is required",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			backend, err := NewGCSBackend(ctx, tt.config)
+
+			assert.Error(t, err)
+			assert.Nil(t, backend)
+			assert.Contains(t, err.Error(), tt.expectedError)
+		})
+	}
+}
+
+// Test GCSBackend interface compliance
+func TestGCSBackend_BackendInterfaceCompliance(t *testing.T) {
+	ctx := context.Background()
+
+	backend, err := NewGCSBackend(ctx, GCSBackendConfig{
+		Bucket: "test-bucket",
+		Prefix: "test.tfstate",
+	})
+
+	if err != nil {
+		t.Skipf("Skipping test due to GCP credentials not available: %v", err)
+		return
+	}
+
+	defer func() { _ = backend.Close() }()
+
+	// Verify interface compliance
+	var iface Backend = backend
+	assert.NotNil(t, iface)
+
+	// Verify methods are callable through interface
+	name := iface.Name()
+	assert.Equal(t, "gcs", name)
+}

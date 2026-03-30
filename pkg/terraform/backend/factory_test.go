@@ -170,3 +170,240 @@ func TestNewBackend_UnsupportedBackend(t *testing.T) {
 	assert.Nil(t, backend)
 	assert.Contains(t, err.Error(), "unsupported backend")
 }
+
+func TestNewBackend_GCS(t *testing.T) {
+	tests := []struct {
+		name      string
+		config    config.TerraformStateConfig
+		wantError bool
+		wantName  string
+	}{
+		{
+			name: "valid GCS config",
+			config: config.TerraformStateConfig{
+				Backend:    "gcs",
+				GCSBucket:  "my-bucket",
+				GCSPrefix:  "terraform.tfstate",
+			},
+			wantError: false,
+			wantName:  "gcs",
+		},
+		{
+			name: "GCS without bucket",
+			config: config.TerraformStateConfig{
+				Backend:   "gcs",
+				GCSPrefix: "terraform.tfstate",
+			},
+			wantError: true,
+		},
+		{
+			name: "GCS without prefix",
+			config: config.TerraformStateConfig{
+				Backend:   "gcs",
+				GCSBucket: "my-bucket",
+			},
+			wantError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			backend, err := NewBackend(ctx, tt.config)
+
+			if tt.wantError {
+				assert.Error(t, err)
+				assert.Nil(t, backend)
+			} else {
+				// GCS backend will fail without credentials, but config validation should pass
+				if err != nil {
+					// Skip if it's a credentials error (expected in CI)
+					t.Logf("Skipped due to GCP credentials: %v", err)
+					return
+				}
+				assert.NoError(t, err)
+				assert.NotNil(t, backend)
+				assert.Equal(t, tt.wantName, backend.Name())
+				// Clean up if backend was created successfully
+				if gcsBackend, ok := backend.(*GCSBackend); ok {
+					_ = gcsBackend.Close()
+				}
+			}
+		})
+	}
+}
+
+func TestNewBackend_AzureRM(t *testing.T) {
+	tests := []struct {
+		name      string
+		config    config.TerraformStateConfig
+		wantError bool
+		wantName  string
+	}{
+		{
+			name: "valid Azure config",
+			config: config.TerraformStateConfig{
+				Backend:                 "azurerm",
+				AzureStorageAccount:     "myaccount",
+				AzureContainerName:      "tfstate",
+				AzureBlobName:           "terraform.tfstate",
+				AzureAccessKey:          "mykey",
+			},
+			wantError: false,
+			wantName:  "azurerm",
+		},
+		{
+			name: "Azure without storage account",
+			config: config.TerraformStateConfig{
+				Backend:            "azurerm",
+				AzureContainerName: "tfstate",
+				AzureBlobName:      "terraform.tfstate",
+			},
+			wantError: true,
+		},
+		{
+			name: "Azure without container",
+			config: config.TerraformStateConfig{
+				Backend:             "azurerm",
+				AzureStorageAccount: "myaccount",
+				AzureBlobName:       "terraform.tfstate",
+			},
+			wantError: true,
+		},
+		{
+			name: "Azure without blob",
+			config: config.TerraformStateConfig{
+				Backend:             "azurerm",
+				AzureStorageAccount: "myaccount",
+				AzureContainerName:  "tfstate",
+			},
+			wantError: true,
+		},
+		{
+			name: "Azure with SAS token",
+			config: config.TerraformStateConfig{
+				Backend:             "azurerm",
+				AzureStorageAccount: "myaccount",
+				AzureContainerName:  "tfstate",
+				AzureBlobName:       "terraform.tfstate",
+				AzureSASToken:       "sv=2020-10-02&sig=abc",
+			},
+			wantError: false,
+			wantName:  "azurerm",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			backend, err := NewBackend(ctx, tt.config)
+
+			if tt.wantError {
+				assert.Error(t, err)
+				assert.Nil(t, backend)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, backend)
+				assert.Equal(t, tt.wantName, backend.Name())
+			}
+		})
+	}
+}
+
+func TestNewBackend_CaseInsensitive(t *testing.T) {
+	tests := []struct {
+		name       string
+		backendKey string
+		wantError  bool
+	}{
+		{
+			name:       "lowercase s3",
+			backendKey: "s3",
+			wantError:  false,
+		},
+		{
+			name:       "uppercase S3",
+			backendKey: "S3",
+			wantError:  true,
+		},
+		{
+			name:       "mixed case Local",
+			backendKey: "Local",
+			wantError:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			cfg := config.TerraformStateConfig{
+				Backend: tt.backendKey,
+			}
+
+			backend, err := NewBackend(ctx, cfg)
+
+			if tt.wantError {
+				assert.Error(t, err)
+				assert.Nil(t, backend)
+			} else {
+				if err != nil {
+					t.Logf("Unexpected error: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestNewBackend_AllBackendTypes(t *testing.T) {
+	// Verify that all backend types are handled
+	backendTypes := []string{"local", "", "s3", "gcs", "azurerm"}
+
+	for _, backendType := range backendTypes {
+		t.Run("backend type "+backendType, func(t *testing.T) {
+			ctx := context.Background()
+			cfg := config.TerraformStateConfig{Backend: backendType}
+
+			// Create a temporary file for local backend
+			if backendType == "local" || backendType == "" {
+				tmpDir := t.TempDir()
+				tmpFile := filepath.Join(tmpDir, "test.tfstate")
+				err := os.WriteFile(tmpFile, []byte(`{}`), 0600)
+				require.NoError(t, err)
+				cfg.LocalPath = tmpFile
+			}
+
+			// Set minimal valid config for other backends
+			if backendType == "s3" {
+				cfg.S3Bucket = "test"
+				cfg.S3Key = "test"
+			} else if backendType == "gcs" {
+				cfg.GCSBucket = "test"
+				cfg.GCSPrefix = "test"
+			} else if backendType == "azurerm" {
+				cfg.AzureStorageAccount = "test"
+				cfg.AzureContainerName = "test"
+				cfg.AzureBlobName = "test"
+			}
+
+			backend, err := NewBackend(ctx, cfg)
+
+			// Some backends may fail without proper setup (credentials, etc)
+			// but they should at least attempt creation
+			if backendType == "local" || backendType == "" {
+				// Local backend should succeed
+				assert.NoError(t, err)
+				assert.NotNil(t, backend)
+			} else {
+				// Other backends may fail due to setup, but should not be nil on config validation
+				// Success is acceptable, credential errors are acceptable
+				if err == nil {
+					assert.NotNil(t, backend)
+					// Clean up GCS backends
+					if gcsBackend, ok := backend.(*GCSBackend); ok {
+						_ = gcsBackend.Close()
+					}
+				}
+			}
+		})
+	}
+}

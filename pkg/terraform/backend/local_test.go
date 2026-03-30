@@ -154,3 +154,295 @@ func TestLocalBackend_Name(t *testing.T) {
 
 	assert.Equal(t, "local", backend.Name())
 }
+
+// Test LocalBackend interface compliance
+func TestLocalBackend_ImplementsBackendInterface(t *testing.T) {
+	var _ Backend = (*LocalBackend)(nil)
+
+	tmpDir := t.TempDir()
+	statePath := filepath.Join(tmpDir, "terraform.tfstate")
+	err := os.WriteFile(statePath, []byte(`{"version": 4}`), 0600)
+	require.NoError(t, err)
+
+	backend, err := NewLocalBackend(statePath)
+	require.NoError(t, err)
+	assert.NotNil(t, backend)
+}
+
+// Test LocalBackend initialization with valid path
+func TestLocalBackend_InitializationWithValidPath(t *testing.T) {
+	tmpDir := t.TempDir()
+	statePath := filepath.Join(tmpDir, "terraform.tfstate")
+	content := `{"version": 4}`
+	err := os.WriteFile(statePath, []byte(content), 0600)
+	require.NoError(t, err)
+
+	backend, err := NewLocalBackend(statePath)
+	require.NoError(t, err)
+	assert.NotNil(t, backend)
+	assert.Equal(t, statePath, backend.path)
+	assert.Equal(t, "local", backend.Name())
+}
+
+// Test LocalBackend with various file permissions
+func TestLocalBackend_FilePermissions(t *testing.T) {
+	tests := []struct {
+		name        string
+		permissions os.FileMode
+		wantError   bool
+	}{
+		{
+			name:        "standard permissions",
+			permissions: 0644,
+			wantError:   false,
+		},
+		{
+			name:        "restricted permissions",
+			permissions: 0600,
+			wantError:   false,
+		},
+		{
+			name:        "read-only",
+			permissions: 0444,
+			wantError:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			statePath := filepath.Join(tmpDir, "terraform.tfstate")
+			err := os.WriteFile(statePath, []byte(`{"version": 4}`), tt.permissions)
+			require.NoError(t, err)
+
+			backend, err := NewLocalBackend(statePath)
+
+			if tt.wantError {
+				assert.Error(t, err)
+				assert.Nil(t, backend)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, backend)
+			}
+		})
+	}
+}
+
+// Test LocalBackend Load with JSON parsing
+func TestLocalBackend_Load_ComplexJSON(t *testing.T) {
+	tmpDir := t.TempDir()
+	statePath := filepath.Join(tmpDir, "terraform.tfstate")
+
+	complexState := `{
+		"version": 4,
+		"terraform_version": "1.5.0",
+		"serial": 42,
+		"lineage": "abc-123",
+		"outputs": {
+			"instance_id": {
+				"value": "i-1234567890abcdef0"
+			}
+		},
+		"resources": [
+			{
+				"mode": "managed",
+				"type": "aws_instance",
+				"name": "web",
+				"instances": [
+					{
+						"attributes": {
+							"id": "i-1234567890abcdef0",
+							"instance_type": "t3.micro"
+						}
+					}
+				]
+			}
+		]
+	}`
+
+	err := os.WriteFile(statePath, []byte(complexState), 0600)
+	require.NoError(t, err)
+
+	backend, err := NewLocalBackend(statePath)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	data, err := backend.Load(ctx)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+	assert.Equal(t, []byte(complexState), data)
+}
+
+// Test LocalBackend Load with binary data
+func TestLocalBackend_Load_BinaryContent(t *testing.T) {
+	tmpDir := t.TempDir()
+	statePath := filepath.Join(tmpDir, "terraform.tfstate")
+
+	// Create file with various byte values
+	binaryData := []byte{0x00, 0x01, 0x02, 0xFF, 0xFE, 0xFD}
+	err := os.WriteFile(statePath, binaryData, 0600)
+	require.NoError(t, err)
+
+	backend, err := NewLocalBackend(statePath)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	data, err := backend.Load(ctx)
+
+	assert.NoError(t, err)
+	assert.Equal(t, binaryData, data)
+}
+
+// Test LocalBackend with deeply nested path
+func TestLocalBackend_DeeplyNestedPath(t *testing.T) {
+	tmpDir := t.TempDir()
+	deepPath := filepath.Join(tmpDir, "a", "b", "c", "d", "e")
+	err := os.MkdirAll(deepPath, 0755)
+	require.NoError(t, err)
+
+	statePath := filepath.Join(deepPath, "terraform.tfstate")
+	err = os.WriteFile(statePath, []byte(`{"version": 4}`), 0600)
+	require.NoError(t, err)
+
+	backend, err := NewLocalBackend(statePath)
+	require.NoError(t, err)
+	assert.NotNil(t, backend)
+	assert.Equal(t, statePath, backend.path)
+}
+
+// Test LocalBackend Load context usage
+func TestLocalBackend_Load_ContextBehavior(t *testing.T) {
+	tmpDir := t.TempDir()
+	statePath := filepath.Join(tmpDir, "terraform.tfstate")
+	err := os.WriteFile(statePath, []byte(`{"version": 4}`), 0600)
+	require.NoError(t, err)
+
+	backend, err := NewLocalBackend(statePath)
+	require.NoError(t, err)
+
+	// Test with background context
+	ctx := context.Background()
+	data, err := backend.Load(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+
+	// The context parameter is not actually used in Load, but test it still works
+	// when context is cancelled
+	cancelCtx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	// Should still work because LocalBackend doesn't use context for file I/O
+	data, err = backend.Load(cancelCtx)
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+}
+
+// Test LocalBackend with symlink
+func TestLocalBackend_SymlinkFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	actualPath := filepath.Join(tmpDir, "actual.tfstate")
+	linkPath := filepath.Join(tmpDir, "link.tfstate")
+
+	// Create actual file
+	err := os.WriteFile(actualPath, []byte(`{"version": 4}`), 0600)
+	require.NoError(t, err)
+
+	// Create symlink
+	err = os.Symlink(actualPath, linkPath)
+	if err != nil {
+		t.Skip("Symlink creation not supported on this platform")
+	}
+
+	backend, err := NewLocalBackend(linkPath)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	data, err := backend.Load(ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+}
+
+// Test LocalBackend Name method
+func TestLocalBackend_NameMethod(t *testing.T) {
+	tmpDir := t.TempDir()
+	statePath := filepath.Join(tmpDir, "terraform.tfstate")
+	err := os.WriteFile(statePath, []byte(`{"version": 4}`), 0600)
+	require.NoError(t, err)
+
+	backend, err := NewLocalBackend(statePath)
+	require.NoError(t, err)
+
+	assert.Equal(t, "local", backend.Name())
+	// Name should always return the same value
+	assert.Equal(t, "local", backend.Name())
+}
+
+// Test LocalBackend error messages
+func TestLocalBackend_ErrorMessages(t *testing.T) {
+	tests := []struct {
+		name          string
+		path          string
+		expectedError string
+	}{
+		{
+			name:          "Non-existent file",
+			path:          "/nonexistent/path/terraform.tfstate",
+			expectedError: "state file not found",
+		},
+		{
+			name:          "Empty path with no default file",
+			path:          "",
+			expectedError: "state file not found",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			backend, err := NewLocalBackend(tt.path)
+
+			assert.Error(t, err)
+			assert.Nil(t, backend)
+			assert.Contains(t, err.Error(), tt.expectedError)
+		})
+	}
+}
+
+// Test LocalBackend path storage
+func TestLocalBackend_PathStorage(t *testing.T) {
+	tmpDir := t.TempDir()
+	statePath := filepath.Join(tmpDir, "terraform.tfstate")
+	err := os.WriteFile(statePath, []byte(`{"version": 4}`), 0600)
+	require.NoError(t, err)
+
+	backend, err := NewLocalBackend(statePath)
+	require.NoError(t, err)
+
+	// Verify path is stored correctly
+	assert.Equal(t, statePath, backend.path)
+}
+
+// Test LocalBackend Load with large file
+func TestLocalBackend_Load_LargeFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	statePath := filepath.Join(tmpDir, "terraform.tfstate")
+
+	// Create a 1MB file
+	largeContent := make([]byte, 1024*1024)
+	for i := range largeContent {
+		largeContent[i] = 'a' + byte(i%26)
+	}
+
+	err := os.WriteFile(statePath, largeContent, 0600)
+	require.NoError(t, err)
+
+	backend, err := NewLocalBackend(statePath)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	data, err := backend.Load(ctx)
+
+	assert.NoError(t, err)
+	assert.Equal(t, largeContent, data)
+	assert.Equal(t, 1024*1024, len(data))
+}

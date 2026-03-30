@@ -411,24 +411,111 @@ func TestS3Backend_RegionDefaults(t *testing.T) {
 	}
 }
 
-// Note: Testing Load() with actual errors (network errors, auth errors, etc.)
-// requires either:
-// 1. Integration tests with real S3 (requires AWS credentials)
-// 2. Mock S3 client (requires refactoring to inject dependencies)
-//
-// Example scenarios that would need mocking:
-// - Authentication failures (invalid AWS credentials)
-// - Network errors (timeout, connection refused)
-// - Bucket not found (NoSuchBucket error)
-// - Object not found (NoSuchKey error)
-// - Permission denied (AccessDenied error)
-// - Rate limiting (SlowDown error)
-// - Large file handling (multi-part downloads)
-// - Partial read errors
-// - Context cancellation during Load()
-// - S3 server errors (500, 503)
-// - Encryption errors (KMS key access)
-// - Bucket versioning scenarios
-//
-// These scenarios should be covered in integration tests with mocked S3 client
-// or in E2E tests with actual S3 buckets.
+// Test S3Backend config assignment and multiple instances
+func TestS3Backend_ClientInitialization(t *testing.T) {
+	backend, err := NewS3Backend(S3BackendConfig{
+		Bucket: "test-bucket",
+		Key:    "test.tfstate",
+		Region: "us-west-2",
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, backend)
+	assert.NotNil(t, backend.client)
+	assert.Equal(t, "test-bucket", backend.bucket)
+	assert.Equal(t, "test.tfstate", backend.key)
+	assert.Equal(t, "us-west-2", backend.region)
+}
+
+// Test S3Backend interface compliance
+func TestS3Backend_ImplementsBackendInterface(t *testing.T) {
+	var _ Backend = (*S3Backend)(nil)
+
+	backend, err := NewS3Backend(S3BackendConfig{
+		Bucket: "test-bucket",
+		Key:    "test.tfstate",
+		Region: "us-east-1",
+	})
+	assert.NoError(t, err)
+
+	// Test that backend implements Backend interface methods
+	assert.NotNil(t, backend)
+	name := backend.Name()
+	assert.Equal(t, "s3", name)
+}
+
+// Test NewS3Backend with region trimming
+func TestS3Backend_RegionWhitespaceTrimming(t *testing.T) {
+	tests := []struct {
+		name            string
+		inputRegion     string
+		expectedRegion  string
+	}{
+		{"Region with leading space", " us-west-2", "us-west-2"},
+		{"Region with trailing space", "us-west-2 ", "us-west-2"},
+		{"Region with surrounding spaces", "  us-west-2  ", "us-west-2"},
+		{"Empty region", "", "us-east-1"},
+		{"Only spaces", "   ", "us-east-1"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			backend, err := NewS3Backend(S3BackendConfig{
+				Bucket: "test-bucket",
+				Key:    "test.tfstate",
+				Region: tt.inputRegion,
+			})
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedRegion, backend.region)
+		})
+	}
+}
+
+// Test S3Backend implements Backend interface
+func TestS3Backend_BackendInterfaceCompliance(t *testing.T) {
+	backend, err := NewS3Backend(S3BackendConfig{
+		Bucket: "test-bucket",
+		Key:    "test.tfstate",
+		Region: "us-east-1",
+	})
+
+	assert.NoError(t, err)
+
+	// Verify interface compliance
+	var iface Backend = backend
+	assert.NotNil(t, iface)
+
+	// Verify methods are callable through interface
+	name := iface.Name()
+	assert.Equal(t, "s3", name)
+}
+
+// Test S3Backend error messages
+func TestS3Backend_ErrorMessages(t *testing.T) {
+	tests := []struct {
+		name          string
+		config        S3BackendConfig
+		expectedError string
+	}{
+		{
+			name:          "Missing bucket",
+			config:        S3BackendConfig{Key: "key.tfstate", Region: "us-east-1"},
+			expectedError: "S3 bucket is required",
+		},
+		{
+			name:          "Missing key",
+			config:        S3BackendConfig{Bucket: "bucket", Region: "us-east-1"},
+			expectedError: "S3 key is required",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			backend, err := NewS3Backend(tt.config)
+
+			assert.Error(t, err)
+			assert.Nil(t, backend)
+			assert.Contains(t, err.Error(), tt.expectedError)
+		})
+	}
+}

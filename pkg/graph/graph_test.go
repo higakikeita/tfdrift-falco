@@ -1,7 +1,11 @@
 package graph
 
 import (
+	"fmt"
 	"testing"
+
+	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
 
 // TestNodeCreation tests basic node creation and retrieval
@@ -1468,5 +1472,1869 @@ func TestNodeDeletionWithMultipleRelationships(t *testing.T) {
 	// 5 other nodes should still exist
 	if db.NodeCount() != 5 {
 		t.Errorf("Expected 5 nodes after deletion, got %d", db.NodeCount())
+	}
+}
+
+// ============================================================================
+// BUILDER TESTS - Store and graph building
+// ============================================================================
+
+// TestNewStore tests Store creation
+func TestNewStore(t *testing.T) {
+	store := NewStore()
+
+	if store == nil {
+		t.Fatal("Expected non-nil store")
+	}
+
+	if len(store.GetDrifts()) != 0 {
+		t.Errorf("Expected 0 drifts initially, got %d", len(store.GetDrifts()))
+	}
+
+	if len(store.GetEvents()) != 0 {
+		t.Errorf("Expected 0 events initially, got %d", len(store.GetEvents()))
+	}
+
+	if len(store.GetUnmanaged()) != 0 {
+		t.Errorf("Expected 0 unmanaged initially, got %d", len(store.GetUnmanaged()))
+	}
+}
+
+// TestStoreDriftOperations tests drift management in Store
+func TestStoreDriftOperations(t *testing.T) {
+	store := NewStore()
+
+	drift := types.DriftAlert{
+		ResourceID:   "res-1",
+		ResourceType: "aws_instance",
+		ResourceName: "test-instance",
+		Severity:     "high",
+		Attribute:    "state",
+		OldValue:     "running",
+		NewValue:     "stopped",
+		UserIdentity: types.UserIdentity{
+			UserName: "test-user",
+			ARN:      "arn:aws:iam::123456789012:user/test",
+		},
+		Timestamp: "2024-01-01T00:00:00Z",
+		AlertType: "drift",
+	}
+
+	store.AddDrift(drift)
+
+	drifts := store.GetDrifts()
+	if len(drifts) != 1 {
+		t.Errorf("Expected 1 drift, got %d", len(drifts))
+	}
+
+	if drifts[0].ResourceID != "res-1" {
+		t.Errorf("Expected resource ID 'res-1', got '%s'", drifts[0].ResourceID)
+	}
+}
+
+// TestStoreEventOperations tests event management in Store
+func TestStoreEventOperations(t *testing.T) {
+	store := NewStore()
+
+	event := types.Event{
+		ResourceID:   "res-1",
+		ResourceType: "aws_s3_bucket",
+		EventName:    "PutBucketEncryption",
+		Provider:     "aws",
+		UserIdentity: types.UserIdentity{
+			UserName: "test-user",
+			ARN:      "arn:aws:iam::123456789012:user/test",
+		},
+		Region: "us-east-1",
+	}
+
+	store.AddEvent(event)
+
+	events := store.GetEvents()
+	if len(events) != 1 {
+		t.Errorf("Expected 1 event, got %d", len(events))
+	}
+
+	if events[0].EventName != "PutBucketEncryption" {
+		t.Errorf("Expected event name 'PutBucketEncryption', got '%s'", events[0].EventName)
+	}
+}
+
+// TestStoreUnmanagedOperations tests unmanaged resource management
+func TestStoreUnmanagedOperations(t *testing.T) {
+	store := NewStore()
+
+	unmanaged := types.UnmanagedResourceAlert{
+		ResourceID:   "res-1",
+		ResourceType: "aws_instance",
+		EventName:    "RunInstances",
+		Severity:     "medium",
+		UserIdentity: types.UserIdentity{
+			UserName: "test-user",
+			ARN:      "arn:aws:iam::123456789012:user/test",
+		},
+		Reason:    "Not in Terraform state",
+		Timestamp: "2024-01-01T00:00:00Z",
+	}
+
+	store.AddUnmanaged(unmanaged)
+
+	unmanageds := store.GetUnmanaged()
+	if len(unmanageds) != 1 {
+		t.Errorf("Expected 1 unmanaged resource, got %d", len(unmanageds))
+	}
+
+	if unmanageds[0].Reason != "Not in Terraform state" {
+		t.Errorf("Expected reason 'Not in Terraform state', got '%s'", unmanageds[0].Reason)
+	}
+}
+
+// TestStoreClear tests clearing store data
+func TestStoreClear(t *testing.T) {
+	store := NewStore()
+
+	store.AddDrift(types.DriftAlert{ResourceID: "res-1", ResourceType: "aws_instance", Severity: "high"})
+	store.AddEvent(types.Event{ResourceID: "res-2", ResourceType: "aws_s3_bucket", EventName: "Put"})
+	store.AddUnmanaged(types.UnmanagedResourceAlert{ResourceID: "res-3", ResourceType: "aws_instance", Severity: "medium"})
+
+	if len(store.GetDrifts()) != 1 || len(store.GetEvents()) != 1 || len(store.GetUnmanaged()) != 1 {
+		t.Fatal("Failed to add data to store")
+	}
+
+	store.Clear()
+
+	if len(store.GetDrifts()) != 0 {
+		t.Errorf("Expected 0 drifts after clear, got %d", len(store.GetDrifts()))
+	}
+
+	if len(store.GetEvents()) != 0 {
+		t.Errorf("Expected 0 events after clear, got %d", len(store.GetEvents()))
+	}
+
+	if len(store.GetUnmanaged()) != 0 {
+		t.Errorf("Expected 0 unmanaged after clear, got %d", len(store.GetUnmanaged()))
+	}
+}
+
+// TestStoreGetGraphDB tests graph database retrieval
+func TestStoreGetGraphDB(t *testing.T) {
+	store := NewStore()
+	db := store.GetGraphDB()
+
+	if db == nil {
+		t.Fatal("Expected non-nil GraphDatabase")
+	}
+
+	if db.NodeCount() != 0 {
+		t.Errorf("Expected 0 nodes initially, got %d", db.NodeCount())
+	}
+}
+
+// TestStoreGetStats tests statistics retrieval
+func TestStoreGetStats(t *testing.T) {
+	store := NewStore()
+
+	store.AddDrift(types.DriftAlert{
+		ResourceID:   "res-1",
+		ResourceType: "aws_instance",
+		Severity:     "high",
+	})
+	store.AddDrift(types.DriftAlert{
+		ResourceID:   "res-2",
+		ResourceType: "aws_s3_bucket",
+		Severity:     "critical",
+	})
+	store.AddEvent(types.Event{ResourceID: "res-3", ResourceType: "aws_lambda", EventName: "UpdateFunction"})
+
+	stats := store.GetStats()
+
+	if stats["total_drifts"] != 2 {
+		t.Errorf("Expected 2 total drifts, got %v", stats["total_drifts"])
+	}
+
+	if stats["total_events"] != 1 {
+		t.Errorf("Expected 1 total event, got %v", stats["total_events"])
+	}
+
+	severityCounts := stats["severity_counts"].(map[string]int)
+	if severityCounts["high"] != 1 {
+		t.Errorf("Expected 1 high severity drift, got %d", severityCounts["high"])
+	}
+}
+
+// TestPopulateSampleData tests sample data population
+func TestPopulateSampleData(t *testing.T) {
+	store := NewStore()
+	store.PopulateSampleData()
+
+	if len(store.GetDrifts()) < 3 {
+		t.Errorf("Expected at least 3 sample drifts, got %d", len(store.GetDrifts()))
+	}
+
+	if len(store.GetEvents()) < 2 {
+		t.Errorf("Expected at least 2 sample events, got %d", len(store.GetEvents()))
+	}
+
+	if len(store.GetUnmanaged()) < 1 {
+		t.Errorf("Expected at least 1 sample unmanaged resource, got %d", len(store.GetUnmanaged()))
+	}
+}
+
+// ============================================================================
+// CYTOSCAPE CONVERSION TESTS
+// ============================================================================
+
+// TestConvertDriftToCytoscape tests drift to cytoscape conversion
+func TestConvertDriftToCytoscape(t *testing.T) {
+	drift := types.DriftAlert{
+		ResourceID:   "sg-123",
+		ResourceName: "web-sg",
+		ResourceType: "aws_security_group",
+		Severity:     "critical",
+		Attribute:    "ingress_rules",
+		OldValue:     "restricted",
+		NewValue:     "open",
+		UserIdentity: types.UserIdentity{
+			UserName: "admin",
+			ARN:      "arn:aws:iam::123456789012:user/admin",
+		},
+		MatchedRules: []string{"rule1", "rule2"},
+		Timestamp:    "2024-01-01T00:00:00Z",
+		AlertType:    "drift",
+	}
+
+	node := ConvertDriftToCytoscape(drift)
+
+	if node.Data.ID != "sg-123" {
+		t.Errorf("Expected ID 'sg-123', got '%s'", node.Data.ID)
+	}
+
+	if node.Data.Type != "drift" {
+		t.Errorf("Expected type 'drift', got '%s'", node.Data.Type)
+	}
+
+	if node.Data.Severity != "critical" {
+		t.Errorf("Expected severity 'critical', got '%s'", node.Data.Severity)
+	}
+
+	if node.Data.Metadata["attribute"] != "ingress_rules" {
+		t.Errorf("Expected attribute 'ingress_rules', got '%v'", node.Data.Metadata["attribute"])
+	}
+}
+
+// TestConvertEventToCytoscape tests event to cytoscape conversion
+func TestConvertEventToCytoscape(t *testing.T) {
+	event := types.Event{
+		ResourceID:   "i-456",
+		EventName:    "RunInstances",
+		ResourceType: "aws_instance",
+		Provider:     "aws",
+		UserIdentity: types.UserIdentity{
+			UserName: "developer",
+			ARN:      "arn:aws:iam::123456789012:user/developer",
+		},
+		Region:      "us-east-1",
+		ServiceName: "ec2",
+		Changes: map[string]interface{}{
+			"imageId":      "ami-123",
+			"instanceType": "t3.medium",
+		},
+	}
+
+	node := ConvertEventToCytoscape(event)
+
+	if node.Data.ID != "i-456" {
+		t.Errorf("Expected ID 'i-456', got '%s'", node.Data.ID)
+	}
+
+	if node.Data.Type != "falco_event" {
+		t.Errorf("Expected type 'falco_event', got '%s'", node.Data.Type)
+	}
+
+	if node.Data.Metadata["event_name"] != "RunInstances" {
+		t.Errorf("Expected event_name 'RunInstances', got '%v'", node.Data.Metadata["event_name"])
+	}
+}
+
+// TestConvertUnmanagedToCytoscape tests unmanaged resource to cytoscape conversion
+func TestConvertUnmanagedToCytoscape(t *testing.T) {
+	unmanaged := types.UnmanagedResourceAlert{
+		ResourceID:   "i-789",
+		ResourceType: "aws_instance",
+		EventName:    "RunInstances",
+		Severity:     "medium",
+		UserIdentity: types.UserIdentity{
+			UserName: "ops",
+			ARN:      "arn:aws:iam::123456789012:user/ops",
+		},
+		Timestamp: "2024-01-01T00:00:00Z",
+		Reason:    "Created manually outside Terraform",
+		Changes: map[string]interface{}{
+			"state": "running",
+		},
+	}
+
+	node := ConvertUnmanagedToCytoscape(unmanaged)
+
+	if node.Data.ID != "i-789" {
+		t.Errorf("Expected ID 'i-789', got '%s'", node.Data.ID)
+	}
+
+	if node.Data.Type != "unmanaged" {
+		t.Errorf("Expected type 'unmanaged', got '%s'", node.Data.Type)
+	}
+
+	if node.Data.Metadata["reason"] != "Created manually outside Terraform" {
+		t.Errorf("Expected reason 'Created manually outside Terraform', got '%v'", node.Data.Metadata["reason"])
+	}
+}
+
+// TestExtractResourceIDFromAttributes tests ID extraction
+func TestExtractResourceIDFromAttributes(t *testing.T) {
+	tests := []struct {
+		name       string
+		attributes map[string]interface{}
+		expected   string
+	}{
+		{
+			name: "with id attribute",
+			attributes: map[string]interface{}{
+				"id": "i-123456",
+			},
+			expected: "i-123456",
+		},
+		{
+			name: "with arn attribute",
+			attributes: map[string]interface{}{
+				"arn": "arn:aws:s3:::my-bucket",
+			},
+			expected: "arn:aws:s3:::my-bucket",
+		},
+		{
+			name: "with name attribute",
+			attributes: map[string]interface{}{
+				"name": "my-resource",
+			},
+			expected: "my-resource",
+		},
+		{
+			name: "with self_link attribute",
+			attributes: map[string]interface{}{
+				"self_link": "https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default",
+			},
+			expected: "https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default",
+		},
+		{
+			name:       "no identifying attributes",
+			attributes: map[string]interface{}{},
+			expected:   "",
+		},
+		{
+			name: "id takes precedence",
+			attributes: map[string]interface{}{
+				"id":   "i-123456",
+				"arn":  "arn:aws:ec2:us-east-1:123456789012:instance/i-123456",
+				"name": "instance-name",
+			},
+			expected: "i-123456",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := extractResourceIDFromAttributes(tt.attributes)
+			if result != tt.expected {
+				t.Errorf("Expected '%s', got '%s'", tt.expected, result)
+			}
+		})
+	}
+}
+
+// TestExtractResourceName tests resource name extraction
+func TestExtractResourceName(t *testing.T) {
+	tests := []struct {
+		name     string
+		resource *terraform.Resource
+		expected string
+	}{
+		{
+			name: "with name attribute",
+			resource: &terraform.Resource{
+				Name: "tf-resource",
+				Type: "aws_instance",
+				Attributes: map[string]interface{}{
+					"name": "my-instance",
+				},
+			},
+			expected: "my-instance",
+		},
+		{
+			name: "with tags Name",
+			resource: &terraform.Resource{
+				Name: "tf-resource",
+				Type: "aws_instance",
+				Attributes: map[string]interface{}{
+					"tags": map[string]interface{}{
+						"Name": "tagged-instance",
+					},
+				},
+			},
+			expected: "tagged-instance",
+		},
+		{
+			name: "fallback to tf name",
+			resource: &terraform.Resource{
+				Name: "tf-resource",
+				Type: "aws_instance",
+				Attributes: map[string]interface{}{},
+			},
+			expected: "tf-resource",
+		},
+		{
+			name: "fallback to resource type",
+			resource: &terraform.Resource{
+				Name: "",
+				Type: "aws_instance",
+				Attributes: map[string]interface{}{},
+			},
+			expected: "aws_instance",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := extractResourceName(tt.resource)
+			if result != tt.expected {
+				t.Errorf("Expected '%s', got '%s'", tt.expected, result)
+			}
+		})
+	}
+}
+
+// TestCreateEdge tests edge creation
+func TestCreateEdge(t *testing.T) {
+	edge := CreateEdge("node-1", "node-2", "depends_on", "dependency", "DEPENDS_ON")
+
+	if edge.Data.Source != "node-1" {
+		t.Errorf("Expected source 'node-1', got '%s'", edge.Data.Source)
+	}
+
+	if edge.Data.Target != "node-2" {
+		t.Errorf("Expected target 'node-2', got '%s'", edge.Data.Target)
+	}
+
+	if edge.Data.Label != "depends_on" {
+		t.Errorf("Expected label 'depends_on', got '%s'", edge.Data.Label)
+	}
+
+	if edge.Data.Type != "dependency" {
+		t.Errorf("Expected type 'dependency', got '%s'", edge.Data.Type)
+	}
+
+	if edge.Data.Relationship != "DEPENDS_ON" {
+		t.Errorf("Expected relationship 'DEPENDS_ON', got '%s'", edge.Data.Relationship)
+	}
+}
+
+// ============================================================================
+// HIERARCHY TESTS
+// ============================================================================
+
+// TestNewHierarchyBuilder tests hierarchy builder creation
+func TestNewHierarchyBuilder(t *testing.T) {
+	builder := NewHierarchyBuilder()
+
+	if builder == nil {
+		t.Fatal("Expected non-nil HierarchyBuilder")
+	}
+
+	if builder.hierarchy == nil {
+		t.Fatal("Expected non-nil hierarchy")
+	}
+
+	if len(builder.hierarchy.Regions) != 0 {
+		t.Errorf("Expected 0 regions initially, got %d", len(builder.hierarchy.Regions))
+	}
+}
+
+// TestBuildHierarchyWithVPC tests hierarchy building with VPC
+func TestBuildHierarchyWithVPC(t *testing.T) {
+	builder := NewHierarchyBuilder()
+
+	resources := []*terraform.Resource{
+		{
+			Type: "aws_vpc",
+			Name: "main-vpc",
+			Attributes: map[string]interface{}{
+				"id":         "vpc-12345678",
+				"cidr_block": "10.0.0.0/16",
+			},
+		},
+	}
+
+	hierarchy := builder.BuildHierarchy(resources)
+
+	if hierarchy == nil {
+		t.Fatal("Expected non-nil hierarchy")
+	}
+
+	if len(hierarchy.Regions) == 0 {
+		t.Fatal("Expected at least one region in hierarchy")
+	}
+
+	// Check if VPC was added
+	found := false
+	for _, region := range hierarchy.Regions {
+		if _, exists := region.VPCs["vpc-12345678"]; exists {
+			found = true
+			vpc := region.VPCs["vpc-12345678"]
+			if vpc.Name != "main-vpc" {
+				t.Errorf("Expected VPC name 'main-vpc', got '%s'", vpc.Name)
+			}
+			if vpc.CIDR != "10.0.0.0/16" {
+				t.Errorf("Expected VPC CIDR '10.0.0.0/16', got '%s'", vpc.CIDR)
+			}
+			break
+		}
+	}
+
+	if !found {
+		t.Fatal("VPC not found in hierarchy")
+	}
+}
+
+// TestBuildHierarchyWithSubnet tests hierarchy building with subnet
+func TestBuildHierarchyWithSubnet(t *testing.T) {
+	builder := NewHierarchyBuilder()
+
+	resources := []*terraform.Resource{
+		{
+			Type: "aws_vpc",
+			Name: "main-vpc",
+			Attributes: map[string]interface{}{
+				"id":         "vpc-12345678",
+				"cidr_block": "10.0.0.0/16",
+			},
+		},
+		{
+			Type: "aws_subnet",
+			Name: "public-subnet",
+			Attributes: map[string]interface{}{
+				"id":                       "subnet-87654321",
+				"vpc_id":                   "vpc-12345678",
+				"cidr_block":               "10.0.1.0/24",
+				"availability_zone":        "us-east-1a",
+				"map_public_ip_on_launch":  true,
+			},
+		},
+	}
+
+	hierarchy := builder.BuildHierarchy(resources)
+
+	found := false
+	for _, region := range hierarchy.Regions {
+		if vpc, exists := region.VPCs["vpc-12345678"]; exists {
+			if az, azExists := vpc.AvailabilityZones["us-east-1a"]; azExists {
+				if subnet, subnetExists := az.Subnets["subnet-87654321"]; subnetExists {
+					found = true
+					if subnet.Name != "public-subnet" {
+						t.Errorf("Expected subnet name 'public-subnet', got '%s'", subnet.Name)
+					}
+					if subnet.Type != "public" {
+						t.Errorf("Expected subnet type 'public', got '%s'", subnet.Type)
+					}
+					break
+				}
+			}
+		}
+	}
+
+	if !found {
+		t.Fatal("Subnet not found in hierarchy")
+	}
+}
+
+// TestConvertHierarchyToNodes tests converting hierarchy to nodes
+func TestConvertHierarchyToNodes(t *testing.T) {
+	builder := NewHierarchyBuilder()
+	resources := []*terraform.Resource{
+		{
+			Type: "aws_vpc",
+			Name: "main-vpc",
+			Attributes: map[string]interface{}{
+				"id":         "vpc-12345678",
+				"cidr_block": "10.0.0.0/16",
+			},
+		},
+	}
+
+	hierarchy := builder.BuildHierarchy(resources)
+	nodes := ConvertHierarchyToNodes(hierarchy)
+
+	if len(nodes) == 0 {
+		t.Fatal("Expected at least one node from hierarchy conversion")
+	}
+
+	// Should have region node and VPC node
+	if len(nodes) < 2 {
+		t.Errorf("Expected at least 2 nodes (region + VPC), got %d", len(nodes))
+	}
+
+	// Check for region node
+	hasRegionNode := false
+	hasVPCNode := false
+	for _, node := range nodes {
+		if node.Data.Type == "region-group" {
+			hasRegionNode = true
+		}
+		if node.Data.Type == "vpc-group" {
+			hasVPCNode = true
+		}
+	}
+
+	if !hasRegionNode {
+		t.Error("Expected region node in converted hierarchy")
+	}
+	if !hasVPCNode {
+		t.Error("Expected VPC node in converted hierarchy")
+	}
+}
+
+// ============================================================================
+// CONVERTER TESTS
+// ============================================================================
+
+// TestTerraformToGraph tests basic Terraform to graph conversion
+func TestTerraformToGraph(t *testing.T) {
+	resources := []*terraform.Resource{
+		{
+			Type: "aws_vpc",
+			Name: "main",
+			Attributes: map[string]interface{}{
+				"id":         "vpc-123",
+				"cidr_block": "10.0.0.0/16",
+			},
+		},
+		{
+			Type: "aws_subnet",
+			Name: "public",
+			Attributes: map[string]interface{}{
+				"id":         "subnet-123",
+				"vpc_id":     "vpc-123",
+				"cidr_block": "10.0.1.0/24",
+			},
+		},
+	}
+
+	driftedIDs := map[string]bool{}
+	graph := TerraformToGraph(resources, driftedIDs)
+
+	if graph == nil {
+		t.Fatal("Expected non-nil graph")
+	}
+
+	if graph.NodeCount() != 2 {
+		t.Errorf("Expected 2 nodes, got %d", graph.NodeCount())
+	}
+
+	// Should have a PART_OF relationship between subnet and VPC
+	if graph.RelationshipCount() == 0 {
+		t.Error("Expected at least one relationship in graph")
+	}
+}
+
+// TestTerraformToGraphWithDrift tests Terraform to graph conversion with drifted resources
+func TestTerraformToGraphWithDrift(t *testing.T) {
+	resources := []*terraform.Resource{
+		{
+			Type: "aws_instance",
+			Name: "web",
+			Attributes: map[string]interface{}{
+				"id":            "i-123",
+				"instance_type": "t2.micro",
+			},
+		},
+	}
+
+	driftedIDs := map[string]bool{"i-123": true}
+	graph := TerraformToGraph(resources, driftedIDs)
+
+	node := graph.GetNode("i-123")
+	if node == nil {
+		t.Fatal("Expected to find node i-123")
+	}
+
+	// Should have Drifted label
+	hasDriftedLabel := false
+	for _, label := range node.Labels {
+		if label == "Drifted" {
+			hasDriftedLabel = true
+			break
+		}
+	}
+
+	if !hasDriftedLabel {
+		t.Error("Expected node to have 'Drifted' label")
+	}
+
+	if node.Properties["has_drift"] != true {
+		t.Error("Expected has_drift property to be true")
+	}
+}
+
+// TestConvertTerraformResourceToCytoscape tests Terraform resource to Cytoscape conversion
+func TestConvertTerraformResourceToCytoscape(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_instance",
+		Name: "web-server",
+		Attributes: map[string]interface{}{
+			"id":            "i-123",
+			"instance_type": "t3.medium",
+			"tags": map[string]interface{}{
+				"Name": "MyWebServer",
+			},
+		},
+	}
+
+	node := ConvertTerraformResourceToCytoscape(resource, false)
+
+	if node.Data.ID != "i-123" {
+		t.Errorf("Expected ID 'i-123', got '%s'", node.Data.ID)
+	}
+
+	if node.Data.Type != "terraform_resource" {
+		t.Errorf("Expected type 'terraform_resource', got '%s'", node.Data.Type)
+	}
+
+	if node.Data.Severity != "low" {
+		t.Errorf("Expected severity 'low', got '%s'", node.Data.Severity)
+	}
+}
+
+// TestConvertTerraformResourceToCytoscapeDrifted tests Cytoscape conversion of drifted resource
+func TestConvertTerraformResourceToCytoscapeDrifted(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_instance",
+		Name: "web-server",
+		Attributes: map[string]interface{}{
+			"id": "i-123",
+		},
+	}
+
+	node := ConvertTerraformResourceToCytoscape(resource, true)
+
+	if node.Data.Type != "terraform_resource_drifted" {
+		t.Errorf("Expected type 'terraform_resource_drifted', got '%s'", node.Data.Type)
+	}
+
+	if node.Data.Severity != "high" {
+		t.Errorf("Expected severity 'high', got '%s'", node.Data.Severity)
+	}
+
+	if node.Data.Metadata["has_drift"] != true {
+		t.Error("Expected has_drift metadata to be true")
+	}
+}
+
+// ============================================================================
+// ADDITIONAL RELATIONSHIP AND MODEL TESTS
+// ============================================================================
+
+// TestAddRelationshipMissingStartNode tests adding relationship with missing start node
+func TestAddRelationshipMissingStartNode(t *testing.T) {
+	db := NewGraphDatabase()
+
+	endNode := &Node{ID: "node-2", Labels: []string{"Resource"}, Properties: map[string]interface{}{}}
+	db.AddNode(endNode)
+
+	rel := &Relationship{
+		ID:        "rel-1",
+		Type:      DEPENDS_ON,
+		StartNode: "missing-node",
+		EndNode:   "node-2",
+		Properties: map[string]interface{}{},
+	}
+
+	err := db.AddRelationship(rel)
+	if err == nil {
+		t.Error("Expected error when adding relationship with missing start node")
+	}
+
+	if err != ErrNodeNotFound {
+		t.Errorf("Expected ErrNodeNotFound, got %v", err)
+	}
+}
+
+// TestAddRelationshipMissingEndNode tests adding relationship with missing end node
+func TestAddRelationshipMissingEndNode(t *testing.T) {
+	db := NewGraphDatabase()
+
+	startNode := &Node{ID: "node-1", Labels: []string{"Resource"}, Properties: map[string]interface{}{}}
+	db.AddNode(startNode)
+
+	rel := &Relationship{
+		ID:        "rel-1",
+		Type:      DEPENDS_ON,
+		StartNode: "node-1",
+		EndNode:   "missing-node",
+		Properties: map[string]interface{}{},
+	}
+
+	err := db.AddRelationship(rel)
+	if err == nil {
+		t.Error("Expected error when adding relationship with missing end node")
+	}
+
+	if err != ErrNodeNotFound {
+		t.Errorf("Expected ErrNodeNotFound, got %v", err)
+	}
+}
+
+
+// TestConcurrentNodeAddition tests concurrent node additions
+func TestConcurrentNodeAddition(t *testing.T) {
+	db := NewGraphDatabase()
+	done := make(chan bool)
+
+	for i := 0; i < 10; i++ {
+		go func(index int) {
+			for j := 0; j < 10; j++ {
+				node := &Node{
+					ID:     fmt.Sprintf("node-%d-%d", index, j),
+					Labels: []string{"Resource"},
+					Properties: map[string]interface{}{
+						"index": index,
+					},
+				}
+				db.AddNode(node)
+			}
+			done <- true
+		}(i)
+	}
+
+	for i := 0; i < 10; i++ {
+		<-done
+	}
+
+	if db.NodeCount() != 100 {
+		t.Errorf("Expected 100 nodes from concurrent additions, got %d", db.NodeCount())
+	}
+}
+
+// TestTraversalEdgeCases tests traversal edge cases
+func TestTraversalEdgeCases(t *testing.T) {
+	db := NewGraphDatabase()
+
+	// Add isolated node
+	db.AddNode(&Node{ID: "isolated", Labels: []string{"Resource"}, Properties: map[string]interface{}{}})
+
+	// Test FindPath with non-existent nodes
+	_, err := db.FindPath("non-existent-1", "non-existent-2")
+	if err == nil {
+		t.Error("Expected error for non-existent nodes")
+	}
+
+	// Test FindImpactRadius with non-existent node
+	result := db.FindImpactRadius("non-existent", 2)
+	if result.Nodes == nil || len(result.Nodes) > 0 {
+		t.Error("Expected empty result for non-existent node")
+	}
+}
+
+// ============================================================================
+// EXTENDED BUILDER AND CONVERTER TESTS
+// ============================================================================
+
+// TestSetStateManager tests setting state manager
+func TestSetStateManager(t *testing.T) {
+	store := NewStore()
+
+	// Initially no state manager
+	graphDB := store.GetGraphDB()
+	if graphDB.NodeCount() != 0 {
+		t.Errorf("Expected 0 nodes initially, got %d", graphDB.NodeCount())
+	}
+
+	// Mock state manager would go here
+	// For now, test that SetStateManager doesn't panic
+	store.SetStateManager(nil)
+
+	// Graph should still exist
+	graphDB = store.GetGraphDB()
+	if graphDB == nil {
+		t.Error("Expected graph DB to exist after SetStateManager")
+	}
+}
+
+// TestRebuildGraphDB tests rebuilding the graph database
+func TestRebuildGraphDB(t *testing.T) {
+	store := NewStore()
+
+	// Add some data
+	store.AddDrift(types.DriftAlert{
+		ResourceID:   "res-1",
+		ResourceType: "aws_instance",
+		Severity:     "high",
+	})
+
+	// Calling RebuildGraphDB should not panic
+	store.RebuildGraphDB()
+
+	// Graph should still exist
+	graphDB := store.GetGraphDB()
+	if graphDB == nil {
+		t.Error("Expected graph DB to exist after RebuildGraphDB")
+	}
+}
+
+// TestBuildGraphEmpty tests building graph with empty store
+func TestBuildGraphEmpty(t *testing.T) {
+	store := NewStore()
+
+	elements := store.BuildGraph()
+
+	if len(elements.Nodes) != 0 {
+		t.Errorf("Expected 0 nodes in empty graph, got %d", len(elements.Nodes))
+	}
+
+	if len(elements.Edges) != 0 {
+		t.Errorf("Expected 0 edges in empty graph, got %d", len(elements.Edges))
+	}
+}
+
+// TestBuildGraphWithDrifts tests building graph with drifts
+func TestBuildGraphWithDrifts(t *testing.T) {
+	store := NewStore()
+
+	store.AddDrift(types.DriftAlert{
+		ResourceID:   "res-1",
+		ResourceType: "aws_instance",
+		ResourceName: "instance-1",
+		Severity:     "high",
+	})
+
+	store.AddDrift(types.DriftAlert{
+		ResourceID:   "res-2",
+		ResourceType: "aws_s3_bucket",
+		ResourceName: "bucket-1",
+		Severity:     "critical",
+	})
+
+	elements := store.BuildGraph()
+
+	if len(elements.Nodes) < 2 {
+		t.Errorf("Expected at least 2 nodes, got %d", len(elements.Nodes))
+	}
+}
+
+// TestBuildGraphWithEventsToDrifts tests building graph with events causing drifts
+func TestBuildGraphWithEventsToDrifts(t *testing.T) {
+	store := NewStore()
+
+	store.AddEvent(types.Event{
+		ResourceID:   "res-1",
+		ResourceType: "aws_instance",
+		EventName:    "StopInstances",
+	})
+
+	store.AddDrift(types.DriftAlert{
+		ResourceID:   "res-1",
+		ResourceType: "aws_instance",
+		Severity:     "high",
+	})
+
+	elements := store.BuildGraph()
+
+	if len(elements.Edges) < 1 {
+		t.Errorf("Expected at least 1 edge connecting event to drift, got %d", len(elements.Edges))
+	}
+}
+
+// TestExtractRelationshipsEC2 tests relationship extraction for EC2
+func TestExtractRelationshipsEC2(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_instance",
+		Name: "web-server",
+		Attributes: map[string]interface{}{
+			"id":                     "i-123",
+			"subnet_id":              "subnet-456",
+			"vpc_security_group_ids": []interface{}{"sg-789"},
+		},
+	}
+
+	rels := extractRelationships(resource)
+
+	// Should have relationships for subnet and security group
+	if len(rels) < 2 {
+		t.Errorf("Expected at least 2 relationships for EC2, got %d", len(rels))
+	}
+
+	// Check for DEPENDS_ON relationship to subnet
+	foundSubnetDep := false
+	for _, rel := range rels {
+		if rel.Type == DEPENDS_ON && rel.EndNode == "subnet-456" {
+			foundSubnetDep = true
+		}
+	}
+
+	if !foundSubnetDep {
+		t.Error("Expected DEPENDS_ON relationship to subnet")
+	}
+}
+
+// TestExtractRelationshipsSubnet tests relationship extraction for Subnet
+func TestExtractRelationshipsSubnet(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_subnet",
+		Name: "private-subnet",
+		Attributes: map[string]interface{}{
+			"id":     "subnet-123",
+			"vpc_id": "vpc-456",
+		},
+	}
+
+	rels := extractRelationships(resource)
+
+	// Should have PART_OF relationship to VPC
+	if len(rels) == 0 {
+		t.Error("Expected at least 1 relationship for subnet")
+	}
+
+	foundVPCRel := false
+	for _, rel := range rels {
+		if rel.Type == PART_OF && rel.EndNode == "vpc-456" {
+			foundVPCRel = true
+		}
+	}
+
+	if !foundVPCRel {
+		t.Error("Expected PART_OF relationship to VPC")
+	}
+}
+
+// TestExtractRelationshipsRDS tests relationship extraction for RDS
+func TestExtractRelationshipsRDS(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_db_instance",
+		Name: "prod-db",
+		Attributes: map[string]interface{}{
+			"id":                   "prod-db-instance",
+			"db_subnet_group_name": "subnet-group-1",
+			"vpc_security_group_ids": []interface{}{"sg-123", "sg-456"},
+		},
+	}
+
+	rels := extractRelationships(resource)
+
+	if len(rels) < 3 {
+		t.Errorf("Expected at least 3 relationships for RDS, got %d", len(rels))
+	}
+
+	// Check for subnet group dependency
+	foundSubnetGroup := false
+	for _, rel := range rels {
+		if rel.Type == DEPENDS_ON && rel.EndNode == "subnet-group-1" {
+			foundSubnetGroup = true
+		}
+	}
+
+	if !foundSubnetGroup {
+		t.Error("Expected DEPENDS_ON relationship to subnet group")
+	}
+}
+
+// TestExtractRelationshipsEKS tests relationship extraction for EKS
+func TestExtractRelationshipsEKS(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_eks_cluster",
+		Name: "prod-cluster",
+		Attributes: map[string]interface{}{
+			"id": "prod-cluster",
+			"vpc_config": []interface{}{
+				map[string]interface{}{
+					"subnet_ids":         []interface{}{"subnet-1", "subnet-2"},
+					"security_group_ids": []interface{}{"sg-123"},
+				},
+			},
+		},
+	}
+
+	rels := extractRelationships(resource)
+
+	if len(rels) < 3 {
+		t.Errorf("Expected at least 3 relationships for EKS, got %d", len(rels))
+	}
+
+	// Check for subnet dependencies
+	subnetDeps := 0
+	for _, rel := range rels {
+		if rel.Type == DEPENDS_ON && (rel.EndNode == "subnet-1" || rel.EndNode == "subnet-2") {
+			subnetDeps++
+		}
+	}
+
+	if subnetDeps < 2 {
+		t.Errorf("Expected at least 2 subnet dependencies for EKS, got %d", subnetDeps)
+	}
+}
+
+// TestAddResourceSpecificPropertiesVPC tests adding VPC-specific properties
+func TestAddResourceSpecificPropertiesVPC(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_vpc",
+		Attributes: map[string]interface{}{
+			"cidr_block": "10.0.0.0/16",
+			"id":         "vpc-123",
+		},
+	}
+
+	properties := make(map[string]interface{})
+	addResourceSpecificProperties(resource, properties)
+
+	if properties["cidr"] != "10.0.0.0/16" {
+		t.Errorf("Expected CIDR '10.0.0.0/16', got '%v'", properties["cidr"])
+	}
+}
+
+// TestAddResourceSpecificPropertiesSubnet tests adding Subnet-specific properties
+func TestAddResourceSpecificPropertiesSubnet(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_subnet",
+		Attributes: map[string]interface{}{
+			"cidr_block":               "10.0.1.0/24",
+			"availability_zone":        "us-east-1a",
+			"map_public_ip_on_launch":  true,
+		},
+	}
+
+	properties := make(map[string]interface{})
+	addResourceSpecificProperties(resource, properties)
+
+	if properties["cidr"] != "10.0.1.0/24" {
+		t.Errorf("Expected CIDR '10.0.1.0/24', got '%v'", properties["cidr"])
+	}
+
+	if properties["availability_zone"] != "us-east-1a" {
+		t.Errorf("Expected AZ 'us-east-1a', got '%v'", properties["availability_zone"])
+	}
+
+	if properties["public"] != true {
+		t.Errorf("Expected public 'true', got '%v'", properties["public"])
+	}
+}
+
+// TestAddResourceSpecificPropertiesEC2 tests adding EC2-specific properties
+func TestAddResourceSpecificPropertiesEC2(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_instance",
+		Attributes: map[string]interface{}{
+			"instance_type": "t3.medium",
+			"instance_state": "running",
+			"private_ip":    "10.0.1.100",
+			"public_ip":     "203.0.113.1",
+		},
+	}
+
+	properties := make(map[string]interface{})
+	addResourceSpecificProperties(resource, properties)
+
+	if properties["instance_type"] != "t3.medium" {
+		t.Errorf("Expected instance_type 't3.medium', got '%v'", properties["instance_type"])
+	}
+
+	if properties["state"] != "running" {
+		t.Errorf("Expected state 'running', got '%v'", properties["state"])
+	}
+
+	if properties["private_ip"] != "10.0.1.100" {
+		t.Errorf("Expected private_ip '10.0.1.100', got '%v'", properties["private_ip"])
+	}
+}
+
+// TestHierarchyAssignResourceToSubnet tests assigning resources to subnets
+func TestHierarchyAssignResourceToSubnet(t *testing.T) {
+	builder := NewHierarchyBuilder()
+
+	resources := []*terraform.Resource{
+		{
+			Type: "aws_vpc",
+			Name: "main-vpc",
+			Attributes: map[string]interface{}{
+				"id":         "vpc-12345678",
+				"cidr_block": "10.0.0.0/16",
+			},
+		},
+		{
+			Type: "aws_subnet",
+			Name: "public-subnet",
+			Attributes: map[string]interface{}{
+				"id":         "subnet-87654321",
+				"vpc_id":     "vpc-12345678",
+				"cidr_block": "10.0.1.0/24",
+				"availability_zone": "us-east-1a",
+			},
+		},
+		{
+			Type: "aws_instance",
+			Name: "web-server",
+			Attributes: map[string]interface{}{
+				"id":        "i-instance123",
+				"subnet_id": "subnet-87654321",
+			},
+		},
+	}
+
+	hierarchy := builder.BuildHierarchy(resources)
+
+	// Find the instance in the hierarchy
+	found := false
+	for _, region := range hierarchy.Regions {
+		for _, vpc := range region.VPCs {
+			for _, az := range vpc.AvailabilityZones {
+				for _, subnet := range az.Subnets {
+					for _, resID := range subnet.Resources {
+						if resID == "i-instance123" {
+							found = true
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if !found {
+		t.Error("Expected EC2 instance to be assigned to subnet in hierarchy")
+	}
+}
+
+// TestHierarchyAssignResourceToVPC tests assigning resources to VPCs
+func TestHierarchyAssignResourceToVPC(t *testing.T) {
+	builder := NewHierarchyBuilder()
+
+	resources := []*terraform.Resource{
+		{
+			Type: "aws_vpc",
+			Name: "main-vpc",
+			Attributes: map[string]interface{}{
+				"id":         "vpc-12345678",
+				"cidr_block": "10.0.0.0/16",
+			},
+		},
+		{
+			Type: "aws_security_group",
+			Name: "web-sg",
+			Attributes: map[string]interface{}{
+				"id":     "sg-12345678",
+				"vpc_id": "vpc-12345678",
+			},
+		},
+	}
+
+	hierarchy := builder.BuildHierarchy(resources)
+
+	// Find the security group in the VPC
+	found := false
+	for _, region := range hierarchy.Regions {
+		for _, vpc := range region.VPCs {
+			for _, resID := range vpc.Resources {
+				if resID == "sg-12345678" {
+					found = true
+					break
+				}
+			}
+		}
+	}
+
+	if !found {
+		t.Error("Expected security group to be assigned to VPC in hierarchy")
+	}
+}
+
+// TestMatchPropertyFiltering tests Match pattern with property filtering
+func TestMatchPropertyFiltering(t *testing.T) {
+	db := NewGraphDatabase()
+
+	node1 := &Node{
+		ID:     "vpc-1",
+		Labels: []string{"Resource", "VPC"},
+		Properties: map[string]interface{}{
+			"id":   "vpc-1",
+			"cidr": "10.0.0.0/16",
+		},
+	}
+
+	node2 := &Node{
+		ID:     "subnet-1",
+		Labels: []string{"Resource", "Subnet"},
+		Properties: map[string]interface{}{
+			"id":   "subnet-1",
+			"cidr": "10.0.1.0/24",
+		},
+	}
+
+	db.AddNode(node1)
+	db.AddNode(node2)
+
+	db.AddRelationship(&Relationship{
+		ID:        "rel-1",
+		Type:      CONTAINS,
+		StartNode: "vpc-1",
+		EndNode:   "subnet-1",
+		Properties: map[string]interface{}{},
+	})
+
+	// Test pattern matching with property filter
+	pattern := &MatchPattern{
+		StartLabels: []string{"VPC"},
+		RelType:     CONTAINS,
+		EndLabels:   []string{"Subnet"},
+		EndFilter: map[string]interface{}{
+			"cidr": "10.0.1.0/24",
+		},
+	}
+
+	results := db.Match(pattern)
+
+	if len(results) != 1 {
+		t.Errorf("Expected 1 match with property filter, got %d", len(results))
+	}
+}
+
+// TestFindNodesWithLabelsAll tests finding all nodes when no labels specified
+func TestFindNodesWithLabelsAll(t *testing.T) {
+	db := NewGraphDatabase()
+
+	nodes := []*Node{
+		{ID: "node-1", Labels: []string{"Resource"}, Properties: map[string]interface{}{}},
+		{ID: "node-2", Labels: []string{"EC2"}, Properties: map[string]interface{}{}},
+		{ID: "node-3", Labels: []string{"VPC"}, Properties: map[string]interface{}{}},
+	}
+
+	for _, node := range nodes {
+		db.AddNode(node)
+	}
+
+	// Should return all nodes when no labels specified
+	foundNodes := db.findNodesWithLabels([]string{})
+
+	if len(foundNodes) != 3 {
+		t.Errorf("Expected 3 nodes when no labels specified, got %d", len(foundNodes))
+	}
+}
+
+// TestHasAllLabelsMultiple tests checking multiple labels on a node
+func TestHasAllLabelsMultiple(t *testing.T) {
+	db := NewGraphDatabase()
+
+	node := &Node{
+		ID:     "node-1",
+		Labels: []string{"Resource", "EC2", "Drifted"},
+		Properties: map[string]interface{}{},
+	}
+
+	db.AddNode(node)
+
+	// Should have all three labels
+	if !db.hasAllLabels(node, []string{"Resource", "EC2", "Drifted"}) {
+		t.Error("Expected node to have all three labels")
+	}
+
+	// Should not have a label it doesn't have
+	if db.hasAllLabels(node, []string{"Resource", "NonExistent"}) {
+		t.Error("Expected hasAllLabels to return false for non-existent label")
+	}
+}
+
+// ============================================================================
+// EXTENDED BUILDER, CONVERTER, AND HIERARCHY EDGE CASE TESTS
+// ============================================================================
+
+// TestBuildDependencyEdgesEC2 tests building dependency edges for EC2
+func TestBuildDependencyEdgesEC2(t *testing.T) {
+	resources := []*terraform.Resource{
+		{
+			Type: "aws_instance",
+			Name: "web-server",
+			Attributes: map[string]interface{}{
+				"id":        "i-123",
+				"subnet_id": "subnet-456",
+				"vpc_security_group_ids": []interface{}{"sg-789"},
+			},
+		},
+		{
+			Type: "aws_subnet",
+			Name: "public-subnet",
+			Attributes: map[string]interface{}{
+				"id": "subnet-456",
+			},
+		},
+		{
+			Type: "aws_security_group",
+			Name: "web-sg",
+			Attributes: map[string]interface{}{
+				"id": "sg-789",
+			},
+		},
+	}
+
+	edges := buildDependencyEdges(resources)
+
+	// Should have edges from EC2 to subnet and security group
+	if len(edges) < 2 {
+		t.Errorf("Expected at least 2 edges, got %d", len(edges))
+	}
+
+	// Check for subnet edge
+	foundSubnetEdge := false
+	for _, edge := range edges {
+		if edge.Data.Source == "i-123" && edge.Data.Target == "subnet-456" {
+			foundSubnetEdge = true
+		}
+	}
+
+	if !foundSubnetEdge {
+		t.Error("Expected edge from EC2 to subnet")
+	}
+}
+
+// TestBuildDependencyEdgesNAT tests building dependency edges for NAT Gateway
+func TestBuildDependencyEdgesNAT(t *testing.T) {
+	resources := []*terraform.Resource{
+		{
+			Type: "aws_nat_gateway",
+			Name: "nat-gw",
+			Attributes: map[string]interface{}{
+				"id":        "nat-123",
+				"subnet_id": "subnet-456",
+			},
+		},
+		{
+			Type: "aws_subnet",
+			Name: "public-subnet",
+			Attributes: map[string]interface{}{
+				"id": "subnet-456",
+			},
+		},
+	}
+
+	edges := buildDependencyEdges(resources)
+
+	if len(edges) < 1 {
+		t.Errorf("Expected at least 1 edge for NAT, got %d", len(edges))
+	}
+
+	foundNATEdge := false
+	for _, edge := range edges {
+		if edge.Data.Source == "nat-123" && edge.Data.Target == "subnet-456" {
+			foundNATEdge = true
+		}
+	}
+
+	if !foundNATEdge {
+		t.Error("Expected edge from NAT to subnet")
+	}
+}
+
+// TestBuildDependencyEdgesRouteTable tests building dependency edges for Route Table
+func TestBuildDependencyEdgesRouteTable(t *testing.T) {
+	resources := []*terraform.Resource{
+		{
+			Type: "aws_route_table",
+			Name: "main-rt",
+			Attributes: map[string]interface{}{
+				"id":     "rt-123",
+				"vpc_id": "vpc-456",
+			},
+		},
+		{
+			Type: "aws_vpc",
+			Name: "main-vpc",
+			Attributes: map[string]interface{}{
+				"id": "vpc-456",
+			},
+		},
+	}
+
+	edges := buildDependencyEdges(resources)
+
+	if len(edges) < 1 {
+		t.Errorf("Expected at least 1 edge for route table, got %d", len(edges))
+	}
+
+	foundRTEdge := false
+	for _, edge := range edges {
+		if edge.Data.Source == "rt-123" && edge.Data.Target == "vpc-456" {
+			foundRTEdge = true
+		}
+	}
+
+	if !foundRTEdge {
+		t.Error("Expected edge from route table to VPC")
+	}
+}
+
+// TestExtractRelationshipsIGW tests relationship extraction for Internet Gateway
+func TestExtractRelationshipsIGW(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_internet_gateway",
+		Name: "main-igw",
+		Attributes: map[string]interface{}{
+			"id":     "igw-123",
+			"vpc_id": "vpc-456",
+		},
+	}
+
+	rels := extractRelationships(resource)
+
+	if len(rels) == 0 {
+		t.Error("Expected at least 1 relationship for IGW")
+	}
+
+	foundIGWRel := false
+	for _, rel := range rels {
+		if rel.Type == CONNECTS_TO && rel.EndNode == "vpc-456" {
+			foundIGWRel = true
+		}
+	}
+
+	if !foundIGWRel {
+		t.Error("Expected CONNECTS_TO relationship from IGW to VPC")
+	}
+}
+
+// TestExtractRelationshipsLoadBalancer tests relationship extraction for ALB
+func TestExtractRelationshipsLoadBalancer(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_lb",
+		Name: "web-alb",
+		Attributes: map[string]interface{}{
+			"id":              "alb-123",
+			"subnets":         []interface{}{"subnet-1", "subnet-2"},
+			"security_groups": []interface{}{"sg-123"},
+		},
+	}
+
+	rels := extractRelationships(resource)
+
+	if len(rels) < 3 {
+		t.Errorf("Expected at least 3 relationships for ALB, got %d", len(rels))
+	}
+
+	// Check for subnet dependencies
+	subnetDeps := 0
+	for _, rel := range rels {
+		if rel.Type == DEPENDS_ON && (rel.EndNode == "subnet-1" || rel.EndNode == "subnet-2") {
+			subnetDeps++
+		}
+	}
+
+	if subnetDeps < 2 {
+		t.Errorf("Expected at least 2 subnet dependencies, got %d", subnetDeps)
+	}
+}
+
+// TestExtractRelationshipsECSService tests relationship extraction for ECS Service
+func TestExtractRelationshipsECSService(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_ecs_service",
+		Name: "web-service",
+		Attributes: map[string]interface{}{
+			"id":      "web-service",
+			"cluster": "web-cluster-arn",
+			"load_balancer": []interface{}{
+				map[string]interface{}{
+					"target_group_arn": "tg-arn-123",
+				},
+			},
+		},
+	}
+
+	rels := extractRelationships(resource)
+
+	if len(rels) < 2 {
+		t.Errorf("Expected at least 2 relationships for ECS service, got %d", len(rels))
+	}
+
+	// Check for cluster relationship
+	foundClusterRel := false
+	for _, rel := range rels {
+		if rel.Type == RUNS_IN && rel.EndNode == "web-cluster-arn" {
+			foundClusterRel = true
+		}
+	}
+
+	if !foundClusterRel {
+		t.Error("Expected RUNS_IN relationship to cluster")
+	}
+}
+
+// TestExtractRelationshipsIAMPolicy tests relationship extraction for IAM Policy
+func TestExtractRelationshipsIAMPolicy(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_iam_policy",
+		Name: "admin-policy",
+		Attributes: map[string]interface{}{
+			"id":   "admin-policy-arn",
+			"role": "admin-role-arn",
+		},
+	}
+
+	rels := extractRelationships(resource)
+
+	if len(rels) == 0 {
+		t.Error("Expected at least 1 relationship for IAM policy")
+	}
+
+	foundPolicyRel := false
+	for _, rel := range rels {
+		if rel.Type == APPLIES_TO && rel.EndNode == "admin-role-arn" {
+			foundPolicyRel = true
+		}
+	}
+
+	if !foundPolicyRel {
+		t.Error("Expected APPLIES_TO relationship to role")
+	}
+}
+
+// TestHierarchyExtractRegionFromProvider tests extracting region from provider
+func TestHierarchyExtractRegionFromProvider(t *testing.T) {
+	builder := NewHierarchyBuilder()
+
+	resource := &terraform.Resource{
+		Type: "aws_vpc",
+		Attributes: map[string]interface{}{
+			"provider": "provider.aws.us-west-2",
+		},
+	}
+
+	region := builder.extractRegion(resource)
+
+	if region == "" {
+		t.Error("Expected region to be extracted from provider")
+	}
+}
+
+// TestHierarchyExtractRegionFromARN tests extracting region from ARN
+func TestHierarchyExtractRegionFromARN(t *testing.T) {
+	builder := NewHierarchyBuilder()
+
+	resource := &terraform.Resource{
+		Type: "aws_instance",
+		Attributes: map[string]interface{}{
+			"arn": "arn:aws:ec2:eu-west-1:123456789012:instance/i-123",
+		},
+	}
+
+	region := builder.extractRegion(resource)
+
+	if region != "eu-west-1" {
+		t.Errorf("Expected region 'eu-west-1', got '%s'", region)
+	}
+}
+
+// TestHierarchyExtractRegionAttribute tests extracting region from region attribute
+func TestHierarchyExtractRegionAttribute(t *testing.T) {
+	builder := NewHierarchyBuilder()
+
+	resource := &terraform.Resource{
+		Type: "aws_s3_bucket",
+		Attributes: map[string]interface{}{
+			"region": "ap-southeast-1",
+		},
+	}
+
+	region := builder.extractRegion(resource)
+
+	if region != "ap-southeast-1" {
+		t.Errorf("Expected region 'ap-southeast-1', got '%s'", region)
+	}
+}
+
+// TestConvertTerraformResourceToCytoscapeWithTagsName tests resource name from tags
+func TestConvertTerraformResourceToCytoscapeWithTagsName(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_instance",
+		Name: "tf-instance",
+		Attributes: map[string]interface{}{
+			"id": "i-123",
+			"tags": map[string]interface{}{
+				"Name": "production-web-server",
+			},
+		},
+	}
+
+	node := ConvertTerraformResourceToCytoscape(resource, false)
+
+	if node.Data.Label != "production-web-server" {
+		t.Errorf("Expected label from tags 'production-web-server', got '%s'", node.Data.Label)
+	}
+}
+
+// TestResourceToNodeWithDrift tests resourceToNode with drift label
+func TestResourceToNodeWithDrift(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_instance",
+		Name: "web-server",
+		Attributes: map[string]interface{}{
+			"id": "i-123",
+		},
+	}
+
+	driftedIDs := map[string]bool{"i-123": true}
+	node := resourceToNode(resource, driftedIDs)
+
+	if node == nil {
+		t.Fatal("Expected non-nil node")
+	}
+
+	// Should have Drifted label
+	hasDriftLabel := false
+	for _, label := range node.Labels {
+		if label == "Drifted" {
+			hasDriftLabel = true
+		}
+	}
+
+	if !hasDriftLabel {
+		t.Error("Expected node to have 'Drifted' label")
+	}
+
+	if node.Properties["has_drift"] != true {
+		t.Error("Expected has_drift property to be true")
+	}
+}
+
+// TestAddResourceSpecificPropertiesRDS tests adding RDS-specific properties
+func TestAddResourceSpecificPropertiesRDS(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_db_instance",
+		Attributes: map[string]interface{}{
+			"engine":         "postgres",
+			"instance_class": "db.t3.micro",
+			"status":         "available",
+		},
+	}
+
+	properties := make(map[string]interface{})
+	addResourceSpecificProperties(resource, properties)
+
+	if properties["engine"] != "postgres" {
+		t.Errorf("Expected engine 'postgres', got '%v'", properties["engine"])
+	}
+
+	if properties["instance_class"] != "db.t3.micro" {
+		t.Errorf("Expected instance_class 'db.t3.micro', got '%v'", properties["instance_class"])
+	}
+
+	if properties["status"] != "available" {
+		t.Errorf("Expected status 'available', got '%v'", properties["status"])
+	}
+}
+
+// TestAddResourceSpecificPropertiesSG tests adding SecurityGroup-specific properties
+func TestAddResourceSpecificPropertiesSG(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_security_group",
+		Attributes: map[string]interface{}{
+			"name":        "web-sg",
+			"description": "Security group for web servers",
+		},
+	}
+
+	properties := make(map[string]interface{})
+	addResourceSpecificProperties(resource, properties)
+
+	if properties["sg_name"] != "web-sg" {
+		t.Errorf("Expected sg_name 'web-sg', got '%v'", properties["sg_name"])
+	}
+
+	if properties["description"] != "Security group for web servers" {
+		t.Errorf("Expected description 'Security group for web servers', got '%v'", properties["description"])
+	}
+}
+
+// TestAddResourceSpecificPropertiesWithTags tests adding properties with tags
+func TestAddResourceSpecificPropertiesWithTags(t *testing.T) {
+	resource := &terraform.Resource{
+		Type: "aws_vpc",
+		Attributes: map[string]interface{}{
+			"cidr_block": "10.0.0.0/16",
+			"tags": map[string]interface{}{
+				"Environment": "production",
+				"Team":        "platform",
+			},
+		},
+	}
+
+	properties := make(map[string]interface{})
+	addResourceSpecificProperties(resource, properties)
+
+	if properties["cidr"] != "10.0.0.0/16" {
+		t.Errorf("Expected CIDR '10.0.0.0/16', got '%v'", properties["cidr"])
+	}
+
+	tags := properties["tags"].(map[string]interface{})
+	if tags["Environment"] != "production" {
+		t.Errorf("Expected tag Environment 'production', got '%v'", tags["Environment"])
+	}
+}
+
+// TestExtractRelationshipsGenericVPC tests generic VPC dependency extraction
+func TestExtractRelationshipsGenericVPC(t *testing.T) {
+	// Test a resource type not explicitly handled but with vpc_id
+	resource := &terraform.Resource{
+		Type: "aws_custom_resource",
+		Name: "custom",
+		Attributes: map[string]interface{}{
+			"id":     "custom-123",
+			"vpc_id": "vpc-456",
+		},
+	}
+
+	rels := extractRelationships(resource)
+
+	// Should have generic VPC dependency
+	foundVPCDep := false
+	for _, rel := range rels {
+		if rel.Type == DEPENDS_ON && rel.EndNode == "vpc-456" {
+			foundVPCDep = true
+		}
+	}
+
+	if !foundVPCDep {
+		t.Error("Expected generic VPC dependency relationship")
+	}
+}
+
+// TestBuildGraphWithAllResourceTypes tests BuildGraph with multiple resource types
+func TestBuildGraphWithAllResourceTypes(t *testing.T) {
+	store := NewStore()
+
+	// Add various types of data
+	store.AddDrift(types.DriftAlert{
+		ResourceID:   "vpc-1",
+		ResourceType: "aws_vpc",
+		Severity:     "high",
+	})
+
+	store.AddEvent(types.Event{
+		ResourceID:   "subnet-1",
+		ResourceType: "aws_subnet",
+		EventName:    "CreateSubnet",
+	})
+
+	store.AddUnmanaged(types.UnmanagedResourceAlert{
+		ResourceID:   "sg-1",
+		ResourceType: "aws_security_group",
+		Severity:     "medium",
+	})
+
+	elements := store.BuildGraph()
+
+	// Should have nodes for all resource types
+	if len(elements.Nodes) < 3 {
+		t.Errorf("Expected at least 3 nodes, got %d", len(elements.Nodes))
 	}
 }
