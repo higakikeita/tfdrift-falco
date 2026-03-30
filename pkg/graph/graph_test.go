@@ -1085,6 +1085,7 @@ func TestSpecialCharactersInIDs(t *testing.T) {
 		node := db.GetNode(id)
 		if node == nil {
 			t.Errorf("Failed to retrieve node with ID: %s", id)
+			continue
 		}
 
 		if node.Properties["id"] != id {

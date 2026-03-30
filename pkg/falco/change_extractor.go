@@ -122,8 +122,8 @@ func (s *Subscriber) extractChanges(eventName string, fields map[string]string) 
 		if userName, ok := fields["ct.request.username"]; ok && userName != "" {
 			changes["user_name"] = userName
 		}
-		if accessKeyId := getStringField(fields, "ct.response.accesskey.accesskeyid"); accessKeyId != "" {
-			changes["access_key_id"] = accessKeyId
+		if accessKeyID := getStringField(fields, "ct.response.accesskey.accesskeyid"); accessKeyID != "" {
+			changes["access_key_id"] = accessKeyID
 		}
 
 	// IAM Group membership

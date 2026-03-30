@@ -60,6 +60,7 @@ linters:
         - "-S1002"   # Omit comparison to bool constant (style preference)
         - "-S1009"   # Omit nil check before len (style preference)
         - "-S1011"   # Use single append for slice concatenation (style preference)
+        - "-ST1003"  # ALL_CAPS naming convention (existing Go constants)
         - "-ST1005"  # Error string capitalization (existing convention)
 
     gosec:
