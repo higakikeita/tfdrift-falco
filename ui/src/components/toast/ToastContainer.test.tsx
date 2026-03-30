@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ToastContainer } from './ToastContainer';
@@ -141,10 +141,9 @@ describe('ToastContainer component', () => {
 
   it('should remove toast when close button clicked', async () => {
     const user = userEvent.setup();
-    let toastId: string;
 
     act(() => {
-      toastId = useToastStore.getState().addToast({
+      useToastStore.getState().addToast({
         type: 'success',
         title: 'Success',
       });

@@ -175,7 +175,6 @@ describe('SaveButton component', () => {
     render(<SaveButton onClick={handleClick} />);
 
     const button = screen.getByRole('button');
-    const style = window.getComputedStyle(button);
     expect(button).toHaveClass('inline-flex');
   });
 });

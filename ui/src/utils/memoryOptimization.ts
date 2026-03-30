@@ -166,7 +166,7 @@ export function useAnimationFrame(callback: () => void, dependencies: unknown[])
  * Performance monitor hook
  * Tracks render count and execution time
  */
-export function usePerformanceMonitor(_componentName: string) {
+export function usePerformanceMonitor() {
   const renderCount = useRef(0);
   const startTime = useRef(performance.now());
 

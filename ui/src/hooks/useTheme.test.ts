@@ -301,7 +301,6 @@ describe('useTheme', () => {
   describe('Multiple hook instances', () => {
     it('should keep multiple instances in sync via localStorage', () => {
       const { result: result1 } = renderHook(() => useTheme());
-      const { result: result2 } = renderHook(() => useTheme());
 
       act(() => {
         result1.current.setTheme('dark');

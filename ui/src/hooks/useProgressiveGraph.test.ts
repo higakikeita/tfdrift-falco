@@ -266,8 +266,6 @@ describe('useProgressiveGraph hook', () => {
       }
     );
 
-    const initialTotalBatches = result.current.totalBatches;
-
     rerender({ nodes: newMockNodes, edges: mockEdges });
 
     // Total batches should recalculate based on new nodes

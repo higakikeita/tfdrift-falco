@@ -1325,7 +1325,7 @@ export const layoutConfigs = {
 
   concentric: {
     name: 'concentric',
-    concentric: (node: any) => node.data('distance') || 1,
+    concentric: (node: { data: (key: string) => number | undefined }) => node.data('distance') || 1,
     levelWidth: () => 2,
     animate: true,
     animationDuration: 500,

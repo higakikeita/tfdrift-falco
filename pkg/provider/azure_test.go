@@ -366,8 +366,8 @@ func newMockAzureResourceLister() azurepkg.ResourceLister {
 	return &mockAzureResourceLister{}
 }
 
-func (m *mockAzureResourceLister) ListResources(ctx context.Context, subscriptionID string, resourceGroup string) ([]*azurepkg.AzureResource, error) {
-	return []*azurepkg.AzureResource{}, nil
+func (m *mockAzureResourceLister) ListResources(ctx context.Context, subscriptionID string, resourceGroup string) ([]*azurepkg.Resource, error) {
+	return []*azurepkg.Resource{}, nil
 }
 
 // --- Azure Provider Interface Compliance ---
