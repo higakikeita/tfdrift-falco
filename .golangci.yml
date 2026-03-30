@@ -66,10 +66,6 @@ linters:
             - "checkPrivateReceivers"
             - "sayRepetitiveInsteadOfStutters"
 
-issues:
-  max-issues-per-linter: 0
-  max-same-issues: 0
-
   exclusions:
     rules:
       - path: pkg/aws/discovery_resources.go
@@ -99,6 +95,10 @@ issues:
       - path: cmd/
         linters:
           - errcheck
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
 
 output:
   formats:
