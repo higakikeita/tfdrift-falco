@@ -56,7 +56,9 @@ linters:
         - "-QF1008"  # Embedded field selector simplification (style preference)
         - "-SA9003"  # Empty branch (intentional in test scaffolding)
         - "-QF1003"  # Convert if/else-if chain to tagged switch (style preference)
+        - "-QF1012"  # Use fmt.Fprintf instead of WriteString(fmt.Sprintf) (style preference)
         - "-S1002"   # Omit comparison to bool constant (style preference)
+        - "-S1009"   # Omit nil check before len (style preference)
         - "-S1011"   # Use single append for slice concatenation (style preference)
         - "-ST1005"  # Error string capitalization (existing convention)
 
