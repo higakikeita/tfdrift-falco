@@ -521,7 +521,7 @@ func TestDiscoveryClient_DiscoverAll_NilLister(t *testing.T) {
 		resourceLister: nil,
 	}
 
-	resources, err := client.DiscoverAll(nil)
+	resources, err := client.DiscoverAll(context.TODO())
 
 	if err == nil {
 		t.Errorf("expected error for nil lister")
@@ -550,7 +550,7 @@ func TestDiscoveryClient_DiscoverAll_WithRegionFilter(t *testing.T) {
 	}
 
 	client, _ := NewDiscoveryClient("sub-123", []string{"eastus"}, lister)
-	resources, err := client.DiscoverAll(nil)
+	resources, err := client.DiscoverAll(context.TODO())
 
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
