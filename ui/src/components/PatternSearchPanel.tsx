@@ -31,8 +31,7 @@ const PatternSearchPanel = ({ onClose, onNodeSelect }: PatternSearchPanelProps) 
       }
     : null;
 
-  // @ts-expect-error - usePatternMatch hook returns unknown type
-  const { data, isLoading, error: queryError } = usePatternMatch(pattern, searchEnabled) as unknown as { data?: PatternMatchResponse; isLoading: boolean; error?: unknown };
+  const { data, isLoading, error: queryError } = usePatternMatch(pattern, searchEnabled) as unknown as { data?: PatternMatchResponse; isLoading: boolean; error?: Error | null };
 
   const matches: Array<Node[]> = data?.data?.matches || [];
 
