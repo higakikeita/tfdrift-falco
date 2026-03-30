@@ -52,6 +52,9 @@ linters:
         - "all"
         - "-ST1018"  # Unicode control chars in string literals (intentional in autodetect.go)
         - "-SA1019"  # Deprecated field usage (intentional backward compatibility)
+        - "-ST1000"  # Package comments (too noisy for current codebase)
+        - "-QF1008"  # Embedded field selector simplification (style preference)
+        - "-SA9003"  # Empty branch (intentional in test scaffolding)
 
     gosec:
       excludes:
