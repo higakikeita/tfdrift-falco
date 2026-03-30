@@ -91,7 +91,7 @@ const CytoscapeRendererComponent = ({
         cy.destroy();
       }
     };
-  }, [elements, layout, onNodeClick, onEdgeClick, cyRef]);
+  }, [elements, layout, onNodeClick, onEdgeClick, cyRef, onInitialized]);
 
   // Update highlighted path
   useEffect(() => {

@@ -54,7 +54,7 @@ test.describe('Theme Switching', () => {
 
     if (isVisible) {
       // Get initial theme
-      const initialTheme = await page.evaluate(() => {
+      await page.evaluate(() => {
         return document.documentElement.getAttribute('data-theme') ||
           document.documentElement.classList.contains('dark') ? 'dark' : 'light';
       });
@@ -64,7 +64,7 @@ test.describe('Theme Switching', () => {
       await page.waitForTimeout(500);
 
       // Get new theme
-      const newTheme = await page.evaluate(() => {
+      await page.evaluate(() => {
         return document.documentElement.getAttribute('data-theme') ||
           document.documentElement.classList.contains('dark') ? 'dark' : 'light';
       });
@@ -89,7 +89,7 @@ test.describe('Theme Switching', () => {
 
     if (isVisible) {
       // Get initial theme
-      const initialTheme = await page.evaluate(() => {
+      await page.evaluate(() => {
         return document.documentElement.getAttribute('data-theme') ||
           document.documentElement.className;
       });
@@ -99,7 +99,7 @@ test.describe('Theme Switching', () => {
       await page.waitForTimeout(500);
 
       // Get toggled theme
-      const toggledTheme = await page.evaluate(() => {
+      await page.evaluate(() => {
         return document.documentElement.getAttribute('data-theme') ||
           document.documentElement.className;
       });
@@ -221,7 +221,7 @@ test.describe('Theme Switching', () => {
     await page.waitForTimeout(500);
 
     // Check if CSS variables are used
-    const cssVars = await page.evaluate(() => {
+    await page.evaluate(() => {
       const style = window.getComputedStyle(document.documentElement);
       const vars = [
         '--color-background',
@@ -426,7 +426,7 @@ test.describe('Dark Mode Specific Tests', () => {
     await page.waitForTimeout(500);
 
     // Check if shadows are adjusted for dark mode
-    const shadow = await page.evaluate(() => {
+    await page.evaluate(() => {
       const el = document.querySelector('[class*="shadow"], [class*="card"], .elevation');
       if (!el) return null;
 

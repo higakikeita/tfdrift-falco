@@ -101,8 +101,6 @@ test.describe('Page Navigation', () => {
   test('should handle back button navigation', async ({ page }) => {
     // Navigate to home
     await page.goto('/');
-    const initialUrl = page.url();
-
     // Find and click a navigation link
     const navLink = page.locator('a, button').filter({
       hasText: /Settings|Documentation|About/i
@@ -113,8 +111,6 @@ test.describe('Page Navigation', () => {
     if (isVisible) {
       await navLink.click();
       await page.waitForTimeout(500);
-
-      const newUrl = page.url();
 
       // Go back
       await page.goBack();
@@ -160,8 +156,6 @@ test.describe('Page Navigation', () => {
     const isVisible = await breadcrumbs.isVisible({ timeout: 5000 }).catch(() => false);
 
     if (isVisible) {
-      const initialUrl = page.url();
-
       // Click breadcrumb
       await breadcrumbs.click();
       await page.waitForTimeout(500);
