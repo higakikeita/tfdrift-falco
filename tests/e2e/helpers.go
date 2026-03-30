@@ -10,12 +10,11 @@ import (
 	"time"
 
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	ec2v2 "github.com/aws/aws-sdk-go-v2/service/ec2"
+	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	iamv2 "github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
@@ -27,9 +26,9 @@ type TestContext struct {
 	t              *testing.T
 	cfg            *config.Config
 	detector       *detector.Detector
-	awsSession     *session.Session
-	ec2Client      *ec2.EC2
-	iamClient      *iam.IAM
+	awsCfg         awsconfig.Config
+	ec2Client      *ec2v2.Client
+	iamClient      *iamv2.Client
 	s3Client       *s3.Client
 	alertChan      chan types.DriftAlert
 	cleanupFuncs   []func()
@@ -46,23 +45,17 @@ func NewTestContext(t *testing.T) *TestContext {
 	// Load test outputs from Terraform
 	outputs := loadTerraformOutputs(t)
 
-	// Create AWS session for v1 clients
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(getEnvOrDefault("AWS_REGION", "us-east-1")),
-	})
-	require.NoError(t, err, "Failed to create AWS session")
-
-	// Create AWS config for v2 S3 client
+	// Create AWS config for v2 clients
 	awsCfg, err := awsconfig.LoadDefaultConfig(context.Background(),
 		awsconfig.WithRegion(getEnvOrDefault("AWS_REGION", "us-east-1")),
 	)
-	require.NoError(t, err, "Failed to load AWS config for S3")
+	require.NoError(t, err, "Failed to load AWS config")
 
 	ctx := &TestContext{
 		t:              t,
-		awsSession:     sess,
-		ec2Client:      ec2.New(sess),
-		iamClient:      iam.New(sess),
+		awsCfg:         awsCfg,
+		ec2Client:      ec2v2.NewFromConfig(awsCfg),
+		iamClient:      iamv2.NewFromConfig(awsCfg),
 		s3Client:       s3.NewFromConfig(awsCfg),
 		alertChan:      make(chan types.DriftAlert, 100),
 		cleanupFuncs:   []func(){},
@@ -132,14 +125,14 @@ func (ctx *TestContext) ModifyEC2Termination(instanceID string, enabled bool) {
 
 	ctx.t.Logf("Modifying EC2 termination protection: %s -> %v", instanceID, enabled)
 
-	input := &ec2.ModifyInstanceAttributeInput{
-		InstanceId: aws.String(instanceID),
-		DisableApiTermination: &ec2.AttributeBooleanValue{
-			Value: aws.Bool(enabled),
+	input := &ec2v2.ModifyInstanceAttributeInput{
+		InstanceId: &instanceID,
+		DisableApiTermination: &ec2types.AttributeBooleanValue{
+			Value: &enabled,
 		},
 	}
 
-	_, err := ctx.ec2Client.ModifyInstanceAttribute(input)
+	_, err := ctx.ec2Client.ModifyInstanceAttribute(context.Background(), input)
 	require.NoError(ctx.t, err, "Failed to modify instance attribute")
 
 	ctx.t.Logf("Modified EC2 termination protection successfully")
@@ -151,12 +144,12 @@ func (ctx *TestContext) ModifyIAMAssumeRolePolicy(roleName string, newPolicy str
 
 	ctx.t.Logf("Modifying IAM assume role policy: %s", roleName)
 
-	input := &iam.UpdateAssumeRolePolicyInput{
-		RoleName:       aws.String(roleName),
-		PolicyDocument: aws.String(newPolicy),
+	input := &iamv2.UpdateAssumeRolePolicyInput{
+		RoleName:       &roleName,
+		PolicyDocument: &newPolicy,
 	}
 
-	_, err := ctx.iamClient.UpdateAssumeRolePolicy(input)
+	_, err := ctx.iamClient.UpdateAssumeRolePolicy(context.Background(), input)
 	require.NoError(ctx.t, err, "Failed to update assume role policy")
 
 	ctx.t.Logf("Modified IAM assume role policy successfully")

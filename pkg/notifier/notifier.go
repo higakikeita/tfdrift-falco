@@ -7,12 +7,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/diff"
 	"github.com/keitahigaki/tfdrift-falco/pkg/telemetry"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
-	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -211,9 +211,16 @@ func (m *Manager) sendFalcoOutput(alert *types.DriftAlert) error {
 		},
 	}
 
-	// TODO: Send to Falco gRPC endpoint or write to stdout
-	jsonData, _ := json.MarshalIndent(falcoEvent, "", "  ")
-	log.Info(string(jsonData))
+	// Write to stdout in JSON format (standard Falco output pattern)
+	jsonData, err := json.MarshalIndent(falcoEvent, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal Falco event: %w", err)
+	}
+
+	_, err = os.Stdout.Write(append(jsonData, '\n'))
+	if err != nil {
+		return fmt.Errorf("failed to write to stdout: %w", err)
+	}
 
 	return nil
 }

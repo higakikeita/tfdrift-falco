@@ -421,3 +421,65 @@ func TestResourceMapper_ServiceCoverage(t *testing.T) {
 		assert.GreaterOrEqual(t, len(types), minCount, "Service %s should have at least %d resource types", service, minCount)
 	}
 }
+
+func TestResourceMapper_GetAllSupportedEvents_Extended(t *testing.T) {
+	mapper := NewResourceMapper()
+	events := mapper.GetAllSupportedEvents()
+
+	assert.NotEmpty(t, events)
+	assert.Greater(t, len(events), 50) // Should have many events
+
+	// Verify some known events are included
+	eventSet := make(map[string]bool)
+	for _, e := range events {
+		eventSet[e] = true
+	}
+	assert.True(t, eventSet["Microsoft.Compute/virtualMachines/write"])
+	assert.True(t, eventSet["Microsoft.Storage/storageAccounts/write"])
+}
+
+func TestResourceMapper_GetResourceTypesForService_Extended(t *testing.T) {
+	mapper := NewResourceMapper()
+
+	tests := []struct {
+		name         string
+		serviceName  string
+		wantNonEmpty bool
+		contains     string
+	}{
+		{"Compute service", "Microsoft.Compute/", true, "azurerm_virtual_machine"},
+		{"Storage service", "Microsoft.Storage/", true, "azurerm_storage_account"},
+		{"Network service", "Microsoft.Network/", true, ""},
+		{"Unknown service", "Microsoft.Unknown/", false, ""},
+		{"Empty service", "", false, ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			types := mapper.GetResourceTypesForService(tt.serviceName)
+			if tt.wantNonEmpty {
+				assert.NotEmpty(t, types)
+			}
+			if tt.contains != "" {
+				found := false
+				for _, typ := range types {
+					if typ == tt.contains {
+						found = true
+						break
+					}
+				}
+				assert.True(t, found, "expected to find %s", tt.contains)
+			}
+		})
+	}
+}
+
+func TestResourceMapper_GetAllSupportedEvents_Unique_Extended(t *testing.T) {
+	mapper := NewResourceMapper()
+	events := mapper.GetAllSupportedEvents()
+	seen := make(map[string]bool)
+	for _, e := range events {
+		assert.False(t, seen[e], "duplicate event: %s", e)
+		seen[e] = true
+	}
+}

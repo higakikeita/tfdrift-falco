@@ -128,6 +128,22 @@ func (d *Detector) sendUnmanagedResourceAlert(event *types.Event) {
 		return
 	}
 
-	// TODO: Send to notification channels
-	// For now, console output is enough
+	// Send to notification channels
+	// Convert UnmanagedResourceAlert to DriftAlert for notifier
+	driftAlert := &types.DriftAlert{
+		Severity:     alert.Severity,
+		ResourceType: alert.ResourceType,
+		ResourceID:   alert.ResourceID,
+		ResourceName: alert.ResourceID, // Use resource ID as name for unmanaged resources
+		Attribute:    alert.EventName,
+		OldValue:     "not-managed",
+		NewValue:     fmt.Sprintf("detected-%s", alert.EventName),
+		UserIdentity: alert.UserIdentity,
+		Timestamp:    alert.Timestamp,
+		MatchedRules: []string{fmt.Sprintf("unmanaged-resource: %s", alert.EventName)},
+	}
+
+	if err := d.notifier.Send(driftAlert); err != nil {
+		log.Errorf("Failed to send unmanaged resource alert: %v", err)
+	}
 }
