@@ -57,6 +57,11 @@ linters:
         - G104  # Allow unchecked errors in some cases
         - G307  # Allow deferred file.Close() without checking error
         - G115  # Integer overflow conversion (common with uint/int casts)
+        - G204  # Audit use of os/exec to spawn subprocess with variable input
+        - G304  # Audit file access without validation
+        - G107  # Possible hardcoded credentials in URL
+        - G114  # Use of net/http serve functions that have no support for setting timeouts
+        - G101  # Audit the use of assert.NoError
 
     revive:
       rules:

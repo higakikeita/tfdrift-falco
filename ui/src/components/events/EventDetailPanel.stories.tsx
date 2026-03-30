@@ -90,7 +90,15 @@ export const CriticalSeverity: Story = {
       event_name: 'DeleteBucket',
       related_drifts: [
         {
-          ...baseEvent.related_drifts?.[0]!,
+          ...(baseEvent.related_drifts?.[0] ?? {
+            severity: 'critical',
+            attribute: 'BucketDeletion',
+            old_value: null,
+            new_value: null,
+            matched_rules: [],
+            timestamp: new Date().toISOString(),
+            alert_type: 'CONFIGURATION_CHANGE',
+          }),
           severity: 'critical',
           attribute: 'BucketDeletion',
         },

@@ -397,7 +397,10 @@ func TestIntegrationDriftFiltering(t *testing.T) {
 	defer ts.Close()
 
 	// Test filtering by severity
-	resp, _ := http.Get(ts.URL + "/api/v1/drifts?severity=critical")
+	resp, err := http.Get(ts.URL + "/api/v1/drifts?severity=critical")
+	if err != nil {
+		t.Fatalf("failed to make request: %v", err)
+	}
 	defer resp.Body.Close()
 
 	var apiResp models.APIResponse
@@ -410,7 +413,10 @@ func TestIntegrationDriftFiltering(t *testing.T) {
 	}
 
 	// Test filtering by resource type
-	resp2, _ := http.Get(ts.URL + "/api/v1/drifts?resource_type=aws_s3_bucket")
+	resp2, err := http.Get(ts.URL + "/api/v1/drifts?resource_type=aws_s3_bucket")
+	if err != nil {
+		t.Fatalf("failed to make request: %v", err)
+	}
 	defer resp2.Body.Close()
 
 	var apiResp2 models.APIResponse
@@ -600,7 +606,10 @@ func TestIntegrationTotalPages(t *testing.T) {
 	defer ts.Close()
 
 	// With limit 10: 35 items = 4 pages (10 + 10 + 10 + 5)
-	resp, _ := http.Get(ts.URL + "/drifts?limit=10")
+	resp, err := http.Get(ts.URL + "/drifts?limit=10")
+	if err != nil {
+		t.Fatalf("failed to make request: %v", err)
+	}
 	defer resp.Body.Close()
 
 	var apiResp models.APIResponse

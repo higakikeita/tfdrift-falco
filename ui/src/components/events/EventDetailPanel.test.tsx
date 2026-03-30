@@ -15,7 +15,7 @@ vi.mock('lucide-react', () => ({
 }));
 
 vi.mock('../../lib/utils', () => ({
-  cn: (...args: unknown[]) => '',
+  cn: () => '',
 }));
 
 vi.mock('./JsonDiff', () => ({

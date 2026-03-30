@@ -21,11 +21,11 @@ const meta = {
 } satisfies Meta<typeof DashboardLayout>;
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type StoryType = StoryObj<typeof meta>;
 
-export const Default: Story = {
+export const Default: StoryType = {
   decorators: [
-    (Story) => (
+    () => (
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route element={<DashboardLayout />}>
@@ -80,9 +80,9 @@ export const Default: Story = {
   ],
 };
 
-export const WithDetailedContent: Story = {
+export const WithDetailedContent: StoryType = {
   decorators: [
-    (Story) => (
+    () => (
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route element={<DashboardLayout />}>
@@ -180,9 +180,9 @@ export const WithDetailedContent: Story = {
   ],
 };
 
-export const WithGraphContent: Story = {
+export const WithGraphContent: StoryType = {
   decorators: [
-    (Story) => (
+    () => (
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route element={<DashboardLayout />}>
@@ -251,9 +251,9 @@ export const WithGraphContent: Story = {
   ],
 };
 
-export const WithEmptyState: Story = {
+export const WithEmptyState: StoryType = {
   decorators: [
-    (Story) => (
+    () => (
       <MemoryRouter initialEntries={['/']}>
         <Routes>
           <Route element={<DashboardLayout />}>

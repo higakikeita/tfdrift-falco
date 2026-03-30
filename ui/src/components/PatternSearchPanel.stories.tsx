@@ -63,7 +63,7 @@ export const DefaultSearchState: Story = {
 };
 
 export const SearchFormFocused: Story = {
-  render: (args) => (
+  render: () => (
     <div className="w-full max-w-4xl">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl">
         <div className="px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-between">
@@ -143,7 +143,7 @@ export const SearchFormFocused: Story = {
 };
 
 export const NoResultsState: Story = {
-  render: (args) => (
+  render: () => (
     <div className="w-full max-w-4xl">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl">
         <div className="px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-between">
@@ -189,7 +189,7 @@ export const NoResultsState: Story = {
 };
 
 export const WithResultsState: Story = {
-  render: (args) => (
+  render: () => (
     <div className="w-full max-w-4xl">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl">
         <div className="px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-between">
@@ -267,7 +267,7 @@ export const WithResultsState: Story = {
 };
 
 export const WithLoadingState: Story = {
-  render: (args) => (
+  render: () => (
     <div className="w-full max-w-4xl">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl">
         <div className="px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-between">

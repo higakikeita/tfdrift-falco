@@ -9,7 +9,7 @@ vi.mock('lucide-react', () => ({
   CheckCircle: () => <div data-testid="check-circle-icon" />,
 }));
 
-import { NodeTooltip, type NodeTooltipProps } from './NodeTooltip';
+import { NodeTooltip } from './NodeTooltip';
 
 describe('NodeTooltip', () => {
   const mockData = {

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
 vi.mock('../../lib/utils', () => ({
-  cn: (...args: unknown[]) => '',
+  cn: () => '',
 }));
 
 import { JsonDiff } from './JsonDiff';

@@ -260,7 +260,9 @@ func SendToSlack(webhookURL string, event *types.DriftEvent) error {
 	}
 
 	webhook := NewWebhookOutput(config)
-	defer webhook.Close()
+	defer func() {
+		_ = webhook.Close()
+	}()
 
 	return webhook.send(jsonData)
 }
@@ -279,7 +281,9 @@ func SendToTeams(webhookURL string, event *types.DriftEvent) error {
 	}
 
 	webhook := NewWebhookOutput(config)
-	defer webhook.Close()
+	defer func() {
+		_ = webhook.Close()
+	}()
 
 	return webhook.send(jsonData)
 }
