@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from './App';
 
 // Mock components and utilities
@@ -257,30 +257,38 @@ describe('App Component', () => {
       expect(screen.getByText('Why Falco?')).toBeInTheDocument();
     });
 
-    it('should navigate to why-falco page when button is clicked', () => {
+    it('should navigate to why-falco page when button is clicked', async () => {
       render(<App />);
       const whyFalcoButton = screen.getByText('Why Falco?');
 
       fireEvent.click(whyFalcoButton);
 
-      expect(screen.getByTestId('why-falco-page')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('why-falco-page')).toBeInTheDocument();
+      });
       expect(screen.queryByTestId('cytoscape-graph')).not.toBeInTheDocument();
     });
 
-    it('should show "Back to Graph" button on why-falco page', () => {
+    it('should show "Back to Graph" button on why-falco page', async () => {
       render(<App />);
       const whyFalcoButton = screen.getByText('Why Falco?');
 
       fireEvent.click(whyFalcoButton);
 
-      expect(screen.getByTestId('back-button')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('back-button')).toBeInTheDocument();
+      });
     });
 
-    it('should navigate back to graph view', () => {
+    it('should navigate back to graph view', async () => {
       render(<App />);
       const whyFalcoButton = screen.getByText('Why Falco?');
 
       fireEvent.click(whyFalcoButton);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('back-button')).toBeInTheDocument();
+      });
 
       const backButton = screen.getByTestId('back-button');
       fireEvent.click(backButton);
@@ -289,12 +297,14 @@ describe('App Component', () => {
       expect(screen.queryByTestId('why-falco-page')).not.toBeInTheDocument();
     });
 
-    it('should toggle view correctly multiple times', () => {
+    it('should toggle view correctly multiple times', async () => {
       render(<App />);
       const whyFalcoButton = screen.getByText('Why Falco?');
 
       fireEvent.click(whyFalcoButton);
-      expect(screen.getByTestId('why-falco-page')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('why-falco-page')).toBeInTheDocument();
+      });
 
       const backButton = screen.getByTestId('back-button');
       fireEvent.click(backButton);
@@ -302,7 +312,9 @@ describe('App Component', () => {
 
       const whyFalcoButton2 = screen.getByText('Why Falco?');
       fireEvent.click(whyFalcoButton2);
-      expect(screen.getByTestId('why-falco-page')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('why-falco-page')).toBeInTheDocument();
+      });
     });
   });
 
@@ -372,7 +384,7 @@ describe('App Component', () => {
   });
 
   describe('State management', () => {
-    it('should maintain state when toggling views', () => {
+    it('should maintain state when toggling views', async () => {
       render(<App />);
       const demoSelect = screen.getByDisplayValue('Simple Chain (Drift → Falco)');
 
@@ -380,6 +392,10 @@ describe('App Component', () => {
 
       const whyFalcoButton = screen.getByText('Why Falco?');
       fireEvent.click(whyFalcoButton);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('back-button')).toBeInTheDocument();
+      });
 
       const backButton = screen.getByTestId('back-button');
       fireEvent.click(backButton);

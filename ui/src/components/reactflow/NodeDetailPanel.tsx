@@ -1,9 +1,10 @@
 /**
  * Node Detail Panel Component
  * Displays detailed information about selected nodes
+ * Includes accessibility features: ARIA labels, keyboard navigation, semantic HTML
  */
 
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { OfficialCloudIcon } from '../icons/OfficialCloudIcons';
 
 interface NodeDetailPanelProps {
@@ -37,12 +38,24 @@ const getSeverityBadgeStyle = (severity?: string) => {
 };
 
 export const NodeDetailPanel = memo(({ node, onClose }: NodeDetailPanelProps) => {
+  // Handle Escape key to close panel - must be before conditional return
+  useEffect(() => {
+    if (!node) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, node]);
+
   if (!node) return null;
 
   const { data } = node;
 
   return (
-    <div className="absolute right-6 top-24 w-96 bg-white rounded-2xl shadow-2xl border-2 border-gray-200 z-50 overflow-hidden animate-slide-in">
+    <div className="absolute right-6 top-24 w-96 bg-white rounded-2xl shadow-2xl border-2 border-gray-200 z-50 overflow-hidden animate-slide-in" role="complementary" aria-label={`Node details: ${data.label}`}>
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-5 text-white">
         <div className="flex items-start justify-between">
@@ -51,16 +64,17 @@ export const NodeDetailPanel = memo(({ node, onClose }: NodeDetailPanelProps) =>
               <OfficialCloudIcon type={data.resource_type} size={48} />
             </div>
             <div>
-              <h3 className="font-bold text-lg leading-tight">{data.label}</h3>
+              <h2 className="font-bold text-lg leading-tight">{data.label}</h2>
               <p className="text-blue-100 text-sm mt-1">Resource Details</p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="text-white hover:bg-white/20 rounded-lg p-1.5 transition-colors"
-            aria-label="Close"
+            aria-label="Close node details panel"
+            title="Press Escape to close"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -137,6 +151,7 @@ export const NodeDetailPanel = memo(({ node, onClose }: NodeDetailPanelProps) =>
         <button
           onClick={onClose}
           className="w-full px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-colors"
+          aria-label="Close node details"
         >
           Close
         </button>

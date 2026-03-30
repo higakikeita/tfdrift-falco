@@ -26,6 +26,7 @@ import { RegionGroupNode, VPCGroupNode, AZGroupNode, SubnetGroupNode } from './H
 import { NodeDetailPanel } from './NodeDetailPanel';
 import { convertToReactFlow, highlightPath } from '../../utils/reactFlowAdapter';
 import type { CytoscapeElements } from '../../types/graph';
+import { logger } from '../../utils/logger';
 
 interface ReactFlowGraphProps {
   elements: CytoscapeElements;
@@ -100,7 +101,7 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
       link.href = dataUrl;
       link.click();
     }).catch((error) => {
-      console.error('Error exporting PNG:', error);
+      logger.error('Error exporting PNG:', error);
       alert('Failed to export PNG. Please try again.');
     });
   }, [getNodes]);
@@ -128,7 +129,7 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
       link.href = dataUrl;
       link.click();
     }).catch((error) => {
-      console.error('Error exporting SVG:', error);
+      logger.error('Error exporting SVG:', error);
       alert('Failed to export SVG. Please try again.');
     });
   }, [getNodes]);

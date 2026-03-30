@@ -3,7 +3,7 @@
  * ドリフト履歴テーブル - 時系列でドリフトイベントを表示
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import type { DriftEvent, DriftSeverity, ChangeType, Provider } from '../types/drift';
 import { ProviderIcon } from './icons/ProviderIcons';
 import { SEVERITY_ICONS, type SeverityLevel } from '../constants';
@@ -34,7 +34,7 @@ const changeTypeLabels: Record<ChangeType, string> = {
   deleted: '削除',
 };
 
-export default function DriftHistoryTable({ drifts, onSelectDrift }: DriftHistoryTableProps) {
+function DriftHistoryTableComponent({ drifts, onSelectDrift }: DriftHistoryTableProps) {
   const [selectedDrift, setSelectedDrift] = useState<DriftEvent | null>(null);
   const [severityFilter, setSeverityFilter] = useState<Set<DriftSeverity>>(new Set());
   const [providerFilter, setProviderFilter] = useState<Set<Provider>>(new Set());
@@ -84,30 +84,34 @@ export default function DriftHistoryTable({ drifts, onSelectDrift }: DriftHistor
     return filtered;
   }, [drifts, severityFilter, providerFilter, searchQuery, sortBy, sortOrder]);
 
-  const handleRowClick = (drift: DriftEvent) => {
+  const handleRowClick = useCallback((drift: DriftEvent) => {
     setSelectedDrift(drift);
     onSelectDrift?.(drift);
-  };
+  }, [onSelectDrift]);
 
-  const toggleSeverityFilter = (severity: DriftSeverity) => {
-    const newFilter = new Set(severityFilter);
-    if (newFilter.has(severity)) {
-      newFilter.delete(severity);
-    } else {
-      newFilter.add(severity);
-    }
-    setSeverityFilter(newFilter);
-  };
+  const toggleSeverityFilter = useCallback((severity: DriftSeverity) => {
+    setSeverityFilter(prev => {
+      const newFilter = new Set(prev);
+      if (newFilter.has(severity)) {
+        newFilter.delete(severity);
+      } else {
+        newFilter.add(severity);
+      }
+      return newFilter;
+    });
+  }, []);
 
-  const toggleProviderFilter = (provider: Provider) => {
-    const newFilter = new Set(providerFilter);
-    if (newFilter.has(provider)) {
-      newFilter.delete(provider);
-    } else {
-      newFilter.add(provider);
-    }
-    setProviderFilter(newFilter);
-  };
+  const toggleProviderFilter = useCallback((provider: Provider) => {
+    setProviderFilter(prev => {
+      const newFilter = new Set(prev);
+      if (newFilter.has(provider)) {
+        newFilter.delete(provider);
+      } else {
+        newFilter.add(provider);
+      }
+      return newFilter;
+    });
+  }, []);
   const stats = useMemo(() => {
     const total = filteredDrifts.length;
     const critical = filteredDrifts.filter(d => d.severity === 'critical').length;
@@ -116,6 +120,12 @@ export default function DriftHistoryTable({ drifts, onSelectDrift }: DriftHistor
     const low = filteredDrifts.filter(d => d.severity === 'low').length;
     return { total, critical, high, medium, low };
   }, [filteredDrifts]);
+
+  const handleClearFilters = useCallback(() => {
+    setSeverityFilter(new Set());
+    setProviderFilter(new Set());
+    setSearchQuery('');
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-900 rounded-lg shadow-lg">
@@ -303,11 +313,7 @@ export default function DriftHistoryTable({ drifts, onSelectDrift }: DriftHistor
           </div>
           {severityFilter.size > 0 || providerFilter.size > 0 || searchQuery ? (
             <button
-              onClick={() => {
-                setSeverityFilter(new Set());
-                setProviderFilter(new Set());
-                setSearchQuery('');
-              }}
+              onClick={handleClearFilters}
               className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
             >
               フィルターをクリア
@@ -318,3 +324,8 @@ export default function DriftHistoryTable({ drifts, onSelectDrift }: DriftHistor
     </div>
   );
 }
+
+const DriftHistoryTable = memo(DriftHistoryTableComponent);
+DriftHistoryTable.displayName = 'DriftHistoryTable';
+
+export default DriftHistoryTable;

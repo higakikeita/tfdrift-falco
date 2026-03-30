@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { logger } from '../utils/logger';
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/ws';
 
@@ -67,7 +68,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     if (ws.current?.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(message));
     } else {
-      console.warn('[WebSocket] Cannot send message: connection not open');
+      logger.warn('[WebSocket] Cannot send message: connection not open');
     }
   }, []);
 
@@ -149,12 +150,12 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
           const message: WSResponse = JSON.parse(event.data);
           setLastMessage(message);
         } catch (err) {
-          console.error('[WebSocket] Failed to parse message:', err);
+          logger.error('[WebSocket] Failed to parse message:', err);
         }
       };
 
       socket.onerror = (event) => {
-        console.error('[WebSocket] Error:', event);
+        logger.error('[WebSocket] Error:', event);
         setError(new Error('WebSocket connection error'));
       };
 
@@ -171,7 +172,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
 
       ws.current = socket;
     } catch (err) {
-      console.error('[WebSocket] Connection failed:', err);
+      logger.error('[WebSocket] Connection failed:', err);
       setError(err instanceof Error ? err : new Error('Unknown error'));
       setIsConnecting(false);
       scheduleReconnect();

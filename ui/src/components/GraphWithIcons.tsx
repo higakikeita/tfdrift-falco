@@ -7,13 +7,13 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import cytoscape from 'cytoscape';
-import type { Core, NodeSingular } from 'cytoscape';
-// @ts-expect-error - cytoscape-dagre lacks type definitions
+import type { Core, NodeSingular, LayoutOptions } from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 import { toPng } from 'html-to-image';
 import { cytoscapeConfig, layoutConfigs } from '../styles/cytoscapeStyles';
 import type { CytoscapeElements } from '../types/graph';
 import { OfficialCloudIcon, getProviderFromType, getProviderColor } from './icons/OfficialCloudIcons';
+import { logger } from '../utils/logger';
 
 cytoscape.use(dagre);
 
@@ -93,8 +93,7 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
     cyRef.current = cy;
 
     // Apply layout
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const layoutConfig = (layoutConfigs as any)[layout];
+    const layoutConfig = (layoutConfigs as Record<string, LayoutOptions>)[layout];
     const layoutInstance = cy.layout(layoutConfig);
 
     layoutInstance.on('layoutstop', () => {
@@ -147,8 +146,7 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
   // Re-layout when layout type changes
   useEffect(() => {
     if (!cyRef.current) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const layoutConfig = (layoutConfigs as any)[layout];
+    const layoutConfig = (layoutConfigs as Record<string, LayoutOptions>)[layout];
     const layoutInstance = cyRef.current.layout(layoutConfig);
 
     layoutInstance.on('layoutstop', () => {
@@ -174,7 +172,7 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
       link.click();
     } catch (err) {
       // Fallback to Cytoscape PNG export
-      console.warn('html-to-image export failed, using Cytoscape fallback:', err);
+      logger.warn('html-to-image export failed, using Cytoscape fallback:', err);
       const png = cyRef.current?.png({ full: true, scale: 2 });
       if (png) {
         const link = document.createElement('a');

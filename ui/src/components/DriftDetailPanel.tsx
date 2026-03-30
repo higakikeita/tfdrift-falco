@@ -1,8 +1,10 @@
 /**
  * Drift Detail Panel Component
  * 選択されたドリフトイベントの詳細情報を表示
+ * Includes accessibility: ARIA labels, keyboard navigation, semantic HTML
  */
 
+import { useEffect } from 'react';
 import type { DriftEvent } from '../types/drift';
 import { SiGooglecloud } from 'react-icons/si';
 import { FaAws } from 'react-icons/fa';
@@ -20,9 +22,21 @@ const severityColors = {
 };
 
 export default function DriftDetailPanel({ drift, onClose }: DriftDetailPanelProps) {
+  // Handle Escape key to close panel
+  useEffect(() => {
+    if (!onClose) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   if (!drift) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+      <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400" role="status" aria-live="polite">
         <div className="text-center">
           <p className="text-lg font-medium mb-2">ドリフトイベントを選択してください</p>
           <p className="text-sm">詳細情報を表示します</p>
@@ -58,15 +72,15 @@ export default function DriftDetailPanel({ drift, onClose }: DriftDetailPanelPro
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700" role="complementary" aria-label={`Drift details: ${drift.resourceName || drift.resourceId}`}>
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              {drift.provider === 'aws' && <FaAws size={24} className="text-orange-500" />}
-              {drift.provider === 'gcp' && <SiGooglecloud size={24} className="text-blue-500" />}
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">{drift.resourceName || drift.resourceId}</h3>
+              {drift.provider === 'aws' && <FaAws size={24} className="text-orange-500" aria-label="AWS provider" />}
+              {drift.provider === 'gcp' && <SiGooglecloud size={24} className="text-blue-500" aria-label="GCP provider" />}
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">{drift.resourceName || drift.resourceId}</h2>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-300 font-mono">{drift.resourceType}</p>
           </div>
@@ -74,8 +88,10 @@ export default function DriftDetailPanel({ drift, onClose }: DriftDetailPanelPro
             <button
               onClick={onClose}
               className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              aria-label="Close drift details panel"
+              title="Press Escape to close"
             >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>

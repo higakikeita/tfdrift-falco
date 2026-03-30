@@ -276,9 +276,9 @@ export const enhancedLayoutConfigs = {
 
   concentric: {
     name: 'concentric',
-    concentric: (node: Record<string, unknown>) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const type = (node as any).data('type');
+    concentric: (node: unknown) => {
+      const nodeWithData = node as { data: (key: string) => unknown };
+      const type = nodeWithData.data('type');
       if (type === 'terraform_change') return 10;
       if (type === 'falco_event') return 1;
       return 5;

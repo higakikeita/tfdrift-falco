@@ -29,10 +29,12 @@ export function Sidebar() {
         'flex flex-col h-full bg-slate-900 text-slate-300 border-r border-slate-800 transition-all duration-300',
         isCollapsed ? 'w-16' : 'w-60'
       )}
+      role="navigation"
+      aria-label="Main navigation"
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-800">
-        <Shield className="h-7 w-7 text-indigo-400 shrink-0" />
+        <Shield className="h-7 w-7 text-indigo-400 shrink-0" aria-hidden="true" />
         {!isCollapsed && (
           <span className="text-lg font-bold text-white whitespace-nowrap">
             TFDrift
@@ -41,7 +43,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 space-y-1 px-2">
+      <nav className="flex-1 py-4 space-y-1 px-2" aria-label="Main menu">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
@@ -54,8 +56,9 @@ export function Sidebar() {
                   : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
               )
             }
+            aria-label={item.label}
           >
-            <item.icon className="h-5 w-5 shrink-0" />
+            <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
             {!isCollapsed && <span>{item.label}</span>}
           </NavLink>
         ))}
@@ -66,11 +69,12 @@ export function Sidebar() {
         onClick={toggle}
         className="flex items-center justify-center py-3 border-t border-slate-800 text-slate-500 hover:text-slate-300 transition-colors"
         aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {isCollapsed ? (
-          <ChevronRight className="h-5 w-5" />
+          <ChevronRight className="h-5 w-5" aria-hidden="true" />
         ) : (
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-5 w-5" aria-hidden="true" />
         )}
       </button>
     </aside>

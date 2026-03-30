@@ -67,6 +67,10 @@ type Database struct {
 
 	// Type-based relationship indexes
 	relationshipsByType map[string]map[string]*Relationship // type -> {rel_id -> relationship}
+
+	// Pre-allocated slices for common operations (performance optimization)
+	nodePool []*Node
+	relPool  []*Relationship
 }
 
 // NewDatabase creates a new in-memory graph database
@@ -118,6 +122,11 @@ func (db *Database) GetNodesByLabel(label string) []*Node {
 	defer db.mu.RUnlock()
 
 	nodeMap := db.nodesByLabel[label]
+	if len(nodeMap) == 0 {
+		return make([]*Node, 0)
+	}
+
+	// Pre-allocate with exact capacity needed
 	nodes := make([]*Node, 0, len(nodeMap))
 	for _, node := range nodeMap {
 		nodes = append(nodes, node)
@@ -189,6 +198,11 @@ func (db *Database) GetOutgoingRelationships(nodeID string) []*Relationship {
 	defer db.mu.RUnlock()
 
 	relMap := db.outgoing[nodeID]
+	if len(relMap) == 0 {
+		return make([]*Relationship, 0)
+	}
+
+	// Pre-allocate with exact capacity
 	rels := make([]*Relationship, 0, len(relMap))
 	for _, rel := range relMap {
 		rels = append(rels, rel)
@@ -202,6 +216,11 @@ func (db *Database) GetIncomingRelationships(nodeID string) []*Relationship {
 	defer db.mu.RUnlock()
 
 	relMap := db.incoming[nodeID]
+	if len(relMap) == 0 {
+		return make([]*Relationship, 0)
+	}
+
+	// Pre-allocate with exact capacity
 	rels := make([]*Relationship, 0, len(relMap))
 	for _, rel := range relMap {
 		rels = append(rels, rel)
@@ -215,6 +234,11 @@ func (db *Database) GetRelationshipsByType(relType string) []*Relationship {
 	defer db.mu.RUnlock()
 
 	relMap := db.relationshipsByType[relType]
+	if len(relMap) == 0 {
+		return make([]*Relationship, 0)
+	}
+
+	// Pre-allocate with exact capacity
 	rels := make([]*Relationship, 0, len(relMap))
 	for _, rel := range relMap {
 		rels = append(rels, rel)
@@ -227,7 +251,15 @@ func (db *Database) GetNeighbors(nodeID string) []*Node {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
-	neighborIDs := make(map[string]bool)
+	outgoingCount := len(db.outgoing[nodeID])
+	incomingCount := len(db.incoming[nodeID])
+
+	if outgoingCount == 0 && incomingCount == 0 {
+		return make([]*Node, 0)
+	}
+
+	// Pre-allocate based on estimated size (may have duplicates)
+	neighborIDs := make(map[string]bool, outgoingCount+incomingCount)
 
 	// Add outgoing neighbors
 	for _, rel := range db.outgoing[nodeID] {
@@ -239,7 +271,7 @@ func (db *Database) GetNeighbors(nodeID string) []*Node {
 		neighborIDs[rel.StartNode] = true
 	}
 
-	// Convert to node list
+	// Convert to node list with pre-allocation
 	neighbors := make([]*Node, 0, len(neighborIDs))
 	for nID := range neighborIDs {
 		if node := db.nodes[nID]; node != nil {
@@ -255,6 +287,11 @@ func (db *Database) GetAllNodes() []*Node {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
+	if len(db.nodes) == 0 {
+		return make([]*Node, 0)
+	}
+
+	// Pre-allocate with exact capacity needed
 	nodes := make([]*Node, 0, len(db.nodes))
 	for _, node := range db.nodes {
 		nodes = append(nodes, node)
@@ -267,6 +304,11 @@ func (db *Database) GetAllRelationships() []*Relationship {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
 
+	if len(db.relationships) == 0 {
+		return make([]*Relationship, 0)
+	}
+
+	// Pre-allocate with exact capacity needed
 	rels := make([]*Relationship, 0, len(db.relationships))
 	for _, rel := range db.relationships {
 		rels = append(rels, rel)

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "analyze": "ANALYZE=true vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
@@ -82,6 +83,7 @@
     "msw": "^2.12.14",
     "playwright": "^1.57.0",
     "postcss": "^8.5.6",
+    "rollup-plugin-visualizer": "^7.0.1",
     "storybook": "^10.3.3",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",

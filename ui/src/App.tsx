@@ -4,7 +4,10 @@
  * 因果関係グラフビジュアライゼーション - メインアプリケーション
  */
 
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
+import ErrorBoundary from './components/ErrorBoundary';
+import PageErrorBoundary from './components/PageErrorBoundary';
+import LoadingSpinner from './components/ui/LoadingSpinner';
 import CytoscapeGraph from './components/CytoscapeGraph';
 import {
   generateSampleCausalChain,
@@ -14,7 +17,9 @@ import {
 import { LayoutType } from './types/graph';
 import type { LayoutType as LayoutTypeType } from './types/graph';
 import './App.css';
-import WhyFalcoPage from './pages/WhyFalcoPage';
+
+// Lazy load WhyFalcoPage for code splitting
+const WhyFalcoPage = lazy(() => import('./pages/WhyFalcoPage'));
 
 type DemoMode = 'simple' | 'complex' | 'blast-radius';
 
@@ -66,34 +71,39 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-4 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">TFDrift-Falco Graph UI</h1>
-            <p className="text-sm opacity-90">因果関係グラフビジュアライゼーション</p>
+    <ErrorBoundary>
+      <div className="flex flex-col h-screen bg-gray-100">
+        {/* Header */}
+        <header className="bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-4 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">TFDrift-Falco Graph UI</h1>
+              <p className="text-sm opacity-90">因果関係グラフビジュアライゼーション</p>
+            </div>
+            <div className="text-right text-sm">
+              <p className="font-semibold">Core Value</p>
+              <p className="opacity-90">「なぜ」を可視化する</p>
+            </div>
           </div>
-          <div className="text-right text-sm">
-            <p className="font-semibold">Core Value</p>
-            <p className="opacity-90">「なぜ」を可視化する</p>
-          </div>
-        </div>
-          <button
-            onClick={() => setCurrentView(currentView === 'why-falco' ? 'graph' : 'why-falco')}
-            className="px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200
-              bg-white/10 hover:bg-white/20 text-white border border-white/20"
-          >
-            {currentView === 'why-falco' ? 'Back to Graph' : 'Why Falco?'}
-          </button>
-      </header>
+            <button
+              onClick={() => setCurrentView(currentView === 'why-falco' ? 'graph' : 'why-falco')}
+              className="px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200
+                bg-white/10 hover:bg-white/20 text-white border border-white/20"
+            >
+              {currentView === 'why-falco' ? 'Back to Graph' : 'Why Falco?'}
+            </button>
+        </header>
 
-        {currentView === 'why-falco' ? (
-          <WhyFalcoPage onBack={() => setCurrentView('graph')} />
-        ) : (
-          <>
+          {currentView === 'why-falco' ? (
+            <PageErrorBoundary pageName="Why Falco Page">
+              <Suspense fallback={<div className="flex items-center justify-center h-full"><LoadingSpinner size="lg" text="Loading Why Falco page..." /></div>}>
+                <WhyFalcoPage onBack={() => setCurrentView('graph')} />
+              </Suspense>
+            </PageErrorBoundary>
+          ) : (
+            <>
 
-      {/* Control Panel */}
+        {/* Control Panel */}
       <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-4 flex-wrap">
         {/* Demo Mode Selection */}
         <div className="flex items-center gap-2">
@@ -155,13 +165,15 @@ function App() {
 
       {/* Main Graph View */}
       <div className="flex-1 relative">
-        <CytoscapeGraph
-          elements={graphData}
-          layout={layout}
-          onNodeClick={handleNodeClick}
-          highlightedPath={highlightedPath}
-          className="w-full h-full"
-        />
+        <PageErrorBoundary pageName="Graph View">
+          <CytoscapeGraph
+            elements={graphData}
+            layout={layout}
+            onNodeClick={handleNodeClick}
+            highlightedPath={highlightedPath}
+            className="w-full h-full"
+          />
+        </PageErrorBoundary>
       </div>
 
       {/* Info Panel (Bottom) */}
@@ -197,9 +209,10 @@ function App() {
           <li>• Switch layouts to see different perspectives</li>
         </ul>
       </div>
-          </>
-        )}
-    </div>
+            </>
+          )}
+      </div>
+    </ErrorBoundary>
   );
 }
 

@@ -204,11 +204,16 @@ export class WeakCache<K extends object, V> {
 /**
  * Calculate memory usage (development only)
  */
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
 export function getMemoryUsage(): { used: number; total: number; percentage: number } | null {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if ('memory' in performance && (performance as any).memory) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const memory = (performance as any).memory;
+  const performanceWithMemory = performance as unknown as { memory?: PerformanceMemory };
+  if ('memory' in performance && performanceWithMemory.memory) {
+    const memory = performanceWithMemory.memory;
     return {
       used: Math.round(memory.usedJSHeapSize / 1048576), // MB
       total: Math.round(memory.totalJSHeapSize / 1048576), // MB

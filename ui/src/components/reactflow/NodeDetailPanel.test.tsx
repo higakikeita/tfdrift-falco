@@ -233,7 +233,7 @@ describe('NodeDetailPanel', () => {
       const user = userEvent.setup();
       renderWithProviders(<NodeDetailPanel node={mockNode} onClose={mockOnClose} />);
 
-      const headerCloseButton = screen.getByLabelText('Close');
+      const headerCloseButton = screen.getByLabelText('Close node details panel');
       await user.click(headerCloseButton);
 
       expect(mockOnClose).toHaveBeenCalledTimes(1);
@@ -294,14 +294,14 @@ describe('NodeDetailPanel', () => {
     it('should have aria-label on close button', () => {
       renderWithProviders(<NodeDetailPanel node={mockNode} onClose={mockOnClose} />);
 
-      const closeButton = screen.getByLabelText('Close');
+      const closeButton = screen.getByLabelText('Close node details');
       expect(closeButton).toBeInTheDocument();
     });
 
     it('should have proper semantic structure with headings', () => {
       renderWithProviders(<NodeDetailPanel node={mockNode} onClose={mockOnClose} />);
 
-      const heading = screen.getByRole('heading', { name: 'Test IAM Role' });
+      const heading = screen.getByRole('heading', { name: 'Test IAM Role', level: 2 });
       expect(heading).toBeInTheDocument();
     });
   });

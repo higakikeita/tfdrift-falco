@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { logger } from '../utils/logger';
 
 const SSE_URL = import.meta.env.VITE_SSE_URL || 'http://localhost:8080/api/v1/stream';
 
@@ -107,7 +108,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
           const data = JSON.parse(event.data);
           handleEvent('connected', data);
         } catch (err) {
-          console.error('[SSE] Failed to parse connected event:', err);
+          logger.error('[SSE] Failed to parse connected event:', err);
         }
       });
 
@@ -117,7 +118,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
           const data = JSON.parse(event.data);
           handleEvent('drift', data);
         } catch (err) {
-          console.error('[SSE] Failed to parse drift event:', err);
+          logger.error('[SSE] Failed to parse drift event:', err);
         }
       });
 
@@ -127,7 +128,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
           const data = JSON.parse(event.data);
           handleEvent('falco', data);
         } catch (err) {
-          console.error('[SSE] Failed to parse falco event:', err);
+          logger.error('[SSE] Failed to parse falco event:', err);
         }
       });
 
@@ -137,7 +138,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
           const data = JSON.parse(event.data);
           handleEvent('state_change', data);
         } catch (err) {
-          console.error('[SSE] Failed to parse state_change event:', err);
+          logger.error('[SSE] Failed to parse state_change event:', err);
         }
       });
 
@@ -147,7 +148,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
       };
 
       es.onerror = (event) => {
-        console.error('[SSE] Error:', event);
+        logger.error('[SSE] Error:', event);
         setIsConnected(false);
         setIsConnecting(false);
         setError(new Error('SSE connection error'));
@@ -160,7 +161,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
 
       eventSource.current = es;
     } catch (err) {
-      console.error('[SSE] Connection failed:', err);
+      logger.error('[SSE] Connection failed:', err);
       setError(err instanceof Error ? err : new Error('Unknown error'));
       setIsConnecting(false);
       scheduleReconnect();

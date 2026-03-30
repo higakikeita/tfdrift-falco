@@ -11,34 +11,36 @@ export function Header() {
   const segments = location.pathname.split('/').filter(Boolean);
 
   return (
-    <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 transition-colors">
+    <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 transition-colors" role="banner">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1 text-sm">
+      <nav className="flex items-center gap-1 text-sm" aria-label="Breadcrumb">
         <span className="text-slate-400 dark:text-slate-500">TFDrift</span>
         {segments.map((seg, i) => (
           <span key={seg} className="flex items-center gap-1">
-            <ChevronRight className="h-3.5 w-3.5 text-slate-300 dark:text-slate-600" />
+            <ChevronRight className="h-3.5 w-3.5 text-slate-300 dark:text-slate-600" aria-hidden="true" />
             <span
               className={
                 i === segments.length - 1
                   ? 'text-slate-900 dark:text-slate-100 font-medium'
                   : 'text-slate-400 dark:text-slate-500'
               }
+              aria-current={i === segments.length - 1 ? 'page' : undefined}
             >
               {seg.charAt(0).toUpperCase() + seg.slice(1)}
             </span>
           </span>
         ))}
-      </div>
+      </nav>
 
       {/* Right side */}
       <div className="flex items-center gap-3">
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" aria-hidden="true" />
           <input
             type="text"
             placeholder="Search events..."
+            aria-label="Search events"
             className="pl-9 pr-3 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-56 transition-colors"
           />
         </div>
@@ -50,14 +52,14 @@ export function Header() {
           aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
         >
-          {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          {theme === 'dark' ? <Sun className="h-5 w-5" aria-hidden="true" /> : <Moon className="h-5 w-5" aria-hidden="true" />}
         </button>
 
         {/* Notifications — real-time via SSE (#16) */}
         <NotificationPanel />
 
         {/* User avatar */}
-        <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
+        <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium" aria-label="User profile" title="User profile">
           K
         </div>
       </div>

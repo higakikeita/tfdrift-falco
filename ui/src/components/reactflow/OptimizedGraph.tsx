@@ -177,6 +177,19 @@ export const OptimizedGraph = memo(({
 
   return (
     <div className="relative w-full h-full">
+      {/* Accessibility: Live region for status announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        Graph loaded with {finalNodes.length} nodes and {finalEdges.length} edges.
+        {shouldUseLODRendering && ' Level of detail rendering enabled.'}
+        {shouldCluster && ' Clustering enabled.'}
+        {shouldLoadProgressively && ` Progressive loading: ${progress}% complete.`}
+      </div>
+
       {/* Progressive loading indicator */}
       {isLoading && shouldLoadProgressively && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-white rounded-lg shadow-lg px-4 py-2 flex items-center gap-3">
@@ -192,6 +205,7 @@ export const OptimizedGraph = memo(({
           <button
             onClick={skipToEnd}
             className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+            aria-label="Skip to end of loading"
           >
             Skip
           </button>
@@ -200,28 +214,31 @@ export const OptimizedGraph = memo(({
 
       {/* Cluster controls */}
       {shouldCluster && showControls && (
-        <div className="absolute top-4 right-4 z-10 bg-white rounded-lg shadow-lg p-3 flex flex-col gap-2">
-          <div className="text-xs font-bold text-gray-700 mb-1">
+        <div className="absolute top-4 right-4 z-10 bg-white rounded-lg shadow-lg p-3 flex flex-col gap-2" role="group" aria-label="Cluster controls">
+          <h3 className="text-xs font-bold text-gray-700 mb-1" id="cluster-controls-title">
             Cluster Controls
-          </div>
+          </h3>
           <button
             onClick={expandAll}
             className="px-3 py-1.5 text-xs font-medium bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            aria-label="Expand all clusters"
           >
             Expand All
           </button>
           <button
             onClick={collapseAll}
             className="px-3 py-1.5 text-xs font-medium bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+            aria-label="Collapse all clusters"
           >
             Collapse All
           </button>
-          <div className="text-[10px] text-gray-500 mt-1">
+          <div className="text-[10px] text-gray-500 mt-1" aria-live="polite">
             {Array.from(clusterMap.keys()).length} clusters
           </div>
           <button
             onClick={() => setShowControls(false)}
             className="text-[10px] text-gray-400 hover:text-gray-600"
+            aria-label="Hide cluster controls"
           >
             Hide
           </button>
@@ -232,6 +249,7 @@ export const OptimizedGraph = memo(({
         <button
           onClick={() => setShowControls(true)}
           className="absolute top-4 right-4 z-10 px-2 py-1 bg-white rounded-lg shadow-lg text-xs text-gray-600 hover:text-gray-800"
+          aria-label="Show cluster controls"
         >
           Show Controls
         </button>
@@ -247,45 +265,48 @@ export const OptimizedGraph = memo(({
       </div>
 
       {/* ReactFlow */}
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange as OnNodesChange}
-        onEdgesChange={onEdgesChange as OnEdgesChange}
-        onNodeClick={handleNodeClick}
-        onEdgeClick={handleEdgeClick}
-        nodeTypes={nodeTypes}
-        defaultEdgeOptions={defaultEdgeOptions}
-        fitView
-        fitViewOptions={{
-          padding: 0.2,
-          maxZoom: 1.5,
-        }}
-        minZoom={0.1}
-        maxZoom={2}
-        attributionPosition="bottom-right"
-        proOptions={{ hideAttribution: true }}
-      >
-        <Background gap={16} size={1} color="#e2e8f0" />
-        <Controls showInteractive={false} />
-        <MiniMap
-          nodeColor={(node) => {
-            if (node.type === 'cluster') return '#9ca3af'; // gray-400
-            const severity = node.data?.severity;
-            switch (severity) {
-              case 'critical': return '#ef4444'; // red-500
-              case 'high': return '#f97316'; // orange-500
-              case 'medium': return '#eab308'; // yellow-500
-              case 'low': return '#3b82f6'; // blue-500
-              default: return '#6b7280'; // gray-500
-            }
+      <div role="img" aria-label={`Network graph with ${finalNodes.length} nodes and ${finalEdges.length} edges`}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange as OnNodesChange}
+          onEdgesChange={onEdgesChange as OnEdgesChange}
+          onNodeClick={handleNodeClick}
+          onEdgeClick={handleEdgeClick}
+          nodeTypes={nodeTypes}
+          defaultEdgeOptions={defaultEdgeOptions}
+          fitView
+          fitViewOptions={{
+            padding: 0.2,
+            maxZoom: 1.5,
           }}
-          maskColor="rgba(0, 0, 0, 0.05)"
-          style={{
-            backgroundColor: '#f8fafc',
-          }}
-        />
-      </ReactFlow>
+          minZoom={0.1}
+          maxZoom={2}
+          attributionPosition="bottom-right"
+          proOptions={{ hideAttribution: true }}
+        >
+          <Background gap={16} size={1} color="#e2e8f0" />
+          <Controls showInteractive={false} />
+          <MiniMap
+            nodeColor={(node) => {
+              if (node.type === 'cluster') return '#9ca3af'; // gray-400
+              const severity = node.data?.severity;
+              switch (severity) {
+                case 'critical': return '#ef4444'; // red-500
+                case 'high': return '#f97316'; // orange-500
+                case 'medium': return '#eab308'; // yellow-500
+                case 'low': return '#3b82f6'; // blue-500
+                default: return '#6b7280'; // gray-500
+              }
+            }}
+            maskColor="rgba(0, 0, 0, 0.05)"
+            style={{
+              backgroundColor: '#f8fafc',
+            }}
+            aria-label="Minimap preview of the network graph"
+          />
+        </ReactFlow>
+      </div>
     </div>
   );
 });

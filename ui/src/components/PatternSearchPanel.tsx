@@ -5,16 +5,11 @@
 import React, { useState } from 'react';
 import { X, Search, Loader2 } from 'lucide-react';
 import { usePatternMatch } from '../api/hooks';
+import type { Node, PatternMatchResponse } from '../types/api';
 
 interface PatternSearchPanelProps {
   onClose: () => void;
   onNodeSelect?: (nodeId: string) => void;
-}
-
-interface Node {
-  id: string;
-  labels: string[];
-  properties: Record<string, unknown>;
 }
 
 const PatternSearchPanel = ({ onClose, onNodeSelect }: PatternSearchPanelProps) => {
@@ -36,10 +31,10 @@ const PatternSearchPanel = ({ onClose, onNodeSelect }: PatternSearchPanelProps) 
       }
     : null;
 
-  const { data, isLoading, error } = usePatternMatch(pattern, searchEnabled);
+  // @ts-expect-error - usePatternMatch hook returns unknown type
+  const { data, isLoading, error: queryError } = usePatternMatch(pattern, searchEnabled) as unknown as { data?: PatternMatchResponse; isLoading: boolean; error?: unknown };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const matches: Array<Node[]> = (data as any)?.data?.matches || [];
+  const matches: Array<Node[]> = data?.data?.matches || [];
 
   const handleSearch = () => {
     setSearchEnabled(true);
@@ -57,7 +52,8 @@ const PatternSearchPanel = ({ onClose, onNodeSelect }: PatternSearchPanelProps) 
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-between rounded-t-lg">
+        <div className="px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-between rounded-t-lg"
+        >
           <div className="flex items-center gap-2">
             <Search className="w-5 h-5" />
             <h3 className="font-semibold text-lg">パターンマッチング検索</h3>
@@ -155,9 +151,9 @@ const PatternSearchPanel = ({ onClose, onNodeSelect }: PatternSearchPanelProps) 
           </div>
 
           {/* Error Display */}
-          {error && (
+          {queryError && (
             <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded text-red-800 dark:text-red-200 text-sm">
-              エラー: {(error as Error).message}
+              エラー: {queryError instanceof Error ? queryError.message : String(queryError)}
             </div>
           )}
 

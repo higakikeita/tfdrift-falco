@@ -10,6 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	UnifiedDiffMethod = "unified"
+	SideBySideMethod  = "sidebyside"
+)
+
 func TestNewFormatter(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -436,6 +441,128 @@ func TestFormatUnmanagedResource(t *testing.T) {
 	assert.Contains(t, result, "developer")
 	assert.Contains(t, result, "Resource not found in Terraform state")
 	assert.Contains(t, result, "terraform import")
+}
+
+func TestFormatConsole_WithColors(t *testing.T) {
+	formatter := NewFormatter(true) // Enable colors
+
+	alert := &types.DriftAlert{
+		Severity:     "critical",
+		ResourceType: "aws_rds_instance",
+		ResourceName: "db-primary",
+		ResourceID:   "i-rds123",
+		Attribute:    "backup_retention_days",
+		OldValue:     30,
+		NewValue:     0,
+		UserIdentity: types.UserIdentity{
+			UserName:  "ops-user",
+			Type:      "IAMUser",
+			AccountID: "123456789012",
+		},
+		Timestamp: "2025-01-15T16:00:00Z",
+	}
+
+	result := formatter.FormatConsole(alert)
+
+	// Should contain ANSI color codes when colors are enabled
+	assert.Contains(t, result, "DRIFT DETECTED")
+	assert.Contains(t, result, "CRITICAL")
+	assert.Greater(t, len(result), 100) // Should be longer due to color codes
+}
+
+func TestFormatJSON_EdgeCases(t *testing.T) {
+	formatter := NewFormatter(false)
+
+	tests := []struct {
+		name     string
+		oldValue interface{}
+		newValue interface{}
+	}{
+		{
+			name:     "Nil values",
+			oldValue: nil,
+			newValue: nil,
+		},
+		{
+			name:     "Empty slice",
+			oldValue: []interface{}{},
+			newValue: []interface{}{"item"},
+		},
+		{
+			name:     "Empty map",
+			oldValue: map[string]interface{}{},
+			newValue: map[string]interface{}{"key": "value"},
+		},
+		{
+			name:     "Complex nested",
+			oldValue: map[string]interface{}{"nested": []interface{}{"a", "b"}},
+			newValue: map[string]interface{}{"nested": []interface{}{"a", "b", "c"}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			alert := &types.DriftAlert{
+				Severity:     "low",
+				ResourceType: "aws_test",
+				ResourceName: "test",
+				ResourceID:   "test-id",
+				Attribute:    "test_attr",
+				OldValue:     tt.oldValue,
+				NewValue:     tt.newValue,
+				UserIdentity: types.UserIdentity{
+					UserName:  "testuser",
+					AccountID: "123456789012",
+				},
+				Timestamp: "2025-01-15T17:00:00Z",
+			}
+
+			result, err := formatter.FormatJSON(alert)
+			assert.NoError(t, err)
+
+			var jsonData map[string]interface{}
+			err = json.Unmarshal([]byte(result), &jsonData)
+			assert.NoError(t, err)
+			assert.NotNil(t, jsonData["change"])
+		})
+	}
+}
+
+func TestFormatMarkdown_AllSeverities(t *testing.T) {
+	formatter := NewFormatter(false)
+
+	severities := []string{"critical", "high", "medium", "low"}
+	expectedEmojis := map[string]string{
+		"critical": "🔴",
+		"high":     "🟠",
+		"medium":   "🟡",
+		"low":      "🟢",
+	}
+
+	for _, severity := range severities {
+		t.Run(severity, func(t *testing.T) {
+			alert := &types.DriftAlert{
+				Severity:     severity,
+				ResourceType: "aws_instance",
+				ResourceName: "test",
+				ResourceID:   "i-test",
+				Attribute:    "test",
+				OldValue:     "old",
+				NewValue:     "new",
+				UserIdentity: types.UserIdentity{
+					UserName:  "user",
+					AccountID: "123456789012",
+				},
+				Timestamp: "2025-01-15T18:00:00Z",
+			}
+
+			result := formatter.FormatMarkdown(alert)
+
+			assert.Contains(t, result, "## 🚨 Drift Detected:")
+			assert.Contains(t, result, expectedEmojis[severity])
+			assert.Contains(t, result, strings.ToUpper(severity))
+		})
+	}
 }
 
 func TestFormatUnmanagedResourceMarkdown(t *testing.T) {

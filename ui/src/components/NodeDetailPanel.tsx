@@ -5,18 +5,13 @@
 import React, { useMemo } from 'react';
 import { X, Network, ArrowRight, ArrowLeft, Loader2, Target } from 'lucide-react';
 import { useDependencies, useDependents, useNodeNeighbors, useNode, useImpactRadius } from '../api/hooks';
+import type { Node, NodeResponse, DependenciesResponse, DependentsResponse, NodeNeighborsResponse, ImpactRadiusResponse } from '../types/api';
 
 interface NodeDetailPanelProps {
   nodeId: string;
   onClose: () => void;
   onNodeSelect?: (nodeId: string) => void;
   onShowImpactRadius?: (nodeIds: string[], depth: number) => void;
-}
-
-interface Node {
-  id: string;
-  labels: string[];
-  properties: Record<string, unknown>;
 }
 
 type TabType = 'overview' | 'relationships' | 'impact';
@@ -27,25 +22,20 @@ const NodeDetailPanel = ({ nodeId, onClose, onNodeSelect, onShowImpactRadius }: 
   const [showImpact, setShowImpact] = React.useState(false);
 
   // Fetch node data
-  const { data: nodeData, isLoading: nodeLoading } = useNode(nodeId);
-  const { data: dependenciesData, isLoading: depsLoading } = useDependencies(nodeId, 2);
-  const { data: dependentsData, isLoading: deptsLoading } = useDependents(nodeId, 2);
-  const { data: neighborsData, isLoading: neighborsLoading } = useNodeNeighbors(nodeId);
-  const { data: impactData, isLoading: impactLoading } = useImpactRadius(nodeId, impactDepth, showImpact);
+  const { data: nodeData, isLoading: nodeLoading } = useNode(nodeId) as unknown as { data?: NodeResponse; isLoading: boolean };
+  const { data: dependenciesData, isLoading: depsLoading } = useDependencies(nodeId, 2) as unknown as { data?: DependenciesResponse; isLoading: boolean };
+  const { data: dependentsData, isLoading: deptsLoading } = useDependents(nodeId, 2) as unknown as { data?: DependentsResponse; isLoading: boolean };
+  const { data: neighborsData, isLoading: neighborsLoading } = useNodeNeighbors(nodeId) as unknown as { data?: NodeNeighborsResponse; isLoading: boolean };
+  const { data: impactData, isLoading: impactLoading } = useImpactRadius(nodeId, impactDepth, showImpact) as unknown as { data?: ImpactRadiusResponse; isLoading: boolean };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const node: Node | null = (nodeData as any)?.data?.node || null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const dependencies: Node[] = (dependenciesData as any)?.data?.dependencies || [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const dependents: Node[] = (dependentsData as any)?.data?.dependents || [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const neighbors: Node[] = (neighborsData as any)?.data?.neighbors || [];
+  const node: Node | null = nodeData?.data?.node || null;
+  const dependencies: Node[] = dependenciesData?.data?.dependencies || [];
+  const dependents: Node[] = dependentsData?.data?.dependents || [];
+  const neighbors: Node[] = neighborsData?.data?.neighbors || [];
 
   // Wrap impactNodes in useMemo to prevent dependency changes on every render
   const impactNodes = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (impactData as any)?.data?.nodes || [];
+    return impactData?.data?.nodes || [];
   }, [impactData]);
 
   const handleNodeClick = (clickedNodeId: string) => {

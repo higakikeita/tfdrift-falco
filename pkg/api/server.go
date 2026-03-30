@@ -16,6 +16,7 @@ import (
 	"github.com/keitahigaki/tfdrift-falco/pkg/config"
 	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
 	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
+	"github.com/keitahigaki/tfdrift-falco/pkg/rbac"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	log "github.com/sirupsen/logrus"
 )
@@ -88,6 +89,11 @@ func (s *Server) setupRouter() {
 	r.Use(middleware.Recoverer)
 	r.Use(apimiddleware.NewCORS().Handler)
 
+	// Security middleware
+	r.Use(apimiddleware.SecurityHeaders)
+	r.Use(apimiddleware.InputValidation(apimiddleware.DefaultValidationConfig()))
+	r.Use(apimiddleware.RateLimit(apimiddleware.DefaultRateLimitConfig()))
+
 	// Health check (no /api/v1 prefix for simplicity)
 	healthHandler := handlers.NewHealthHandler(s.version)
 	r.Get("/health", healthHandler.GetHealth)
@@ -105,56 +111,65 @@ func (s *Server) setupRouter() {
 			// Timeout for non-streaming API routes
 			r.Use(middleware.Timeout(60 * time.Second))
 
-			// Graph endpoints
-			graphHandler := handlers.NewGraphHandler(s.graphStore)
-			r.Get("/graph", graphHandler.GetGraph)
-			r.Get("/graph/nodes", graphHandler.GetNodes)
-			r.Get("/graph/edges", graphHandler.GetEdges)
+			// Graph endpoints (read-only, requires Viewer role)
+			r.Group(func(r chi.Router) {
+				r.Use(apimiddleware.RequireRole(rbac.RoleViewer))
+				graphHandler := handlers.NewGraphHandler(s.graphStore)
+				r.Get("/graph", graphHandler.GetGraph)
+				r.Get("/graph/nodes", graphHandler.GetNodes)
+				r.Get("/graph/edges", graphHandler.GetEdges)
 
-			// Graph Query endpoints (Neo4j-style)
-			graphQueryHandler := handlers.NewGraphQueryHandler(s.graphStore)
-			r.Get("/graph/nodes/{id}", graphQueryHandler.GetNode)
-			r.Get("/graph/path", graphQueryHandler.GetPath)
-			r.Get("/graph/impact/{id}", graphQueryHandler.GetImpactRadius)
-			r.Get("/graph/dependencies/{id}", graphQueryHandler.GetDependencies)
-			r.Get("/graph/dependents/{id}", graphQueryHandler.GetDependents)
-			r.Get("/graph/critical", graphQueryHandler.GetCriticalNodes)
-			r.Get("/graph/neighbors/{id}", graphQueryHandler.GetNeighbors)
-			r.Get("/graph/relationships/{id}", graphQueryHandler.GetRelationships)
-			r.Get("/graph/stats", graphQueryHandler.GetGraphStats)
-			r.Post("/graph/match", graphQueryHandler.MatchPattern)
+				// Graph Query endpoints (Neo4j-style, read-only)
+				graphQueryHandler := handlers.NewGraphQueryHandler(s.graphStore)
+				r.Get("/graph/nodes/{id}", graphQueryHandler.GetNode)
+				r.Get("/graph/path", graphQueryHandler.GetPath)
+				r.Get("/graph/impact/{id}", graphQueryHandler.GetImpactRadius)
+				r.Get("/graph/dependencies/{id}", graphQueryHandler.GetDependencies)
+				r.Get("/graph/dependents/{id}", graphQueryHandler.GetDependents)
+				r.Get("/graph/critical", graphQueryHandler.GetCriticalNodes)
+				r.Get("/graph/neighbors/{id}", graphQueryHandler.GetNeighbors)
+				r.Get("/graph/relationships/{id}", graphQueryHandler.GetRelationships)
+				r.Get("/graph/stats", graphQueryHandler.GetGraphStats)
 
-			// State endpoints (Phase 2)
-			stateHandler := handlers.NewStateHandler(s.stateManager)
-			r.Get("/state", stateHandler.GetState)
-			r.Get("/state/resources", stateHandler.GetResources)
-			r.Get("/state/resource/{id}", stateHandler.GetResource)
+				// State endpoints (read-only)
+				stateHandler := handlers.NewStateHandler(s.stateManager)
+				r.Get("/state", stateHandler.GetState)
+				r.Get("/state/resources", stateHandler.GetResources)
+				r.Get("/state/resource/{id}", stateHandler.GetResource)
 
-			// Events endpoints (Phase 2)
-			eventsHandler := handlers.NewEventsHandler(s.graphStore)
-			r.Get("/events", eventsHandler.GetEvents)
-			r.Get("/events/{id}", eventsHandler.GetEvent)
+				// Events endpoints (read-only)
+				eventsHandler := handlers.NewEventsHandler(s.graphStore)
+				r.Get("/events", eventsHandler.GetEvents)
+				r.Get("/events/{id}", eventsHandler.GetEvent)
 
-			// Drifts endpoints (Phase 2)
-			driftsHandler := handlers.NewDriftsHandler(s.graphStore)
-			r.Get("/drifts", driftsHandler.GetDrifts)
-			r.Get("/drifts/{id}", driftsHandler.GetDrift)
+				// Drifts endpoints (read-only)
+				driftsHandler := handlers.NewDriftsHandler(s.graphStore)
+				r.Get("/drifts", driftsHandler.GetDrifts)
+				r.Get("/drifts/{id}", driftsHandler.GetDrift)
 
-			// Stats endpoints (Phase 2)
-			statsHandler := handlers.NewStatsHandler(s.graphStore)
-			r.Get("/stats", statsHandler.GetStats)
+				// Stats endpoints (read-only)
+				statsHandler := handlers.NewStatsHandler(s.graphStore)
+				r.Get("/stats", statsHandler.GetStats)
 
-			// Discovery endpoints (AWS resource discovery and drift detection)
-			discoveryHandler := handlers.NewDiscoveryHandler(s.stateManager)
-			r.Get("/discovery/scan", discoveryHandler.DiscoverAWSResources)
-			r.Get("/discovery/drift", discoveryHandler.DetectDrift)
-			r.Get("/discovery/drift/summary", discoveryHandler.GetDriftSummary)
+				// Discovery endpoints (read-only, requires Viewer)
+				discoveryHandler := handlers.NewDiscoveryHandler(s.stateManager)
+				r.Get("/discovery/scan", discoveryHandler.DiscoverAWSResources)
+				r.Get("/discovery/drift", discoveryHandler.DetectDrift)
+				r.Get("/discovery/drift/summary", discoveryHandler.GetDriftSummary)
 
-			// Provider status endpoints (multi-cloud monitoring)
-			providerStatusHandler := handlers.NewProviderStatusHandler(s.detector.GetProviderRegistry())
-			r.Get("/providers", providerStatusHandler.GetProviderStatus)
-			r.Get("/providers/status", providerStatusHandler.GetProviderStatus)
-			r.Get("/providers/summary", providerStatusHandler.GetProviderSummary)
+				// Provider status endpoints (read-only, requires Viewer)
+				providerStatusHandler := handlers.NewProviderStatusHandler(s.detector.GetProviderRegistry())
+				r.Get("/providers", providerStatusHandler.GetProviderStatus)
+				r.Get("/providers/status", providerStatusHandler.GetProviderStatus)
+				r.Get("/providers/summary", providerStatusHandler.GetProviderSummary)
+			})
+
+			// Graph match endpoint requires Editor role
+			r.Group(func(r chi.Router) {
+				r.Use(apimiddleware.RequireRole(rbac.RoleEditor))
+				graphQueryHandler := handlers.NewGraphQueryHandler(s.graphStore)
+				r.Post("/graph/match", graphQueryHandler.MatchPattern)
+			})
 		})
 	})
 
