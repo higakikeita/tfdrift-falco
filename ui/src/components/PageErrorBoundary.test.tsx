@@ -142,7 +142,7 @@ describe('PageErrorBoundary', () => {
   });
 
   it('renders multiple error boundaries independently', () => {
-    const { rerender } = render(
+    render(
       <>
         <PageErrorBoundary pageName="Page1">
           <ThrowError shouldThrow={true} />

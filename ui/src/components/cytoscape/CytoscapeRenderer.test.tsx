@@ -4,7 +4,6 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen } from '@testing-library/react';
 import { renderWithProviders, createMockCytoscapeNode, createMockCytoscapeEdge } from '@/__tests__/utils/testUtils';
 import { CytoscapeRenderer } from './CytoscapeRenderer';
 import type { CytoscapeElements } from '../../types/graph';
@@ -82,7 +81,7 @@ vi.mock('../../styles/cytoscapeStyles', () => ({
 }));
 
 describe('CytoscapeRenderer', () => {
-  const cyRef = React.createRef<any>();
+  const cyRef = React.createRef<unknown>();
 
   const createMockElements = (): CytoscapeElements => ({
     nodes: [

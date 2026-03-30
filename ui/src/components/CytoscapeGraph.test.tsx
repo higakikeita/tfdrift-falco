@@ -5,29 +5,24 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { CytoscapeGraph } from './CytoscapeGraph';
 import type { CytoscapeElements } from '../types/graph';
 
 // Mock CytoscapeRenderer
-vi.mock('./cytoscape/CytoscapeRenderer', () => {
-  const React = require('react');
-  return {
-    CytoscapeRenderer: (props: any) => React.createElement('div', { 'data-testid': 'cytoscape-renderer' }),
-    default: (props: any) => React.createElement('div', { 'data-testid': 'cytoscape-renderer' }),
-  };
-});
+vi.mock('./cytoscape/CytoscapeRenderer', () => ({
+  CytoscapeRenderer: () =>
+    React.createElement('div', { 'data-testid': 'cytoscape-renderer' }),
+  default: () =>
+    React.createElement('div', { 'data-testid': 'cytoscape-renderer' }),
+}));
 
 // Mock CytoscapeToolbar
-vi.mock('./cytoscape/CytoscapeToolbar', () => {
-  const React = require('react');
-  return {
-    CytoscapeToolbar: (props: any) =>
-      React.createElement('div', { 'data-testid': 'cytoscape-toolbar' }, `Toolbar: Layout ${props.currentLayout}`),
-    default: (props: any) =>
-      React.createElement('div', { 'data-testid': 'cytoscape-toolbar' }, `Toolbar: Layout ${props.currentLayout}`),
-  };
-});
+vi.mock('./cytoscape/CytoscapeToolbar', () => ({
+  CytoscapeToolbar: (props: Record<string, unknown>) =>
+    React.createElement('div', { 'data-testid': 'cytoscape-toolbar' }, `Toolbar: Layout ${props.currentLayout}`),
+  default: (props: Record<string, unknown>) =>
+    React.createElement('div', { 'data-testid': 'cytoscape-toolbar' }, `Toolbar: Layout ${props.currentLayout}`),
+}));
 
 describe('CytoscapeGraph', () => {
   const mockElements: CytoscapeElements = {
@@ -107,10 +102,9 @@ describe('CytoscapeGraph', () => {
   });
 
   it('renders selected node info when node is selected', async () => {
-    const user = userEvent.setup();
     const onNodeClick = vi.fn();
 
-    const { rerender } = render(
+    render(
       <CytoscapeGraph
         {...defaultProps}
         onNodeClick={onNodeClick}
@@ -198,8 +192,7 @@ describe('CytoscapeGraph', () => {
   });
 
   it('renders selected node panel', async () => {
-    const user = userEvent.setup();
-    const { rerender } = render(
+    render(
       <CytoscapeGraph
         {...defaultProps}
       />

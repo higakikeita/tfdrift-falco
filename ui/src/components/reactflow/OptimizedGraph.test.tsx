@@ -5,30 +5,30 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
-import { renderWithProviders, createMockCytoscapeNode, createMockCytoscapeEdge } from '@/__tests__/utils/testUtils';
+import { renderWithProviders } from '@/__tests__/utils/testUtils';
 import { OptimizedGraph } from './OptimizedGraph';
 import type { Node, Edge } from 'reactflow';
 
 // Mock ReactFlow
 vi.mock('reactflow', () => ({
-  default: ({ children, ...props }: any) => (
+  default: ({ children, ...props }: Record<string, unknown>) => (
     <div data-testid="react-flow" {...props}>
       {children}
     </div>
   ),
-  ReactFlowProvider: ({ children }: any) => <div>{children}</div>,
+  ReactFlowProvider: ({ children }: Record<string, unknown>) => <div>{children}</div>,
   Background: () => <div data-testid="background" />,
   Controls: () => <div data-testid="controls" />,
   MiniMap: () => <div data-testid="minimap" />,
-  useNodesState: (initial: any[]) => [initial || [], vi.fn(), vi.fn()],
-  useEdgesState: (initial: any[]) => [initial || [], vi.fn(), vi.fn()],
+  useNodesState: (initial: unknown[]) => [initial || [], vi.fn(), vi.fn()],
+  useEdgesState: (initial: unknown[]) => [initial || [], vi.fn(), vi.fn()],
   ConnectionLineType: { SmoothStep: 'smoothstep' },
   MarkerType: { ArrowClosed: 'arrowclosed' },
 }));
 
 // Mock hooks
 vi.mock('../../hooks/useProgressiveGraph', () => ({
-  useProgressiveGraph: (nodes: any[], edges: any[]) => ({
+  useProgressiveGraph: (nodes: unknown[], edges: unknown[]) => ({
     visibleNodes: nodes,
     visibleEdges: edges,
     progress: 100,
@@ -42,7 +42,7 @@ vi.mock('../../hooks/useProgressiveGraph', () => ({
 }));
 
 vi.mock('../../utils/graphClustering', () => ({
-  useGraphClustering: (nodes: any[], edges: any[]) => ({
+  useGraphClustering: (nodes: unknown[], edges: unknown[]) => ({
     visibleNodes: nodes,
     visibleEdges: edges,
     clusterMap: new Map(),
@@ -53,28 +53,28 @@ vi.mock('../../utils/graphClustering', () => ({
 }));
 
 vi.mock('../../utils/memoryOptimization', () => ({
-  useDebounce: (value: any) => value,
+  useDebounce: (value: unknown) => value,
 }));
 
 // Mock LODNode
 vi.mock('./LODNode', () => ({
-  LODNode: ({ data }: any) => (
-    <div data-testid="lod-node">{data?.label}</div>
+  LODNode: ({ data }: Record<string, unknown>) => (
+    <div data-testid="lod-node">{(data as Record<string, unknown>)?.label}</div>
   ),
   shouldUseLOD: (nodeCount: number) => nodeCount > 500,
 }));
 
 // Mock ClusterNode
 vi.mock('./ClusterNode', () => ({
-  ClusterNode: ({ data }: any) => (
-    <div data-testid="cluster-node">{data?.label}</div>
+  ClusterNode: ({ data }: Record<string, unknown>) => (
+    <div data-testid="cluster-node">{(data as Record<string, unknown>)?.label}</div>
   ),
 }));
 
 // Mock CustomNode
 vi.mock('./CustomNode', () => ({
-  CustomNode: ({ data }: any) => (
-    <div data-testid="custom-node">{data?.label}</div>
+  CustomNode: ({ data }: Record<string, unknown>) => (
+    <div data-testid="custom-node">{(data as Record<string, unknown>)?.label}</div>
   ),
 }));
 

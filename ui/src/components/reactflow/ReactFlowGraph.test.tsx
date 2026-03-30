@@ -4,27 +4,27 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
-import { renderWithProviders, createMockCytoscapeNode, createMockCytoscapeEdge, userEvent } from '@/__tests__/utils/testUtils';
+import { screen } from '@testing-library/react';
+import { renderWithProviders, createMockCytoscapeNode, createMockCytoscapeEdge } from '@/__tests__/utils/testUtils';
 import { ReactFlowGraph } from './ReactFlowGraph';
 import type { CytoscapeElements } from '../../types/graph';
 
 // Mock ReactFlow and dependencies
 vi.mock('reactflow', () => ({
-  default: ({ children, ...props }: any) => (
+  default: ({ children, ...props }: Record<string, unknown>) => (
     <div data-testid="react-flow" {...props}>
       {children}
     </div>
   ),
-  ReactFlowProvider: ({ children }: any) => <div>{children}</div>,
+  ReactFlowProvider: ({ children }: Record<string, unknown>) => <div>{children}</div>,
   MiniMap: () => <div data-testid="minimap" />,
   Controls: () => <div data-testid="controls" />,
   Background: () => <div data-testid="background" />,
-  Panel: ({ children, position }: any) => (
+  Panel: ({ children, position }: Record<string, unknown>) => (
     <div data-testid={`panel-${position}`}>{children}</div>
   ),
-  useNodesState: (initial: any[]) => [initial || [], vi.fn(), vi.fn()],
-  useEdgesState: (initial: any[]) => [initial || [], vi.fn(), vi.fn()],
+  useNodesState: (initial: unknown[]) => [initial || [], vi.fn(), vi.fn()],
+  useEdgesState: (initial: unknown[]) => [initial || [], vi.fn(), vi.fn()],
   useReactFlow: () => ({
     getNodes: vi.fn(() => []),
     setViewport: vi.fn(),
@@ -44,57 +44,57 @@ vi.mock('html-to-image', () => ({
 }));
 
 vi.mock('./CustomNode', () => ({
-  CustomNode: ({ data }: any) => (
-    <div data-testid="custom-node">{data?.label}</div>
+  CustomNode: ({ data }: Record<string, unknown>) => (
+    <div data-testid="custom-node">{(data as Record<string, unknown>)?.label}</div>
   ),
 }));
 
 vi.mock('./HierarchicalNodes', () => ({
-  RegionGroupNode: ({ data }: any) => (
-    <div data-testid="region-group-node">{data?.label}</div>
+  RegionGroupNode: ({ data }: Record<string, unknown>) => (
+    <div data-testid="region-group-node">{(data as Record<string, unknown>)?.label}</div>
   ),
-  VPCGroupNode: ({ data }: any) => (
-    <div data-testid="vpc-group-node">{data?.label}</div>
+  VPCGroupNode: ({ data }: Record<string, unknown>) => (
+    <div data-testid="vpc-group-node">{(data as Record<string, unknown>)?.label}</div>
   ),
-  AZGroupNode: ({ data }: any) => (
-    <div data-testid="az-group-node">{data?.label}</div>
+  AZGroupNode: ({ data }: Record<string, unknown>) => (
+    <div data-testid="az-group-node">{(data as Record<string, unknown>)?.label}</div>
   ),
-  SubnetGroupNode: ({ data }: any) => (
-    <div data-testid="subnet-group-node">{data?.label}</div>
+  SubnetGroupNode: ({ data }: Record<string, unknown>) => (
+    <div data-testid="subnet-group-node">{(data as Record<string, unknown>)?.label}</div>
   ),
 }));
 
 vi.mock('./NodeDetailPanel', () => ({
-  NodeDetailPanel: ({ node }: any) => (
+  NodeDetailPanel: ({ node }: Record<string, unknown>) => (
     <div data-testid="node-detail-panel">
-      {node && <div>{node.id}</div>}
+      {node && <div>{(node as Record<string, unknown>).id}</div>}
     </div>
   ),
 }));
 
 vi.mock('../../utils/reactFlowAdapter', () => ({
   convertToReactFlow: (elements: CytoscapeElements) => ({
-    nodes: (elements.nodes || []).map((node: any) => ({
-      id: node.data.id,
+    nodes: (elements.nodes || []).map((node: Record<string, unknown>) => ({
+      id: (node.data as Record<string, unknown>).id,
       data: node.data,
       position: { x: 0, y: 0 },
       type: 'custom',
     })),
-    edges: (elements.edges || []).map((edge: any) => ({
-      id: edge.data.id,
-      source: edge.data.source,
-      target: edge.data.target,
+    edges: (elements.edges || []).map((edge: Record<string, unknown>) => ({
+      id: (edge.data as Record<string, unknown>).id,
+      source: (edge.data as Record<string, unknown>).source,
+      target: (edge.data as Record<string, unknown>).target,
       data: edge.data,
     })),
   }),
-  highlightPath: (nodes: any[], edges: any[], path: string[]) => ({
-    nodes: nodes.map((n: any) => ({
+  highlightPath: (nodes: unknown[], edges: unknown[], path: string[]) => ({
+    nodes: nodes.map((n: Record<string, unknown>) => ({
       ...n,
-      style: { ...n.style, opacity: path.includes(n.id) ? 1 : 0.3 },
+      style: { ...(n.style as Record<string, unknown>), opacity: path.includes(n.id as string) ? 1 : 0.3 },
     })),
-    edges: edges.map((e: any) => ({
+    edges: edges.map((e: Record<string, unknown>) => ({
       ...e,
-      style: { ...e.style, opacity: 1 },
+      style: { ...(e.style as Record<string, unknown>), opacity: 1 },
     })),
   }),
 }));

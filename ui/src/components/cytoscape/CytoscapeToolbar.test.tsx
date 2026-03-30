@@ -6,7 +6,7 @@ import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { Core, LayoutOptions } from 'cytoscape';
+import type { Core } from 'cytoscape';
 import { CytoscapeToolbar, type LayoutType } from './CytoscapeToolbar';
 
 // Mock cytoscape layoutConfigs
