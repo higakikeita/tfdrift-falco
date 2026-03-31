@@ -1,5 +1,9 @@
 import React from 'react';
 
+// Import utilities - they're re-exported for consumers of this module
+// eslint-disable-next-line react-refresh/only-export-components
+export { getProviderFromType, getProviderColor, getOfficialIconPath, ALL_ICON_MAPPINGS } from './iconUtils';
+
 // Official AWS React Icons from aws-react-icons package
 // Based on AWS Architecture Icons | Version Q1 2025
 import {
@@ -442,63 +446,4 @@ export const OfficialCloudIcon: React.FC<OfficialIconProps> = ({
 
   // 6. Generic fallback
   return <DefaultFallbackIcon size={size} className={className} />;
-};
-
-// ============================================================
-// Helper: Get icon path (for Cytoscape background-image)
-// Now returns data URI SVGs instead of file paths
-// ============================================================
-// eslint-disable-next-line react-refresh/only-export-components
-export const getOfficialIconPath = (type: string): string => {
-  // Return provider-specific placeholder SVG data URIs
-  const normalizedType = type.toLowerCase().replace(/^k8s_/, 'kubernetes_');
-
-  if (normalizedType.startsWith('aws_')) {
-    return "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="2" fill="%23232F3E"/><text x="12" y="14" text-anchor="middle" fill="%23FF9900" font-size="6" font-weight="bold">AWS</text></svg>');
-  }
-  if (normalizedType.startsWith('gcp_') || normalizedType.startsWith('google_')) {
-    return "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="2" fill="%234285F4"/><text x="12" y="14" text-anchor="middle" fill="white" font-size="5" font-weight="bold">GCP</text></svg>');
-  }
-  if (normalizedType.startsWith('kubernetes_') || normalizedType.startsWith('k8s_')) {
-    return "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="2" fill="%23326CE5"/><text x="12" y="14" text-anchor="middle" fill="white" font-size="5" font-weight="bold">K8s</text></svg>');
-  }
-  if (normalizedType.startsWith('terraform_') || normalizedType.startsWith('tf_')) {
-    return "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="2" fill="%237B42BC"/><text x="12" y="14" text-anchor="middle" fill="white" font-size="6" font-weight="bold">TF</text></svg>');
-  }
-
-  return "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="2" fill="%23607D8B"/><circle cx="12" cy="12" r="4" stroke="white" stroke-width="1.5" fill="none"/></svg>');
-};
-
-// ============================================================
-// Exported mappings for use in other components
-// ============================================================
-// eslint-disable-next-line react-refresh/only-export-components
-export const ALL_ICON_MAPPINGS = {
-  ...Object.fromEntries(Object.keys(AWS_ICON_MAPPING).map(k => [k, 'aws'])),
-  ...Object.fromEntries(Object.keys(GCP_ICON_MAPPING).map(k => [k, 'gcp'])),
-  ...Object.fromEntries(Object.keys(K8S_ICON_MAPPING).map(k => [k, 'kubernetes'])),
-  ...Object.fromEntries(Object.keys(SPECIAL_ICON_MAPPING).map(k => [k, 'special'])),
-};
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const getProviderFromType = (type: string): string => {
-  const t = type.toLowerCase();
-  if (t.startsWith('aws_')) return 'aws';
-  if (t.startsWith('gcp_') || t.startsWith('google_')) return 'gcp';
-  if (t.startsWith('kubernetes_') || t.startsWith('k8s_')) return 'kubernetes';
-  if (t.startsWith('terraform_') || t.startsWith('tf_')) return 'terraform';
-  if (t.startsWith('falco')) return 'falco';
-  return 'unknown';
-};
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const getProviderColor = (provider: string): string => {
-  switch (provider) {
-    case 'aws': return '#FF9900';
-    case 'gcp': return '#4285F4';
-    case 'kubernetes': return '#326CE5';
-    case 'terraform': return '#7B42BC';
-    case 'falco': return '#00AEC7';
-    default: return '#607D8B';
-  }
 };

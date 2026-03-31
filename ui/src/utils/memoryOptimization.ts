@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/purity */
 /**
  * Memory Optimization Utilities
  * Performance helpers for large-scale graph rendering
@@ -13,14 +12,17 @@ import { useMemo, useCallback, useRef, useEffect } from 'react';
  */
 export function useDebounce<T>(value: T, delay: number = 300): T {
   const [debouncedValue, setDebouncedValue] = React.useState<T>(value);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  React.useEffect(() => {
-    const handler = setTimeout(() => {
+  useEffect(() => {
+    timeoutRef.current = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
 
     return () => {
-      clearTimeout(handler);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, [value, delay]);
 
@@ -33,15 +35,21 @@ export function useDebounce<T>(value: T, delay: number = 300): T {
  */
 export function useThrottle<T>(value: T, limit: number = 100): T {
   const [throttledValue, setThrottledValue] = React.useState<T>(value);
-  const lastRan = useRef(Date.now());
+  const lastRan = useRef<number | null>(null);
 
   React.useEffect(() => {
+    if (lastRan.current === null) {
+      lastRan.current = performance.now();
+    }
+
     const handler = setTimeout(() => {
-      if (Date.now() - lastRan.current >= limit) {
+      const now = performance.now();
+      const elapsed = now - (lastRan.current ?? 0);
+      if (elapsed >= limit) {
         setThrottledValue(value);
-        lastRan.current = Date.now();
+        lastRan.current = now;
       }
-    }, limit - (Date.now() - lastRan.current));
+    }, Math.max(0, limit - ((lastRan.current ? performance.now() - lastRan.current : 0))));
 
     return () => {
       clearTimeout(handler);
@@ -58,12 +66,17 @@ export function useThrottle<T>(value: T, limit: number = 100): T {
 export function useMemoizedFilter<T>(
   items: T[],
   filterFn: (item: T) => boolean,
-  dependencies: unknown[] = []
+  dependencies: readonly unknown[] = []
 ): T[] {
-  return useMemo(() => {
-    return items.filter(filterFn);
+  const memoizedFilterFn = useCallback(
+    (item: T) => filterFn(item),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, ...dependencies]);
+    [filterFn, ...dependencies]
+  );
+
+  return useMemo(() => {
+    return items.filter(memoizedFilterFn);
+  }, [items, memoizedFilterFn]);
 }
 
 /**
@@ -72,12 +85,17 @@ export function useMemoizedFilter<T>(
 export function useMemoizedSort<T>(
   items: T[],
   compareFn: (a: T, b: T) => number,
-  dependencies: unknown[] = []
+  dependencies: readonly unknown[] = []
 ): T[] {
-  return useMemo(() => {
-    return [...items].sort(compareFn);
+  const memoizedCompareFn = useCallback(
+    (a: T, b: T) => compareFn(a, b),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, ...dependencies]);
+    [compareFn, ...dependencies]
+  );
+
+  return useMemo(() => {
+    return [...items].sort(memoizedCompareFn);
+  }, [items, memoizedCompareFn]);
 }
 
 /**
@@ -154,12 +172,17 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
  * Batch update hook using requestAnimationFrame
  * Schedules updates for next animation frame
  */
-export function useAnimationFrame(callback: () => void, dependencies: unknown[]) {
+export function useAnimationFrame(callback: () => void, dependencies: readonly unknown[]) {
+  const callbackRef = useRef(callback);
+
   useEffect(() => {
-    const frameId = requestAnimationFrame(callback);
+    callbackRef.current = callback;
+  }, [callback]);
+
+  useEffect(() => {
+    const frameId = requestAnimationFrame(() => callbackRef.current());
     return () => cancelAnimationFrame(frameId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, dependencies);
+  }, [...dependencies]);
 }
 
 /**
@@ -167,17 +190,24 @@ export function useAnimationFrame(callback: () => void, dependencies: unknown[])
  * Tracks render count and execution time
  */
 export function usePerformanceMonitor() {
-  const renderCount = useRef(0);
-  const startTime = useRef(performance.now());
+  const renderCountRef = useRef(0);
+  const startTimeRef = useRef<number | null>(null);
+  const [renderCount, setRenderCount] = React.useState(0);
+
+  if (startTimeRef.current === null) {
+    // eslint-disable-next-line react-hooks/purity -- performance.now() in ref init is safe, only runs once
+    startTimeRef.current = performance.now();
+  }
+  renderCountRef.current++;
 
   useEffect(() => {
-    renderCount.current++;
     const endTime = performance.now();
-    startTime.current = endTime;
-  });
+    startTimeRef.current = endTime;
+    setRenderCount(renderCountRef.current);
+  }, []);
 
   return {
-    renderCount: renderCount.current,
+    renderCount,
   };
 }
 

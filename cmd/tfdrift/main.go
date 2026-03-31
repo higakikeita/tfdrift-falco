@@ -6,13 +6,9 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"strconv"
-	"strings"
 	"syscall"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api"
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
+	"github.com/keitahigaki/tfdrift-falco/pkg/app"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -76,30 +72,6 @@ func run(_ *cobra.Command, _ []string) {
 	// Initialize logger
 	initLogger()
 
-	log.Infof("Starting TFDrift-Falco v%s", version)
-
-	var cfg *config.Config
-	var err error
-
-	// Load configuration
-	if autoDetect {
-		log.Info("Auto-detection mode enabled")
-		cfg, err = loadAutoConfig()
-		if err != nil {
-			log.Fatalf("Auto-detection failed: %v", err)
-		}
-	} else {
-		cfg, err = config.Load(cfgFile)
-		if err != nil {
-			log.Fatalf("Failed to load configuration: %v", err)
-		}
-	}
-
-	if dryRun {
-		log.Info("Running in DRY-RUN mode - notifications disabled")
-		cfg.DryRun = true
-	}
-
 	// Create context with cancellation
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -113,123 +85,30 @@ func run(_ *cobra.Command, _ []string) {
 		cancel()
 	}()
 
-	// Initialize detector
-	det, err := detector.New(cfg)
-	if err != nil {
-		log.Fatalf("Failed to initialize detector: %v", err)
+	// Create app configuration from command line flags
+	appCfg := &app.Config{
+		ConfigFile:          cfgFile,
+		AutoDetect:          autoDetect,
+		OutputMode:          outputMode,
+		DryRun:              dryRun,
+		Daemon:              daemon,
+		Interactive:         interactive,
+		ServerMode:          serverMode,
+		APIPort:             apiPort,
+		RegionOverride:      regionOverride,
+		FalcoEndpoint:       falcoEndpoint,
+		StatePathOverride:   statePathOverride,
+		BackendTypeOverride: backendTypeOverride,
+		Version:             version,
 	}
 
-	if serverMode {
-		// API Server mode
-		log.Info("Starting TFDrift-Falco in API server mode")
-		srv := api.NewServer(cfg, det, apiPort, version)
-
-		// Connect detector to broadcaster for real-time events
-		det.SetBroadcaster(srv.GetBroadcaster())
-
-		// Start detector in background
-		go func() {
-			log.Info("Starting drift detection engine...")
-			if err := det.Start(ctx); err != nil {
-				log.Errorf("Detector error: %v", err)
-			}
-		}()
-
-		// Start API server (blocks until shutdown)
-		if err := srv.Start(ctx); err != nil {
-			log.Fatalf("API server error: %v", err)
-		}
-	} else {
-		// Standard detection mode
-		log.Info("Drift detection started")
-		if err := det.Start(ctx); err != nil {
-			log.Fatalf("Detector error: %v", err)
-		}
+	// Create and run the application
+	application := app.New(appCfg)
+	if err := application.Run(ctx); err != nil {
+		log.Fatalf("Application error: %v", err)
 	}
 
 	log.Info("TFDrift-Falco stopped")
-}
-
-func loadAutoConfig() (*config.Config, error) {
-	// Get current working directory
-	workDir, err := os.Getwd()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get current directory: %w", err)
-	}
-
-	log.Infof("Searching for Terraform state in: %s", workDir)
-
-	// Auto-detect Terraform state
-	result, err := config.AutoDetectTerraformState(workDir)
-	if err != nil {
-		return nil, fmt.Errorf("auto-detection error: %w", err)
-	}
-
-	// Print detection results
-	config.PrintAutoDetectHelp(result)
-
-	// Check if state was found
-	if !result.Found {
-		return nil, fmt.Errorf("no Terraform state detected")
-	}
-
-	// Create configuration from auto-detection results
-	cfg, err := config.CreateAutoConfig(result)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create config from auto-detection: %w", err)
-	}
-
-	// Apply L1 Semi-auto mode overrides
-	if err := applyConfigOverrides(cfg); err != nil {
-		return nil, fmt.Errorf("failed to apply config overrides: %w", err)
-	}
-
-	log.Info("✓ Auto-detection successful, starting drift detection...")
-	return cfg, nil
-}
-
-// applyConfigOverrides applies L1 semi-auto mode flag overrides to the config
-func applyConfigOverrides(cfg *config.Config) error {
-	// Override AWS regions if specified
-	if len(regionOverride) > 0 {
-		cfg.Providers.AWS.Regions = regionOverride
-		log.Infof("✓ Using custom region(s): %v", regionOverride)
-	}
-
-	// Override Falco endpoint if specified
-	if falcoEndpoint != "" {
-		parts := strings.Split(falcoEndpoint, ":")
-		if len(parts) != 2 {
-			return fmt.Errorf("invalid Falco endpoint format (expected host:port): %s", falcoEndpoint)
-		}
-
-		port, err := strconv.Atoi(parts[1])
-		if err != nil {
-			return fmt.Errorf("invalid port in Falco endpoint: %s", parts[1])
-		}
-
-		cfg.Falco.Hostname = parts[0]
-		cfg.Falco.Port = uint16(port)
-		log.Infof("✓ Using custom Falco endpoint: %s", falcoEndpoint)
-	}
-
-	// Override state path if specified
-	if statePathOverride != "" {
-		cfg.Providers.AWS.State.LocalPath = statePathOverride
-		cfg.Providers.AWS.State.Backend = "local"
-		log.Infof("✓ Using custom state path: %s", statePathOverride)
-	}
-
-	// Override backend type if specified
-	if backendTypeOverride != "" {
-		if backendTypeOverride != "local" && backendTypeOverride != "s3" {
-			return fmt.Errorf("invalid backend type (must be 'local' or 's3'): %s", backendTypeOverride)
-		}
-		cfg.Providers.AWS.State.Backend = backendTypeOverride
-		log.Infof("✓ Using backend type: %s", backendTypeOverride)
-	}
-
-	return nil
 }
 
 func initLogger() {

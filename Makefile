@@ -64,13 +64,13 @@ test-coverage:
 	@$(GO) tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 
-## test-coverage-threshold: Run tests and enforce minimum coverage (60%)
+## test-coverage-threshold: Run tests and enforce minimum coverage (70%)
 test-coverage-threshold:
 	@echo "Running tests with coverage threshold check..."
 	$(GO) test -coverprofile=coverage.out -covermode=atomic $$($(GO) list ./... | grep -v 'tests/e2e\|tests/load')
 	@COVERAGE=$$($(GO) tool cover -func=coverage.out | grep total | awk '{print $$3}' | sed 's/%//'); \
 	echo "Total coverage: $${COVERAGE}%"; \
-	THRESHOLD=60.0; \
+	THRESHOLD=70.0; \
 	if [ $$(echo "$${COVERAGE} < $${THRESHOLD}" | bc -l) -eq 1 ]; then \
 		echo "❌ Coverage $${COVERAGE}% is below threshold $${THRESHOLD}%"; \
 		exit 1; \

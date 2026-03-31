@@ -201,7 +201,7 @@ func (c *GitHubClient) createBranch(ctx context.Context, branchName, sha string)
 
 	resp, err := c.doRequest(ctx, http.MethodPost, url, body)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create branch: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -335,7 +335,7 @@ func (c *GitHubClient) updateRef(ctx context.Context, branchName, sha string) er
 
 	resp, err := c.doRequest(ctx, http.MethodPatch, url, body)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to update branch reference: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -365,7 +365,7 @@ func (c *GitHubClient) createPullRequest(ctx context.Context, req *PRRequest) (*
 
 	resp, err := c.doRequest(ctx, http.MethodPost, url, body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create pull request: %w", err)
 	}
 	defer resp.Body.Close()
 

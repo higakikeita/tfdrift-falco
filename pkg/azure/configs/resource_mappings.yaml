@@ -1,0 +1,413 @@
+# Azure Activity Log Event Mappings for tfdrift-falco
+# This file defines Azure operation names to Terraform resource type mappings
+# and relevant event operation names for drift detection
+
+relevant_events:
+  # Compute - Virtual Machines
+  - Microsoft.Compute/virtualMachines/write
+  - Microsoft.Compute/virtualMachines/delete
+  - Microsoft.Compute/virtualMachines/start/action
+  - Microsoft.Compute/virtualMachines/powerOff/action
+  - Microsoft.Compute/virtualMachines/restart/action
+  - Microsoft.Compute/virtualMachines/deallocate/action
+
+  # Compute - Virtual Machine Scale Sets
+  - Microsoft.Compute/virtualMachineScaleSets/write
+  - Microsoft.Compute/virtualMachineScaleSets/delete
+
+  # Network - Security Groups
+  - Microsoft.Network/networkSecurityGroups/write
+  - Microsoft.Network/networkSecurityGroups/delete
+  - Microsoft.Network/networkSecurityGroups/securityRules/write
+  - Microsoft.Network/networkSecurityGroups/securityRules/delete
+
+  # Network - Virtual Networks
+  - Microsoft.Network/virtualNetworks/write
+  - Microsoft.Network/virtualNetworks/delete
+  - Microsoft.Network/virtualNetworks/subnets/write
+  - Microsoft.Network/virtualNetworks/subnets/delete
+
+  # Network - Load Balancer
+  - Microsoft.Network/loadBalancers/write
+  - Microsoft.Network/loadBalancers/delete
+  - Microsoft.Network/loadBalancers/backendAddressPools/write
+  - Microsoft.Network/loadBalancers/backendAddressPools/delete
+
+  # Network - Public IP
+  - Microsoft.Network/publicIPAddresses/write
+  - Microsoft.Network/publicIPAddresses/delete
+
+  # Network - Network Interfaces
+  - Microsoft.Network/networkInterfaces/write
+  - Microsoft.Network/networkInterfaces/delete
+
+  # Network - Route Tables
+  - Microsoft.Network/routeTables/write
+  - Microsoft.Network/routeTables/delete
+  - Microsoft.Network/routeTables/routes/write
+  - Microsoft.Network/routeTables/routes/delete
+
+  # Network - CDN
+  - Microsoft.Cdn/profiles/write
+  - Microsoft.Cdn/profiles/delete
+  - Microsoft.Cdn/profiles/endpoints/write
+  - Microsoft.Cdn/profiles/endpoints/delete
+
+  # Network - Front Door
+  - Microsoft.Network/frontDoors/write
+  - Microsoft.Network/frontDoors/delete
+
+  # Network - Application Gateway
+  - Microsoft.Network/applicationGateways/write
+  - Microsoft.Network/applicationGateways/delete
+
+  # Network - Firewall
+  - Microsoft.Network/azureFirewalls/write
+  - Microsoft.Network/azureFirewalls/delete
+  - Microsoft.Network/firewallPolicies/write
+  - Microsoft.Network/firewallPolicies/delete
+
+  # Network - Private Endpoints
+  - Microsoft.Network/privateEndpoints/write
+  - Microsoft.Network/privateEndpoints/delete
+
+  # Storage - Storage Accounts
+  - Microsoft.Storage/storageAccounts/write
+  - Microsoft.Storage/storageAccounts/delete
+
+  # Storage - Blob Services
+  - Microsoft.Storage/storageAccounts/blobServices/write
+  - Microsoft.Storage/storageAccounts/blobServices/delete
+
+  # SQL - Servers
+  - Microsoft.Sql/servers/write
+  - Microsoft.Sql/servers/delete
+
+  # SQL - Databases
+  - Microsoft.Sql/servers/databases/write
+  - Microsoft.Sql/servers/databases/delete
+
+  # Cosmos DB
+  - Microsoft.DocumentDB/databaseAccounts/write
+  - Microsoft.DocumentDB/databaseAccounts/delete
+
+  # Key Vault
+  - Microsoft.KeyVault/vaults/write
+  - Microsoft.KeyVault/vaults/delete
+  - Microsoft.KeyVault/vaults/secrets/write
+  - Microsoft.KeyVault/vaults/secrets/delete
+  - Microsoft.KeyVault/vaults/keys/write
+  - Microsoft.KeyVault/vaults/keys/delete
+
+  # App Service - Web Apps & Function Apps
+  - Microsoft.Web/sites/write
+  - Microsoft.Web/sites/delete
+
+  # App Service - App Service Plans
+  - Microsoft.Web/serverfarms/write
+  - Microsoft.Web/serverfarms/delete
+
+  # Kubernetes - AKS
+  - Microsoft.ContainerService/managedClusters/write
+  - Microsoft.ContainerService/managedClusters/delete
+
+  # Container Registry
+  - Microsoft.ContainerRegistry/registries/write
+  - Microsoft.ContainerRegistry/registries/delete
+
+  # DNS
+  - Microsoft.Network/dnszones/write
+  - Microsoft.Network/dnszones/delete
+  - Microsoft.Network/dnszones/recordSets/write
+  - Microsoft.Network/dnszones/recordSets/delete
+
+  # Redis Cache
+  - Microsoft.Cache/redis/write
+  - Microsoft.Cache/redis/delete
+
+  # Service Bus
+  - Microsoft.ServiceBus/namespaces/write
+  - Microsoft.ServiceBus/namespaces/delete
+  - Microsoft.ServiceBus/namespaces/queues/write
+  - Microsoft.ServiceBus/namespaces/queues/delete
+  - Microsoft.ServiceBus/namespaces/topics/write
+  - Microsoft.ServiceBus/namespaces/topics/delete
+
+  # Event Grid
+  - Microsoft.EventGrid/topics/write
+  - Microsoft.EventGrid/topics/delete
+
+  # Monitoring - Alert Rules
+  - Microsoft.Insights/metricAlerts/write
+  - Microsoft.Insights/metricAlerts/delete
+  - Microsoft.Insights/scheduledQueryRules/write
+  - Microsoft.Insights/scheduledQueryRules/delete
+
+  # Monitoring - Diagnostic Settings
+  - Microsoft.Insights/diagnosticSettings/write
+  - Microsoft.Insights/diagnosticSettings/delete
+
+  # Monitoring - Action Groups
+  - Microsoft.Insights/actionGroups/write
+  - Microsoft.Insights/actionGroups/delete
+
+  # Log Analytics
+  - Microsoft.OperationalInsights/workspaces/write
+  - Microsoft.OperationalInsights/workspaces/delete
+
+  # Identity - Managed Identities
+  - Microsoft.ManagedIdentity/userAssignedIdentities/write
+  - Microsoft.ManagedIdentity/userAssignedIdentities/delete
+
+  # Policy - Policy Assignments
+  - Microsoft.Authorization/policyAssignments/write
+  - Microsoft.Authorization/policyAssignments/delete
+
+  # Authorization - Role Assignments
+  - Microsoft.Authorization/roleAssignments/write
+  - Microsoft.Authorization/roleAssignments/delete
+
+  # Authorization - Resource Locks
+  - Microsoft.Authorization/locks/write
+  - Microsoft.Authorization/locks/delete
+
+  # API Management
+  - Microsoft.ApiManagement/service/write
+  - Microsoft.ApiManagement/service/delete
+  - Microsoft.ApiManagement/service/apis/write
+  - Microsoft.ApiManagement/service/apis/delete
+
+event_to_resource_type:
+  # COMPUTE
+  Microsoft.Compute/virtualMachines/write: azurerm_virtual_machine
+  Microsoft.Compute/virtualMachines/delete: azurerm_virtual_machine
+  Microsoft.Compute/virtualMachines/start/action: azurerm_virtual_machine
+  Microsoft.Compute/virtualMachines/powerOff/action: azurerm_virtual_machine
+  Microsoft.Compute/virtualMachines/restart/action: azurerm_virtual_machine
+  Microsoft.Compute/virtualMachines/deallocate/action: azurerm_virtual_machine
+  Microsoft.Compute/virtualMachineScaleSets/write: azurerm_virtual_machine_scale_set
+  Microsoft.Compute/virtualMachineScaleSets/delete: azurerm_virtual_machine_scale_set
+  Microsoft.Compute/images/write: azurerm_image
+  Microsoft.Compute/images/delete: azurerm_image
+  Microsoft.Compute/snapshots/write: azurerm_snapshot
+  Microsoft.Compute/snapshots/delete: azurerm_snapshot
+  Microsoft.Compute/disks/write: azurerm_managed_disk
+  Microsoft.Compute/disks/delete: azurerm_managed_disk
+
+  # NETWORKING
+  Microsoft.Network/networkSecurityGroups/write: azurerm_network_security_group
+  Microsoft.Network/networkSecurityGroups/delete: azurerm_network_security_group
+  Microsoft.Network/networkSecurityGroups/securityRules/write: azurerm_network_security_rule
+  Microsoft.Network/networkSecurityGroups/securityRules/delete: azurerm_network_security_rule
+  Microsoft.Network/virtualNetworks/write: azurerm_virtual_network
+  Microsoft.Network/virtualNetworks/delete: azurerm_virtual_network
+  Microsoft.Network/virtualNetworks/subnets/write: azurerm_subnet
+  Microsoft.Network/virtualNetworks/subnets/delete: azurerm_subnet
+  Microsoft.Network/loadBalancers/write: azurerm_lb
+  Microsoft.Network/loadBalancers/delete: azurerm_lb
+  Microsoft.Network/loadBalancers/backendAddressPools/write: azurerm_lb_backend_address_pool
+  Microsoft.Network/loadBalancers/backendAddressPools/delete: azurerm_lb_backend_address_pool
+  Microsoft.Network/loadBalancers/rules/write: azurerm_lb_rule
+  Microsoft.Network/loadBalancers/rules/delete: azurerm_lb_rule
+  Microsoft.Network/publicIPAddresses/write: azurerm_public_ip
+  Microsoft.Network/publicIPAddresses/delete: azurerm_public_ip
+  Microsoft.Network/networkInterfaces/write: azurerm_network_interface
+  Microsoft.Network/networkInterfaces/delete: azurerm_network_interface
+  Microsoft.Network/routeTables/write: azurerm_route_table
+  Microsoft.Network/routeTables/delete: azurerm_route_table
+  Microsoft.Network/routeTables/routes/write: azurerm_route
+  Microsoft.Network/routeTables/routes/delete: azurerm_route
+  Microsoft.Network/applicationGateways/write: azurerm_application_gateway
+  Microsoft.Network/applicationGateways/delete: azurerm_application_gateway
+  Microsoft.Network/azureFirewalls/write: azurerm_firewall
+  Microsoft.Network/azureFirewalls/delete: azurerm_firewall
+  Microsoft.Network/firewallPolicies/write: azurerm_firewall_policy
+  Microsoft.Network/firewallPolicies/delete: azurerm_firewall_policy
+  Microsoft.Network/firewallPolicies/ruleCollectionGroups/write: azurerm_firewall_policy_rule_collection_group
+  Microsoft.Network/firewallPolicies/ruleCollectionGroups/delete: azurerm_firewall_policy_rule_collection_group
+  Microsoft.Network/privateEndpoints/write: azurerm_private_endpoint
+  Microsoft.Network/privateEndpoints/delete: azurerm_private_endpoint
+  Microsoft.Cdn/profiles/write: azurerm_cdn_profile
+  Microsoft.Cdn/profiles/delete: azurerm_cdn_profile
+  Microsoft.Cdn/profiles/endpoints/write: azurerm_cdn_endpoint
+  Microsoft.Cdn/profiles/endpoints/delete: azurerm_cdn_endpoint
+  Microsoft.Network/frontDoors/write: azurerm_frontdoor
+  Microsoft.Network/frontDoors/delete: azurerm_frontdoor
+  Microsoft.Network/trafficManagerProfiles/write: azurerm_traffic_manager_profile
+  Microsoft.Network/trafficManagerProfiles/delete: azurerm_traffic_manager_profile
+  Microsoft.Network/expressRouteCircuits/write: azurerm_express_route_circuit
+  Microsoft.Network/expressRouteCircuits/delete: azurerm_express_route_circuit
+  Microsoft.Network/vpnGateways/write: azurerm_vpn_gateway
+  Microsoft.Network/vpnGateways/delete: azurerm_vpn_gateway
+  Microsoft.Network/virtualNetworkGateways/write: azurerm_virtual_network_gateway
+  Microsoft.Network/virtualNetworkGateways/delete: azurerm_virtual_network_gateway
+  Microsoft.Network/localNetworkGateways/write: azurerm_local_network_gateway
+  Microsoft.Network/localNetworkGateways/delete: azurerm_local_network_gateway
+
+  # STORAGE
+  Microsoft.Storage/storageAccounts/write: azurerm_storage_account
+  Microsoft.Storage/storageAccounts/delete: azurerm_storage_account
+  Microsoft.Storage/storageAccounts/blobServices/write: azurerm_storage_blob
+  Microsoft.Storage/storageAccounts/blobServices/delete: azurerm_storage_blob
+  Microsoft.Storage/storageAccounts/blobServices/containers/write: azurerm_storage_container
+  Microsoft.Storage/storageAccounts/blobServices/containers/delete: azurerm_storage_container
+  Microsoft.Storage/storageAccounts/fileServices/shares/write: azurerm_storage_share
+  Microsoft.Storage/storageAccounts/fileServices/shares/delete: azurerm_storage_share
+  Microsoft.Storage/storageAccounts/queueServices/queues/write: azurerm_storage_queue
+  Microsoft.Storage/storageAccounts/queueServices/queues/delete: azurerm_storage_queue
+  Microsoft.Storage/storageAccounts/tableServices/tables/write: azurerm_storage_table
+  Microsoft.Storage/storageAccounts/tableServices/tables/delete: azurerm_storage_table
+
+  # DATABASE
+  Microsoft.Sql/servers/write: azurerm_mssql_server
+  Microsoft.Sql/servers/delete: azurerm_mssql_server
+  Microsoft.Sql/servers/databases/write: azurerm_mssql_database
+  Microsoft.Sql/servers/databases/delete: azurerm_mssql_database
+  Microsoft.Sql/servers/failoverGroups/write: azurerm_mssql_failover_group
+  Microsoft.Sql/servers/failoverGroups/delete: azurerm_mssql_failover_group
+  Microsoft.Sql/servers/elasticPools/write: azurerm_mssql_elasticpool
+  Microsoft.Sql/servers/elasticPools/delete: azurerm_mssql_elasticpool
+  Microsoft.DBforMySQL/servers/write: azurerm_mysql_server
+  Microsoft.DBforMySQL/servers/delete: azurerm_mysql_server
+  Microsoft.DBforMySQL/servers/databases/write: azurerm_mysql_database
+  Microsoft.DBforMySQL/servers/databases/delete: azurerm_mysql_database
+  Microsoft.DBforPostgreSQL/servers/write: azurerm_postgresql_server
+  Microsoft.DBforPostgreSQL/servers/delete: azurerm_postgresql_server
+  Microsoft.DBforPostgreSQL/servers/databases/write: azurerm_postgresql_database
+  Microsoft.DBforPostgreSQL/servers/databases/delete: azurerm_postgresql_database
+  Microsoft.DocumentDB/databaseAccounts/write: azurerm_cosmosdb_account
+  Microsoft.DocumentDB/databaseAccounts/delete: azurerm_cosmosdb_account
+  Microsoft.DocumentDB/databaseAccounts/sqlDatabases/write: azurerm_cosmosdb_sql_database
+  Microsoft.DocumentDB/databaseAccounts/sqlDatabases/delete: azurerm_cosmosdb_sql_database
+  Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/write: azurerm_cosmosdb_sql_container
+  Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/delete: azurerm_cosmosdb_sql_container
+
+  # KEY VAULT & SECURITY
+  Microsoft.KeyVault/vaults/write: azurerm_key_vault
+  Microsoft.KeyVault/vaults/delete: azurerm_key_vault
+  Microsoft.KeyVault/vaults/secrets/write: azurerm_key_vault_secret
+  Microsoft.KeyVault/vaults/secrets/delete: azurerm_key_vault_secret
+  Microsoft.KeyVault/vaults/keys/write: azurerm_key_vault_key
+  Microsoft.KeyVault/vaults/keys/delete: azurerm_key_vault_key
+  Microsoft.KeyVault/vaults/certificates/write: azurerm_key_vault_certificate
+  Microsoft.KeyVault/vaults/certificates/delete: azurerm_key_vault_certificate
+  Microsoft.ManagedIdentity/userAssignedIdentities/write: azurerm_user_assigned_identity
+  Microsoft.ManagedIdentity/userAssignedIdentities/delete: azurerm_user_assigned_identity
+
+  # APP SERVICES
+  Microsoft.Web/sites/write: azurerm_app_service
+  Microsoft.Web/sites/delete: azurerm_app_service
+  Microsoft.Web/serverfarms/write: azurerm_app_service_plan
+  Microsoft.Web/serverfarms/delete: azurerm_app_service_plan
+  Microsoft.Web/staticSites/write: azurerm_static_web_app
+  Microsoft.Web/staticSites/delete: azurerm_static_web_app
+
+  # KUBERNETES
+  Microsoft.ContainerService/managedClusters/write: azurerm_kubernetes_cluster
+  Microsoft.ContainerService/managedClusters/delete: azurerm_kubernetes_cluster
+
+  # CONTAINERS
+  Microsoft.ContainerRegistry/registries/write: azurerm_container_registry
+  Microsoft.ContainerRegistry/registries/delete: azurerm_container_registry
+  Microsoft.ContainerInstance/containerGroups/write: azurerm_container_group
+  Microsoft.ContainerInstance/containerGroups/delete: azurerm_container_group
+
+  # MESSAGING
+  Microsoft.ServiceBus/namespaces/write: azurerm_servicebus_namespace
+  Microsoft.ServiceBus/namespaces/delete: azurerm_servicebus_namespace
+  Microsoft.ServiceBus/namespaces/queues/write: azurerm_servicebus_queue
+  Microsoft.ServiceBus/namespaces/queues/delete: azurerm_servicebus_queue
+  Microsoft.ServiceBus/namespaces/topics/write: azurerm_servicebus_topic
+  Microsoft.ServiceBus/namespaces/topics/delete: azurerm_servicebus_topic
+  Microsoft.ServiceBus/namespaces/topics/subscriptions/write: azurerm_servicebus_subscription
+  Microsoft.ServiceBus/namespaces/topics/subscriptions/delete: azurerm_servicebus_subscription
+  Microsoft.EventGrid/topics/write: azurerm_eventgrid_topic
+  Microsoft.EventGrid/topics/delete: azurerm_eventgrid_topic
+  Microsoft.EventGrid/domains/write: azurerm_eventgrid_domain
+  Microsoft.EventGrid/domains/delete: azurerm_eventgrid_domain
+  Microsoft.EventHub/namespaces/write: azurerm_eventhub_namespace
+  Microsoft.EventHub/namespaces/delete: azurerm_eventhub_namespace
+  Microsoft.EventHub/namespaces/eventhubs/write: azurerm_eventhub
+  Microsoft.EventHub/namespaces/eventhubs/delete: azurerm_eventhub
+
+  # MONITORING
+  Microsoft.Insights/metricAlerts/write: azurerm_monitor_metric_alert
+  Microsoft.Insights/metricAlerts/delete: azurerm_monitor_metric_alert
+  Microsoft.Insights/scheduledQueryRules/write: azurerm_monitor_scheduled_query_rules_alert
+  Microsoft.Insights/scheduledQueryRules/delete: azurerm_monitor_scheduled_query_rules_alert
+  Microsoft.Insights/actionGroups/write: azurerm_monitor_action_group
+  Microsoft.Insights/actionGroups/delete: azurerm_monitor_action_group
+  Microsoft.Insights/diagnosticSettings/write: azurerm_monitor_diagnostic_setting
+  Microsoft.Insights/diagnosticSettings/delete: azurerm_monitor_diagnostic_setting
+  Microsoft.OperationalInsights/workspaces/write: azurerm_log_analytics_workspace
+  Microsoft.OperationalInsights/workspaces/delete: azurerm_log_analytics_workspace
+  Microsoft.Insights/components/write: azurerm_application_insights
+  Microsoft.Insights/components/delete: azurerm_application_insights
+
+  # CACHE
+  Microsoft.Cache/redis/write: azurerm_redis_cache
+  Microsoft.Cache/redis/delete: azurerm_redis_cache
+
+  # DNS
+  Microsoft.Network/dnszones/write: azurerm_dns_zone
+  Microsoft.Network/dnszones/delete: azurerm_dns_zone
+  Microsoft.Network/dnszones/recordSets/write: azurerm_dns_a_record
+  Microsoft.Network/dnszones/recordSets/delete: azurerm_dns_a_record
+  Microsoft.Network/privateDnsZones/write: azurerm_private_dns_zone
+  Microsoft.Network/privateDnsZones/delete: azurerm_private_dns_zone
+
+  # API MANAGEMENT
+  Microsoft.ApiManagement/service/write: azurerm_api_management
+  Microsoft.ApiManagement/service/delete: azurerm_api_management
+  Microsoft.ApiManagement/service/apis/write: azurerm_api_management_api
+  Microsoft.ApiManagement/service/apis/delete: azurerm_api_management_api
+  Microsoft.ApiManagement/service/apis/operations/write: azurerm_api_management_api_operation
+  Microsoft.ApiManagement/service/apis/operations/delete: azurerm_api_management_api_operation
+
+  # AUTHORIZATION & GOVERNANCE
+  Microsoft.Authorization/roleAssignments/write: azurerm_role_assignment
+  Microsoft.Authorization/roleAssignments/delete: azurerm_role_assignment
+  Microsoft.Authorization/policyAssignments/write: azurerm_resource_group_policy_assignment
+  Microsoft.Authorization/policyAssignments/delete: azurerm_resource_group_policy_assignment
+  Microsoft.Authorization/locks/write: azurerm_management_lock
+  Microsoft.Authorization/locks/delete: azurerm_management_lock
+
+  # BATCH
+  Microsoft.Batch/batchAccounts/write: azurerm_batch_account
+  Microsoft.Batch/batchAccounts/delete: azurerm_batch_account
+  Microsoft.Batch/batchAccounts/pools/write: azurerm_batch_pool
+  Microsoft.Batch/batchAccounts/pools/delete: azurerm_batch_pool
+
+  # DATA FACTORY
+  Microsoft.DataFactory/factories/write: azurerm_data_factory
+  Microsoft.DataFactory/factories/delete: azurerm_data_factory
+  Microsoft.DataFactory/factories/pipelines/write: azurerm_data_factory_pipeline
+  Microsoft.DataFactory/factories/pipelines/delete: azurerm_data_factory_pipeline
+
+  # SEARCH
+  Microsoft.Search/searchServices/write: azurerm_search_service
+  Microsoft.Search/searchServices/delete: azurerm_search_service
+
+  # STREAM ANALYTICS
+  Microsoft.StreamAnalytics/streamingjobs/write: azurerm_stream_analytics_job
+  Microsoft.StreamAnalytics/streamingjobs/delete: azurerm_stream_analytics_job
+
+  # SYNAPSE
+  Microsoft.Synapse/workspaces/write: azurerm_synapse_workspace
+  Microsoft.Synapse/workspaces/delete: azurerm_synapse_workspace
+  Microsoft.Synapse/workspaces/bigDataPools/write: azurerm_synapse_spark_pool
+  Microsoft.Synapse/workspaces/bigDataPools/delete: azurerm_synapse_spark_pool
+
+  # LOGIC APPS
+  Microsoft.Logic/workflows/write: azurerm_logic_app_workflow
+  Microsoft.Logic/workflows/delete: azurerm_logic_app_workflow
+
+  # AUTOMATION
+  Microsoft.Automation/automationAccounts/write: azurerm_automation_account
+  Microsoft.Automation/automationAccounts/delete: azurerm_automation_account
+  Microsoft.Automation/automationAccounts/runbooks/write: azurerm_automation_runbook
+  Microsoft.Automation/automationAccounts/runbooks/delete: azurerm_automation_runbook
+
+  # RESOURCE GROUPS
+  Microsoft.Resources/resourceGroups/write: azurerm_resource_group
+  Microsoft.Resources/resourceGroups/delete: azurerm_resource_group

@@ -20,6 +20,7 @@ package gcp
 // Thread-safe: Multiple goroutines can safely call MapEventToResource concurrently.
 type ResourceMapper struct {
 	eventToResource map[string]string
+	config          *ResourceConfig
 }
 
 // NewResourceMapper creates a new resource mapper with pre-initialized mappings.
@@ -29,8 +30,17 @@ type ResourceMapper struct {
 //
 // Returns a ready-to-use mapper instance for event translation.
 func NewResourceMapper() *ResourceMapper {
+	cfg, err := LoadResourceConfig()
+	if err != nil {
+		// Fallback to hardcoded mappings if config loading fails
+		return &ResourceMapper{
+			eventToResource: initializeEventMapping(),
+		}
+	}
+
 	return &ResourceMapper{
-		eventToResource: initializeEventMapping(),
+		config:          cfg,
+		eventToResource: cfg.EventToResourceType,
 	}
 }
 

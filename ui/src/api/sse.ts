@@ -52,24 +52,6 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
   const [lastEvent, setLastEvent] = useState<SSEEvent | null>(null);
   const [events, setEvents] = useState<SSEEvent[]>([]);
 
-  // Schedule reconnect with exponential backoff
-  const scheduleReconnect = useCallback(() => {
-    if (reconnectCount.current >= reconnectAttempts) {
-      setError(new Error(`Failed to connect after ${reconnectAttempts} attempts`));
-      setIsConnecting(false);
-      return;
-    }
-
-    reconnectCount.current++;
-    const delay = reconnectDelay * Math.pow(2, reconnectCount.current - 1);
-
-
-    reconnectTimeout.current = setTimeout(() => {
-      connect();
-    }, delay);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reconnectAttempts, reconnectDelay]);
-
   // Handle incoming event
   const handleEvent = useCallback((type: SSEEventType, data: unknown) => {
     const event: SSEEvent = {
@@ -81,6 +63,23 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     setLastEvent(event);
     setEvents(prev => [...prev, event].slice(-100)); // Keep last 100 events
   }, []);
+
+  // Schedule reconnect with exponential backoff
+  const scheduleReconnect = useCallback(() => {
+    if (reconnectCount.current >= reconnectAttempts) {
+      setError(new Error(`Failed to connect after ${reconnectAttempts} attempts`));
+      setIsConnecting(false);
+      return;
+    }
+
+    reconnectCount.current++;
+    const delay = reconnectDelay * Math.pow(2, reconnectCount.current - 1);
+
+    reconnectTimeout.current = setTimeout(() => {
+      // Connect will be called from useEffect
+      setError(null);
+    }, delay);
+  }, [reconnectAttempts, reconnectDelay]);
 
   // Connect to SSE stream
   const connect = useCallback(() => {
@@ -195,14 +194,14 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
   // Auto-connect on mount
   useEffect(() => {
     if (autoConnect) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- connect() manages SSE subscription lifecycle, not direct state sync
       connect();
     }
 
     return () => {
       disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [autoConnect, connect, disconnect]);
 
   return {
     isConnected,
@@ -231,16 +230,20 @@ export function useSSEEvents(eventTypes: SSEEventType[]): SSEEvent[] {
 export function useSSEEventHandler(
   eventType: SSEEventType,
   callback: (data: unknown) => void,
-  dependencies: unknown[] = []
+  dependencies: readonly unknown[] = []
 ) {
   const { lastEvent } = useSSE();
+  const callbackRef = useRef(callback);
+
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
 
   useEffect(() => {
     if (lastEvent && lastEvent.type === eventType) {
-      callback(lastEvent.data);
+      callbackRef.current(lastEvent.data);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastEvent, eventType, ...dependencies]);
+  }, [lastEvent, eventType, ...Array.from(dependencies)]);
 }
 
 /**
