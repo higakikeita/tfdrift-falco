@@ -37,13 +37,10 @@ falco:
     - name: cloudtrail
       library_path: libcloudtrail.so
       init_config:
-        # Option A: Direct S3 polling (simple but higher latency)
-        # sqsQueue: ""  # Set if using SQS notifications
-        # aws_region: "ap-northeast-1"
-        # s3Bucket: ""  # CloudTrail S3 bucket
-
-        # Option B: SQS-based (recommended for production, lower latency)
-        sqsQueue: ""   # FILL IN: SQS queue URL for CloudTrail notifications
+        # SQS-based mode: Falco polls SQS for S3 notifications from CloudTrail.
+        # Get the SQS URL from Phase 1 output:
+        #   cd ../phase1-resources && terraform output -raw cloudtrail_sqs_url
+        sqsQueue: "REPLACE_WITH_SQS_URL"  # e.g. https://sqs.ap-northeast-1.amazonaws.com/230446364776/tfdrift-val-XXXX-cloudtrail-events
         aws_region: "ap-northeast-1"
       open_params: ""  # Leave empty for SQS mode
 

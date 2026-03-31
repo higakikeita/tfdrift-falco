@@ -183,7 +183,9 @@ resource "aws_iam_role_policy" "eks_node_cloudtrail" {
           "sqs:GetQueueAttributes",
           "sqs:GetQueueUrl"
         ]
-        Resource = var.cloudtrail_sqs_arn != "" ? [var.cloudtrail_sqs_arn] : ["*"]
+        Resource = var.cloudtrail_sqs_arn != "" ? [var.cloudtrail_sqs_arn] : [
+          "arn:aws:sqs:${var.aws_region}:*:tfdrift-val-*"
+        ]
       }
     ]
   })

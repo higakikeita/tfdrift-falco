@@ -37,3 +37,18 @@ output "name_prefix" {
   description = "Resource name prefix for reference"
   value       = local.name_prefix
 }
+
+output "cloudtrail_bucket" {
+  description = "CloudTrail S3 bucket name"
+  value       = aws_s3_bucket.cloudtrail.id
+}
+
+output "cloudtrail_sqs_url" {
+  description = "SQS queue URL for Falco CloudTrail plugin"
+  value       = aws_sqs_queue.cloudtrail.url
+}
+
+output "cloudtrail_sqs_arn" {
+  description = "SQS queue ARN"
+  value       = aws_sqs_queue.cloudtrail.arn
+}

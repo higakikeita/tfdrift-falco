@@ -55,23 +55,20 @@ terraform apply
 terraform output
 ```
 
-**Resources created**: VPC, 2 subnets, IGW, SG, EC2 (t4g.micro), S3 bucket, IAM role.
-**Estimated cost**: ~$5/month
+**Resources created**: VPC, 2 subnets, IGW, SG, EC2 (t4g.micro), S3 bucket, IAM role, CloudTrail trail, CloudTrail S3 bucket, SQS queue.
+**Estimated cost**: ~$7/month (CloudTrail free tier covers first trail)
 
 ## Phase 2: Create EKS Cluster (~15 min)
 
 ```bash
-# 1. Discover CloudTrail config
-./scripts/discover-cloudtrail.sh
-# Note the CloudTrail S3 bucket name
-
-# 2. Deploy EKS
+# 1. Deploy EKS (CloudTrail bucket/SQS created in Phase 1)
 cd phase2-eks
 terraform init
 terraform apply \
   -var="vpc_id=$(cd ../phase1-resources && terraform output -raw vpc_id)" \
-  -var='subnet_ids='"$(cd ../phase1-resources && terraform output -json subnet_ids)" \
-  -var="cloudtrail_bucket=YOUR_CLOUDTRAIL_BUCKET"
+  -var="subnet_ids=$(cd ../phase1-resources && terraform output -json subnet_ids)" \
+  -var="cloudtrail_bucket=$(cd ../phase1-resources && terraform output -raw cloudtrail_bucket)" \
+  -var="cloudtrail_sqs_arn=$(cd ../phase1-resources && terraform output -raw cloudtrail_sqs_arn)"
 
 # 3. Configure kubectl
 $(terraform output -raw kubeconfig_command)
@@ -90,8 +87,9 @@ cd phase3-deploy
 helm repo add falcosecurity https://falcosecurity.github.io/charts
 helm repo update
 
-# Edit falco-values.yaml: set sqsQueue or s3Bucket for CloudTrail
-vim falco-values.yaml
+# Get SQS URL from Phase 1 and update falco-values.yaml
+SQS_URL=$(cd ../phase1-resources && terraform output -raw cloudtrail_sqs_url)
+sed -i '' "s|REPLACE_WITH_SQS_URL|${SQS_URL}|" falco-values.yaml
 
 helm install falco falcosecurity/falco \
   -n falco --create-namespace \

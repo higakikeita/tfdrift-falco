@@ -246,3 +246,117 @@ resource "aws_iam_role_policy" "app_s3" {
     }]
   })
 }
+
+# ==========================================================
+# CloudTrail + S3 Bucket + SQS (for Falco CloudTrail plugin)
+# Existing org-level trail bucket is cross-account and inaccessible,
+# so we create our own trail in this account.
+# ==========================================================
+data "aws_caller_identity" "current" {}
+
+resource "aws_s3_bucket" "cloudtrail" {
+  bucket        = "${local.name_prefix}-cloudtrail"
+  force_destroy = true # Allow easy cleanup
+  tags          = { Name = "${local.name_prefix}-cloudtrail" }
+}
+
+resource "aws_s3_bucket_policy" "cloudtrail" {
+  bucket = aws_s3_bucket.cloudtrail.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "AWSCloudTrailAclCheck"
+        Effect    = "Allow"
+        Principal = { Service = "cloudtrail.amazonaws.com" }
+        Action    = "s3:GetBucketAcl"
+        Resource  = aws_s3_bucket.cloudtrail.arn
+        Condition = {
+          StringEquals = {
+            "aws:SourceArn" = "arn:aws:cloudtrail:${var.aws_region}:${data.aws_caller_identity.current.account_id}:trail/${local.name_prefix}-trail"
+          }
+        }
+      },
+      {
+        Sid       = "AWSCloudTrailWrite"
+        Effect    = "Allow"
+        Principal = { Service = "cloudtrail.amazonaws.com" }
+        Action    = "s3:PutObject"
+        Resource  = "${aws_s3_bucket.cloudtrail.arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*"
+        Condition = {
+          StringEquals = {
+            "s3:x-amz-acl"  = "bucket-owner-full-control"
+            "aws:SourceArn" = "arn:aws:cloudtrail:${var.aws_region}:${data.aws_caller_identity.current.account_id}:trail/${local.name_prefix}-trail"
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_s3_bucket_public_access_block" "cloudtrail" {
+  bucket                  = aws_s3_bucket.cloudtrail.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# SQS queue for CloudTrail S3 notifications (low-latency event delivery to Falco)
+resource "aws_sqs_queue" "cloudtrail" {
+  name                       = "${local.name_prefix}-cloudtrail-events"
+  message_retention_seconds  = 86400  # 1 day
+  visibility_timeout_seconds = 300
+  receive_wait_time_seconds  = 20     # Long polling
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid       = "AllowS3Notification"
+      Effect    = "Allow"
+      Principal = { Service = "s3.amazonaws.com" }
+      Action    = "sqs:SendMessage"
+      Resource  = "arn:aws:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${local.name_prefix}-cloudtrail-events"
+      Condition = {
+        ArnEquals = {
+          "aws:SourceArn" = aws_s3_bucket.cloudtrail.arn
+        }
+      }
+    }]
+  })
+
+  tags = { Name = "${local.name_prefix}-cloudtrail-events" }
+}
+
+# S3 event notification → SQS
+resource "aws_s3_bucket_notification" "cloudtrail" {
+  bucket = aws_s3_bucket.cloudtrail.id
+
+  queue {
+    queue_arn     = aws_sqs_queue.cloudtrail.arn
+    events        = ["s3:ObjectCreated:*"]
+    filter_prefix = "AWSLogs/"
+    filter_suffix = ".json.gz"
+  }
+
+  depends_on = [aws_sqs_queue.cloudtrail]
+}
+
+# CloudTrail trail (management events only — captures EC2/S3/IAM API calls)
+resource "aws_cloudtrail" "main" {
+  name                       = "${local.name_prefix}-trail"
+  s3_bucket_name             = aws_s3_bucket.cloudtrail.id
+  is_multi_region_trail      = false # Single region to reduce cost
+  include_global_service_events = true # Include IAM events
+  enable_logging             = true
+
+  event_selector {
+    read_write_type           = "WriteOnly" # Only capture write events (mutations)
+    include_management_events = true
+  }
+
+  depends_on = [aws_s3_bucket_policy.cloudtrail]
+
+  tags = { Name = "${local.name_prefix}-trail" }
+}
