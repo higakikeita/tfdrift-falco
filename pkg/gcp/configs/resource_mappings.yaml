@@ -1,5 +1,370 @@
 # GCP Audit Log Event Mappings for tfdrift-falco
 # This file defines GCP method names to Terraform resource type mappings
+# and relevant event method names for drift detection
+
+relevant_events:
+  # Compute Engine - Instances
+  - compute.instances.insert
+  - compute.instances.delete
+  - compute.instances.setMetadata
+  - compute.instances.setLabels
+  - compute.instances.setTags
+  - compute.instances.setMachineType
+  - compute.instances.setServiceAccount
+  - compute.instances.setDeletionProtection
+
+  # Compute Engine - Firewall
+  - compute.firewalls.insert
+  - compute.firewalls.delete
+  - compute.firewalls.update
+  - compute.firewalls.patch
+
+  # Compute Engine - Networks
+  - compute.networks.insert
+  - compute.networks.delete
+  - compute.networks.patch
+
+  # Compute Engine - Subnetworks
+  - compute.subnetworks.insert
+  - compute.subnetworks.delete
+  - compute.subnetworks.patch
+
+  # Compute Engine - Disks
+  - compute.disks.insert
+  - compute.disks.delete
+
+  # Compute Engine - Routes
+  - compute.routes.insert
+  - compute.routes.delete
+
+  # Compute Engine - Routers
+  - compute.routers.insert
+  - compute.routers.delete
+  - compute.routers.patch
+  - compute.routers.update
+
+  # Compute Engine - VPN
+  - compute.vpnTunnels.insert
+  - compute.vpnTunnels.delete
+  - compute.vpnGateways.insert
+  - compute.vpnGateways.delete
+
+  # Compute Engine - Instance Templates
+  - compute.instanceTemplates.insert
+  - compute.instanceTemplates.delete
+
+  # Compute Engine - Instance Group Managers
+  - compute.instanceGroupManagers.insert
+  - compute.instanceGroupManagers.delete
+  - compute.instanceGroupManagers.patch
+
+  # Compute Engine - Autoscalers
+  - compute.autoscalers.insert
+  - compute.autoscalers.delete
+  - compute.autoscalers.patch
+
+  # Compute Engine - Global Addresses
+  - compute.globalAddresses.insert
+  - compute.globalAddresses.delete
+
+  # Compute Engine - Addresses
+  - compute.addresses.insert
+  - compute.addresses.delete
+
+  # Compute Engine - Images
+  - compute.images.insert
+  - compute.images.delete
+
+  # Compute Engine - Snapshots
+  - compute.snapshots.insert
+  - compute.snapshots.delete
+
+  # Compute Engine - Interconnect Attachments
+  - compute.interconnects.insert
+  - compute.interconnects.delete
+
+  # Compute Engine - Global Forwarding Rules
+  - compute.globalForwardingRules.insert
+  - compute.globalForwardingRules.delete
+
+  # Compute Engine - Target HTTPS Proxies
+  - compute.targetHttpsProxies.insert
+  - compute.targetHttpsProxies.delete
+
+  # Compute Engine - Target HTTP Proxies
+  - compute.targetHttpProxies.insert
+  - compute.targetHttpProxies.delete
+
+  # Compute Engine - URL Maps
+  - compute.urlMaps.insert
+  - compute.urlMaps.delete
+  - compute.urlMaps.patch
+
+  # Compute Engine - SSL Policies
+  - compute.sslPolicies.insert
+  - compute.sslPolicies.delete
+  - compute.sslPolicies.patch
+
+  # Compute Engine - Backend Services
+  - compute.backendServices.insert
+  - compute.backendServices.delete
+  - compute.backendServices.update
+  - compute.backendServices.patch
+
+  # Compute Engine - Health Checks
+  - compute.healthChecks.insert
+  - compute.healthChecks.delete
+  - compute.healthChecks.update
+  - compute.healthChecks.patch
+
+  # Compute Engine - Target Pools
+  - compute.targetPools.insert
+  - compute.targetPools.delete
+
+  # Compute Engine - Forwarding Rules
+  - compute.forwardingRules.insert
+  - compute.forwardingRules.delete
+
+  # Compute Engine - SSL Certificates
+  - compute.sslCertificates.insert
+  - compute.sslCertificates.delete
+
+  # Compute Engine - Cloud Armor / Security Policies
+  - compute.securityPolicies.insert
+  - compute.securityPolicies.delete
+  - compute.securityPolicies.patch
+  - compute.securityPolicies.addRule
+  - compute.securityPolicies.removeRule
+
+  # IAM - Project Level
+  - SetIamPolicy
+
+  # IAM - Service Accounts
+  - google.iam.admin.v1.CreateServiceAccount
+  - google.iam.admin.v1.DeleteServiceAccount
+  - google.iam.admin.v1.PatchServiceAccount
+
+  # IAM - Service Account Keys
+  - google.iam.admin.v1.CreateServiceAccountKey
+  - google.iam.admin.v1.DeleteServiceAccountKey
+
+  # IAM - Policy
+  - google.iam.v1.IAMPolicy.SetIamPolicy
+
+  # Cloud Storage - Buckets
+  - storage.buckets.create
+  - storage.buckets.delete
+  - storage.buckets.update
+  - storage.buckets.patch
+
+  # Cloud Storage - Objects
+  - storage.objects.create
+  - storage.objects.delete
+
+  # Cloud Storage - IAM
+  - storage.buckets.setIamPolicy
+
+  # Cloud SQL - Instances
+  - cloudsql.instances.create
+  - cloudsql.instances.delete
+  - cloudsql.instances.update
+  - cloudsql.instances.patch
+
+  # Cloud SQL - Databases
+  - cloudsql.databases.create
+  - cloudsql.databases.delete
+  - cloudsql.databases.update
+
+  # Cloud SQL - Users
+  - cloudsql.users.create
+  - cloudsql.users.delete
+  - cloudsql.users.update
+
+  # GKE - Clusters
+  - container.clusters.create
+  - container.clusters.delete
+  - container.clusters.update
+
+  # GKE - Node Pools
+  - container.projects.zones.clusters.nodePools.create
+  - container.projects.zones.clusters.nodePools.delete
+  - container.projects.zones.clusters.nodePools.update
+
+  # Cloud Run - Services
+  - run.services.create
+  - run.services.delete
+  - run.services.update
+
+  # Cloud Functions
+  - cloudfunctions.functions.create
+  - cloudfunctions.functions.delete
+  - cloudfunctions.functions.update
+
+  # Cloud Functions v2
+  - cloudfunctions.v2.functions.create
+  - cloudfunctions.v2.functions.delete
+  - cloudfunctions.v2.functions.update
+
+  # Pub/Sub - Topics
+  - google.pubsub.v1.Publisher.CreateTopic
+  - google.pubsub.v1.Publisher.DeleteTopic
+  - google.pubsub.v1.Publisher.UpdateTopic
+
+  # Pub/Sub - Subscriptions
+  - google.pubsub.v1.Subscriber.CreateSubscription
+  - google.pubsub.v1.Subscriber.DeleteSubscription
+  - google.pubsub.v1.Subscriber.ModifyPushConfig
+  - google.pubsub.v1.Subscriber.UpdateSubscription
+
+  # BigQuery - Datasets
+  - google.cloud.bigquery.v2.DatasetService.InsertDataset
+  - google.cloud.bigquery.v2.DatasetService.DeleteDataset
+  - google.cloud.bigquery.v2.DatasetService.PatchDataset
+
+  # BigQuery - Tables
+  - google.cloud.bigquery.v2.TableService.InsertTable
+  - google.cloud.bigquery.v2.TableService.DeleteTable
+  - google.cloud.bigquery.v2.TableService.PatchTable
+
+  # Cloud KMS - KeyRings
+  - google.cloud.kms.v1.KeyManagementService.CreateKeyRing
+
+  # Cloud KMS - CryptoKeys
+  - google.cloud.kms.v1.KeyManagementService.CreateCryptoKey
+  - google.cloud.kms.v1.KeyManagementService.UpdateCryptoKey
+
+  # Secret Manager - Secrets
+  - google.cloud.secretmanager.v1.SecretManagerService.CreateSecret
+  - google.cloud.secretmanager.v1.SecretManagerService.DeleteSecret
+
+  # Dataproc - Clusters
+  - google.cloud.dataproc.v1.ClusterController.CreateCluster
+  - google.cloud.dataproc.v1.ClusterController.DeleteCluster
+  - google.cloud.dataproc.v1.ClusterController.UpdateCluster
+
+  # Dataproc - Jobs
+  - google.cloud.dataproc.v1.JobController.SubmitJob
+  - google.cloud.dataproc.v1.JobController.DeleteJob
+
+  # Dataflow - Jobs
+  - google.dataflow.v1b3.JobsV1Beta3.CreateJob
+  - google.dataflow.v1b3.JobsV1Beta3.UpdateJob
+
+  # Cloud Spanner - Instances
+  - google.spanner.admin.instance.v1.InstanceAdmin.CreateInstance
+  - google.spanner.admin.instance.v1.InstanceAdmin.DeleteInstance
+  - google.spanner.admin.instance.v1.InstanceAdmin.UpdateInstance
+
+  # Cloud Spanner - Databases
+  - google.spanner.admin.database.v1.DatabaseAdmin.CreateDatabase
+  - google.spanner.admin.database.v1.DatabaseAdmin.DropDatabase
+  - google.spanner.admin.database.v1.DatabaseAdmin.UpdateDatabaseDdl
+
+  # Firestore - Indexes
+  - google.firestore.admin.v1.FirestoreAdmin.CreateIndex
+  - google.firestore.admin.v1.FirestoreAdmin.DeleteIndex
+
+  # Firestore - Databases
+  - google.firestore.admin.v1.FirestoreAdmin.CreateDatabase
+  - google.firestore.admin.v1.FirestoreAdmin.DeleteDatabase
+
+  # Cloud Memorystore / Redis
+  - google.cloud.redis.v1.CloudRedis.CreateInstance
+  - google.cloud.redis.v1.CloudRedis.DeleteInstance
+  - google.cloud.redis.v1.CloudRedis.UpdateInstance
+
+  # Cloud DNS - Managed Zones
+  - dns.managedZones.create
+  - dns.managedZones.delete
+  - dns.managedZones.update
+  - dns.managedZones.patch
+
+  # Cloud DNS - Record Sets
+  - dns.changes.create
+
+  # Cloud Logging - Sinks
+  - google.logging.v2.ConfigServiceV2.CreateSink
+  - google.logging.v2.ConfigServiceV2.DeleteSink
+  - google.logging.v2.ConfigServiceV2.UpdateSink
+
+  # Cloud Logging - Buckets
+  - google.logging.v2.ConfigServiceV2.CreateBucket
+  - google.logging.v2.ConfigServiceV2.DeleteBucket
+
+  # Cloud Monitoring - Alert Policies
+  - google.monitoring.v3.AlertPolicyService.CreateAlertPolicy
+  - google.monitoring.v3.AlertPolicyService.DeleteAlertPolicy
+  - google.monitoring.v3.AlertPolicyService.UpdateAlertPolicy
+
+  # Cloud Monitoring - Uptime Checks
+  - google.monitoring.v3.UptimeCheckService.CreateUptimeCheckConfig
+  - google.monitoring.v3.UptimeCheckService.DeleteUptimeCheckConfig
+
+  # Cloud Monitoring - Notification Channels
+  - google.monitoring.v3.NotificationChannelService.CreateNotificationChannel
+  - google.monitoring.v3.NotificationChannelService.DeleteNotificationChannel
+
+  # App Engine - Services
+  - google.appengine.v1.Services.UpdateService
+  - google.appengine.v1.Services.DeleteService
+
+  # App Engine - Versions
+  - google.appengine.v1.Versions.CreateVersion
+  - google.appengine.v1.Versions.DeleteVersion
+
+  # App Engine - Firewall
+  - google.appengine.v1.Firewall.BatchUpdateIngressRules
+
+  # VPC Service Controls - Service Perimeters
+  - google.identity.accesscontextmanager.v1.AccessContextManager.CreateServicePerimeter
+  - google.identity.accesscontextmanager.v1.AccessContextManager.DeleteServicePerimeter
+  - google.identity.accesscontextmanager.v1.AccessContextManager.UpdateServicePerimeter
+
+  # VPC Service Controls - Access Levels
+  - google.identity.accesscontextmanager.v1.AccessContextManager.CreateAccessLevel
+  - google.identity.accesscontextmanager.v1.AccessContextManager.DeleteAccessLevel
+
+  # Artifact Registry - Repositories
+  - google.devtools.artifactregistry.v1.ArtifactRegistry.CreateRepository
+  - google.devtools.artifactregistry.v1.ArtifactRegistry.DeleteRepository
+  - google.devtools.artifactregistry.v1.ArtifactRegistry.UpdateRepository
+
+  # Cloud Composer - Environments
+  - google.cloud.orchestration.airflow.service.v1.Environments.CreateEnvironment
+  - google.cloud.orchestration.airflow.service.v1.Environments.DeleteEnvironment
+  - google.cloud.orchestration.airflow.service.v1.Environments.UpdateEnvironment
+
+  # Cloud Tasks - Queues
+  - google.cloud.tasks.v2.CloudTasks.CreateQueue
+  - google.cloud.tasks.v2.CloudTasks.DeleteQueue
+  - google.cloud.tasks.v2.CloudTasks.UpdateQueue
+
+  # Cloud Scheduler - Jobs
+  - google.cloud.scheduler.v1.CloudScheduler.CreateJob
+  - google.cloud.scheduler.v1.CloudScheduler.DeleteJob
+  - google.cloud.scheduler.v1.CloudScheduler.UpdateJob
+
+  # Cloud Build - Build Triggers
+  - google.devtools.cloudbuild.v1.CloudBuild.CreateBuildTrigger
+  - google.devtools.cloudbuild.v1.CloudBuild.DeleteBuildTrigger
+  - google.devtools.cloudbuild.v1.CloudBuild.UpdateBuildTrigger
+
+  # Cloud Endpoints - Services
+  - google.api.servicemanagement.v1.ServiceManager.CreateService
+  - google.api.servicemanagement.v1.ServiceManager.DeleteService
+  - google.api.servicemanagement.v1.ServiceManager.SubmitConfigSource
+
+  # Vertex AI - Endpoints
+  - google.cloud.aiplatform.v1.EndpointService.CreateEndpoint
+  - google.cloud.aiplatform.v1.EndpointService.DeleteEndpoint
+
+  # Vertex AI - Datasets
+  - google.cloud.aiplatform.v1.DatasetService.CreateDataset
+  - google.cloud.aiplatform.v1.DatasetService.DeleteDataset
+
+  # Vertex AI - Featurestores
+  - google.cloud.aiplatform.v1.FeaturestoreService.CreateFeaturestore
+  - google.cloud.aiplatform.v1.FeaturestoreService.DeleteFeaturestore
 
 event_to_resource_type:
   # Compute Engine - Instances

@@ -13,7 +13,9 @@ var embeddedConfigs embed.FS
 
 // ResourceConfig contains all resource mapping configurations loaded from YAML
 type ResourceConfig struct {
+	RelevantEvents      []string          `yaml:"relevant_events"`
 	EventToResourceType map[string]string `yaml:"event_to_resource_type"`
+	relevantEventsMap   map[string]bool
 }
 
 var (
@@ -43,12 +45,28 @@ func LoadResourceConfig() (*ResourceConfig, error) {
 		return nil, fmt.Errorf("failed to parse resource config: %w", err)
 	}
 
+	// Build the relevant events map for O(1) lookup
+	cfg.relevantEventsMap = make(map[string]bool, len(cfg.RelevantEvents))
+	for _, event := range cfg.RelevantEvents {
+		cfg.relevantEventsMap[event] = true
+	}
+
 	// Store in global variable under write lock
 	configMutex.Lock()
 	globalConfig = &cfg
 	configMutex.Unlock()
 
 	return &cfg, nil
+}
+
+// GetRelevantEventsMap returns a map for O(1) lookup of relevant events
+func (rc *ResourceConfig) GetRelevantEventsMap() map[string]bool {
+	return rc.relevantEventsMap
+}
+
+// IsRelevantEvent checks if a method is relevant for drift detection
+func (rc *ResourceConfig) IsRelevantEvent(methodName string) bool {
+	return rc.relevantEventsMap[methodName]
 }
 
 // GetEventToResourceTypeMap returns the event-to-resource type mapping

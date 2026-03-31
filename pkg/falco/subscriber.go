@@ -36,6 +36,30 @@ func NewSubscriber(cfg config.FalcoConfig) (*Subscriber, error) {
 	}, nil
 }
 
+// NewSubscriberWithDefaults creates a new Falco subscriber with default config (for testing)
+func NewSubscriberWithDefaults() *Subscriber {
+	return &Subscriber{
+		cfg:         config.FalcoConfig{},
+		gcpParser:   gcp.NewAuditParser(),
+		azureParser: azure.NewActivityParser(),
+	}
+}
+
+// ParseFalcoOutput is a public wrapper around parseFalcoOutput
+func (s *Subscriber) ParseFalcoOutput(res *outputs.Response) *types.Event {
+	return s.parseFalcoOutput(res)
+}
+
+// ExtractChanges is a public wrapper around extractChanges
+func (s *Subscriber) ExtractChanges(eventName string, fields map[string]string) map[string]interface{} {
+	return s.extractChanges(eventName, fields)
+}
+
+// ExtractResourceID is a public wrapper around extractResourceID
+func (s *Subscriber) ExtractResourceID(eventName string, fields map[string]string) string {
+	return s.extractResourceID(eventName, fields)
+}
+
 // Start starts subscribing to Falco outputs
 func (s *Subscriber) Start(ctx context.Context, eventCh chan<- types.Event) error {
 	log.Info("Starting Falco subscriber...")
