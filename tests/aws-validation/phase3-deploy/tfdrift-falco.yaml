@@ -1,0 +1,155 @@
+# TFDrift-Falco Kubernetes Deployment
+# Deploy after Falco is running:
+#   kubectl apply -f tfdrift-falco.yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tfdrift
+  labels:
+    app.kubernetes.io/part-of: tfdrift-falco
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tfdrift-config
+  namespace: tfdrift
+data:
+  config.yaml: |
+    # TFDrift-Falco Validation Configuration
+    log_level: debug
+
+    server:
+      address: "0.0.0.0"
+      port: 8080
+
+    # Falco connection
+    falco:
+      grpc_address: "falco-falco.falco.svc.cluster.local:5060"
+      http_listen: true  # Also accept HTTP webhook from Falco
+
+    # Terraform state backend
+    terraform:
+      backend: s3
+      s3:
+        bucket: "tfdrift-validation-state"
+        key: "phase1-resources/terraform.tfstate"
+        region: "ap-northeast-1"
+
+    # AWS provider configuration
+    providers:
+      aws:
+        enabled: true
+        regions:
+          - "ap-northeast-1"
+
+    # Drift detection settings
+    detection:
+      interval: "60s"           # Check every 60s during validation
+      ignore_tags: false        # Include tag drift
+      severity_threshold: "low" # Report everything during validation
+
+    # Notification (stdout only for validation)
+    notifications:
+      stdout:
+        enabled: true
+        format: json
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tfdrift-falco
+  namespace: tfdrift
+  labels:
+    app: tfdrift-falco
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tfdrift-falco
+  template:
+    metadata:
+      labels:
+        app: tfdrift-falco
+    spec:
+      serviceAccountName: tfdrift-falco
+      containers:
+        - name: tfdrift-falco
+          image: ghcr.io/higakikeita/tfdrift-falco:latest
+          # Or build and push locally:
+          # image: <your-ecr-repo>/tfdrift-falco:latest
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          env:
+            - name: AWS_REGION
+              value: "ap-northeast-1"
+            - name: TFDRIFT_LOG_LEVEL
+              value: "debug"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/tfdrift
+              readOnly: true
+          args:
+            - "--config"
+            - "/etc/tfdrift/config.yaml"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: tfdrift-config
+      tolerations:
+        - key: "kubernetes.io/arch"
+          operator: "Equal"
+          value: "arm64"
+          effect: "NoSchedule"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tfdrift-falco
+  namespace: tfdrift
+  labels:
+    app: tfdrift-falco
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+    - name: metrics
+      port: 9090
+      targetPort: metrics
+  selector:
+    app: tfdrift-falco
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tfdrift-falco
+  namespace: tfdrift
+  annotations:
+    # If using IRSA (IAM Roles for Service Accounts), set the role ARN here:
+    # eks.amazonaws.com/role-arn: arn:aws:iam::230446364776:role/tfdrift-val-eks-node-role

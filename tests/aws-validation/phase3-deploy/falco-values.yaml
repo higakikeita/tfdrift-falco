@@ -1,0 +1,163 @@
+# Falco Helm Chart Values for TFDrift-Falco Validation
+# Install: helm install falco falcosecurity/falco -n falco --create-namespace -f falco-values.yaml
+#
+# This configures Falco with the CloudTrail plugin to detect AWS API changes.
+
+# Use the falco-no-driver image (we only need CloudTrail plugin, not syscalls)
+driver:
+  enabled: false
+
+collectors:
+  enabled: false
+
+falcoctl:
+  artifact:
+    install:
+      enabled: true
+    follow:
+      enabled: true
+  config:
+    artifact:
+      install:
+        refs:
+          - falco-rules:3
+          - cloudtrail-rules:0
+          - cloudtrail:0
+      allowedTypes:
+        - plugin
+        - rulesfile
+
+falco:
+  rules_files:
+    - /etc/falco/falco_rules.yaml
+    - /etc/falco/aws_cloudtrail_rules.yaml
+    - /etc/falco/rules.d
+
+  plugins:
+    - name: cloudtrail
+      library_path: libcloudtrail.so
+      init_config:
+        # Option A: Direct S3 polling (simple but higher latency)
+        # sqsQueue: ""  # Set if using SQS notifications
+        # aws_region: "ap-northeast-1"
+        # s3Bucket: ""  # CloudTrail S3 bucket
+
+        # Option B: SQS-based (recommended for production, lower latency)
+        sqsQueue: ""   # FILL IN: SQS queue URL for CloudTrail notifications
+        aws_region: "ap-northeast-1"
+      open_params: ""  # Leave empty for SQS mode
+
+    - name: json
+      library_path: libjson.so
+
+  load_plugins:
+    - cloudtrail
+    - json
+
+  # gRPC server for tfdrift-falco to connect
+  grpc:
+    enabled: true
+    bind_address: "unix:///run/falco/falco.sock"
+    threadiness: 4
+
+  grpc_output:
+    enabled: true
+
+  # Also output to stdout for debugging
+  json_output: true
+  json_include_output_property: true
+  json_include_tags_property: true
+
+  # HTTP output to tfdrift-falco webhook
+  http_output:
+    enabled: true
+    url: "http://tfdrift-falco.tfdrift.svc.cluster.local:8080/api/v1/events/falco"
+    user_agent: "falcosecurity/falco"
+
+# Resource limits (validation = minimal)
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Tolerations for spot instances
+tolerations:
+  - key: "kubernetes.io/arch"
+    operator: "Equal"
+    value: "arm64"
+    effect: "NoSchedule"
+
+# Custom rules for drift-relevant events
+customRules:
+  tfdrift-rules.yaml: |-
+    # TFDrift-Falco Custom Rules
+    # These rules detect AWS API calls that indicate infrastructure changes
+
+    - rule: AWS EC2 Security Group Modified
+      desc: Detect modifications to EC2 security groups (common drift source)
+      condition: >
+        ct.name in (
+          "AuthorizeSecurityGroupIngress",
+          "AuthorizeSecurityGroupEgress",
+          "RevokeSecurityGroupIngress",
+          "RevokeSecurityGroupEgress"
+        )
+      output: >
+        Security group modified
+        (user=%ct.user, action=%ct.name, group=%ct.request.groupId, region=%ct.region)
+      priority: WARNING
+      source: aws_cloudtrail
+      tags: [aws, ec2, security_group, drift]
+
+    - rule: AWS EC2 Instance Attribute Changed
+      desc: Detect changes to EC2 instance attributes
+      condition: >
+        ct.name in (
+          "ModifyInstanceAttribute",
+          "StopInstances",
+          "StartInstances",
+          "TerminateInstances"
+        )
+      output: >
+        EC2 instance modified
+        (user=%ct.user, action=%ct.name, instance=%ct.request.instanceId, region=%ct.region)
+      priority: WARNING
+      source: aws_cloudtrail
+      tags: [aws, ec2, instance, drift]
+
+    - rule: AWS S3 Bucket Configuration Changed
+      desc: Detect S3 bucket configuration changes
+      condition: >
+        ct.name in (
+          "PutBucketVersioning",
+          "PutBucketEncryption",
+          "DeleteBucketEncryption",
+          "PutBucketPolicy",
+          "DeleteBucketPolicy",
+          "PutBucketPublicAccessBlock"
+        )
+      output: >
+        S3 bucket configuration changed
+        (user=%ct.user, action=%ct.name, bucket=%ct.request.bucketName, region=%ct.region)
+      priority: WARNING
+      source: aws_cloudtrail
+      tags: [aws, s3, bucket, drift]
+
+    - rule: AWS IAM Policy Changed
+      desc: Detect IAM policy modifications
+      condition: >
+        ct.name in (
+          "PutRolePolicy",
+          "DeleteRolePolicy",
+          "AttachRolePolicy",
+          "DetachRolePolicy"
+        )
+      output: >
+        IAM policy changed
+        (user=%ct.user, action=%ct.name, role=%ct.request.roleName, region=%ct.region)
+      priority: WARNING
+      source: aws_cloudtrail
+      tags: [aws, iam, policy, drift]
