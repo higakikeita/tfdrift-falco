@@ -78,7 +78,7 @@
     "eslint-plugin-storybook": "^10.3.3",
     "globals": "^17.4.0",
     "happy-dom": "^20.0.11",
-    "jsdom": "^27.4.0",
+    "jsdom": "^29.0.1",
     "lighthouse": "^13.0.3",
     "msw": "^2.12.14",
     "playwright": "^1.57.0",
