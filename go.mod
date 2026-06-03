@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/elasticache v1.54.0
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.55.1
 	github.com/aws/aws-sdk-go-v2/service/iam v1.53.10
-	github.com/aws/aws-sdk-go-v2/service/rds v1.118.2
+	github.com/aws/aws-sdk-go-v2/service/rds v1.118.5
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.101.0
 	github.com/falcosecurity/client-go v0.6.1
 	github.com/go-chi/chi/v5 v5.3.0
