@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.308.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.87.0
 	github.com/aws/aws-sdk-go-v2/service/elasticache v1.54.3
-	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.55.4
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.55.5
 	github.com/aws/aws-sdk-go-v2/service/iam v1.54.5
 	github.com/aws/aws-sdk-go-v2/service/rds v1.119.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.104.0
