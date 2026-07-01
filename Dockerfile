@@ -28,7 +28,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 # ============================================
 # Stage 2: Runtime stage
 # ============================================
-FROM alpine:3.23.4
+FROM alpine:3.24.1
 
 # Install runtime dependencies
 RUN apk add --no-cache \
