@@ -91,7 +91,7 @@ jobs:
         run: |
           cd tests/e2e
           echo "Running E2E tests (this takes 20-30 minutes due to CloudTrail delays)..."
-          go test -v -timeout 45m ./... 2>&1 | tee e2e-results.txt
+          go test -v -tags e2e -timeout 45m ./... 2>&1 | tee e2e-results.txt
         continue-on-error: true
 
       - name: View Falco logs
@@ -278,4 +278,4 @@ jobs:
         run: |
           cd tests/e2e
           echo "Running quick E2E tests (without CloudTrail delay)..."
-          go test -v -short ./...
+          go test -v -tags e2e -short ./...

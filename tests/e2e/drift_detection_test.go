@@ -1,13 +1,40 @@
-//go:build ignore
+//go:build e2e
 
 package e2e
 
 import (
+	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+// skipIfShort skips test if running in short mode
+func skipIfShort(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping E2E test in short mode")
+	}
+}
+
+// skipIfNoAWS skips test if AWS credentials are not available
+func skipIfNoAWS(t *testing.T) {
+	if os.Getenv("AWS_ACCESS_KEY_ID") == "" {
+		t.Skip("Skipping E2E test: AWS credentials not found")
+	}
+}
+
+// skipIfNoFalco skips test if Falco is not available
+func skipIfNoFalco(t *testing.T) {
+	falcoHost := getEnvOrDefault("FALCO_HOSTNAME", "localhost")
+	falcoPort := getEnvOrDefault("FALCO_PORT", "5060")
+
+	if falcoHost == "" {
+		t.Skip("Skipping E2E test: Falco not configured")
+	}
+
+	t.Logf("Using Falco at %s:%s", falcoHost, falcoPort)
+}
 
 // TestDriftDetection_EC2Termination tests EC2 termination protection drift
 func TestDriftDetection_EC2Termination(t *testing.T) {
@@ -38,7 +65,7 @@ func TestDriftDetection_EC2Termination(t *testing.T) {
 
 	// Verify alert
 	AssertAlertReceived(t, alert, "aws_instance", ctx.testInstanceID)
-	assert.Contains(t, alert.Changes, "disable_api_termination", "Expected termination protection change")
+	assert.Equal(t, "disable_api_termination", alert.Attribute, "Expected termination protection change")
 
 	t.Log("✅ EC2 termination protection drift detected successfully")
 }
@@ -72,7 +99,7 @@ func TestDriftDetection_IAMAssumeRolePolicy(t *testing.T) {
 
 	// Verify alert
 	AssertAlertReceived(t, alert, "aws_iam_role", ctx.testRoleName)
-	assert.Contains(t, alert.Changes, "assume_role_policy", "Expected assume role policy change")
+	assert.Equal(t, "assume_role_policy", alert.Attribute, "Expected assume role policy change")
 	assert.Equal(t, "critical", alert.Severity, "IAM changes should be critical")
 
 	t.Log("✅ IAM assume role policy drift detected successfully")
@@ -104,7 +131,7 @@ func TestDriftDetection_S3BucketEncryption(t *testing.T) {
 
 	// Verify alert
 	AssertAlertReceived(t, alert, "aws_s3_bucket", ctx.testBucketName)
-	assert.Contains(t, alert.Changes, "server_side_encryption_configuration", "Expected encryption change")
+	assert.Equal(t, "server_side_encryption_configuration", alert.Attribute, "Expected encryption change")
 	assert.Equal(t, "critical", alert.Severity, "Encryption changes should be critical")
 
 	t.Log("✅ S3 bucket encryption drift detected successfully")
