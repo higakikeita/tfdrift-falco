@@ -35,6 +35,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Fail fast with a clear message instead of a cryptic credentials
+      # error when the E2E secrets are not configured on this repo.
+      - name: Check E2E secrets are configured
+        env:
+          E2E_KEY: ${{ secrets.E2E_AWS_ACCESS_KEY_ID }}
+        run: |
+          if [ -z "$E2E_KEY" ]; then
+            echo "::error::E2E_AWS_ACCESS_KEY_ID / E2E_AWS_SECRET_ACCESS_KEY secrets are not configured."
+            echo "::error::Configure them in repo Settings > Secrets, or disable the schedule trigger in e2e.yml."
+            exit 1
+          fi
+          echo "✅ E2E secrets present"
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
