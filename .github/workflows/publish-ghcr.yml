@@ -85,7 +85,9 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=sha,prefix={{branch}}-
+            # NOTE: {{branch}} is empty on tag builds, which used to produce
+            # the invalid tag ":-<sha>" and kill buildx before building.
+            type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
