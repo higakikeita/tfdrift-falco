@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-07-19
+
+> **Note**: This release consolidates every change since v0.9.0, including the
+> v0.10.0–v0.12.0 git tags that were created on 2026-03-29 but never published
+> as GitHub Releases or GHCR images (see ADR: "settle forward, don't backfill").
+
+### Added
+
+- **Cross-cloud drift correlation engine** — correlate drift events across AWS/GCP/Azure (`pkg/detector/correlator.go`)
+- **Provider Status API** — `GET /api/v1/providers` backend + Grafana dashboard templates (incl. Azure)
+- **Policy-as-Code** — OPA/Rego drift classification: allow / alert / auto-remediate (#136)
+- **Drift auto-remediation** — remediation proposals with automatic GitHub PR creation (#135)
+- **OpenTelemetry integration** — distributed tracing across the receive→parse→detect→notify flow (#137)
+- **AWS validation environment** — dedicated CloudTrail + SQS Terraform setup for end-to-end drift verification
+- **E2E test suite re-enabled** — 6 scenarios behind `-tags e2e`; they had been doubly disabled (build tag + missing CI flag) and never executed (#278)
+
+### Changed
+
+- **AWS SDK v2 migration** completed across all service clients
+- Sprints 3–6 quality work: graph package refactoring, YAML extraction, CORS configuration, accessibility, UI test expansion, golangci-lint warnings to zero
+- `deployments/falco/falco.yaml` slimmed to plugin-source essentials with the cloudtrail plugin's real init keys (`s3DownloadConcurrency`/`sqsDelete`/`useAsync`) (#278)
+- Falco drift rules rewritten with fields validated against the cloudtrail plugin via `falco -V` (#280)
+
+### Fixed
+
+- **GHCR publish workflow** — added QEMU for multi-arch builds, fixed attestation digest reference and permissions, fixed verify job tag; the workflow had never succeeded since v0.6.0 (#278)
+- OpenTelemetry resource schema URL conflict that broke the test suite after SDK bumps (#278)
+- Website security scan aborting on the root `requirements.txt` (#278)
+- Backend coverage gate (70%) and codecov uploads in CI
+
+### Security
+
+- Untracked committed TLS private keys and binary terraform plan files from the public repository; hardened `.gitignore` against key/cert/plan artifacts (#278)
+
+### Removed
+
+- Weekly scheduled E2E run, until the `E2E_AWS_*` repository secrets are configured (#278)
+
 ## [0.9.0] - 2026-03-29
 
 ### Added
