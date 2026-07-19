@@ -723,6 +723,15 @@ func TestAuditParser_isRelevantEvent_EdgeCases(t *testing.T) {
 	}
 }
 
+func TestAuditParser_isRelevantEvent_NilConfig(t *testing.T) {
+	// When config loading fails the parser keeps a nil config and must treat
+	// every event as irrelevant rather than panic.
+	parser := &AuditParser{}
+
+	assert.False(t, parser.isRelevantEvent("compute.instances.insert"))
+	assert.False(t, parser.isRelevantEvent(""))
+}
+
 func TestAuditParser_Parse_MissingOptionalFields(t *testing.T) {
 	parser := NewAuditParser()
 

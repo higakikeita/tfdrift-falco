@@ -21,12 +21,12 @@ setup:
 test:
 	@echo "Running E2E tests..."
 	@echo "⚠️  These tests take 20-30 minutes due to CloudTrail delays"
-	go test -v -timeout 45m ./...
+	go test -v -tags e2e -timeout 45m ./...
 
 ## test-quick: Run quick E2E tests (no CloudTrail delay)
 test-quick:
 	@echo "Running quick E2E tests..."
-	go test -v -short ./...
+	go test -v -tags e2e -short ./...
 
 ## test-full: Setup + Test + Cleanup
 test-full: setup test cleanup

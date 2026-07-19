@@ -34,6 +34,16 @@ docker-compose-falco-test.yaml
 *.tfstate.backup
 *.tfvars
 
+# Terraform plan files (contain embedded state and account details)
+tfplan
+*.tfplan
+
+# TLS private keys and certificates (generate locally; see docs/complete-setup-guide.md)
+*.key
+*.crt
+*.csr
+*.pem
+
 # Backup files
 *.backup
 

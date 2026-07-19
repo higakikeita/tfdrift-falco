@@ -10,9 +10,9 @@ on:
         default: 'true'
         type: boolean
 
-  # Scheduled runs (weekly on Sundays at 2 AM UTC)
-  schedule:
-    - cron: '0 2 * * 0'
+  # NOTE: the weekly schedule trigger was removed while the E2E AWS
+  # secrets are not configured on this repository; re-add it here once
+  # E2E_AWS_ACCESS_KEY_ID / E2E_AWS_SECRET_ACCESS_KEY are set.
 
   # Allow running on PRs with specific label
   pull_request:
@@ -22,10 +22,9 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
-    # Only run if manually triggered, scheduled, or PR has 'run-e2e' label
+    # Only run if manually triggered or PR has 'run-e2e' label
     if: |
       github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'schedule' ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-e2e'))
 
     # E2E tests take 20-30 minutes due to CloudTrail delays
@@ -34,6 +33,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      # Fail fast with a clear message instead of a cryptic credentials
+      # error when the E2E secrets are not configured on this repo.
+      - name: Check E2E secrets are configured
+        env:
+          E2E_KEY: ${{ secrets.E2E_AWS_ACCESS_KEY_ID }}
+        run: |
+          if [ -z "$E2E_KEY" ]; then
+            echo "::error::E2E_AWS_ACCESS_KEY_ID / E2E_AWS_SECRET_ACCESS_KEY secrets are not configured."
+            echo "::error::Configure them in repo Settings > Secrets, or disable the schedule trigger in e2e.yml."
+            exit 1
+          fi
+          echo "✅ E2E secrets present"
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -91,7 +103,7 @@ jobs:
         run: |
           cd tests/e2e
           echo "Running E2E tests (this takes 20-30 minutes due to CloudTrail delays)..."
-          go test -v -timeout 45m ./... 2>&1 | tee e2e-results.txt
+          go test -v -tags e2e -timeout 45m ./... 2>&1 | tee e2e-results.txt
         continue-on-error: true
 
       - name: View Falco logs
@@ -233,19 +245,6 @@ jobs:
           echo "❌ E2E tests failed"
           exit 1
 
-      - name: Notify on scheduled failure
-        if: failure() && github.event_name == 'schedule'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `E2E Tests Failed - Scheduled Run ${new Date().toISOString().split('T')[0]}`,
-              body: `The scheduled E2E test run failed. Please check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`,
-              labels: ['test-failure', 'e2e', 'automated']
-            });
-
   e2e-quick:
     name: Quick E2E Tests
     runs-on: ubuntu-latest
@@ -278,4 +277,4 @@ jobs:
         run: |
           cd tests/e2e
           echo "Running quick E2E tests (without CloudTrail delay)..."
-          go test -v -short ./...
+          go test -v -tags e2e -short ./...
