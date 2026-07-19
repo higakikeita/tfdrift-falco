@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	version     = "0.4.1"
+	version     = "0.13.0"
 	cfgFile     string
 	autoDetect  bool
 	outputMode  string

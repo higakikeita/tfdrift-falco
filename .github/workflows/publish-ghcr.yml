@@ -42,9 +42,10 @@ jobs:
           TAG="${GITHUB_REF_NAME#v}"
           FILE_VERSION="$(tr -d '[:space:]' < VERSION)"
           CHANGELOG_VERSION="$(grep -m1 -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+[^]]*\]' CHANGELOG.md | tr -d '#[] ')"
-          echo "tag=v${TAG} VERSION=${FILE_VERSION} CHANGELOG=${CHANGELOG_VERSION}"
-          if [ "${TAG}" != "${FILE_VERSION}" ] || [ "${TAG}" != "${CHANGELOG_VERSION}" ]; then
-            echo "::error::Version identity mismatch: tag=v${TAG} VERSION=${FILE_VERSION} CHANGELOG=${CHANGELOG_VERSION}. Align them before releasing (ADR-0002)."
+          BINARY_VERSION="$(grep -m1 -oE 'version += +"[0-9]+\.[0-9]+\.[0-9]+"' cmd/tfdrift/main.go | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+          echo "tag=v${TAG} VERSION=${FILE_VERSION} CHANGELOG=${CHANGELOG_VERSION} binary=${BINARY_VERSION}"
+          if [ "${TAG}" != "${FILE_VERSION}" ] || [ "${TAG}" != "${CHANGELOG_VERSION}" ] || [ "${TAG}" != "${BINARY_VERSION}" ]; then
+            echo "::error::Version identity mismatch: tag=v${TAG} VERSION=${FILE_VERSION} CHANGELOG=${CHANGELOG_VERSION} binary=${BINARY_VERSION}. Align them before releasing (ADR-0002)."
             exit 1
           fi
           echo "✅ Version identity consistent: v${TAG}"
