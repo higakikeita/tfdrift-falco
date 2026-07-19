@@ -24,8 +24,34 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # Guardrail against version identity drift (ADR-0002): a release tag
+  # must match the VERSION file and the first versioned CHANGELOG entry,
+  # otherwise the publish fails before any image is built.
+  verify-version-consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify tag == VERSION == CHANGELOG head
+        run: |
+          if [ "${GITHUB_REF_TYPE}" != "tag" ]; then
+            echo "Not a tag build (${GITHUB_REF_TYPE}); skipping version consistency check."
+            exit 0
+          fi
+          TAG="${GITHUB_REF_NAME#v}"
+          FILE_VERSION="$(tr -d '[:space:]' < VERSION)"
+          CHANGELOG_VERSION="$(grep -m1 -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+[^]]*\]' CHANGELOG.md | tr -d '#[] ')"
+          echo "tag=v${TAG} VERSION=${FILE_VERSION} CHANGELOG=${CHANGELOG_VERSION}"
+          if [ "${TAG}" != "${FILE_VERSION}" ] || [ "${TAG}" != "${CHANGELOG_VERSION}" ]; then
+            echo "::error::Version identity mismatch: tag=v${TAG} VERSION=${FILE_VERSION} CHANGELOG=${CHANGELOG_VERSION}. Align them before releasing (ADR-0002)."
+            exit 1
+          fi
+          echo "✅ Version identity consistent: v${TAG}"
+
   build-and-push:
     runs-on: ubuntu-latest
+    needs: verify-version-consistency
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
