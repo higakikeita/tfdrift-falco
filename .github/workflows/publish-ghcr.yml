@@ -43,9 +43,22 @@ jobs:
           FILE_VERSION="$(tr -d '[:space:]' < VERSION)"
           CHANGELOG_VERSION="$(grep -m1 -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+[^]]*\]' CHANGELOG.md | tr -d '#[] ')"
           BINARY_VERSION="$(grep -m1 -oE 'version += +"[0-9]+\.[0-9]+\.[0-9]+"' cmd/tfdrift/main.go | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-          echo "tag=v${TAG} VERSION=${FILE_VERSION} CHANGELOG=${CHANGELOG_VERSION} binary=${BINARY_VERSION}"
-          if [ "${TAG}" != "${FILE_VERSION}" ] || [ "${TAG}" != "${CHANGELOG_VERSION}" ] || [ "${TAG}" != "${BINARY_VERSION}" ]; then
-            echo "::error::Version identity mismatch: tag=v${TAG} VERSION=${FILE_VERSION} CHANGELOG=${CHANGELOG_VERSION} binary=${BINARY_VERSION}. Align them before releasing (ADR-0002)."
+          DOCS_VERSION="$(grep -m1 -oE 'project_version: +"[0-9]+\.[0-9]+\.[0-9]+"' mkdocs.yml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+          DOCS_INDEX_VERSION="$(grep -m1 -oE '\*\*Version:\*\* v[0-9]+\.[0-9]+\.[0-9]+' docs/index.md | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+          WEBSITE_VERSION="$(grep -m1 -oE '"v[0-9]+\.[0-9]+\.[0-9]+" label="Latest Release"' website/app/page.tsx | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+          echo "tag=v${TAG} VERSION=${FILE_VERSION} CHANGELOG=${CHANGELOG_VERSION} binary=${BINARY_VERSION} docs=${DOCS_VERSION}/${DOCS_INDEX_VERSION} website=${WEBSITE_VERSION}"
+          FAIL=0
+          for pair in "VERSION:${FILE_VERSION}" "CHANGELOG:${CHANGELOG_VERSION}" "binary:${BINARY_VERSION}" "mkdocs:${DOCS_VERSION}" "docs-index:${DOCS_INDEX_VERSION}" "website:${WEBSITE_VERSION}"; do
+            name="${pair%%:*}"; val="${pair#*:}"
+            if [ "${TAG}" != "${val}" ]; then
+              echo "::error::Version identity mismatch at ${name}: expected ${TAG}, found '${val}'. Align it before releasing (ADR-0002/0005)."
+              FAIL=1
+            fi
+          done
+          [ "${FAIL}" = "1" ] && exit 1
+          # Release notes page must exist on the docs site for this version
+          if [ ! -f "docs/release-notes/v${TAG}.md" ]; then
+            echo "::error::docs/release-notes/v${TAG}.md is missing — add the release notes page before tagging."
             exit 1
           fi
           echo "✅ Version identity consistent: v${TAG}"

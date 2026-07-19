@@ -1,8 +1,8 @@
-# Quickstart Guide (v0.12.0)
+# Quickstart Guide (v0.13.0)
 
 Get TFDrift-Falco up and running in 5 minutes with Dashboard UI.
 
-> **New in v0.12.0:** JWT Authentication, Rate Limiting, Helm Chart, Enterprise Dashboard, Operations Runbook
+> **Tip:** 最短で試すなら、リポジトリの [README Quick Start](https://github.com/higakikeita/tfdrift-falco#quick-start)（`--server` モード / `./quick-start.sh`）から。本ガイドは Kubernetes + Helm での本格セットアップを扱います。公式イメージ: `ghcr.io/higakikeita/tfdrift-falco:v0.13.0`
 
 ---
 
