@@ -2,14 +2,22 @@
 set -e
 
 # TFDrift-Falco Quick Start Setup
-# This script sets up everything needed to run TFDrift-Falco in 5 minutes
+# Prepares everything `docker compose up -d` needs on a fresh clone:
+# config.yaml, .env, and self-signed TLS certs for Falco gRPC.
+#
+# Usage:
+#   ./quick-start.sh          # interactive
+#   ./quick-start.sh --yes    # non-interactive, sensible defaults
 
-VERSION="0.5.0"
+VERSION="$(tr -d '[:space:]' < VERSION 2>/dev/null || echo dev)"
 BOLD='\033[1m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
+
+NONINTERACTIVE=0
+[ "${1:-}" = "--yes" ] || [ "${1:-}" = "-y" ] && NONINTERACTIVE=1
 
 echo -e "${BOLD}🚀 TFDrift-Falco Quick Start (v${VERSION})${NC}"
 echo ""
@@ -19,7 +27,6 @@ echo ""
 # Check prerequisites
 echo -e "${BOLD}📋 Checking prerequisites...${NC}"
 
-# Check Docker
 if ! command -v docker &> /dev/null; then
     echo -e "${RED}❌ Docker is not installed${NC}"
     echo "Please install Docker: https://docs.docker.com/get-docker/"
@@ -27,7 +34,6 @@ if ! command -v docker &> /dev/null; then
 fi
 echo -e "${GREEN}✅ Docker installed${NC}"
 
-# Check Docker Compose
 if ! docker compose version &> /dev/null; then
     echo -e "${RED}❌ Docker Compose is not installed${NC}"
     echo "Please install Docker Compose: https://docs.docker.com/compose/install/"
@@ -35,188 +41,62 @@ if ! docker compose version &> /dev/null; then
 fi
 echo -e "${GREEN}✅ Docker Compose installed${NC}"
 
-# Check AWS credentials
-if [ ! -d "${HOME}/.aws" ] || [ ! -f "${HOME}/.aws/credentials" ]; then
-    echo -e "${YELLOW}⚠️  AWS credentials not found at ~/.aws/credentials${NC}"
-    echo ""
-    read -p "Do you want to configure AWS credentials now? (y/n): " configure_aws
-    if [[ "$configure_aws" == "y" || "$configure_aws" == "Y" ]]; then
-        echo ""
-        echo -e "${BOLD}Enter your AWS credentials:${NC}"
-        read -p "AWS Access Key ID: " aws_access_key_id
-        read -sp "AWS Secret Access Key: " aws_secret_access_key
-        echo ""
-        read -p "AWS Region (default: us-east-1): " aws_region
-        aws_region=${aws_region:-us-east-1}
+if ! command -v openssl &> /dev/null; then
+    echo -e "${RED}❌ openssl is not installed (needed to generate Falco gRPC certs)${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✅ openssl installed${NC}"
 
-        mkdir -p "${HOME}/.aws"
-        cat > "${HOME}/.aws/credentials" <<EOF
-[default]
-aws_access_key_id = ${aws_access_key_id}
-aws_secret_access_key = ${aws_secret_access_key}
-EOF
-
-        cat > "${HOME}/.aws/config" <<EOF
-[default]
-region = ${aws_region}
-output = json
-EOF
-
-        echo -e "${GREEN}✅ AWS credentials configured${NC}"
-    else
-        echo -e "${RED}❌ AWS credentials are required to run TFDrift-Falco${NC}"
-        exit 1
-    fi
+# AWS credentials: only needed for live CloudTrail/S3 access. The default
+# compose stack (falco-simple.yaml) boots without them, so warn instead of
+# blocking.
+if [ ! -f "${HOME}/.aws/credentials" ]; then
+    echo -e "${YELLOW}⚠️  No AWS credentials at ~/.aws/credentials — the stack will boot, but live AWS drift detection needs them (aws configure).${NC}"
 else
     echo -e "${GREEN}✅ AWS credentials found${NC}"
 fi
 
 echo ""
-echo -e "${BOLD}📂 Setting up configuration files...${NC}"
+echo -e "${BOLD}🔐 Falco gRPC TLS certificates...${NC}"
+# docker-compose.yml mounts ./deployments/falco as /etc/falco/certs and
+# falco-simple.yaml expects server.key / server.crt there. These are
+# intentionally not committed (they are private keys) — generate per install.
+if [ -f deployments/falco/server.key ] && [ -f deployments/falco/server.crt ]; then
+    echo -e "${GREEN}✅ Existing certs found (deployments/falco/server.{key,crt})${NC}"
+else
+    openssl req -x509 -newkey rsa:4096 -sha256 -days 365 -nodes \
+        -keyout deployments/falco/server.key \
+        -out deployments/falco/server.crt \
+        -subj "/CN=localhost" \
+        -addext "subjectAltName=DNS:localhost,DNS:falco,IP:127.0.0.1" 2>/dev/null
+    echo -e "${GREEN}✅ Self-signed certs generated (CN=localhost, SAN: falco)${NC}"
+fi
 
-# Create directories
-mkdir -p deployments/falco
-mkdir -p rules
-mkdir -p examples/terraform
-
-# Create Falco configuration
-echo -e "${YELLOW}Creating Falco configuration...${NC}"
-cat > deployments/falco/falco.yaml <<'EOF'
-# Falco configuration for TFDrift-Falco
-watch_config_files: true
-time_format_iso_8601: true
-
-# Rules
-rules_file:
-  - /etc/falco/falco_rules.yaml
-  - /etc/falco/falco_rules.local.yaml
-  - /etc/falco/rules.d
-
-# gRPC output (required for TFDrift-Falco)
-grpc:
-  enabled: true
-  bind_address: "0.0.0.0:5060"
-  threadiness: 8
-
-grpc_output:
-  enabled: true
-
-# JSON output for CloudTrail events
-json_output: true
-json_include_output_property: true
-json_include_tags_property: true
-
-# Logging
-log_stderr: true
-log_syslog: false
-log_level: info
-
-# CloudTrail plugin configuration
-plugins:
-  - name: cloudtrail
-    library_path: libcloudtrail.so
-    init_config:
-      s3DownloadConcurrency: 64
-      sqsDelete: false
-      useAsync: true
-    open_params: ""
-
-# Load CloudTrail plugin rules
-load_plugins: [cloudtrail]
-EOF
-
-echo -e "${GREEN}✅ Falco configuration created${NC}"
-
-# Create TFDrift Falco rules
-echo -e "${YELLOW}Creating TFDrift Falco rules...${NC}"
-cat > rules/terraform_drift.yaml <<'EOF'
-# TFDrift-Falco Rules
-# These rules detect CloudTrail events that may indicate Terraform drift
-
-- rule: Terraform Managed Resource Modified
-  desc: Detect modifications to resources that should be managed by Terraform
-  condition: >
-    evt.type = aws_api_call and
-    ct.name in (
-      ModifyInstanceAttribute, ModifyDBInstance, ModifySecurityGroupRules,
-      PutBucketPolicy, PutBucketEncryption, UpdateFunctionConfiguration,
-      PutRolePolicy, UpdateAssumeRolePolicy, AttachRolePolicy,
-      AuthorizeSecurityGroupIngress, RevokeSecurityGroupIngress,
-      CreateStack, UpdateStack, DeleteStack
-    )
-  output: >
-    Potential Terraform drift detected
-    (user=%ct.user
-     event=%ct.name
-     resource=%ct.request.instanceid
-     region=%ct.region
-     source_ip=%ct.srcip
-     aws_account=%ct.account)
-  priority: WARNING
-  tags: [terraform, drift, iac]
-  source: aws_cloudtrail
-
-- rule: Critical Infrastructure Change
-  desc: Detect critical infrastructure changes that bypass IaC workflows
-  condition: >
-    evt.type = aws_api_call and
-    ct.name in (
-      TerminateInstances, DeleteDBInstance, DeleteBucket,
-      DeleteSecurityGroup, ScheduleKeyDeletion, DeleteRole,
-      DeleteStack, DeleteStateMachine
-    )
-  output: >
-    Critical infrastructure deletion detected
-    (user=%ct.user
-     event=%ct.name
-     resource=%ct.request.instanceid
-     region=%ct.region
-     aws_account=%ct.account)
-  priority: CRITICAL
-  tags: [terraform, drift, deletion, critical]
-  source: aws_cloudtrail
-
-- rule: IAM Permission Escalation
-  desc: Detect potential IAM permission escalation
-  condition: >
-    evt.type = aws_api_call and
-    ct.name in (
-      AttachUserPolicy, AttachRolePolicy, PutUserPolicy, PutRolePolicy
-    ) and
-    (ct.request.policyarn contains "AdministratorAccess" or
-     ct.request.policydocument contains "\"Effect\":\"Allow\"" and
-     ct.request.policydocument contains "\"Action\":\"*\"")
-  output: >
-    Potential IAM privilege escalation detected
-    (user=%ct.user
-     event=%ct.name
-     target_user=%ct.request.username
-     target_role=%ct.request.rolename
-     policy=%ct.request.policyarn
-     region=%ct.region)
-  priority: ALERT
-  tags: [terraform, drift, iam, security, privilege-escalation]
-  source: aws_cloudtrail
-EOF
-
-echo -e "${GREEN}✅ TFDrift rules created${NC}"
+# NOTE: Falco config (deployments/falco/falco-simple.yaml) and drift rules
+# (rules/terraform_drift.yaml) ship with the repository and are validated in
+# CI — this script no longer generates or overwrites them.
 
 # Prompt for configuration
 echo ""
 echo -e "${BOLD}🔧 TFDrift-Falco Configuration${NC}"
 echo ""
 
-# AWS Region
-read -p "AWS Region to monitor (default: us-east-1): " aws_region
-aws_region=${aws_region:-us-east-1}
+if [ "$NONINTERACTIVE" = "1" ]; then
+    aws_region="us-east-1"
+    backend_choice="2"
+    slack_webhook=""
+    echo "(--yes: region=us-east-1, backend=local, no Slack)"
+else
+    read -p "AWS Region to monitor (default: us-east-1): " aws_region
+    aws_region=${aws_region:-us-east-1}
 
-# Terraform State Backend
-echo ""
-echo "Terraform State Backend:"
-echo "  1) S3 (recommended for production)"
-echo "  2) Local file (for testing)"
-read -p "Select backend (1-2, default: 2): " backend_choice
-backend_choice=${backend_choice:-2}
+    echo ""
+    echo "Terraform State Backend:"
+    echo "  1) S3 (recommended for production)"
+    echo "  2) Local file (for testing)"
+    read -p "Select backend (1-2, default: 2): " backend_choice
+    backend_choice=${backend_choice:-2}
+fi
 
 if [ "$backend_choice" == "1" ]; then
     read -p "S3 bucket name: " s3_bucket
@@ -232,7 +112,9 @@ EOF
 else
     # Create example Terraform state
     mkdir -p examples/terraform
-    echo '{"version": 4, "terraform_version": "1.0.0", "resources": []}' > examples/terraform/terraform.tfstate
+    if [ ! -f examples/terraform/terraform.tfstate ]; then
+        echo '{"version": 4, "terraform_version": "1.0.0", "resources": []}' > examples/terraform/terraform.tfstate
+    fi
 
     state_config=$(cat <<EOF
     state:
@@ -243,8 +125,10 @@ EOF
 fi
 
 # Slack Webhook (optional)
-echo ""
-read -p "Slack webhook URL (optional, press Enter to skip): " slack_webhook
+if [ "$NONINTERACTIVE" != "1" ]; then
+    echo ""
+    read -p "Slack webhook URL (optional, press Enter to skip): " slack_webhook
+fi
 
 if [ -n "$slack_webhook" ]; then
     slack_config=$(cat <<EOF

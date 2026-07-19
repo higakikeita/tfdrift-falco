@@ -18,10 +18,13 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build binary with optimization flags
+# Build binary with optimization flags.
+# VERSION comes from the workflow (tag name); git describe is only a
+# fallback and yields 'dev' in CI because .dockerignore excludes .git.
+ARG VERSION=
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -a -installsuffix cgo \
-    -ldflags="-s -w -X main.version=$(git describe --tags --always --dirty 2>/dev/null || echo 'dev')" \
+    -ldflags="-s -w -X main.version=${VERSION:-$(git describe --tags --always --dirty 2>/dev/null || echo 'dev')}" \
     -o tfdrift \
     ./cmd/tfdrift
 

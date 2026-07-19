@@ -172,7 +172,9 @@ func TestNewApprovalCleanupCmd_CustomDuration(t *testing.T) {
 
 func TestVersion(t *testing.T) {
 	assert.NotEmpty(t, version)
-	assert.Equal(t, "0.4.1", version)
+	// Pin the shape, not the value: the exact version is asserted against
+	// the VERSION file by the release workflow's consistency gate.
+	assert.Regexp(t, `^\d+\.\d+\.\d+$`, version)
 }
 
 func TestLoggerOutput(t *testing.T) {

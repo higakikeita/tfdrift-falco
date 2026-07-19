@@ -30,17 +30,23 @@ Someone modifies a security group via AWS Console
 
 ## Quick Start
 
+**Try the API server locally** (Go 1.25+, no cloud credentials needed to boot):
+
 ```bash
-# Clone and configure
 git clone https://github.com/higakikeita/tfdrift-falco.git && cd tfdrift-falco
-cp config.yaml.example config.yaml  # Edit with your settings
-
-# Launch
-docker compose up -d
-
-# Or try demo mode (no cloud credentials needed)
-go run ./cmd/tfdrift --demo
+cp config.yaml.example config.yaml   # edit with your settings
+go run ./cmd/tfdrift --server --config config.yaml
+# → http://localhost:8080/api/v1/health
 ```
+
+**Full stack with Falco** (Docker + Docker Compose):
+
+```bash
+./quick-start.sh        # generates config, TLS certs, .env (interactive; --yes for defaults)
+docker compose up -d
+```
+
+> **Note**: the `falco` service captures syscalls and needs a Linux host; on macOS/Windows (Docker Desktop) it will crash-loop on `scap_init`, while the backend/frontend run fine. For CloudTrail-based drift detection, configure the Falco CloudTrail plugin instead — see [docs/complete-setup-guide.md](docs/complete-setup-guide.md).
 
 See [Getting Started Guide](docs/GETTING_STARTED.md) for detailed setup.
 
