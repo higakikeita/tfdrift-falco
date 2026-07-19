@@ -45,16 +45,16 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -63,7 +63,7 @@ jobs:
             type=raw,value=scan-${{ github.sha }}
 
       - name: Build backend image for scanning
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
         with:
           context: .
           file: ./Dockerfile
@@ -82,7 +82,7 @@ jobs:
 
       - name: Scan backend image with Sysdig CLI Scanner
         id: scan-backend
-        uses: sysdiglabs/scan-action@v5
+        uses: sysdiglabs/scan-action@2b2061657f7bd0d7905d76ee4e103827e2db3e3a # v5
         with:
           image-tag: ${{ steps.image-tag.outputs.tag }}
           sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_API_TOKEN }}
@@ -94,7 +94,7 @@ jobs:
           upload-sarif: true
 
       - name: Upload backend SARIF report
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4
         if: always()
         with:
           sarif_file: ${{ steps.scan-backend.outputs.sarifReport }}
@@ -128,14 +128,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-ui
           tags: |
@@ -144,7 +144,7 @@ jobs:
             type=raw,value=scan-${{ github.sha }}
 
       - name: Build frontend image for scanning
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
         with:
           context: ./ui
           file: ./ui/Dockerfile
@@ -163,7 +163,7 @@ jobs:
 
       - name: Scan frontend image with Sysdig CLI Scanner
         id: scan-frontend
-        uses: sysdiglabs/scan-action@v5
+        uses: sysdiglabs/scan-action@2b2061657f7bd0d7905d76ee4e103827e2db3e3a # v5
         with:
           image-tag: ${{ steps.image-tag.outputs.tag }}
           sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_API_TOKEN }}
@@ -175,7 +175,7 @@ jobs:
           upload-sarif: true
 
       - name: Upload frontend SARIF report
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4
         if: always()
         with:
           sarif_file: ${{ steps.scan-frontend.outputs.sarifReport }}
@@ -207,7 +207,7 @@ jobs:
 
     steps:
       - name: Comment PR with scan results
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const backendStatus = '${{ needs.scan-backend.result }}';
