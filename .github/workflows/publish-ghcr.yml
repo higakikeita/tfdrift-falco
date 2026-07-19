@@ -84,6 +84,8 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
+            # Also publish the v-prefixed tag verbatim (docker pull ...:v0.13.0)
+            type=semver,pattern={{raw}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             # NOTE: {{branch}} is empty on tag builds, which used to produce
