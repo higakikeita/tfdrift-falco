@@ -46,6 +46,8 @@ go run ./cmd/tfdrift --server --config config.yaml
 docker compose up -d
 ```
 
+> **Note**: the `falco` service captures syscalls and needs a Linux host; on macOS/Windows (Docker Desktop) it will crash-loop on `scap_init`, while the backend/frontend run fine. For CloudTrail-based drift detection, configure the Falco CloudTrail plugin instead — see [docs/complete-setup-guide.md](docs/complete-setup-guide.md).
+
 See [Getting Started Guide](docs/GETTING_STARTED.md) for detailed setup.
 
 ---

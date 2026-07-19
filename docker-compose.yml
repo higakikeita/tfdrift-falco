@@ -86,7 +86,9 @@ services:
       - tfdrift
     command: ["--server", "--api-port", "8080", "--config", "/config/config.yaml"]
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      # GET, not --spider: --spider probes with HEAD, which the router
+      # answers 405, leaving the service permanently "unhealthy".
+      test: ["CMD", "wget", "--quiet", "--tries=1", "-O", "/dev/null", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
