@@ -1,71 +1,67 @@
-# Falco Rules for Terraform Drift Detection (Simplified)
-# These rules detect manual changes to Terraform-managed AWS resources
-# NOTE: CloudTrail source is currently DISABLED (requires IAM user credentials)
-# These rules are defined but will not trigger without CloudTrail plugin enabled
+# TFDrift-Falco Rules
+# These rules detect CloudTrail events that may indicate Terraform drift.
+# Field names are validated against the cloudtrail plugin (0.12.x) with
+# `falco -V` (see docs/complete-setup-guide.md for the validation command).
 
-- rule: AWS EC2 Modification
-  desc: Detect EC2 instance modifications
+- rule: Terraform Managed Resource Modified
+  desc: Detect modifications to resources that should be managed by Terraform
   condition: >
-    ct.name in ("ModifyInstanceAttribute", "StartInstances", "StopInstances",
-    "TerminateInstances", "RebootInstances")
+    ct.name in (
+      "ModifyInstanceAttribute", "ModifyDBInstance", "ModifySecurityGroupRules",
+      "PutBucketPolicy", "PutBucketEncryption", "UpdateFunctionConfiguration",
+      "PutRolePolicy", "UpdateAssumeRolePolicy", "AttachRolePolicy",
+      "AuthorizeSecurityGroupIngress", "RevokeSecurityGroupIngress",
+      "CreateStack", "UpdateStack", "DeleteStack"
+    )
   output: >
-    AWS EC2 modification detected (event=%ct.name user=%ct.user region=%ct.region)
+    Potential Terraform drift detected
+    (user=%ct.user
+     event=%ct.name
+     resource=%ct.request.name
+     region=%ct.region
+     source_ip=%ct.srcip
+     aws_account=%ct.user.accountid)
   priority: WARNING
+  tags: [terraform, drift, iac]
   source: aws_cloudtrail
-  tags: [terraform, drift, ec2]
 
-- rule: AWS S3 Bucket Modification
-  desc: Detect S3 bucket configuration changes
+- rule: Critical Infrastructure Change
+  desc: Detect critical infrastructure changes that bypass IaC workflows
   condition: >
-    ct.name in ("PutBucketPolicy", "DeleteBucketPolicy", "PutBucketEncryption",
-    "DeleteBucketEncryption", "PutBucketVersioning")
+    ct.name in (
+      "TerminateInstances", "DeleteDBInstance", "DeleteBucket",
+      "DeleteSecurityGroup", "ScheduleKeyDeletion", "DeleteRole",
+      "DeleteStack", "DeleteStateMachine"
+    )
   output: >
-    AWS S3 bucket modified (event=%ct.name user=%ct.user)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, s3]
-
-- rule: AWS IAM Modification
-  desc: Detect IAM policy and role changes
-  condition: >
-    ct.name in ("PutRolePolicy", "DeleteRolePolicy", "UpdateAssumeRolePolicy",
-    "PutUserPolicy", "DeleteUserPolicy", "CreateRole", "DeleteRole")
-  output: >
-    AWS IAM modification detected (event=%ct.name user=%ct.user)
+    Critical infrastructure deletion detected
+    (user=%ct.user
+     event=%ct.name
+     resource=%ct.request.name
+     region=%ct.region
+     aws_account=%ct.user.accountid)
   priority: CRITICAL
+  tags: [terraform, drift, deletion, critical]
   source: aws_cloudtrail
-  tags: [terraform, drift, iam, security]
 
-- rule: AWS Security Group Modification
-  desc: Detect security group rule changes
+# NOTE: filtering on the attached policy content (e.g. policyArn contains
+# "AdministratorAccess") requires the json extractor plugin, which the
+# deployment does not ship. Until then this rule alerts on the event names
+# alone, like the previous rule set did.
+- rule: IAM Permission Escalation
+  desc: Detect IAM policy attachments or inline policy writes that may grant elevated permissions
   condition: >
-    ct.name in ("AuthorizeSecurityGroupIngress", "RevokeSecurityGroupIngress",
-    "AuthorizeSecurityGroupEgress", "RevokeSecurityGroupEgress",
-    "CreateSecurityGroup", "DeleteSecurityGroup")
+    ct.name in (
+      "AttachUserPolicy", "AttachRolePolicy", "PutUserPolicy", "PutRolePolicy"
+    )
   output: >
-    AWS Security Group modified (event=%ct.name user=%ct.user region=%ct.region)
-  priority: WARNING
+    IAM policy change that may escalate permissions detected
+    (user=%ct.user
+     event=%ct.name
+     target_user=%ct.request.username
+     policy=%ct.request.policy
+     region=%ct.region
+     aws_account=%ct.user.accountid)
+  priority: ALERT
+  tags: [terraform, drift, iam, security, privilege-escalation]
   source: aws_cloudtrail
-  tags: [terraform, drift, security, network]
-
-- rule: AWS RDS Modification
-  desc: Detect RDS instance modifications
-  condition: >
-    ct.name in ("ModifyDBInstance", "DeleteDBInstance", "CreateDBInstance",
-    "ModifyDBCluster", "DeleteDBCluster")
-  output: >
-    AWS RDS modification detected (event=%ct.name user=%ct.user region=%ct.region)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, rds, database]
-
-- rule: AWS Lambda Function Modification
-  desc: Detect Lambda function changes
-  condition: >
-    ct.name in ("UpdateFunctionCode", "UpdateFunctionConfiguration",
-    "DeleteFunction", "CreateFunction")
-  output: >
-    AWS Lambda modification detected (event=%ct.name user=%ct.user region=%ct.region)
-  priority: WARNING
-  source: aws_cloudtrail
-  tags: [terraform, drift, lambda]
