@@ -42,7 +42,7 @@ export default function Home() {
           <div className="text-center space-y-8">
             <div className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-300 text-sm animate-pulse">
               <RocketIcon className="w-4 h-4" />
-              <span>🎉 Now Releasing v0.9.0 - Azure Full Support & Real-Time Enhancements!</span>
+              <span>🎉 Now Releasing v0.13.0 - Official Container Images on GHCR (multi-arch)!</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
@@ -111,7 +111,7 @@ export default function Home() {
             <StatCard number="203" label="AWS Events" />
             <StatCard number="100+" label="GCP Events" />
             <StatCard number="31+" label="Total Services" />
-            <StatCard number="v0.9.0" label="Latest Release" />
+            <StatCard number="v0.13.0" label="Latest Release" />
           </div>
         </div>
       </section>

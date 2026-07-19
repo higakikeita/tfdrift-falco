@@ -2,9 +2,9 @@
 
 Welcome to the official documentation for **TFDrift-Falco**, a real-time multi-cloud Terraform drift detection system with an integrated React Dashboard UI.
 
-> **Version:** v0.12.0 | **Status:** Production Ready | **Providers:** AWS (40+ services) + GCP (27+ services) + Azure
+> **Version:** v0.13.0 | **Status:** Production Ready | **Providers:** AWS (40+ services) + GCP (27+ services) + Azure
 >
-> **New in v0.12.0:** Policy-as-Code (OPA/Rego) • Drift Auto-Remediation (GitHub PR生成) • OpenTelemetry分散トレーシング | **New in v0.11.0:** クロスクラウド相関エンジン • Provider Status UI • Grafanaダッシュボード (Azure対応) | **New in v0.10.0:** E2Eテスト環境 • テストカバレッジ65%+ • CI Gate
+> **New in v0.13.0:** 公式コンテナイメージ公開（GHCR・multi-arch）• リリース整合性ゲート • E2Eテストスイート復活 • 検証済みFalcoルール — v0.10〜v0.12の機能（Policy-as-Code (OPA/Rego)・Drift Auto-Remediation・OpenTelemetry・クロスクラウド相関エンジン）を正式リリースとして統合
 
 ---
 
