@@ -10,9 +10,9 @@ on:
         default: 'true'
         type: boolean
 
-  # Scheduled runs (weekly on Sundays at 2 AM UTC)
-  schedule:
-    - cron: '0 2 * * 0'
+  # NOTE: the weekly schedule trigger was removed while the E2E AWS
+  # secrets are not configured on this repository; re-add it here once
+  # E2E_AWS_ACCESS_KEY_ID / E2E_AWS_SECRET_ACCESS_KEY are set.
 
   # Allow running on PRs with specific label
   pull_request:
@@ -22,10 +22,9 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
-    # Only run if manually triggered, scheduled, or PR has 'run-e2e' label
+    # Only run if manually triggered or PR has 'run-e2e' label
     if: |
       github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'schedule' ||
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-e2e'))
 
     # E2E tests take 20-30 minutes due to CloudTrail delays
@@ -245,19 +244,6 @@ jobs:
         run: |
           echo "❌ E2E tests failed"
           exit 1
-
-      - name: Notify on scheduled failure
-        if: failure() && github.event_name == 'schedule'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `E2E Tests Failed - Scheduled Run ${new Date().toISOString().split('T')[0]}`,
-              body: `The scheduled E2E test run failed. Please check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`,
-              labels: ['test-failure', 'e2e', 'automated']
-            });
 
   e2e-quick:
     name: Quick E2E Tests
