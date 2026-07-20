@@ -312,7 +312,7 @@ tfdrift --config config.yaml --dry-run
 
 See the `examples/` directory for:
 - `config-with-autoimport.yaml` - Full configuration example
-- `docker-compose-monitoring.yaml` - Monitoring stack
-- `grafana-dashboard.json` - Pre-built dashboard
+
+> Visualization is provided by the built-in React web UI (`ui/`, served by the API server). The earlier Grafana/Loki dashboards were removed in favor of the purpose-built UI — see `ui/docs/qiita-article.md` for the rationale.
 
 For detailed auto-import documentation, see `docs/auto-import-guide.md`.
