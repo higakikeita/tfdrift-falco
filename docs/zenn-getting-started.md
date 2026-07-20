@@ -352,26 +352,15 @@ Actual:   false
 
 # 高度な設定
 
-## Grafana ダッシュボード
+## ダッシュボード UI
 
-リアルタイムで可視化したい場合は、Grafana 統合を有効化できます。
+リアルタイムで可視化したい場合は、付属の React Dashboard UI を使います（API サーバー + フロントエンド）。
 
 ```bash
-cd dashboards/grafana
-./quick-start.sh
+docker compose up -d
 ```
 
-→ http://localhost:3000 でダッシュボードが開きます（admin/admin）
-
-![Grafana Dashboard Overview](https://raw.githubusercontent.com/higakikeita/tfdrift-falco/main/docs/images/grafana-overview.png)
-
-**3つのダッシュボード**:
-
-1. **Overview** - 総ドリフト数、深刻度別内訳、タイムライン
-2. **Diff Details** - 設定変更の詳細、期待値 vs 実際の値
-3. **Heatmap & Analytics** - パターン分析、トレンド把握
-
-詳細: [Grafana セットアップガイド](https://github.com/higakikeita/tfdrift-falco/blob/main/dashboards/grafana/GETTING_STARTED.md)
+→ http://localhost:3000 でダッシュボードが開きます。ドリフトイベントのライブフィード、トポロジーグラフ、差分詳細を確認できます。
 
 ## Auto-Import 機能
 
@@ -795,7 +784,6 @@ TFDrift-Falco を使えば：
 ## リンク
 
 - **GitHub**: https://github.com/higakikeita/tfdrift-falco
-- **Grafana セットアップ**: [dashboards/grafana/GETTING_STARTED.md](https://github.com/higakikeita/tfdrift-falco/blob/main/dashboards/grafana/GETTING_STARTED.md)
 - **Auto-Import ガイド**: [docs/auto-import-guide.md](https://github.com/higakikeita/tfdrift-falco/blob/main/docs/auto-import-guide.md)
 - **Issue / 質問**: https://github.com/higakikeita/tfdrift-falco/issues
 

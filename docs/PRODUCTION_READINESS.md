@@ -238,46 +238,6 @@
    - 完全な同期は困難
    - 一定の誤検知は許容し、手動で確認
 
-### 1.6 Grafana アラートの自動化
-
-#### ⚠️ YAML ベースのアラート設定が動作しない
-
-**問題**:
-- Grafana 10.x 以降、YAML ベースのアラートプロビジョニングが**動作しない**
-- `dashboards/grafana/provisioning/alerting/alerts.yaml` は参考用のみ
-
-**影響**:
-- アラート設定を手動で UI から実施する必要がある
-- Infrastructure as Code (IaC) での管理が困難
-
-**対策**:
-1. **UI での手動設定** (現状の推奨)
-   - `dashboards/grafana/ALERTS.md` の手順に従う
-   - スクリーンショット付きガイド
-
-2. **Terraform Provider for Grafana** (将来的な解決策)
-   ```hcl
-   resource "grafana_rule_group" "tfdrift_alerts" {
-     name             = "TFDrift Alerts"
-     folder_uid       = grafana_folder.tfdrift.uid
-     interval_seconds = 60
-
-     rule {
-       name      = "Critical Drift Detected"
-       condition = "C"
-       # ...
-     }
-   }
-   ```
-   - ただし、設定が複雑
-
-3. **Grafana HTTP API** (スクリプトで自動化)
-   ```bash
-   curl -X POST http://grafana:3000/api/ruler/grafana/api/v1/rules/tfdrift \
-     -H "Authorization: Bearer $GRAFANA_API_KEY" \
-     -d @alerts.json
-   ```
-
 ### 1.7 セキュリティ・アクセス制御
 
 #### ⚠️ ログの改竄・漏洩リスク
@@ -918,6 +878,4 @@ advanced:
 
 **参考ドキュメント**:
 - `AWS_RESOURCE_COVERAGE_ANALYSIS.md`: AWS リソース対応状況
-- `dashboards/grafana/GETTING_STARTED.md`: Grafana セットアップ
-- `dashboards/grafana/ALERTS.md`: アラート設定
 - `docs/qiita-getting-started-guide-fixed.md`: 基本セットアップ

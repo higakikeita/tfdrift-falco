@@ -560,7 +560,7 @@ docker-compose logs tfdrift | grep -i event
 
 After deployment:
 1. [Configure alerts](../examples/config.yaml)
-2. [Set up Grafana dashboards](../dashboards/grafana/README.md)
+2. [Access the React Dashboard UI](./quickstart.md#step-10-access-the-dashboard-ui-v060)
 3. [Review security best practices](./SECURITY.md)
 4. [Join the community](https://github.com/keitahigaki/tfdrift-falco/discussions)
 
