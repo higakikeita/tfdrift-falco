@@ -1,6 +1,12 @@
 import { GraphExportButton } from '../components/graph/GraphExportButton';
+import { CytoscapeGraph } from '../components/CytoscapeGraph';
+import { useGraph } from '../api/hooks/useGraph';
 
 export function TopologyPage() {
+  const { data, isLoading, isError } = useGraph();
+  const elements = data ?? { nodes: [], edges: [] };
+  const hasGraph = elements.nodes.length > 0;
+
   return (
     <div className="space-y-4 h-full flex flex-col">
       <div className="flex items-center justify-between">
@@ -12,8 +18,23 @@ export function TopologyPage() {
           </div>
         </div>
       </div>
-      <div className="flex-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 min-h-[500px] flex items-center justify-center text-slate-400 dark:text-slate-500">
-        Infrastructure Topology Graph (Existing CytoscapeGraph component will be integrated here)
+
+      <div className="flex-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 min-h-[500px] overflow-hidden">
+        {isLoading ? (
+          <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500">
+            Loading topology…
+          </div>
+        ) : isError ? (
+          <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500">
+            Failed to load the topology graph.
+          </div>
+        ) : hasGraph ? (
+          <CytoscapeGraph elements={elements} className="w-full h-full" />
+        ) : (
+          <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500">
+            No topology yet. Detected drifts and their related resources will appear here as a graph.
+          </div>
+        )}
       </div>
     </div>
   );
