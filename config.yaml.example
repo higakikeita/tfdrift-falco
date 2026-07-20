@@ -289,6 +289,25 @@ logging:
   # Optional: Log file path (when output is "file")
   # file: "/var/log/tfdrift-falco.log"
 
+# Automatic import of unmanaged resources
+auto_import:
+  # Enable auto-import proposals for resources found outside of state
+  enabled: false
+
+  # IaC CLI used for generated import/plan commands and for shelling out
+  # during auto-import: "terraform" (default) or "tofu" (OpenTofu).
+  # State parsing is identical for both, so this only affects the tooling.
+  tool: "terraform"
+
+  # Directory containing your Terraform/OpenTofu configuration
+  terraform_dir: "./infra"
+
+  # Where to write generated .tf resource blocks
+  output_dir: "./imported"
+
+  # Require manual approval before importing
+  require_approval: true
+
 # Advanced Options
 advanced:
   # State refresh interval (how often to reload Terraform state)

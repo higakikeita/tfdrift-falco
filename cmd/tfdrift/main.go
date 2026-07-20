@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	version     = "0.13.0"
+	version     = "0.14.0"
 	cfgFile     string
 	autoDetect  bool
 	outputMode  string
@@ -34,10 +34,10 @@ var (
 func main() {
 	rootCmd := &cobra.Command{
 		Use:   "tfdrift",
-		Short: "Real-time Terraform drift detection powered by Falco",
+		Short: "Real-time Terraform/OpenTofu drift detection powered by Falco",
 		Long: `TFDrift-Falco detects manual (non-IaC) changes in your cloud environment
 in real-time by combining Falco runtime security monitoring, CloudTrail events,
-and Terraform state comparison.`,
+and Terraform/OpenTofu state comparison.`,
 		Version: version,
 		Run:     run,
 	}

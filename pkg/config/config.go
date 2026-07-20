@@ -149,11 +149,23 @@ type LoggingConfig struct {
 
 // AutoImportConfig contains automatic import settings
 type AutoImportConfig struct {
-	Enabled          bool     `yaml:"enabled"`
-	TerraformDir     string   `yaml:"terraform_dir"`
-	OutputDir        string   `yaml:"output_dir"` // Where to save generated .tf files
+	Enabled      bool   `yaml:"enabled"`
+	TerraformDir string `yaml:"terraform_dir"`
+	OutputDir    string `yaml:"output_dir"` // Where to save generated .tf files
+	// Tool selects the IaC CLI used for import/plan commands and generated
+	// remediation snippets: "terraform" (default) or "tofu" (OpenTofu).
+	Tool             string   `yaml:"tool" mapstructure:"tool"`
 	AllowedResources []string `yaml:"allowed_resources"`
 	RequireApproval  bool     `yaml:"require_approval"`
+}
+
+// IaCTool returns the configured IaC CLI binary name, defaulting to
+// "terraform" when unset. The value is validated in Config.Validate.
+func (a AutoImportConfig) IaCTool() string {
+	if a.Tool == "tofu" {
+		return "tofu"
+	}
+	return "terraform"
 }
 
 // RemediationConfig contains remediation settings
@@ -231,6 +243,11 @@ func (c *Config) Validate() error {
 	}
 	if c.Falco.Port == 0 {
 		return fmt.Errorf("falco port must be specified")
+	}
+
+	// Validate IaC tool selection (empty is allowed and means terraform)
+	if c.AutoImport.Tool != "" && c.AutoImport.Tool != "terraform" && c.AutoImport.Tool != "tofu" {
+		return fmt.Errorf("auto_import.tool must be \"terraform\" or \"tofu\", got %q", c.AutoImport.Tool)
 	}
 
 	return nil

@@ -16,6 +16,17 @@ func FormatProposalMarkdown(proposal *types.RemediationProposal) string {
 
 	var md strings.Builder
 
+	// Derive the IaC tool from the generated import command's first token so
+	// the headings and "apply" step match the mode (terraform vs tofu).
+	binary := "terraform"
+	if fields := strings.Fields(proposal.ImportCommand); len(fields) > 0 && fields[0] == "tofu" {
+		binary = "tofu"
+	}
+	toolName := "Terraform"
+	if binary == "tofu" {
+		toolName = "OpenTofu"
+	}
+
 	md.WriteString("## Drift Auto-Remediation Proposal\n\n")
 
 	// Summary section
@@ -39,8 +50,8 @@ func FormatProposalMarkdown(proposal *types.RemediationProposal) string {
 	md.WriteString(fmt.Sprintf("- **Created**: %s\n", proposal.CreatedAt))
 	md.WriteString("\n")
 
-	// Proposed Terraform Code
-	md.WriteString("### Proposed Terraform Code\n\n")
+	// Proposed IaC code
+	md.WriteString(fmt.Sprintf("### Proposed %s Code\n\n", toolName))
 	md.WriteString("```hcl\n")
 	md.WriteString(proposal.TerraformCode)
 	md.WriteString("```\n\n")
@@ -72,7 +83,7 @@ func FormatProposalMarkdown(proposal *types.RemediationProposal) string {
 	md.WriteString("2. Run the import command to add the resource to your state (if unmanaged)\n")
 	md.WriteString("3. Update your Terraform configuration with the proposed code\n")
 	md.WriteString("4. Run the plan command to verify the changes\n")
-	md.WriteString("5. Apply the changes using `terraform apply`\n\n")
+	md.WriteString(fmt.Sprintf("5. Apply the changes using `%s apply`\n\n", binary))
 
 	// Footer
 	md.WriteString("---\n")

@@ -19,7 +19,7 @@ func (d *Detector) handleRemediation(ctx context.Context, alert *types.DriftAler
 		return
 	}
 
-	gen := terraform.NewRemediationGenerator()
+	gen := terraform.NewRemediationGeneratorWithTool(d.cfg.AutoImport.IaCTool())
 	proposal := gen.GenerateForDrift(alert)
 	if proposal == nil {
 		return
@@ -61,7 +61,7 @@ func (d *Detector) handleUnmanagedRemediation(ctx context.Context, event *types.
 		return
 	}
 
-	gen := terraform.NewRemediationGenerator()
+	gen := terraform.NewRemediationGeneratorWithTool(d.cfg.AutoImport.IaCTool())
 	proposal := gen.GenerateForUnmanaged(event)
 	if proposal == nil {
 		return

@@ -11,11 +11,24 @@ import (
 )
 
 // RemediationGenerator generates remediation proposals for detected drifts and unmanaged resources
-type RemediationGenerator struct{}
+type RemediationGenerator struct {
+	// binary is the IaC CLI emitted in generated commands ("terraform" or "tofu")
+	binary string
+}
 
-// NewRemediationGenerator creates a new RemediationGenerator
+// NewRemediationGenerator creates a RemediationGenerator that emits
+// terraform commands. Use NewRemediationGeneratorWithTool for OpenTofu.
 func NewRemediationGenerator() *RemediationGenerator {
-	return &RemediationGenerator{}
+	return NewRemediationGeneratorWithTool("terraform")
+}
+
+// NewRemediationGeneratorWithTool creates a generator that emits commands
+// for the given IaC CLI ("terraform" or "tofu"). Empty falls back to terraform.
+func NewRemediationGeneratorWithTool(binary string) *RemediationGenerator {
+	if binary == "" {
+		binary = "terraform"
+	}
+	return &RemediationGenerator{binary: binary}
 }
 
 // GenerateForDrift creates a RemediationProposal for a detected drift
@@ -84,20 +97,20 @@ func (g *RemediationGenerator) GenerateForUnmanaged(event *types.Event) *types.R
 	return proposal
 }
 
-// generateImportCommand generates `terraform import <type>.<name> <id>`
+// generateImportCommand generates `<binary> import <type>.<name> <id>`
 func (g *RemediationGenerator) generateImportCommand(resourceType, resourceName, resourceID string) string {
 	if resourceName == "" {
 		resourceName = "imported_resource"
 	}
-	return fmt.Sprintf("terraform import %s.%s %s", resourceType, resourceName, resourceID)
+	return fmt.Sprintf("%s import %s.%s %s", g.binary, resourceType, resourceName, resourceID)
 }
 
-// generatePlanCommand generates `terraform plan -target=<type>.<name>`
+// generatePlanCommand generates `<binary> plan -target=<type>.<name>`
 func (g *RemediationGenerator) generatePlanCommand(resourceType, resourceName string) string {
 	if resourceName == "" {
 		resourceName = "imported_resource"
 	}
-	return fmt.Sprintf("terraform plan -target=%s.%s", resourceType, resourceName)
+	return fmt.Sprintf("%s plan -target=%s.%s", g.binary, resourceType, resourceName)
 }
 
 // generateHCL generates a skeleton HCL resource block

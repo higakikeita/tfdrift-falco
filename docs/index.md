@@ -1,10 +1,10 @@
 # TFDrift-Falco Documentation
 
-Welcome to the official documentation for **TFDrift-Falco**, a real-time multi-cloud Terraform drift detection system with an integrated React Dashboard UI.
+Welcome to the official documentation for **TFDrift-Falco**, a real-time multi-cloud Terraform/OpenTofu drift detection system with an integrated React Dashboard UI.
 
-> **Version:** v0.13.0 | **Status:** Production Ready | **Providers:** AWS (40+ services) + GCP (27+ services) + Azure
+> **Version:** v0.14.0 | **Status:** Production Ready | **Providers:** AWS (40+ services) + GCP (27+ services) + Azure
 >
-> **New in v0.13.0:** 公式コンテナイメージ公開（GHCR・multi-arch）• リリース整合性ゲート • E2Eテストスイート復活 • 検証済みFalcoルール — v0.10〜v0.12の機能（Policy-as-Code (OPA/Rego)・Drift Auto-Remediation・OpenTelemetry・クロスクラウド相関エンジン）を正式リリースとして統合
+> **New in v0.14.0:** OpenTofu 対応 — `auto_import.tool: tofu` で import/plan 提案と修復コマンドが `tofu` を出力（state 形式は同一のため既存検知はそのまま）| **v0.13.0:** 公式コンテナイメージ公開（GHCR・multi-arch）• リリース整合性ゲート • E2Eテストスイート復活
 
 ---
 

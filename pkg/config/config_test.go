@@ -216,6 +216,33 @@ func TestValidate_ValidConfig(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestAutoImportIaCTool(t *testing.T) {
+	assert.Equal(t, "terraform", AutoImportConfig{}.IaCTool(), "empty defaults to terraform")
+	assert.Equal(t, "terraform", AutoImportConfig{Tool: "terraform"}.IaCTool())
+	assert.Equal(t, "tofu", AutoImportConfig{Tool: "tofu"}.IaCTool())
+	assert.Equal(t, "terraform", AutoImportConfig{Tool: "bogus"}.IaCTool(), "unknown falls back to terraform")
+}
+
+func TestValidate_IaCToolInvalid(t *testing.T) {
+	cfg := &Config{
+		Providers:  ProvidersConfig{AWS: AWSConfig{Enabled: true, Regions: []string{"us-east-1"}}},
+		Falco:      FalcoConfig{Enabled: true, Hostname: "localhost", Port: 5060},
+		AutoImport: AutoImportConfig{Tool: "pulumi"},
+	}
+	err := cfg.Validate()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "auto_import.tool")
+}
+
+func TestValidate_IaCToolTofu(t *testing.T) {
+	cfg := &Config{
+		Providers:  ProvidersConfig{AWS: AWSConfig{Enabled: true, Regions: []string{"us-east-1"}}},
+		Falco:      FalcoConfig{Enabled: true, Hostname: "localhost", Port: 5060},
+		AutoImport: AutoImportConfig{Tool: "tofu"},
+	}
+	assert.NoError(t, cfg.Validate())
+}
+
 func TestSave(t *testing.T) {
 	cfg := &Config{
 		Providers: ProvidersConfig{

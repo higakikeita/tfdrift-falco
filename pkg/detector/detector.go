@@ -118,9 +118,10 @@ func New(cfg *config.Config) (*Detector, error) {
 	var approvalManager *terraform.ApprovalManager
 
 	if cfg.AutoImport.Enabled {
-		importer = terraform.NewImporter(
+		importer = terraform.NewImporterWithBinary(
 			cfg.AutoImport.TerraformDir,
 			cfg.DryRun,
+			cfg.AutoImport.IaCTool(),
 		)
 
 		// Check if interactive mode should be enabled

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-07-20
+
+### Added
+
+- **OpenTofu support** — `auto_import.tool: tofu` makes import/plan proposals and auto-import shell-outs use the `tofu` binary instead of `terraform`. Defaults to `terraform` (fully backward compatible). State parsing and backend detection are unchanged since the state format is identical.
+- `NewImporterWithBinary` and `NewRemediationGeneratorWithTool` constructors that thread the selected IaC CLI through every generated command.
+- Config validation rejecting `auto_import.tool` values other than `terraform`/`tofu`.
+
+### Changed
+
+- Import/plan/apply command strings and the remediation-proposal Markdown now reflect the selected IaC tool (previously hardcoded `terraform`).
+- CLI help text and docs generalized to "Terraform/OpenTofu".
+
 ## [0.13.0] - 2026-07-19
 
 > **Note**: This release consolidates every change since v0.9.0, including the
