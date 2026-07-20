@@ -11,3 +11,4 @@ export {
   usePatternMatch
 } from './useGraphDB';
 export { useDriftSummary, useTriggerDriftDetection } from './useDiscovery';
+export { useStats } from './useStats';
