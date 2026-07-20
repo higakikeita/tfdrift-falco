@@ -220,13 +220,6 @@ The module creates CloudWatch alarms for:
 - **CPU Utilization** - Alert when > 80% for 10 minutes
 - **Memory Utilization** - Alert when > 80% for 10 minutes
 
-### Custom Metrics
-
-TFDrift-Falco exposes Prometheus metrics on port 9090:
-- `tfdrift_events_total` - Total drift events detected
-- `tfdrift_events_by_type` - Events by resource type
-- `tfdrift_detection_latency_seconds` - Detection latency
-
 ## Cost Estimation
 
 Typical costs for running TFDrift-Falco on AWS ECS Fargate:

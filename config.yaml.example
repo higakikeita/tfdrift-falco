@@ -344,9 +344,3 @@ advanced:
       start_time: "02:00"
       end_time: "06:00"
       timezone: "America/New_York"
-
-# Metrics & Monitoring (future)
-# metrics:
-#   enabled: true
-#   prometheus_port: 9090
-#   endpoint: "/metrics"

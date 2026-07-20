@@ -60,7 +60,6 @@ docker-compose up -d
 - **Frontend UI**: http://localhost:3000
 - **Backend API**: http://localhost:8080/api/v1
 - **Health Check**: http://localhost:8080/health
-- **Metrics**: http://localhost:9090
 
 ---
 
@@ -298,13 +297,6 @@ docker-compose logs -f -t
 ---
 
 ## メトリクス監視
-
-### Prometheus
-
-```bash
-# Prometheusエンドポイント
-curl http://localhost:9090/metrics
-```
 
 ### ヘルスチェック
 

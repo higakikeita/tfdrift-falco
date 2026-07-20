@@ -172,7 +172,7 @@ SSE Stream: http://localhost:8080/api/v1/stream
 **Common:**
 - Terraform state file (S3, GCS, or local backend)
 - Kubernetes cluster (for Falco deployment)
-- Grafana + Prometheus (optional, for visualization)
+- React Dashboard UI (real-time visualization)
 
 ### Installation
 

@@ -332,10 +332,6 @@ VITE_WS_URL=wss://api.example.com/ws
 ### Optional Environment Variables
 
 ```bash
-# Monitoring
-PROMETHEUS_ENABLED=true
-METRICS_PORT=9090
-
 # Slack Integration
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
 SLACK_ENABLED=false

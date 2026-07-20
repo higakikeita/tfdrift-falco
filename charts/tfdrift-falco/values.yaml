@@ -190,12 +190,3 @@ networkPolicy:
   ingressNamespaces: []
   # -- Allow egress to Falco namespace
   falcoNamespace: "falco"
-
-# ServiceMonitor for Prometheus
-serviceMonitor:
-  # -- Enable ServiceMonitor (requires Prometheus Operator)
-  enabled: false
-  # -- Scrape interval
-  interval: 30s
-  # -- Additional labels for the ServiceMonitor
-  labels: {}

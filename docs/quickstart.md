@@ -415,7 +415,6 @@ aws sts get-caller-identity
 
 1. [Configure multi-region monitoring →](deployment.md#multi-region)
 2. [Set up high availability →](deployment.md#high-availability)
-3. [Enable Prometheus metrics →](deployment.md#metrics)
 
 ### Customize Rules
 
