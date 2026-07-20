@@ -784,7 +784,6 @@ TFDrift-Falco を使えば：
 ## リンク
 
 - **GitHub**: https://github.com/higakikeita/tfdrift-falco
-- **Grafana セットアップ**: [dashboards/grafana/GETTING_STARTED.md](https://github.com/higakikeita/tfdrift-falco/blob/main/dashboards/grafana/GETTING_STARTED.md)
 - **Auto-Import ガイド**: [docs/auto-import-guide.md](https://github.com/higakikeita/tfdrift-falco/blob/main/docs/auto-import-guide.md)
 - **Issue / 質問**: https://github.com/higakikeita/tfdrift-falco/issues
 
