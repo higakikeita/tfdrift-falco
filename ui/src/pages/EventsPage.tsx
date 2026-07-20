@@ -3,7 +3,6 @@ import { EventTable } from '../components/events/EventTable';
 import { EventFilters } from '../components/events/EventFilters';
 import { EventDetailPanel } from '../components/events/EventDetailPanel';
 import { useEvents, useUpdateEventStatus } from '../api/hooks/useEvents';
-import { mockDriftEvents } from '../mocks/eventData';
 import type { DriftFilters, DriftEvent } from '../types/drift';
 import type { FalcoEvent, EventStatus } from '../api/types';
 import { toast } from '../stores/toastStore';
@@ -48,12 +47,10 @@ export function EventsPage() {
   });
   const updateStatus = useUpdateEventStatus();
 
-  // Merge API events with mock data for display
+  // Real events from the API only — no mock fallback (the empty state is
+  // itself meaningful: no drift has been detected yet).
   const apiEvents = useMemo<FalcoEvent[]>(() => apiData?.data || [], [apiData]);
-  const apiAsDrift = useMemo(() => apiEvents.map(apiEventToDriftEvent), [apiEvents]);
-
-  // Use API events if available, fall back to mock data
-  const baseEvents = apiEvents.length > 0 ? apiAsDrift : mockDriftEvents;
+  const baseEvents = useMemo(() => apiEvents.map(apiEventToDriftEvent), [apiEvents]);
 
   const filtered = useMemo(() => {
     return baseEvents.filter((evt) => {
