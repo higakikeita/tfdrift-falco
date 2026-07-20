@@ -4,6 +4,7 @@ import { useSSE, type SSEEvent } from './sse';
 
 // Mock EventSource
 class MockEventSource {
+  static instances = 0;
   url: string;
   onopen: ((event: Event) => void) | null = null;
   onmessage: ((event: MessageEvent) => void) | null = null;
@@ -14,6 +15,7 @@ class MockEventSource {
 
   constructor(url: string) {
     this.url = url;
+    MockEventSource.instances++;
   }
 }
 
@@ -27,6 +29,17 @@ describe('useSSE hook', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('auto-connects exactly once without an infinite render loop', () => {
+    // Regression: connect() used to depend on isConnecting state, so calling
+    // setIsConnecting recreated connect, re-firing the auto-connect effect
+    // (cleanup disconnect → reconnect) in an infinite loop, opening a new
+    // EventSource each pass. A stable connect must open exactly one.
+    MockEventSource.instances = 0;
+    const { unmount } = renderHook(() => useSSE({ autoConnect: true }));
+    expect(MockEventSource.instances).toBe(1);
+    unmount();
   });
 
   it('should initialize with default state', () => {

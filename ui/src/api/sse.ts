@@ -45,6 +45,10 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
   const eventSource = useRef<EventSource | null>(null);
   const reconnectCount = useRef(0);
   const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
+  // Guards re-entrancy without putting isConnecting (state) in connect()'s
+  // deps — doing so recreated connect on every setIsConnecting, which made
+  // the auto-connect effect's cleanup/run cycle loop infinitely.
+  const connectingRef = useRef(false);
 
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -67,6 +71,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
   // Schedule reconnect with exponential backoff
   const scheduleReconnect = useCallback(() => {
     if (reconnectCount.current >= reconnectAttempts) {
+      connectingRef.current = false;
       setError(new Error(`Failed to connect after ${reconnectAttempts} attempts`));
       setIsConnecting(false);
       return;
@@ -84,10 +89,11 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
   // Connect to SSE stream
   const connect = useCallback(() => {
     // Prevent multiple connections
-    if (eventSource.current || isConnecting) {
+    if (eventSource.current || connectingRef.current) {
       return;
     }
 
+    connectingRef.current = true;
     setIsConnecting(true);
     setError(null);
 
@@ -95,6 +101,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
       const es = new EventSource(url);
 
       es.onopen = () => {
+        connectingRef.current = false;
         setIsConnected(true);
         setIsConnecting(false);
         setError(null);
@@ -148,6 +155,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
 
       es.onerror = (event) => {
         logger.error('[SSE] Error:', event);
+        connectingRef.current = false;
         setIsConnected(false);
         setIsConnecting(false);
         setError(new Error('SSE connection error'));
@@ -161,11 +169,12 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
       eventSource.current = es;
     } catch (err) {
       logger.error('[SSE] Connection failed:', err);
+      connectingRef.current = false;
       setError(err instanceof Error ? err : new Error('Unknown error'));
       setIsConnecting(false);
       scheduleReconnect();
     }
-  }, [url, isConnecting, handleEvent, scheduleReconnect]);
+  }, [url, handleEvent, scheduleReconnect]);
 
   // Disconnect from SSE stream
   const disconnect = useCallback(() => {
@@ -181,6 +190,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
       eventSource.current = null;
     }
 
+    connectingRef.current = false;
     setIsConnected(false);
     setIsConnecting(false);
   }, [reconnectAttempts]);
