@@ -285,9 +285,9 @@ spec:
   selector:
     app: tfdrift-falco
   ports:
-  - name: metrics
-    port: 9090
-    targetPort: 9090
+  - name: http
+    port: 8080
+    targetPort: 8080
 ```
 
 Apply the deployment:
@@ -419,7 +419,6 @@ sudo journalctl -u tfdrift -f
 ### Monitoring
 
 #### Metrics Collection
-- Expose Prometheus metrics (future feature)
 - Monitor event processing latency
 - Track drift detection rate
 

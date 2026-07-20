@@ -817,11 +817,7 @@ log_level: debug
      - TFDRIFT_SLACK_WEBHOOK=https://hooks.slack.com/services/xxx
    ```
 
-2. **Prometheusメトリクス**
-   - Backend: `http://localhost:9090/metrics`
-   - アラート数、処理時間などを監視
-
-3. **ヘルスチェック**
+2. **ヘルスチェック**
    - Kubernetes Liveness/Readiness Probes
    - AWS ECS Health Checks
 
