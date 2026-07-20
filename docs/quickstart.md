@@ -17,11 +17,6 @@ Get TFDrift-Falco up and running in 5 minutes with Dashboard UI.
 - **kubectl** configured
 - **Helm 3** installed
 
-### Optional (for monitoring)
-
-- **Grafana** (v9.0+)
-- **Prometheus** (v2.40+)
-
 ---
 
 ## Step 1: Clone the Repository
@@ -248,34 +243,7 @@ kubectl logs -n falco -l app.kubernetes.io/name=falco --tail=20
 
 ---
 
-## Step 9: Set Up Grafana (Optional)
-
-### Deploy Grafana
-
-```bash
-helm install grafana grafana/grafana \
-  --namespace monitoring --create-namespace \
-  --set adminPassword=admin
-```
-
-### Access Grafana
-
-```bash
-kubectl port-forward -n monitoring svc/grafana 3000:80
-# Open browser: http://localhost:3000
-# Login: admin / admin
-```
-
-### Import TFDrift Dashboard
-
-1. In Grafana, go to **Dashboards** → **Import**
-2. Upload `dashboards/grafana-tfdrift-overview.json`
-3. Select Prometheus data source
-4. Click **Import**
-
----
-
-## Step 10: Configure Alerting (Optional)
+## Step 9: Configure Alerting (Optional)
 
 ### Slack Alerts
 
@@ -296,7 +264,7 @@ Make another manual change and verify Slack notification.
 
 ---
 
-## Step 11: Access the Dashboard UI (v0.6.0+)
+## Step 10: Access the Dashboard UI (v0.6.0+)
 
 The React Dashboard UI provides real-time visualization of drift events and topology graphs.
 
