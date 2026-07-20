@@ -1,0 +1,12 @@
+# Copy to terraform.tfvars and adjust. All values have sensible lean defaults.
+region      = "ap-northeast-1"
+name_prefix = "tfdrift-lab"
+
+# EKS — keep small for a short-lived lab
+eks_cluster_version    = "1.31"
+eks_node_instance_type = "t3.small"
+eks_node_desired_size  = 1
+eks_node_max_size      = 2
+
+# Bastion (SSM-managed, no SSH key needed)
+bastion_instance_type = "t3.micro"
