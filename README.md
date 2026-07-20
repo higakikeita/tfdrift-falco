@@ -48,6 +48,8 @@ docker compose up -d
 
 > **Note**: the `falco` service captures syscalls and needs a Linux host; on macOS/Windows (Docker Desktop) it will crash-loop on `scap_init`, while the backend/frontend run fine. For CloudTrail-based drift detection, configure the Falco CloudTrail plugin instead — see [docs/complete-setup-guide.md](docs/complete-setup-guide.md).
 
+> **Terraform or OpenTofu**: drift detection reads state and works with both out of the box. For auto-import/remediation, set `auto_import.tool: tofu` in `config.yaml` to emit `tofu` commands instead of `terraform` (default).
+
 See [Getting Started Guide](docs/GETTING_STARTED.md) for detailed setup.
 
 ---

@@ -603,7 +603,8 @@ func TestValidateImport_TerraformNotFound(t *testing.T) {
 	err := importer.ValidateImport(ctx, cmd)
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "terraform binary not found")
+	// Error now names the configured binary path rather than a fixed "terraform"
+	assert.Contains(t, err.Error(), "binary not found")
 }
 
 func TestExecute_NonDryRun_InvalidDirectory(t *testing.T) {

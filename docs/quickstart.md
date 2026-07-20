@@ -1,4 +1,4 @@
-# Quickstart Guide (v0.13.0)
+# Quickstart Guide (v0.14.0)
 
 Get TFDrift-Falco up and running in 5 minutes with Dashboard UI.
 

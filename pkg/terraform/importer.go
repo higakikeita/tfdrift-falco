@@ -17,23 +17,35 @@ type Importer struct {
 	dryRun          bool
 }
 
-// NewImporter creates a new Terraform importer
+// NewImporter creates a new Terraform importer using the default
+// "terraform" binary. Use NewImporterWithBinary to select OpenTofu.
 func NewImporter(workingDir string, dryRun bool) *Importer {
+	return NewImporterWithBinary(workingDir, dryRun, "terraform")
+}
+
+// NewImporterWithBinary creates an importer that shells out to the given
+// IaC CLI binary ("terraform" or "tofu"). An empty binary falls back to
+// "terraform" for backward compatibility.
+func NewImporterWithBinary(workingDir string, dryRun bool, binary string) *Importer {
+	if binary == "" {
+		binary = "terraform"
+	}
 	return &Importer{
-		terraformBinary: "terraform",
+		terraformBinary: binary,
 		workingDir:      workingDir,
 		dryRun:          dryRun,
 	}
 }
 
-// ImportCommand represents a Terraform import command
+// ImportCommand represents an IaC import command
 type ImportCommand struct {
 	ResourceType string
 	ResourceName string
 	ResourceID   string
+	Binary       string // "terraform" or "tofu"; empty renders as "terraform"
 }
 
-// GenerateImportCommand generates a terraform import command string
+// GenerateImportCommand generates an import command for the importer's binary
 func (i *Importer) GenerateImportCommand(resourceType, resourceID string) *ImportCommand {
 	// Generate a suggested resource name based on the resource ID
 	resourceName := i.generateResourceName(resourceID)
@@ -42,6 +54,7 @@ func (i *Importer) GenerateImportCommand(resourceType, resourceID string) *Impor
 		ResourceType: resourceType,
 		ResourceName: resourceName,
 		ResourceID:   resourceID,
+		Binary:       i.terraformBinary,
 	}
 }
 
@@ -68,8 +81,12 @@ func (i *Importer) generateResourceName(resourceID string) string {
 
 // String returns the command as a string
 func (cmd *ImportCommand) String() string {
-	return fmt.Sprintf("terraform import %s.%s %s",
-		cmd.ResourceType, cmd.ResourceName, cmd.ResourceID)
+	binary := cmd.Binary
+	if binary == "" {
+		binary = "terraform"
+	}
+	return fmt.Sprintf("%s import %s.%s %s",
+		binary, cmd.ResourceType, cmd.ResourceName, cmd.ResourceID)
 }
 
 // Execute runs the terraform import command
@@ -98,7 +115,7 @@ func (i *Importer) Execute(ctx context.Context, cmd *ImportCommand) error {
 
 	// Execute
 	if err := execCmd.Run(); err != nil {
-		return fmt.Errorf("terraform import failed: %w\nstderr: %s", err, stderr.String())
+		return fmt.Errorf("%s import failed: %w\nstderr: %s", i.terraformBinary, err, stderr.String())
 	}
 
 	log.Infof("Import successful: %s", stdout.String())
@@ -134,9 +151,9 @@ func (i *Importer) GenerateTerraformCode(resourceType, resourceName string, attr
 
 // ValidateImport checks if the import would be successful without actually importing
 func (i *Importer) ValidateImport(ctx context.Context, _ *ImportCommand) error {
-	// Check if terraform binary exists
+	// Check if the IaC binary exists
 	if _, err := exec.LookPath(i.terraformBinary); err != nil {
-		return fmt.Errorf("terraform binary not found: %w", err)
+		return fmt.Errorf("%s binary not found: %w", i.terraformBinary, err)
 	}
 
 	// Check if working directory exists and is initialized
