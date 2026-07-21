@@ -1,7 +1,8 @@
 # TFDrift-Falco validation lab: bastion (SSM) + EKS + ECS Fargate.
 # Deliberately lean and short-lived — apply, generate real CloudTrail drift,
 # verify tfdrift detection, then `terraform destroy`. Cost drivers are the EKS
-# control plane (~$0.10/h), one NAT gateway, one small node, and Fargate tasks.
+# control plane (~$0.10/h), one small node, and Fargate tasks. No NAT/EIP
+# (public-subnet design) to stay within the shared account's EIP limit.
 
 data "aws_availability_zones" "available" {
   state = "available"
@@ -26,10 +27,14 @@ module "vpc" {
   public_subnets  = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 8, k)]
   private_subnets = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 8, k + 10)]
 
-  enable_nat_gateway   = true
-  single_nat_gateway   = true # one NAT for the whole VPC — cheapest workable option
-  enable_dns_hostnames = true
-  enable_dns_support   = true
+  # No NAT gateway: nodes / tasks / bastion run in public subnets with public
+  # IPs. This avoids consuming an Elastic IP — the shared test account is at its
+  # region EIP limit (5/5), which blocked a NAT-based design. Acceptable for a
+  # throwaway lab; it's also cheaper (no NAT hourly + data charges).
+  enable_nat_gateway      = false
+  map_public_ip_on_launch = true
+  enable_dns_hostnames    = true
+  enable_dns_support      = true
 
   # Tags required for EKS subnet auto-discovery
   public_subnet_tags  = { "kubernetes.io/role/elb" = "1" }
@@ -91,11 +96,12 @@ resource "aws_security_group" "bastion" {
 }
 
 resource "aws_instance" "bastion" {
-  ami                    = data.aws_ami.al2023.id
-  instance_type          = var.bastion_instance_type
-  subnet_id              = module.vpc.private_subnets[0] # private: reachable via SSM only
-  iam_instance_profile   = aws_iam_instance_profile.bastion.name
-  vpc_security_group_ids = [aws_security_group.bastion.id]
+  ami                         = data.aws_ami.al2023.id
+  instance_type               = var.bastion_instance_type
+  subnet_id                   = module.vpc.public_subnets[0] # public: SSM agent needs egress (no NAT)
+  associate_public_ip_address = true
+  iam_instance_profile        = aws_iam_instance_profile.bastion.name
+  vpc_security_group_ids      = [aws_security_group.bastion.id]
 
   metadata_options {
     http_tokens = "required" # IMDSv2
@@ -118,7 +124,7 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnets
+  subnet_ids = module.vpc.public_subnets # public: nodes get public IPs for egress (no NAT)
 
   eks_managed_node_groups = {
     default = {
@@ -223,8 +229,8 @@ resource "aws_ecs_service" "nginx" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = module.vpc.private_subnets
+    subnets          = module.vpc.public_subnets
     security_groups  = [aws_security_group.ecs_service.id]
-    assign_public_ip = false
+    assign_public_ip = true # public subnet + public IP for image pulls (no NAT)
   }
 }

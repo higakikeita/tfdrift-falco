@@ -12,8 +12,8 @@ generate a few manual (non-IaC) changes, confirm tfdrift detects them, then dest
 
 | Component | Detail |
 |---|---|
-| VPC | 2 AZ, **single NAT gateway** (cost), public + private subnets |
-| Bastion | EC2 `t3.micro` in a **private** subnet, reachable **only via SSM Session Manager** — no key pair, no inbound SSH, no open `:22` |
+| VPC | 2 AZ, **no NAT gateway** — workloads run in public subnets with public IPs (avoids consuming an Elastic IP; the shared account is at its 5/5 EIP limit) |
+| Bastion | EC2 `t3.micro` in a public subnet, reachable **only via SSM Session Manager** — no key pair, no inbound SSH, no open `:22` |
 | EKS | 1 managed node (`t3.small`), public API endpoint, creator = cluster admin |
 | ECS Fargate | Cluster + one minimal `nginx` service (a live workload to drift) |
 
