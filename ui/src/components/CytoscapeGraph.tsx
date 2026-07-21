@@ -35,12 +35,16 @@ const CytoscapeGraphComponent = ({
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [cy, setCy] = useState<Core | null>(null);
 
-  const handleNodeClick = (nodeId: string, nodeData: unknown) => {
+  // Must be stable: CytoscapeRenderer's init effect depends on this, and an
+  // unstable ref made it re-create the whole graph every render — which called
+  // onInitialized -> setCy -> re-render -> new handler -> re-create … an
+  // infinite loop that flickered the topology and leaked canvases.
+  const handleNodeClick = useCallback((nodeId: string, nodeData: unknown) => {
     setSelectedNode(nodeId);
     if (onNodeClick) {
       onNodeClick(nodeId, nodeData);
     }
-  };
+  }, [onNodeClick]);
 
   const handleCyInitialized = useCallback(() => {
     setCy(cyRef.current);
