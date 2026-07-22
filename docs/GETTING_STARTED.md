@@ -303,7 +303,7 @@ make status
 
 # 期待される出力:
 # NAME                    STATUS              PORTS
-# tfdrift-falco-app       Up 30 seconds       0.0.0.0:9090->9090/tcp
+# tfdrift-falco-app       Up 30 seconds       0.0.0.0:8080->8080/tcp
 # tfdrift-falco-falco     Up 30 seconds       0.0.0.0:5060->5060/tcp
 ```
 

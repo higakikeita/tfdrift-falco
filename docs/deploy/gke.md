@@ -218,11 +218,10 @@ podDisruptionBudget:
   enabled: true
   minAvailable: 2
 
-# Pod annotations for monitoring
-podAnnotations:
-  prometheus.io/scrape: "true"
-  prometheus.io/port: "8080"
-  prometheus.io/path: "/metrics"
+# Pod annotations (optional). TFDrift-Falco has no scrape-style /metrics
+# endpoint; metrics/traces are pushed via OpenTelemetry (OTLP) when
+# telemetry.enabled: true. Point telemetry at your OTLP collector instead.
+podAnnotations: {}
 
 # Service configuration
 service:
@@ -454,9 +453,10 @@ gcloud compute backend-services update tfdrift-falco-backend \
 ### Enable Cloud Monitoring
 
 ```bash
-# Cloud Monitoring is automatically enabled with GKE
-# Verify Prometheus metrics are scraped
-kubectl get servicemonitor -n tfdrift-falco
+# Cloud Monitoring is automatically enabled with GKE.
+# TFDrift-Falco exports metrics/traces via OpenTelemetry (OTLP) when
+# telemetry.enabled: true — send them to an OTLP collector, not a scrape target.
+kubectl get pods -n tfdrift-falco
 ```
 
 ### Create Monitoring Dashboard
