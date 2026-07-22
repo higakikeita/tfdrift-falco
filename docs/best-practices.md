@@ -942,7 +942,7 @@ go tool pprof heap.out
 - [ ] **IAM Permissions**: 最小権限の原則に従ったIAMポリシー
 - [ ] **Secrets Management**: Webhook URLや認証情報をSecrets/Secret Managerで管理
 - [ ] **Network Security**: mTLS有効化、Network Policy設定
-- [ ] **Monitoring**: Prometheusメトリクス収集、Grafanaダッシュボード構築
+- [ ] **Monitoring**: OpenTelemetry(OTLP)でメトリクス/トレース出力、組込み React UI で可視化
 - [ ] **Alerting**: Critical/Highレベルのアラートルール設定
 - [ ] **Logging**: JSON形式でログを外部システムに転送
 - [ ] **Backup**: Terraform Stateの定期バックアップ
