@@ -9,7 +9,10 @@ services:
     privileged: true
     restart: unless-stopped
     ports:
-      - "5060:5060"  # gRPC API
+      # Bound to localhost only: the API has no authentication and Falco gRPC
+      # defaults to plaintext. Do NOT change to 0.0.0.0 / a public interface
+      # without putting auth + TLS in front. See SECURITY.md.
+      - "127.0.0.1:5060:5060"  # gRPC API (localhost only)
     volumes:
       # Docker socket for container monitoring
       - /var/run/docker.sock:/host/var/run/docker.sock:ro
@@ -58,8 +61,9 @@ services:
     #   falco:
     #     condition: service_healthy
     ports:
-      - "8080:8080"  # API server
-      - "9090:9090"  # Metrics endpoint
+      # Bound to localhost only — the API has NO authentication. See SECURITY.md.
+      - "127.0.0.1:8080:8080"  # API server (localhost only)
+      - "127.0.0.1:9090:9090"  # metrics/debug (localhost only)
     volumes:
       # Configuration
       - ./config.yaml:/config/config.yaml:ro
@@ -105,7 +109,8 @@ services:
     container_name: tfdrift-frontend
     restart: unless-stopped
     ports:
-      - "3000:8080"  # Web UI
+      # Bound to localhost only. See SECURITY.md before exposing.
+      - "127.0.0.1:3000:8080"  # Web UI (localhost only)
     environment:
       - VITE_API_BASE_URL=http://host.docker.internal:8080/api/v1
       - VITE_WS_URL=ws://host.docker.internal:8080/ws

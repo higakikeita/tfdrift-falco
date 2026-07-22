@@ -30,6 +30,8 @@ AWSコンソールでセキュリティグループを変更
 
 ## クイックスタート
 
+> 🔒 **信頼できるネットワーク限定で実行してください。** API サーバには**認証が未内蔵**で、Falco gRPC は既定で平文のため、quickstart は全ポートを `127.0.0.1`（localhost）にバインドしています。認証＋TLS を手前に置かずに `0.0.0.0` や公開インターネットへ晒さないでください。詳細は [SECURITY.md](SECURITY.md)。
+
 ```bash
 # クローンして設定
 git clone https://github.com/higakikeita/tfdrift-falco.git && cd tfdrift-falco
