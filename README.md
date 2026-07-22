@@ -2,14 +2,14 @@
 
 **Real-time Terraform Drift Detection powered by Falco**
 
-[![Version](https://img.shields.io/badge/version-0.9.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
+[![Version](https://img.shields.io/badge/version-0.14.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://golang.org/)
+[![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
 [![Docker](https://img.shields.io/badge/Docker-GHCR-2496ED?logo=docker)](https://ghcr.io/higakikeita/tfdrift-falco)
 
-> **v0.9.0** (2026-03-29) — Azure Full Support, azurerm backend, WebSocket enhancements
-> [Release Notes](docs/release-notes/v0.9.0.md) | [CHANGELOG](CHANGELOG.md) | [Roadmap](PROJECT_ROADMAP.md)
+> **v0.14.0** (2026-07-20) — OpenTofu support (`auto_import.tool: terraform|tofu`)
+> [Release Notes](docs/release-notes/v0.14.0.md) | [CHANGELOG](CHANGELOG.md) | [Roadmap](PROJECT_ROADMAP.md)
 
 **[English]** | [日本語](README.ja.md)
 
