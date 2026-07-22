@@ -2,7 +2,7 @@
 
 > **Version:** v0.9.0 (Azure Full Support & Real-Time Enhancements)
 > **Supported Providers:** AWS, Google Cloud Platform, Microsoft Azure
-> **Status:** Production Ready
+> **Status:** Beta (pre-1.0; API has no built-in authentication — deploy on a trusted network behind your own gateway)
 
 ## Table of Contents
 

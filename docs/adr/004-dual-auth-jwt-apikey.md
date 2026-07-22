@@ -2,7 +2,14 @@
 
 ## Status
 
-Accepted
+**Accepted — NOT IMPLEMENTED (as of v0.14.0).** This ADR records an accepted
+design that has **not been built**. The code it references does not exist:
+there is no `pkg/api/middleware/auth.go`, no JWT dependency, and no
+`POST /api/v1/auth/token` handler. RBAC middleware (`RequireRole`) is present
+but is a no-op unless `RBAC_ENABLED=true`, and enabling it without an auth
+layer to set the caller's identity makes every request return 401. **The API
+currently ships with no authentication** — run it on a trusted network behind
+your own gateway/mTLS. See SECURITY.md (authoritative) for the honest status.
 
 ## Date
 

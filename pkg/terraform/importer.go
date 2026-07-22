@@ -85,8 +85,21 @@ func (cmd *ImportCommand) String() string {
 	if binary == "" {
 		binary = "terraform"
 	}
-	return fmt.Sprintf("%s import %s.%s %s",
+	return fmt.Sprintf("%s import -- %s.%s %s",
 		binary, cmd.ResourceType, cmd.ResourceName, cmd.ResourceID)
+}
+
+// execArgs builds the argv passed to the terraform/tofu binary. The "--"
+// separator terminates flag parsing, so a resource address or ID that begins
+// with "-" (e.g. from cloud-discovered names) is always treated as a
+// positional argument rather than an injected CLI flag.
+func (cmd *ImportCommand) execArgs() []string {
+	return []string{
+		"import",
+		"--",
+		fmt.Sprintf("%s.%s", cmd.ResourceType, cmd.ResourceName),
+		cmd.ResourceID,
+	}
 }
 
 // Execute runs the terraform import command
@@ -98,12 +111,8 @@ func (i *Importer) Execute(ctx context.Context, cmd *ImportCommand) error {
 
 	log.Infof("Executing Terraform import: %s", cmd.String())
 
-	// Build the command
-	args := []string{
-		"import",
-		fmt.Sprintf("%s.%s", cmd.ResourceType, cmd.ResourceName),
-		cmd.ResourceID,
-	}
+	// Build the command ("--" hardens against arg-injection; see execArgs)
+	args := cmd.execArgs()
 
 	execCmd := exec.CommandContext(ctx, i.terraformBinary, args...)
 	execCmd.Dir = i.workingDir

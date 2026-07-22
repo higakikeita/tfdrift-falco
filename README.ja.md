@@ -30,6 +30,8 @@ AWSコンソールでセキュリティグループを変更
 
 ## クイックスタート
 
+> 🔒 **信頼できるネットワーク限定で実行してください。** API サーバには**認証が未内蔵**で、Falco gRPC は既定で平文のため、quickstart は全ポートを `127.0.0.1`（localhost）にバインドしています。認証＋TLS を手前に置かずに `0.0.0.0` や公開インターネットへ晒さないでください。詳細は [SECURITY.md](SECURITY.md)。
+
 ```bash
 # クローンして設定
 git clone https://github.com/higakikeita/tfdrift-falco.git && cd tfdrift-falco
@@ -120,7 +122,9 @@ providers:
 
 **Webhook通知** — Slack、Microsoft Teams、PagerDuty、カスタムHTTPエンドポイント対応。自動リトライ付き。
 
-**本番対応** — JWT/APIキー認証、レートリミット、OpenAPI 3.0仕様、Kubernetes Helm Chart（HPA、NetworkPolicy対応）。
+**本番運用ツール** — レートリミット、OpenAPI 3.0仕様、Kubernetes Helm Chart（HPA、NetworkPolicy対応）。
+
+> ⚠️ **セキュリティ注意:** API サーバに**認証は未内蔵**です（JWT/APIキー認証は [security roadmap](SECURITY.md) 上で未実装）。TFDrift-Falco は localhost または信頼できるネットワーク限定で、手前のゲートウェイ/mTLS の背後で動かしてください。**公開インターネットに直接晒さないでください。**
 
 ---
 

@@ -30,6 +30,8 @@ Someone modifies a security group via AWS Console
 
 ## Quick Start
 
+> 🔒 **Run it on a trusted network only.** The API server has **no built-in authentication** yet and Falco gRPC defaults to plaintext, so the quickstart publishes all ports on `127.0.0.1` (localhost) by design. Do **not** bind to `0.0.0.0` or expose it to the public internet without adding authentication + TLS in front. See [SECURITY.md](SECURITY.md).
+
 **Try the API server locally** (Go 1.25+, no cloud credentials needed to boot):
 
 ```bash
@@ -128,7 +130,9 @@ providers:
 
 **Webhook Notifications** — Slack, Microsoft Teams, PagerDuty, or custom HTTP endpoints with automatic retries.
 
-**Production Ready** — JWT/API Key authentication, rate limiting, OpenAPI 3.0 spec, Kubernetes Helm Chart with HPA and NetworkPolicy.
+**Production Tooling** — Rate limiting, OpenAPI 3.0 spec, and a Kubernetes Helm Chart with HPA and NetworkPolicy.
+
+> ⚠️ **Security note:** The API server has **no built-in authentication** yet (JWT/API-Key auth is on the [security roadmap](SECURITY.md), not implemented). Run TFDrift-Falco on localhost or a trusted network only, behind your own gateway/mTLS — do **not** expose it directly to the public internet.
 
 ---
 

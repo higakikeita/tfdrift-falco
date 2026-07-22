@@ -2,7 +2,7 @@
 
 Welcome to the official documentation for **TFDrift-Falco**, a real-time multi-cloud Terraform/OpenTofu drift detection system with an integrated React Dashboard UI.
 
-> **Version:** v0.14.0 | **Status:** Production Ready | **Providers:** AWS (40+ services) + GCP (27+ services) + Azure
+> **Version:** v0.14.0 | **Status:** Beta (pre-1.0; API has no built-in auth — run on a trusted network) | **Providers:** AWS + GCP + Azure
 >
 > **New in v0.14.0:** OpenTofu 対応 — `auto_import.tool: tofu` で import/plan 提案と修復コマンドが `tofu` を出力（state 形式は同一のため既存検知はそのまま）| **v0.13.0:** 公式コンテナイメージ公開（GHCR・multi-arch）• リリース整合性ゲート • E2Eテストスイート復活
 
@@ -146,7 +146,7 @@ SSE Stream: http://localhost:8080/api/v1/stream
 - **Key management** (AWS KMS, GCP KMS)
 - **Service account modifications** (GCP Service Accounts)
 
-### 📊 Production-Ready Monitoring
+### 📊 Monitoring & Observability
 
 - **Grafana dashboards** for multi-cloud visibility
 - **Falco rules** with severity levels
