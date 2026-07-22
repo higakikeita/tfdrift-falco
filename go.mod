@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/elasticache v1.55.1
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.58.0
 	github.com/aws/aws-sdk-go-v2/service/iam v1.55.1
-	github.com/aws/aws-sdk-go-v2/service/rds v1.120.1
+	github.com/aws/aws-sdk-go-v2/service/rds v1.123.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.105.1
 	github.com/falcosecurity/client-go v0.6.1
 	github.com/go-chi/chi/v5 v5.3.1
@@ -54,7 +54,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.31 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.13 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.9.23 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.30 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.31 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.31 // indirect
 	github.com/aws/aws-sdk-go-v2/service/signin v1.4.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.32.1 // indirect
