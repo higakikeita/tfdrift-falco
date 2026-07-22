@@ -95,7 +95,7 @@ func (s *Server) setupRouter() {
 	r.Use(apimiddleware.RateLimit(apimiddleware.DefaultRateLimitConfig()))
 
 	// Health check (no /api/v1 prefix for simplicity)
-	healthHandler := handlers.NewHealthHandler(s.version)
+	healthHandler := handlers.NewHealthHandlerWithReadiness(s.version, s.detector.FalcoReadiness)
 	r.Get("/health", healthHandler.GetHealth)
 
 	// API v1 routes

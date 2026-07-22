@@ -24,7 +24,8 @@ type APIError struct {
 
 // HealthResponse represents the health check response
 type HealthResponse struct {
-	Status    string `json:"status"`
-	Version   string `json:"version"`
-	Timestamp string `json:"timestamp"`
+	Status    string            `json:"status"`
+	Version   string            `json:"version"`
+	Timestamp string            `json:"timestamp"`
+	Checks    map[string]string `json:"checks,omitempty"`
 }
