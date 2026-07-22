@@ -211,8 +211,8 @@ Phase 1 MVP（現在）から **Phase 1.5 Enhanced MVP** への移行
 ```
 
 **成果物**:
-- [ ] アラートルール定義（`dashboards/grafana/alerts/`）
-- [ ] アラート設定ガイド（`docs/grafana-alerts.md`）
+- [ ] アラートルール定義（drift_rules / policy）
+- [ ] アラート設定ガイド（通知チャネル: Slack/Discord/webhook）
 - [ ] Slack/Discord 連携設定例
 
 **見積もり**: 3-4 時間
