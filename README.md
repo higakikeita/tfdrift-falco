@@ -41,14 +41,20 @@ go run ./cmd/tfdrift --server --config config.yaml
 # → http://localhost:8080/api/v1/health
 ```
 
-**Full stack with Falco** (Docker + Docker Compose):
+**Full stack — local UI/API demo** (Docker + Docker Compose):
 
 ```bash
 ./quick-start.sh        # generates config, TLS certs, .env (interactive; --yes for defaults)
-docker compose up -d
+docker compose up -d    # backend + frontend + Falco (gRPC)
 ```
 
-> **Note**: the `falco` service captures syscalls and needs a Linux host; on macOS/Windows (Docker Desktop) it will crash-loop on `scap_init`, while the backend/frontend run fine. For CloudTrail-based drift detection, configure the Falco CloudTrail plugin instead — see [docs/complete-setup-guide.md](docs/complete-setup-guide.md).
+> ⚠️ **What the default stack does — and doesn't.** `docker compose up -d` brings up the **UI, API, and Falco's gRPC channel** for exploring the app locally. It does **not** enable real-time CloudTrail drift detection: the default Falco config ships **without** the CloudTrail plugin (`deployments/falco/falco-simple.yaml` → `plugins: []`), so no live AWS events flow in. This is intentional — the plugin needs an AWS CloudTrail source (S3/SQS) and credentials, which a local demo can't assume.
+
+**Enable real-time CloudTrail drift detection** (opt-in; needs AWS):
+
+Real-time detection requires the Falco CloudTrail plugin and an AWS CloudTrail→S3/SQS source. Follow [docs/complete-setup-guide.md](docs/complete-setup-guide.md) to install the plugin (via `falcoctl`) and point Falco at your trail. Until you do, the stack runs as a local UI/API demo.
+
+> **Note**: the `falco` service captures syscalls and needs a Linux host; on macOS/Windows (Docker Desktop) it will crash-loop on `scap_init`, while the backend/frontend run fine.
 
 > **Terraform or OpenTofu**: drift detection reads state and works with both out of the box. For auto-import/remediation, set `auto_import.tool: tofu` in `config.yaml` to emit `tofu` commands instead of `terraform` (default).
 

@@ -1,0 +1,76 @@
+name: Onboarding Smoke
+
+# T-1 acceptance gate (#318, handoff/tfdrift-acceptance-test.md):
+# a fresh clone following the documented quickstart must bring the default
+# stack up healthy. AWS-free — this proves the "clone → quick-start → compose
+# up" onboarding doesn't silently break. Real-time CloudTrail detection is the
+# opt-in path (needs the plugin + AWS) and is exercised by the E2E harness
+# (#314 / T-2), not here.
+
+on:
+  pull_request:
+    paths:
+      - "quick-start.sh"
+      - "docker-compose.yml"
+      - "Dockerfile"
+      - "ui/Dockerfile"
+      - "deployments/falco/**"
+      - ".github/workflows/onboarding-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Quickstart boots (AWS-free)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Run quick-start.sh (non-interactive)
+        run: ./quick-start.sh --yes
+
+      - name: Build and start the default stack
+        run: docker compose up -d --build
+
+      - name: Wait for backend /health (up to 180s)
+        run: |
+          for i in $(seq 1 36); do
+            if curl -fsS http://127.0.0.1:8080/health >/dev/null 2>&1; then
+              echo "backend healthy after $((i*5))s"
+              curl -s http://127.0.0.1:8080/health; echo
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::backend did not become healthy in time"
+          docker compose ps
+          docker compose logs backend | tail -50
+          exit 1
+
+      - name: Assert frontend is serving
+        run: |
+          for i in $(seq 1 12); do
+            if curl -fsS http://127.0.0.1:3000/ >/dev/null 2>&1; then
+              echo "frontend serving after $((i*5))s"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::frontend did not serve in time"
+          docker compose logs frontend | tail -50
+          exit 1
+
+      - name: Report container + falco status (non-fatal)
+        if: always()
+        run: |
+          docker compose ps
+          echo "--- falco (best-effort; default stack ships without the CloudTrail plugin) ---"
+          docker compose logs falco | tail -30 || true
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v || true

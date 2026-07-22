@@ -35,14 +35,15 @@ AWSコンソールでセキュリティグループを変更
 ```bash
 # クローンして設定
 git clone https://github.com/higakikeita/tfdrift-falco.git && cd tfdrift-falco
-cp config.yaml.example config.yaml  # 設定を編集
+./quick-start.sh --yes   # config.yaml・TLS証明書・.env を生成
 
-# 起動
+# ローカル UI/API デモを起動（backend + frontend + Falco gRPC）
 docker compose up -d
-
-# デモモード（クラウド認証不要）
-go run ./cmd/tfdrift --demo
 ```
+
+> ⚠️ **既定スタックの範囲**: `docker compose up -d` は **UI・API・Falco の gRPC** をローカルで立ち上げますが、**リアルタイム CloudTrail ドリフト検知は有効になりません**。既定の Falco 設定は CloudTrail プラグイン無し（`deployments/falco/falco-simple.yaml` の `plugins: []`）で、実 AWS イベントは流れ込みません。プラグインは AWS の CloudTrail ソース（S3/SQS）と認証情報を必要とするため、ローカルデモでは既定で無効にしています。
+>
+> **リアルタイム検知を有効化する**（opt-in・AWS 必要）: Falco CloudTrail プラグイン（`falcoctl` で導入）と CloudTrail→S3/SQS ソースが必要です。手順は [docs/complete-setup-guide.md](docs/complete-setup-guide.md) を参照。
 
 詳細は [Getting Started Guide](docs/GETTING_STARTED.md) を参照。
 
