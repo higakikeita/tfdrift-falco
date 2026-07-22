@@ -3,6 +3,8 @@ package falco
 import (
 	"context"
 	"fmt"
+	"sync/atomic"
+	"time"
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
 	"github.com/falcosecurity/client-go/pkg/client"
@@ -17,6 +19,12 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+// Reconnect backoff bounds for the Falco subscription (#312, pus #9).
+const (
+	reconnectInitialBackoff = 1 * time.Second
+	reconnectMaxBackoff     = 30 * time.Second
+)
+
 // Subscriber subscribes to Falco outputs via gRPC
 type Subscriber struct {
 	cfg         config.FalcoConfig
@@ -25,6 +33,22 @@ type Subscriber struct {
 	isInsecure  bool
 	gcpParser   *gcp.AuditParser      // GCP Audit Log parser
 	azureParser *azure.ActivityParser // Azure Activity Log parser
+
+	// connected reflects whether the outputs stream is currently established
+	// and being read. Exposed via Connected() so /health can surface a
+	// degraded signal instead of reporting "ok" while silently receiving
+	// nothing (pus #9 "silent death").
+	connected atomic.Bool
+
+	// reconnect backoff bounds; zero falls back to the package defaults.
+	// Overridable so the reconnect policy is fast to unit-test.
+	initialBackoff time.Duration
+	maxBackoff     time.Duration
+}
+
+// Connected reports whether the Falco outputs stream is currently established.
+func (s *Subscriber) Connected() bool {
+	return s.connected.Load()
 }
 
 // NewSubscriber creates a new Falco subscriber
@@ -60,19 +84,74 @@ func (s *Subscriber) ExtractResourceID(eventName string, fields map[string]strin
 	return s.extractResourceID(eventName, fields)
 }
 
-// Start starts subscribing to Falco outputs
+// Start subscribes to Falco outputs and keeps the subscription alive.
+//
+// Each attempt (connect → subscribe → receive) is wrapped in a reconnect loop
+// with exponential backoff: previously the first stream error returned from
+// Start and the subscriber died permanently while the process kept running —
+// detection silently stopped (pus #9). Now Start only returns when ctx is
+// cancelled; any other failure is logged, marks the subscriber disconnected,
+// and is retried.
 func (s *Subscriber) Start(ctx context.Context, eventCh chan<- types.Event) error {
 	log.Info("Starting Falco subscriber...")
 
-	// Check if TLS certificates are configured
+	attempt := s.startWithInsecure
 	if s.cfg.CertFile != "" && s.cfg.KeyFile != "" {
-		// Use TLS connection with certificates via client-go library
-		log.Infof("Using TLS connection to Falco at %s:%d", s.cfg.Hostname, s.cfg.Port)
-		return s.startWithTLS(ctx, eventCh)
-	} else {
-		// Use insecure plaintext connection (direct gRPC)
-		log.Infof("Using insecure plaintext connection to Falco at %s:%d", s.cfg.Hostname, s.cfg.Port)
-		return s.startWithInsecure(ctx, eventCh)
+		attempt = s.startWithTLS
+	}
+	return s.runWithReconnect(ctx, eventCh, attempt)
+}
+
+// runWithReconnect runs `attempt` and retries it with capped exponential
+// backoff until ctx is cancelled. `attempt` is expected to block until the
+// stream ends (returning the error that ended it). Factored out so the
+// reconnect policy is unit-testable without a real gRPC server.
+func (s *Subscriber) runWithReconnect(
+	ctx context.Context,
+	eventCh chan<- types.Event,
+	attempt func(context.Context, chan<- types.Event) error,
+) error {
+	initial := s.initialBackoff
+	if initial <= 0 {
+		initial = reconnectInitialBackoff
+	}
+	maxB := s.maxBackoff
+	if maxB <= 0 {
+		maxB = reconnectMaxBackoff
+	}
+
+	backoff := initial
+	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+
+		started := time.Now()
+		err := attempt(ctx, eventCh)
+		s.connected.Store(false)
+
+		// A cancelled context is a clean shutdown, not a fault to retry.
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		// A connection that stayed up longer than the max backoff was healthy;
+		// treat the next failure as fresh so recovery is fast, not capped.
+		if time.Since(started) > maxB {
+			backoff = initial
+		}
+
+		log.Warnf("Falco subscription ended (%v); reconnecting in %s", err, backoff)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(backoff):
+		}
+
+		backoff *= 2
+		if backoff > maxB {
+			backoff = maxB
+		}
 	}
 }
 
@@ -148,6 +227,11 @@ func (s *Subscriber) startWithInsecure(ctx context.Context, eventCh chan<- types
 
 // receiveMessages receives and processes messages from the Falco stream
 func (s *Subscriber) receiveMessages(ctx context.Context, stream outputs.Service_SubClient, eventCh chan<- types.Event) error {
+	// The stream is established and about to be read: mark connected, and mark
+	// disconnected on any exit so /health reflects reality (pus #9).
+	s.connected.Store(true)
+	defer s.connected.Store(false)
+
 	// Receive messages from stream
 	for {
 		select {

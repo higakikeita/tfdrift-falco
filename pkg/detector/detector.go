@@ -18,6 +18,19 @@ import (
 )
 
 // Detector is the main drift detection engine
+// FalcoReadiness reports whether the real-time processing path (the Falco
+// outputs subscription) is healthy, for the API /health readiness signal.
+// When Falco is disabled it is trivially ready.
+func (d *Detector) FalcoReadiness() (bool, map[string]string) {
+	if !d.cfg.Falco.Enabled {
+		return true, map[string]string{"falco": "disabled"}
+	}
+	if d.falcoSubscriber != nil && d.falcoSubscriber.Connected() {
+		return true, map[string]string{"falco": "connected"}
+	}
+	return false, map[string]string{"falco": "disconnected"}
+}
+
 // alertNotifier delivers drift alerts to the configured channels. It is an
 // interface (satisfied by *notifier.Manager) so tests can inject a spy and
 // assert on what actually gets sent — the guard against "green but silently
