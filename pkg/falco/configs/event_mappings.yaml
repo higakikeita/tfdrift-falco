@@ -471,6 +471,7 @@ resource_id_fields:
   ModifyVolume: [ct.request.volumeid]
   PutBucketPolicy: [ct.request.bucket, ct.resource.bucket]
   PutBucketEncryption: [ct.request.bucket]
+  PutBucketVersioning: [ct.request.bucket]
   DeleteBucketEncryption: [ct.request.bucket]
   ModifyDBInstance: [ct.request.dbinstanceidentifier]
   UpdateFunctionConfiguration: [ct.request.functionname]

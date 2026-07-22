@@ -1,17 +1,65 @@
 # TFDrift-Falco Rules
-# These rules detect CloudTrail events that may indicate Terraform drift.
+#
+# These rules select the CloudTrail events that TFDrift-Falco inspects for
+# drift. The event list is kept in lock-step with the backend's authoritative
+# capability set in pkg/falco/configs/event_mappings.yaml: every event named
+# here is in `relevant_events` AND has a `resource_id_fields` mapping, so an
+# event that fires can actually be resolved to a resource and compared against
+# Terraform state. A regression test (pkg/falco/rules_coverage_test.go) fails
+# CI if these drift apart.
+#
+# Coverage: 246 events (was ~24). This lifts the "detection ceiling"
+# where representative drift (security-group ingress, ModifyVpcAttribute,
+# PutBucketAcl, ModifyDBInstance, ...) fired in the mapping tables but never
+# in the rule, so it was silently never inspected. See issue #324.
+#
 # Field names are validated against the cloudtrail plugin (0.12.x) with
-# `falco -V` (see docs/complete-setup-guide.md for the validation command).
+# `falco -V` (see docs/complete-setup-guide.md).
 
 - rule: Terraform Managed Resource Modified
-  desc: Detect modifications to resources that should be managed by Terraform
+  desc: Potential Terraform drift detected
   condition: >
     ct.name in (
-      "ModifyInstanceAttribute", "ModifyDBInstance", "ModifySecurityGroupRules",
-      "PutBucketPolicy", "PutBucketEncryption", "UpdateFunctionConfiguration",
-      "PutRolePolicy", "UpdateAssumeRolePolicy", "AttachRolePolicy",
-      "AuthorizeSecurityGroupIngress", "RevokeSecurityGroupIngress",
-      "CreateStack", "UpdateStack", "DeleteStack"
+      "AddPermission", "AddRoleToDBCluster", "AssociateKmsKey", "AssociateRouteTable",
+      "AssociateVPCWithHostedZone", "AttachInternetGateway", "AuthorizeSecurityGroupEgress", "AuthorizeSecurityGroupIngress",
+      "CancelRotateSecret", "ChangeResourceRecordSets", "ChangeTagsForResource", "ConfirmSubscription",
+      "CreateAddon", "CreateAlias", "CreateApi", "CreateApiKey",
+      "CreateAuthorizer", "CreateCapacityProvider", "CreateCluster", "CreateClusterParameterGroup",
+      "CreateDBCluster", "CreateDBClusterEndpoint", "CreateDBClusterSnapshot", "CreateDBInstance",
+      "CreateDBParameterGroup", "CreateDBSnapshot", "CreateDBSubnetGroup", "CreateDeployment",
+      "CreateDistribution", "CreateFargateProfile", "CreateHostedZone", "CreateIntegration",
+      "CreateInvalidation", "CreateKey", "CreateListener", "CreateLoadBalancer",
+      "CreateLogGroup", "CreateLogStream", "CreateMethod", "CreateModel",
+      "CreateNatGateway", "CreateNetworkAcl", "CreateNetworkAclEntry", "CreateNodegroup",
+      "CreateQueue", "CreateRepository", "CreateResource", "CreateRestApi",
+      "CreateRoute", "CreateRouteTable", "CreateRule", "CreateSecret",
+      "CreateSecurityGroup", "CreateService", "CreateStage", "CreateSubnet",
+      "CreateTable", "CreateTargetGroup", "CreateTopic", "CreateTrail",
+      "CreateUsagePlan", "CreateVpc", "CreateVpcEndpoint", "DisableAlarmActions",
+      "DisassociateKmsKey", "DisassociateVPCFromHostedZone", "EnableAlarmActions", "EnableKey",
+      "FailoverDBCluster", "LabelParameterVersion", "ModifyCluster", "ModifyClusterParameterGroup",
+      "ModifyDBClusterEndpoint", "ModifyDBInstance", "ModifyDBInstanceAttribute", "ModifyDBParameterGroup",
+      "ModifyDBSnapshotAttribute", "ModifyDBSubnetGroup", "ModifyGlobalCluster", "ModifyInstanceAttribute",
+      "ModifyListener", "ModifyLoadBalancerAttributes", "ModifyRule", "ModifySecurityGroupRules",
+      "ModifySubnetAttribute", "ModifyTargetGroup", "ModifyTargetGroupAttributes", "ModifyVolume",
+      "ModifyVpcAttribute", "ModifyVpcEndpoint", "PurgeQueue", "PutBucketEncryption",
+      "PutBucketVersioning", "PutClusterCapacityProviders", "PutDashboard", "PutEventSelectors",
+      "PutImageScanningConfiguration", "PutImageTagMutability", "PutInsightSelectors", "PutLifecyclePolicy",
+      "PutMethod", "PutMetricAlarm", "PutMetricFilter", "PutParameter",
+      "PutReplicationConfiguration", "PutResourcePolicy", "PutRetentionPolicy", "PutSecretValue",
+      "RebootDBInstance", "RegisterTargets", "RegisterTaskDefinition", "RemovePermission",
+      "RemoveRoleFromDBCluster", "ReplaceNetworkAclEntry", "ReplaceRoute", "RestoreDBClusterFromSnapshot",
+      "RestoreDBInstanceFromDBSnapshot", "RotateSecret", "SetAlarmState", "SetQueueAttributes",
+      "SetRepositoryPolicy", "SetTopicAttributes", "StartDBCluster", "StartDBInstance",
+      "StartLogging", "StopDBCluster", "StopDBInstance", "StopLogging",
+      "Subscribe", "Unsubscribe", "UpdateAddon", "UpdateAlias",
+      "UpdateApi", "UpdateApiKey", "UpdateAuthorizer", "UpdateCapacityProvider",
+      "UpdateCluster", "UpdateClusterConfig", "UpdateClusterSettings", "UpdateClusterVersion",
+      "UpdateContainerInstancesState", "UpdateContinuousBackups", "UpdateDistribution", "UpdateFunctionConfiguration",
+      "UpdateIntegration", "UpdateMethod", "UpdateNodegroupConfig", "UpdateNodegroupVersion",
+      "UpdateRestApi", "UpdateRoute", "UpdateSecret", "UpdateSecretVersionStage",
+      "UpdateService", "UpdateStage", "UpdateTable", "UpdateTimeToLive",
+      "UpdateTrail", "UpdateUsagePlan"
     )
   output: >
     Potential Terraform drift detected
@@ -25,43 +73,59 @@
   tags: [terraform, drift, iac]
   source: aws_cloudtrail
 
-- rule: Critical Infrastructure Change
-  desc: Detect critical infrastructure changes that bypass IaC workflows
+- rule: IAM or Access Control Change
+  desc: Access-control change that may escalate privileges or expose resources
   condition: >
     ct.name in (
-      "TerminateInstances", "DeleteDBInstance", "DeleteBucket",
-      "DeleteSecurityGroup", "ScheduleKeyDeletion", "DeleteRole",
-      "DeleteStack", "DeleteStateMachine"
+      "AddUserToGroup", "AttachGroupPolicy", "AttachRolePolicy", "AttachUserPolicy",
+      "CreateAccessKey", "CreatePolicy", "CreatePolicyVersion", "CreateRole",
+      "CreateUser", "DeleteBucketPublicAccessBlock", "DisableKey", "DisableKeyRotation",
+      "EnableKeyRotation", "PutBucketAcl", "PutBucketPolicy", "PutBucketPublicAccessBlock",
+      "PutGroupPolicy", "PutKeyPolicy", "PutRolePolicy", "PutUserPolicy",
+      "RemoveUserFromGroup", "UpdateAssumeRolePolicy"
     )
   output: >
-    Critical infrastructure deletion detected
+    Access-control change that may escalate privileges or expose resources
     (user=%ct.user
      event=%ct.name
      resource=%ct.request.name
      region=%ct.region
-     aws_account=%ct.user.accountid)
-  priority: CRITICAL
-  tags: [terraform, drift, deletion, critical]
-  source: aws_cloudtrail
-
-# NOTE: filtering on the attached policy content (e.g. policyArn contains
-# "AdministratorAccess") requires the json extractor plugin, which the
-# deployment does not ship. Until then this rule alerts on the event names
-# alone, like the previous rule set did.
-- rule: IAM Permission Escalation
-  desc: Detect IAM policy attachments or inline policy writes that may grant elevated permissions
-  condition: >
-    ct.name in (
-      "AttachUserPolicy", "AttachRolePolicy", "PutUserPolicy", "PutRolePolicy"
-    )
-  output: >
-    IAM policy change that may escalate permissions detected
-    (user=%ct.user
-     event=%ct.name
-     target_user=%ct.request.username
-     policy=%ct.request.policy
-     region=%ct.region
+     source_ip=%ct.srcip
      aws_account=%ct.user.accountid)
   priority: ALERT
   tags: [terraform, drift, iam, security, privilege-escalation]
+  source: aws_cloudtrail
+
+- rule: Critical Infrastructure Change
+  desc: Critical infrastructure deletion or destructive change detected
+  condition: >
+    ct.name in (
+      "DeleteAddon", "DeleteAlarms", "DeleteAlias", "DeleteApi",
+      "DeleteApiKey", "DeleteAuthorizer", "DeleteBucketEncryption", "DeleteCapacityProvider",
+      "DeleteCluster", "DeleteClusterParameterGroup", "DeleteDBCluster", "DeleteDBClusterEndpoint",
+      "DeleteDBClusterSnapshot", "DeleteDBInstance", "DeleteDBParameterGroup", "DeleteDBSnapshot",
+      "DeleteDBSubnetGroup", "DeleteDashboards", "DeleteDeployment", "DeleteDistribution",
+      "DeleteHostedZone", "DeleteIntegration", "DeleteLifecyclePolicy", "DeleteListener",
+      "DeleteLoadBalancer", "DeleteLogGroup", "DeleteLogStream", "DeleteMethod",
+      "DeleteMetricFilter", "DeleteModel", "DeleteNatGateway", "DeleteNetworkAcl",
+      "DeleteNetworkAclEntry", "DeleteNodegroup", "DeleteParameter", "DeleteParameters",
+      "DeleteQueue", "DeleteRepository", "DeleteRepositoryPolicy", "DeleteResource",
+      "DeleteResourcePolicy", "DeleteRestApi", "DeleteRetentionPolicy", "DeleteRole",
+      "DeleteRoute", "DeleteRouteTable", "DeleteRule", "DeleteSecret",
+      "DeleteSecurityGroup", "DeleteService", "DeleteStage", "DeleteSubnet",
+      "DeleteTable", "DeleteTargetGroup", "DeleteTopic", "DeleteTrail",
+      "DeleteUsagePlan", "DeleteUser", "DeleteVpc", "DeleteVpcEndpoint",
+      "DeregisterTargets", "DeregisterTaskDefinition", "DetachInternetGateway", "RevokeSecurityGroupEgress",
+      "RevokeSecurityGroupIngress", "ScheduleKeyDeletion"
+    )
+  output: >
+    Critical infrastructure deletion or destructive change detected
+    (user=%ct.user
+     event=%ct.name
+     resource=%ct.request.name
+     region=%ct.region
+     source_ip=%ct.srcip
+     aws_account=%ct.user.accountid)
+  priority: CRITICAL
+  tags: [terraform, drift, deletion, critical]
   source: aws_cloudtrail
