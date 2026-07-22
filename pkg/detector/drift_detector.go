@@ -1,6 +1,8 @@
 package detector
 
 import (
+	"reflect"
+
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 )
 
@@ -17,7 +19,11 @@ func (d *Detector) detectDrifts(resource *terraform.Resource, changes map[string
 
 	for key, newValue := range changes {
 		oldValue, exists := resource.Attributes[key]
-		if !exists || oldValue != newValue {
+		// reflect.DeepEqual, not !=: change values can be slices/maps
+		// (e.g. security-group rules, subnets), and comparing those with !=
+		// panics ("comparing uncomparable type"), silently killing the
+		// handler goroutine and dropping every subsequent event.
+		if !exists || !reflect.DeepEqual(oldValue, newValue) {
 			drifts = append(drifts, AttributeDrift{
 				Attribute: key,
 				OldValue:  oldValue,

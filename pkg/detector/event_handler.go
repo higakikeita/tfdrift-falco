@@ -83,9 +83,14 @@ func (d *Detector) handleEvent(event types.Event) {
 
 	// Evaluate rules
 	for _, drift := range drifts {
+		// A detected change must never be silently dropped just because the
+		// user did not configure a matching drift_rule. drift_rules only
+		// classify severity; absence of a rule means "unclassified", not
+		// "ignore". Previously an unmatched drift hit `continue` and vanished.
 		matchedRules := d.evaluateRules(resource.Type, drift.Attribute)
-		if len(matchedRules) == 0 {
-			continue
+		severity := "medium" // default for an unclassified but real change
+		if len(matchedRules) > 0 {
+			severity = d.getSeverity(matchedRules)
 		}
 
 		// Extract timestamp safely
@@ -96,7 +101,6 @@ func (d *Detector) handleEvent(event types.Event) {
 			}
 		}
 
-		severity := d.getSeverity(matchedRules)
 		alert := &types.DriftAlert{
 			Severity:     severity,
 			ResourceType: resource.Type,
