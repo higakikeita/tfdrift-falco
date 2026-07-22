@@ -13,15 +13,15 @@ Currently, security updates are provided for the following versions:
 
 This project uses multiple security scanning tools:
 
-### 1. Snyk
-- **Purpose**: Vulnerability scanning for dependencies
-- **Runs**: On every push, pull request, and weekly
-- **Configuration**: Requires `SNYK_TOKEN` secret
+### 1. Sysdig
+- **Purpose**: Container image vulnerability scanning (built backend/frontend images)
+- **Runs**: On push, pull request, and weekly (`.github/workflows/sysdig-scan.yml`)
+- **Configuration**: Requires `SYSDIG_SECURE_API_TOKEN` secret
 
-To set up Snyk for your fork:
-1. Sign up at [snyk.io](https://snyk.io/)
-2. Get your API token from Account Settings
-3. Add it as `SNYK_TOKEN` in your repository secrets (Settings → Secrets and variables → Actions)
+To set up Sysdig for your fork:
+1. Sign up at [sysdig.com](https://sysdig.com/) and open Sysdig Secure
+2. Create an API token (Settings → Sysdig Secure API)
+3. Add it as `SYSDIG_SECURE_API_TOKEN` in your repository secrets (Settings → Secrets and variables → Actions)
 
 ### 2. GoSec
 - **Purpose**: Security audit of Go source code

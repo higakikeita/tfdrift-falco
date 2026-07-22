@@ -73,6 +73,6 @@ if [ "$VULNERABLE" = true ]; then
 else
     echo "✅ No known vulnerabilities detected"
     echo ""
-    echo "💡 Tip: Run 'npm audit' and 'snyk test' for additional checks"
+    echo "💡 Tip: Run 'npm audit' for additional checks"
     exit 0
 fi

@@ -38,23 +38,3 @@ jobs:
       - name: Run npm audit
         working-directory: ./website
         run: npm audit --audit-level=moderate || true
-
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@b98d498629f1c368650224d6d212bf7dfa89e4bf # 0.4.0
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          # Target the website package explicitly: the action runs at the
-          # repo root, where Snyk auto-detects the root requirements.txt as
-          # a pip project and aborts without producing a SARIF file.
-          args: --severity-threshold=high --file=website/package.json --sarif-file-output=snyk.sarif
-          command: test
-
-      - name: Upload Snyk results to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4
-        # Skip when Snyk failed before writing the SARIF (e.g. quota errors)
-        if: always() && hashFiles('snyk.sarif') != ''
-        with:
-          sarif_file: snyk.sarif
-          category: website-security
