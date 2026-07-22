@@ -59,8 +59,9 @@ and Terraform/OpenTofu state comparison.`,
 	rootCmd.Flags().StringVar(&statePathOverride, "state-path", "", "Terraform state file path (e.g., --state-path ./terraform.tfstate)")
 	rootCmd.Flags().StringVar(&backendTypeOverride, "backend", "", "Backend type: local or s3 (e.g., --backend local)")
 
-	// Add approval subcommands
+	// Add subcommands
 	rootCmd.AddCommand(newApprovalCmd())
+	rootCmd.AddCommand(newScanCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
