@@ -1,5 +1,9 @@
 # TFDrift-Falco Configuration Example
-# This file demonstrates all available configuration options
+#
+# This file documents every configuration section that the loader actually
+# understands. The schema is defined by the structs in pkg/config/config.go;
+# a regression test (pkg/config/example_test.go) strict-decodes this file
+# against those structs, so any key that isn't a real field fails CI.
 
 # Cloud Provider Configuration
 providers:
@@ -11,31 +15,18 @@ providers:
       - us-west-2
       - ap-northeast-1
 
-    # CloudTrail Event Source
-    cloudtrail:
-      # SQS queue for CloudTrail events (recommended)
-      # sqs_queue: "arn:aws:sqs:us-east-1:123456789012:cloudtrail-events"
-
-      # S3 bucket for direct CloudTrail log access
-      s3_bucket: "tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1"
-
     # Terraform State Backend
     state:
-      # Backend type: "local", "s3", "remote"
+      # Backend type: "local" or "s3"
       backend: "s3"
 
-      # S3 backend configuration (production-test environment)
+      # S3 backend configuration
       s3_bucket: "tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID"
       s3_key: "production-test/terraform.tfstate"
       s3_region: "us-east-1"
 
-      # Local backend configuration
+      # Local backend configuration (used when backend: "local")
       # local_path: "./terraform.tfstate"
-
-      # Remote backend (Terraform Cloud/Enterprise)
-      # remote_hostname: "app.terraform.io"
-      # remote_organization: "my-org"
-      # remote_workspace: "prod"
 
   # GCP Configuration (v0.5.0+)
   gcp:
@@ -47,21 +38,22 @@ providers:
       backend: "gcs"
       gcs_bucket: "my-terraform-state-bucket"
       gcs_prefix: "prod/terraform.tfstate"
-      # Optional: explicit credentials file
-      # credentials_file: "/path/to/service-account-key.json"
 
   # Azure Configuration (v0.7.0+)
   azure:
     enabled: false
-    subscriptions:
-      - "subscription-id-1"
-      - "subscription-id-2"
+    subscription_id: "subscription-id-1"
+    resource_group: "terraform-state-rg"
+    regions:
+      - "japaneast"
     state:
       backend: "azurerm"
-      azure_resource_group: "terraform-state-rg"
       azure_storage_account: "tfstate"
       azure_container_name: "tfstate"
-      azure_key: "prod/terraform.tfstate"
+      azure_blob_name: "prod/terraform.tfstate"
+      # Optional credentials (otherwise the default Azure credential chain is used)
+      # azure_access_key: "..."
+      # azure_sas_token: "..."
 
 # Falco Integration (Required for TFDrift-Falco)
 # You must have Falco 0.35+ installed with:
@@ -72,35 +64,12 @@ falco:
 
   # Falco gRPC server configuration
   hostname: "localhost"  # Falco gRPC server hostname
-  port: 5060              # Falco gRPC server port (default: 5060)
+  port: 5060             # Falco gRPC server port (default: 5060)
 
   # Optional: mTLS client certificates (if Falco gRPC requires authentication)
   # cert_file: "/path/to/client-cert.pem"
   # key_file: "/path/to/client-key.pem"
   # ca_root_file: "/path/to/ca-root.pem"
-
-# API Server Configuration (v0.8.0+)
-api:
-  # Authentication
-  auth:
-    enabled: false  # Set to true to require authentication
-    jwt_secret: "CHANGE-ME-to-a-secure-random-string-at-least-32-chars"
-    jwt_issuer: "tfdrift-falco"
-    jwt_expiry: "24h"  # Token expiration (Go duration: 1h, 24h, 168h)
-
-    # Pre-configured API keys (optional)
-    # api_keys:
-    #   - name: "ci-pipeline"
-    #     key: "tfd_your-api-key-here"
-    #     scopes: ["read"]
-    #     created_at: "2026-03-22T00:00:00Z"
-
-  # Rate Limiting
-  rate_limit:
-    enabled: false  # Set to true to enable rate limiting
-    requests_per_minute: 60  # Max requests per minute per client
-    burst_size: 10  # Max burst size
-    cleanup_interval: "5m"  # How often to clean up expired entries
 
 # Drift Detection Rules
 drift_rules:
@@ -208,14 +177,6 @@ drift_rules:
       - "source_ranges"
     severity: "critical"
 
-  - name: "Cloud Storage Bucket Security"
-    resource_types:
-      - "google_storage_bucket"
-    watched_attributes:
-      - "encryption"
-      - "public_access_prevention"
-    severity: "critical"
-
 # Notification Channels
 notifications:
   # Slack Integration
@@ -223,9 +184,6 @@ notifications:
     enabled: true
     webhook_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
     channel: "#security-alerts"
-
-    # Optional: Minimum severity to send to Slack
-    # min_severity: "medium"  # critical, high, medium, low
 
   # Discord Integration
   discord:
@@ -241,39 +199,9 @@ notifications:
   webhook:
     enabled: false
     url: "https://your-siem.example.com/webhook"
-    method: "POST"  # POST, PUT
     headers:
       Authorization: "Bearer YOUR_TOKEN"
       Content-Type: "application/json"
-
-    # Optional: Custom payload template (Go template syntax)
-    # payload_template: |
-    #   {
-    #     "alert_type": "terraform_drift",
-    #     "severity": "{{ .Severity }}",
-    #     "resource": "{{ .ResourceType }}.{{ .ResourceName }}",
-    #     "user": "{{ .UserIdentity.UserName }}"
-    #   }
-
-  # Email Notifications (future)
-  # email:
-  #   enabled: false
-  #   smtp_host: "smtp.gmail.com"
-  #   smtp_port: 587
-  #   from: "tfdrift@example.com"
-  #   to:
-  #     - "sre-team@example.com"
-  #     - "security-team@example.com"
-
-  # PagerDuty Integration (future)
-  # pagerduty:
-  #   enabled: false
-  #   integration_key: "YOUR_INTEGRATION_KEY"
-  #   severity_mapping:
-  #     critical: "critical"
-  #     high: "error"
-  #     medium: "warning"
-  #     low: "info"
 
 # Logging Configuration
 logging:
@@ -282,12 +210,6 @@ logging:
 
   # Log format: json, text
   format: "json"
-
-  # Log output: stdout, stderr, file
-  output: "stdout"
-
-  # Optional: Log file path (when output is "file")
-  # file: "/var/log/tfdrift-falco.log"
 
 # Automatic import of unmanaged resources
 auto_import:
@@ -305,42 +227,42 @@ auto_import:
   # Where to write generated .tf resource blocks
   output_dir: "./imported"
 
+  # Restrict which resource types may be auto-imported (empty = all allowed)
+  allowed_resources:
+    - "aws_security_group"
+    - "aws_instance"
+
   # Require manual approval before importing
   require_approval: true
 
-# Advanced Options
-advanced:
-  # State refresh interval (how often to reload Terraform state)
-  state_refresh_interval: "5m"
+# OpenTelemetry (traces + metrics export). Disabled by default.
+telemetry:
+  enabled: false
+  service_name: "tfdrift-falco"
+  service_version: ""
+  environment: "production"
+  traces_endpoint: "localhost:4317"
+  metrics_endpoint: "localhost:4317"
+  sampling_ratio: 1.0
+  insecure: true
+  # attributes:
+  #   team: "platform-security"
 
-  # Event processing workers
-  workers: 4
+# Remediation (open pull requests that fix drift). Requires github below.
+remediation:
+  enabled: false
+  create_prs: false
+  dry_run: true
 
-  # Event buffer size
-  event_buffer_size: 100
+# GitHub integration (used by remediation to open PRs)
+github:
+  enabled: false
+  owner: "your-org"
+  repo: "your-infra-repo"
+  branch: "main"
+  # token: set via TFDRIFT_GITHUB_TOKEN env var instead of committing it here
 
-  # Rate limiting (alerts per minute per resource)
-  rate_limit:
-    enabled: true
-    max_alerts_per_minute: 5
-
-  # Deduplication window (suppress duplicate alerts within this time)
-  deduplication_window: "5m"
-
-  # Ignored users (don't alert on changes by these users)
-  ignored_users:
-    - "terraform-automation-user"
-    - "arn:aws:sts::123456789012:assumed-role/TerraformRole/*"
-
-  # Ignored resources (don't monitor these resources)
-  ignored_resources:
-    - "aws_instance.bastion-temp-*"
-    - "aws_s3_bucket.test-*"
-
-  # Maintenance windows (disable alerts during these times)
-  maintenance_windows:
-    - name: "Weekly Deployment"
-      days: ["Sunday"]
-      start_time: "02:00"
-      end_time: "06:00"
-      timezone: "America/New_York"
+# Policy engine (evaluate drift against .rego policies)
+policy:
+  enabled: false
+  policy_dir: "./policies"
