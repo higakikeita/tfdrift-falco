@@ -67,8 +67,8 @@ This document explains the technical details of how TFDrift-Falco detects Terraf
                      ├──────────────────┬──────────────────┐
                      ▼                  ▼                  ▼
               ┌───────────┐      ┌───────────┐    ┌───────────┐
-              │  Grafana  │      │   Slack   │    │  PagerDuty│
-              │ Dashboard │      │   Alert   │    │  Incident │
+              │  Web UI   │      │   Slack   │    │  Webhook  │
+              │ (React)   │      │  /Discord │    │  (custom) │
               └───────────┘      └───────────┘    └───────────┘
 ```
 

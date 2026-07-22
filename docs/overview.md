@@ -161,13 +161,12 @@ output: "EC2 Instance Type Changed (instance=%resource from=%drift.old_value to=
 priority: warning
 ```
 
-### 3. Grafana Dashboards
+### 3. Built-in Web UI (React)
 
-Visual monitoring with:
-- Service-specific drift timelines
-- Resource-level drill-down
-- User activity heatmaps
-- Alert panels for critical drift
+Visual monitoring is served by the built-in React UI (`ui/`, served by the API server) — not Grafana (the earlier Grafana/Loki dashboards were removed in favor of the purpose-built UI):
+- Dashboard, Events, Topology, Analytics, and State pages
+- Causal topology graph (Cytoscape) with resource-level drill-down
+- Real-time updates over SSE/WebSocket
 
 ### 4. Alerting Integrations (v0.3.0)
 
