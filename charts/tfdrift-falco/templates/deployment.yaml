@@ -36,7 +36,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - "--server"
-            - "--port"
+            - "--api-port"
             - "{{ .Values.config.port }}"
             - "--config"
             - "/etc/tfdrift-falco/config.yaml"
