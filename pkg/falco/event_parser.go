@@ -60,14 +60,16 @@ func (s *Subscriber) parseAWSEvent(res *outputs.Response) *types.Event {
 	// Extract resource type (using eventSource for disambiguation)
 	resourceType := s.mapEventToResourceType(eventName, eventSource)
 
-	// Extract user identity
-	userIdentity := types.UserIdentity{
+	// Extract user identity. resolveActor fills in a human "who" for
+	// AssumedRole/SSO callers, where ct.user (userName) is empty and the
+	// identifier lives in the ARN session name or principalId (#325).
+	userIdentity := resolveActor(types.UserIdentity{
 		Type:        getStringField(fields, "ct.user.type"),
 		PrincipalID: getStringField(fields, "ct.user.principalid"),
 		ARN:         getStringField(fields, "ct.user.arn"),
 		AccountID:   getStringField(fields, "ct.user.accountid"),
 		UserName:    getStringField(fields, "ct.user"),
-	}
+	})
 
 	// Extract changes based on event type
 	changes := s.extractChanges(eventName, fields)

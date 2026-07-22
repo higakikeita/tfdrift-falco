@@ -104,17 +104,27 @@ providers:
       azure_blob_name: "terraform.tfstate"
 ```
 
-119 operations across 20+ services, with full ResourceDiscoverer and StateComparator. [Azure details](docs/release-notes/v0.9.0.md)
+Azure support is **event-detection only** today: Activity Log events are parsed
+and mapped, but resource discovery and state comparison are **not implemented**
+(there is no Azure SDK integration yet — it is on the roadmap). [Azure details](docs/release-notes/v0.9.0.md)
 
 ### Provider Capabilities
 
 | Capability | AWS | GCP | Azure |
 |---|---|---|---|
-| Real-time Event Detection | CloudTrail (500+) | Audit Logs (170+) | Activity Logs (119) |
-| Resource Discovery | Yes | Yes | Yes |
-| State Comparison | Yes | Yes | Yes |
+| Real-time event detection¹ | CloudTrail | Audit Logs | Activity Logs |
+| Resource discovery² | Yes (core types) | Yes (core types) | **No (planned)** |
+| State comparison² | Yes (core types) | Yes (core types) | **No (planned)** |
 | Terraform Backend | S3 | GCS | Azure Blob |
 | Falco Plugin | aws_cloudtrail | gcpaudit | azureaudit |
+
+¹ Event detection is driven by an event-name mapping table (hundreds of events
+per cloud); it flags *that* a managed resource changed. See the Falco rule for
+the exact set that is inspected.
+² Discovery + state comparison (finding unmanaged/missing/modified resources by
+diffing live cloud state against Terraform state) is implemented for a core set
+of resource types per cloud, not the full service surface. Azure has no SDK
+integration yet, so its discovery/comparison is not available.
 
 ---
 

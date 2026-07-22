@@ -855,3 +855,22 @@ func (m *MockResourceLister) ListResources(ctx context.Context, subscriptionID s
 	}
 	return m.resources, nil
 }
+
+// TestDiscoverAll_HollowWithoutSDK locks the honest current state (#326):
+// Azure discovery/comparison is NOT wired — there is no Azure SDK integration,
+// production constructs the provider without a ResourceLister, so DiscoverAll
+// fails fast rather than pretending to work. If someone adds a real SDK-backed
+// lister, this test will fail and prompt them to update the "event-only" docs
+// (README capability table, PROJECT_ROADMAP) accordingly.
+func TestDiscoverAll_HollowWithoutSDK(t *testing.T) {
+	client, err := NewDiscoveryClient("sub-123", []string{"japaneast"}, nil)
+	if err != nil {
+		t.Fatalf("NewDiscoveryClient should construct even without a lister: %v", err)
+	}
+
+	_, err = client.DiscoverAll(context.Background())
+	if err == nil {
+		t.Fatal("expected DiscoverAll to error without a resource lister (Azure discovery is event-only / not implemented); " +
+			"if Azure SDK discovery is now implemented, update README + PROJECT_ROADMAP to match")
+	}
+}

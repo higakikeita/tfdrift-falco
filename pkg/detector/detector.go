@@ -18,13 +18,21 @@ import (
 )
 
 // Detector is the main drift detection engine
+// alertNotifier delivers drift alerts to the configured channels. It is an
+// interface (satisfied by *notifier.Manager) so tests can inject a spy and
+// assert on what actually gets sent — the guard against "green but silently
+// alerts nothing" tests (pus #1 in ADR-0012).
+type alertNotifier interface {
+	Send(alert *types.DriftAlert) error
+}
+
 type Detector struct {
 	cfg              *config.Config
 	stateManager     *terraform.StateManager            // Legacy: default state manager for backward compatibility
 	stateManagers    map[string]*terraform.StateManager // Multi-provider state managers
 	providerRegistry *provider.Registry                 // Provider registry for handling multiple clouds
 	falcoSubscriber  *falco.Subscriber
-	notifier         *notifier.Manager
+	notifier         alertNotifier
 	formatter        *diff.Formatter
 	importer         *terraform.Importer
 	approvalManager  *terraform.ApprovalManager
