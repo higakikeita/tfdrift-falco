@@ -3,7 +3,7 @@ services:
   # Falco - Runtime security monitoring
   # ============================================
   falco:
-    image: falcosecurity/falco:0.37.1
+    image: falcosecurity/falco:0.43.0  # 0.37.1 was too old for the current CloudTrail plugin (Plugin API 3.11+); 0.43 loads it AND still ships grpc_output. Do NOT bump to 0.44+ (grpc_output removed). See #311.
     container_name: tfdrift-falco-falco
     platform: linux/amd64  # Force x86_64 for CloudTrail plugin compatibility
     privileged: true
