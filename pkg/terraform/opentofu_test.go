@@ -14,14 +14,14 @@ import (
 
 func TestImportCommand_String_Binary(t *testing.T) {
 	tf := &ImportCommand{ResourceType: "aws_instance", ResourceName: "web", ResourceID: "i-123", Binary: "terraform"}
-	assert.Equal(t, "terraform import aws_instance.web i-123", tf.String())
+	assert.Equal(t, "terraform import -- aws_instance.web i-123", tf.String())
 
 	tofu := &ImportCommand{ResourceType: "aws_instance", ResourceName: "web", ResourceID: "i-123", Binary: "tofu"}
-	assert.Equal(t, "tofu import aws_instance.web i-123", tofu.String())
+	assert.Equal(t, "tofu import -- aws_instance.web i-123", tofu.String())
 
 	// Empty binary is backward-compatible with terraform
 	legacy := &ImportCommand{ResourceType: "aws_instance", ResourceName: "web", ResourceID: "i-123"}
-	assert.Equal(t, "terraform import aws_instance.web i-123", legacy.String())
+	assert.Equal(t, "terraform import -- aws_instance.web i-123", legacy.String())
 }
 
 func TestImporter_GenerateImportCommand_CarriesBinary(t *testing.T) {

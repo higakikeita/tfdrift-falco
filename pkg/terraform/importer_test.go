@@ -187,6 +187,42 @@ func TestImportCommand_String(t *testing.T) {
 	}
 }
 
+func TestImportCommand_execArgs_SeparatorHardensAgainstFlagInjection(t *testing.T) {
+	// Regression: a resource ID (or address) beginning with '-' must not be
+	// parsed as a CLI flag by terraform/tofu. execArgs inserts a "--" separator
+	// before the positional args so anything after it is treated as positional.
+	cmd := &ImportCommand{
+		ResourceType: "aws_instance",
+		ResourceName: "web",
+		ResourceID:   "--version", // hostile-looking ID
+	}
+
+	args := cmd.execArgs()
+
+	// Expected: ["import", "--", "aws_instance.web", "--version"]
+	if assert.Len(t, args, 4) {
+		assert.Equal(t, "import", args[0])
+		assert.Equal(t, "--", args[1], "a -- separator must precede positional args")
+		assert.Equal(t, "aws_instance.web", args[2])
+		assert.Equal(t, "--version", args[3])
+	}
+
+	// The separator must come before both the address and the ID.
+	sep := indexOf(args, "--")
+	id := indexOf(args, "--version")
+	assert.Greater(t, id, sep, "resource ID must appear after the -- separator")
+	assert.Equal(t, 1, sep, "separator must be the first argument after the subcommand")
+}
+
+func indexOf(s []string, target string) int {
+	for i, v := range s {
+		if v == target {
+			return i
+		}
+	}
+	return -1
+}
+
 func TestGenerateTerraformCode(t *testing.T) {
 	importer := NewImporter(".", false)
 
@@ -523,7 +559,7 @@ func TestImportCommand_StringFormat(t *testing.T) {
 				ResourceName: "web",
 				ResourceID:   "i-123",
 			},
-			want: "terraform import aws_instance.web i-123",
+			want: "terraform import -- aws_instance.web i-123",
 		},
 		{
 			name: "With special characters in ID",
@@ -532,7 +568,7 @@ func TestImportCommand_StringFormat(t *testing.T) {
 				ResourceName: "admin_role",
 				ResourceID:   "arn:aws:iam::123456789012:role/AdminRole",
 			},
-			want: "terraform import aws_iam_role.admin_role arn:aws:iam::123456789012:role/AdminRole",
+			want: "terraform import -- aws_iam_role.admin_role arn:aws:iam::123456789012:role/AdminRole",
 		},
 	}
 
