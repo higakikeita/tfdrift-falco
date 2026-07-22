@@ -166,7 +166,7 @@ jobs:
           cache-dependency-path: ui/package-lock.json
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       # ===== Lint =====
       - name: Run ESLint
