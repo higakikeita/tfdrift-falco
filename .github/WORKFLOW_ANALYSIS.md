@@ -19,25 +19,9 @@
 
 ## 🔴 重大な問題
 
-### 1. Snyk Token が未設定の可能性
+### 1. ~~Snyk Token が未設定の可能性~~（解決済み）
 
-**場所**: `.github/workflows/security.yml:35`
-
-```yaml
-env:
-  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-```
-
-**問題**:
-- `SNYK_TOKEN` がGitHub Secretsに設定されていない場合、Snykスキャンが失敗
-- `continue-on-error: true` により失敗が隠蔽される
-
-**影響**: セキュリティ脆弱性が検出されない
-
-**対策**:
-1. Snyk アカウントを作成: https://snyk.io/
-2. トークンを取得
-3. GitHub Settings > Secrets に `SNYK_TOKEN` を追加
+Snyk は撤去し、コンテナ脆弱性スキャンは **Sysdig**（`sysdig-scan.yml`、`SYSDIG_SECURE_API_TOKEN`）に一本化。Go の SAST/依存脆弱性は GoSec + Nancy が担当（secret 不要）。この項目はもはや該当しない。
 
 ---
 
@@ -142,9 +126,9 @@ env:
    - `ci.yml` の `|| true` を削除
    - または別ファイルに分離
 
-3. **Snyk Token の設定**
-   - Snyk アカウント作成
-   - トークンをGitHub Secretsに追加
+3. **Sysdig Token の設定**
+   - Sysdig Secure の API トークンを取得
+   - GitHub Secrets に `SYSDIG_SECURE_API_TOKEN` を追加
 
 ### 優先度: 中 🟡
 
@@ -170,7 +154,7 @@ env:
 
 | Secret名 | 必須 | 用途 | 取得方法 |
 |---------|------|------|---------|
-| `SNYK_TOKEN` | ⚠️ 推奨 | 脆弱性スキャン | https://snyk.io/ |
+| `SYSDIG_SECURE_API_TOKEN` | ⚠️ 推奨 | コンテナ脆弱性スキャン | https://sysdig.com/ |
 | `CODECOV_TOKEN` | オプション | カバレッジ追跡 | https://codecov.io/ |
 | `DOCKER_USERNAME` | リリース時 | Docker Hub | Docker Hub設定 |
 | `DOCKER_PASSWORD` | リリース時 | Docker Hub | Docker Hub設定 |
@@ -192,13 +176,13 @@ mv ui/.github/workflows/storybook-deploy.yml .github/workflows/ui-storybook.yml
 rm -rf ui/.github  # UIディレクトリのGitHub設定を削除
 ```
 
-### Snyk設定
+### Sysdig設定
 
-1. https://snyk.io/ でアカウント作成
-2. Settings > General > API Token からトークン取得
+1. https://sysdig.com/ でSysdigSecureにサインアップ
+2. Settings > Sysdig Secure API から API トークン取得
 3. GitHub リポジトリ > Settings > Secrets and variables > Actions
 4. "New repository secret" をクリック
-5. Name: `SNYK_TOKEN`, Value: (コピーしたトークン)
+5. Name: `SYSDIG_SECURE_API_TOKEN`, Value: (コピーしたトークン)
 
 ---
 

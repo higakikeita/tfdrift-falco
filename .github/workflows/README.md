@@ -7,14 +7,14 @@ CI/CD workflows for TFDrift-Falco. All workflows run on GitHub Actions.
 | Workflow | File | Trigger | Purpose |
 |----------|------|---------|---------|
 | **CI/CD Pipeline** | `ci.yml` | Push/PR/Release | Build & test (Go, React, Docker, Integration) |
-| **Security Scanning** | `security.yml` | Push/PR/Schedule/Manual | Unified security (Snyk 5 types + GoSec + Nancy) |
+| **Security Scanning** | `security.yml` | Push/PR/Schedule/Manual | Go security scanning (GoSec + Nancy) |
 | **Benchmarks** | `benchmark.yml` | Label/Manual/Main | Performance benchmarks with baseline tracking |
 | **Sysdig Scan** | `sysdig-scan.yml` | PR (Dockerfile changes)/Manual | Container image vulnerability scanning |
 | **E2E Tests** | `e2e.yml` | Manual/Schedule/Label | End-to-end tests with real AWS & Falco |
 | **Publish GHCR** | `publish-ghcr.yml` | Tag/Release/Manual | Build and publish Docker images to GHCR |
 | **Deploy Docs** | `docs.yml` | Push (docs/**)/Manual | Build MkDocs site and deploy to GitHub Pages |
 | **Deploy Storybook** | `ui-storybook.yml` | Push to main/Manual | Build and deploy Storybook to GitHub Pages |
-| **Website Security** | `website-security.yml` | Push (website/**)/Schedule | npm audit + Snyk scan for website |
+| **Website Security** | `website-security.yml` | Push (website/**)/Schedule | npm audit for website |
 
 ## ci.yml — Build & Test Only
 
@@ -44,19 +44,16 @@ All security scans in one place. Runs independently so failures don't block CI/C
 
 | Job | Type | Triggers | PR Comment? |
 |-----|------|----------|------------|
-| `snyk-open-source` | SCA (Go + npm deps) | Push/PR/Schedule | Yes |
-| `snyk-code` | SAST (source code) | Push/PR/Schedule | Yes |
-| `snyk-iac` | IaC (Terraform, Helm, Docker) | Push/PR/Schedule | Yes |
-| `snyk-container` | Container (Docker image) | Push/PR/Schedule | Yes |
-| `snyk-license` | License compliance | Push/PR/Schedule | No |
-| `gosec` | Go security scanner | Push/PR/Schedule | Yes |
-| `nancy` | Go dependency checker | Push/PR/Schedule | No |
+| `gosec` | Go security scanner (SAST) | Push/PR/Schedule | Yes |
+| `nancy` | Go dependency vulnerability checker | Push/PR/Schedule | No |
+
+> Container-image vulnerability scanning is handled by **Sysdig** (`sysdig-scan.yml`).
 
 **Triggers:**
 - Push to `main` or `develop`
 - All pull requests to `main` or `develop`
 - Weekly schedule: Monday 6 AM UTC
-- Manual dispatch with `scan_type` selector (all/snyk/gosec/nancy)
+- Manual dispatch with `scan_type` selector (all/gosec/nancy)
 
 **Key Features:**
 - Unified severity thresholds (medium for OSS/IaC, high for container)
@@ -85,8 +82,6 @@ Isolates performance benchmarks from the main CI pipeline. Runs on label, manual
 
 | Secret | Used By | Status |
 |--------|---------|--------|
-| `SNYK_TOKEN` | security.yml, website-security.yml | **Configured** |
-| `SNYK_ORG_ID` | security.yml | **Configured** |
 | `SYSDIG_SECURE_API_TOKEN` | sysdig-scan.yml | **Configured** |
 | `E2E_AWS_ACCESS_KEY_ID` | e2e.yml | Optional (E2E only) |
 | `E2E_AWS_SECRET_ACCESS_KEY` | e2e.yml | Optional (E2E only) |
@@ -110,10 +105,8 @@ cd ui && npm test            # Unit tests
 cd ui && npm run test:coverage  # With coverage
 
 # Security scans
-npm install -g snyk && snyk auth
-snyk test --file=go.mod      # Go dependency scan
-snyk code test               # SAST
-snyk iac test terraform/     # IaC scan
+make security                # GoSec (SAST) + Nancy (Go dep vulns), if defined
+# Container image vulnerability scanning runs in CI via Sysdig (sysdig-scan.yml)
 
 # E2E tests (requires AWS credentials)
 cd tests/e2e && make all
@@ -127,7 +120,7 @@ cd tests/e2e && make all
 - **benchmark.yml**: Performance tracking (separate triggers, baseline managed)
 
 ### Security Scanning Details
-- All Snyk + GoSec + Nancy jobs use `continue-on-error: true` — they're informational only
+- GoSec + Nancy jobs use `continue-on-error: true` — they're informational only
 - No security scan failures will block PRs or builds
 - All jobs upload SARIF to GitHub Security tab
 - PR comments provide quick summary
@@ -139,9 +132,9 @@ cd tests/e2e && make all
 
 **Frontend tests failing**: Run `cd ui && npm test`. Common issue: missing mock exports for lucide-react icons or hooks (useSSE, useTheme).
 
-**Security scans not showing in GitHub**: Check that the workflow has permission `security-events: write`. All scans upload SARIF under distinct categories (snyk-oss-go, snyk-code, gosec, etc.).
+**Security scans not showing in GitHub**: Check that the workflow has permission `security-events: write`. All scans upload SARIF under distinct categories (gosec, nancy, etc.).
 
-**Snyk scans taking too long**: They run in parallel and are non-blocking. Set manual dispatch `scan_type` to reduce scope (e.g., `snyk` runs only Snyk jobs, `gosec` runs only GoSec).
+**Security scans**: GoSec and Nancy run in parallel and are non-blocking. Use manual dispatch `scan_type` to reduce scope (e.g., `gosec` runs only GoSec). Container-image scanning is separate (`sysdig-scan.yml`).
 
 **Sysdig scan issues**: See [SYSDIG_SETUP.md](SYSDIG_SETUP.md) for setup. Requires `SYSDIG_SECURE_API_TOKEN`.
 

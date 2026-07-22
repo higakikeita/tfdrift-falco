@@ -1,7 +1,6 @@
 .git
 .github
 .gitignore
-.snyk
 .env*
 *.md
 !README.md

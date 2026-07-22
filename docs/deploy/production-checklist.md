@@ -52,7 +52,7 @@ Use this checklist before deploying TFDrift-Falco to production. Check off items
   - [ ] Network policies enforced (Kubernetes)
 
 - [ ] **Dependency Security**
-  - [ ] Dependencies scanned with Snyk/Dependabot
+  - [ ] Dependencies scanned with Sysdig/Dependabot
   - [ ] No critical/high vulnerabilities
   - [ ] Dependencies kept up-to-date
   - [ ] Pinned dependency versions in production

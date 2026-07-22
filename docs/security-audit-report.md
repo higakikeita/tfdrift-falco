@@ -362,7 +362,7 @@ curl -i http://localhost:8080/api/v1/health | grep -E "X-|Strict|Content-Securit
 
 4. **Security Scanning**
    - Integrate SAST (static analysis security testing)
-   - Add dependency scanning with tools like Snyk or Dependabot
+   - Add dependency scanning with tools like Sysdig or Dependabot
    - Implement container scanning for Docker images
 
 5. **Compliance**
