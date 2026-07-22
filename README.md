@@ -128,7 +128,9 @@ providers:
 
 **Webhook Notifications** — Slack, Microsoft Teams, PagerDuty, or custom HTTP endpoints with automatic retries.
 
-**Production Ready** — JWT/API Key authentication, rate limiting, OpenAPI 3.0 spec, Kubernetes Helm Chart with HPA and NetworkPolicy.
+**Production Tooling** — Rate limiting, OpenAPI 3.0 spec, and a Kubernetes Helm Chart with HPA and NetworkPolicy.
+
+> ⚠️ **Security note:** The API server has **no built-in authentication** yet (JWT/API-Key auth is on the [security roadmap](SECURITY.md), not implemented). Run TFDrift-Falco on localhost or a trusted network only, behind your own gateway/mTLS — do **not** expose it directly to the public internet.
 
 ---
 

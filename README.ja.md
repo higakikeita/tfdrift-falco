@@ -120,7 +120,9 @@ providers:
 
 **Webhook通知** — Slack、Microsoft Teams、PagerDuty、カスタムHTTPエンドポイント対応。自動リトライ付き。
 
-**本番対応** — JWT/APIキー認証、レートリミット、OpenAPI 3.0仕様、Kubernetes Helm Chart（HPA、NetworkPolicy対応）。
+**本番運用ツール** — レートリミット、OpenAPI 3.0仕様、Kubernetes Helm Chart（HPA、NetworkPolicy対応）。
+
+> ⚠️ **セキュリティ注意:** API サーバに**認証は未内蔵**です（JWT/APIキー認証は [security roadmap](SECURITY.md) 上で未実装）。TFDrift-Falco は localhost または信頼できるネットワーク限定で、手前のゲートウェイ/mTLS の背後で動かしてください。**公開インターネットに直接晒さないでください。**
 
 ---
 
