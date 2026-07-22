@@ -55,7 +55,7 @@ jobs:
 
       - name: Install UI dependencies
         working-directory: ui
-        run: npm install
+        run: npm ci
         continue-on-error: true
 
       - name: Build Storybook
