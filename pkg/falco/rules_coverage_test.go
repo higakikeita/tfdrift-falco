@@ -22,8 +22,8 @@ import (
 // inspected. This test fails if the two layers drift apart in either direction.
 func TestFalcoRule_MatchesBackendCapability(t *testing.T) {
 	var cfg struct {
-		RelevantEvents   []string                 `yaml:"relevant_events"`
-		ResourceIDFields map[string]interface{}   `yaml:"resource_id_fields"`
+		RelevantEvents   []string               `yaml:"relevant_events"`
+		ResourceIDFields map[string]interface{} `yaml:"resource_id_fields"`
 	}
 	data, err := os.ReadFile(filepath.Join("configs", "event_mappings.yaml"))
 	require.NoError(t, err)
