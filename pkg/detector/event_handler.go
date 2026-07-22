@@ -3,9 +3,11 @@ package detector
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/policy"
 	"github.com/keitahigaki/tfdrift-falco/pkg/telemetry"
+	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
@@ -72,6 +74,20 @@ func (d *Detector) handleEvent(event types.Event) {
 	detectSpan.End()
 
 	if len(drifts) == 0 {
+		// A mutating event reached a *managed* resource but we couldn't extract
+		// any attribute-level change (there's no change_extractor case for this
+		// event yet). Reporting "no drift" here silently loses a real
+		// out-of-band change — the core of the detection-ceiling bug (#324):
+		// the rule now fires on 246 events but only ~41 have an extractor.
+		// Surface a coarse "resource modified" drift instead of dropping it.
+		// (Read-only events are excluded so a stray Describe/List can't
+		// false-positive; in the live pipeline only relevant/mutating events
+		// reach here anyway.)
+		if len(event.Changes) == 0 && isMutatingEvent(event.EventName) {
+			d.sendCoarseDriftAlert(ctx, resource, &event)
+			telemetry.SetOK(span)
+			return
+		}
 		log.Debugf("No drift detected for %s", event.ResourceID)
 		telemetry.SetOK(span)
 		return
@@ -153,4 +169,66 @@ func (d *Detector) handleEvent(event types.Event) {
 			d.handleRemediation(ctx, alert)
 		}
 	}
+}
+
+// readOnlyEventPrefixes are CloudTrail verb prefixes that never mutate state.
+// Used as a defensive guard so a coarse drift alert is only raised for events
+// that actually change something.
+var readOnlyEventPrefixes = []string{"Describe", "List", "Get", "BatchGet", "Lookup", "Search", "Head", "Query", "Scan"}
+
+// isMutatingEvent reports whether an event name denotes a state-changing API
+// call (as opposed to a read). The live pipeline only forwards relevant
+// (mutating) events, but handleEvent is also exercised directly, so this keeps
+// coarse alerting honest regardless of caller.
+func isMutatingEvent(eventName string) bool {
+	if eventName == "" {
+		return false
+	}
+	for _, p := range readOnlyEventPrefixes {
+		if strings.HasPrefix(eventName, p) {
+			return false
+		}
+	}
+	return true
+}
+
+// sendCoarseDriftAlert emits a drift alert for a managed resource that was
+// changed by a mutating event we can't yet diff at the attribute level. It is
+// the honest fallback for the detection ceiling: "this managed resource was
+// modified out-of-band by <event>" is the drift signal; attribute-level detail
+// is enrichment that change_extractor adds for events it understands.
+func (d *Detector) sendCoarseDriftAlert(ctx context.Context, resource *terraform.Resource, event *types.Event) {
+	timestamp := ""
+	if rawEvent, ok := event.RawEvent.(map[string]interface{}); ok {
+		if eventTime, ok := rawEvent["eventTime"].(string); ok {
+			timestamp = eventTime
+		}
+	}
+
+	alert := &types.DriftAlert{
+		Severity:     "medium",
+		ResourceType: resource.Type,
+		ResourceName: resource.Name,
+		ResourceID:   event.ResourceID,
+		Attribute:    "(resource modified out-of-band)",
+		OldValue:     nil,
+		NewValue:     event.EventName,
+		UserIdentity: event.UserIdentity,
+		Timestamp:    timestamp,
+		AlertType:    "drift",
+	}
+
+	// Respect policy allow decisions so this path stays consistent with the
+	// attribute-level path (evaluatePolicy is nil-safe).
+	if policyResult := d.evaluatePolicy(ctx, alert); policyResult != nil {
+		if policyResult.Severity != "" {
+			alert.Severity = policyResult.Severity
+		}
+		if policyResult.Decision == policy.DecisionAllow {
+			log.Debugf("Policy allows coarse drift on %s, skipping alert", alert.ResourceID)
+			return
+		}
+	}
+
+	d.sendAlert(alert)
 }

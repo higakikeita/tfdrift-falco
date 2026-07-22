@@ -149,3 +149,49 @@ func TestDetectDrifts_ScalarAndSliceComparison(t *testing.T) {
 		require.Len(t, got, 1)
 	})
 }
+
+func TestHandleEvent_CoarseAlertWhenNoExtractedChanges(t *testing.T) {
+	// #324 ceiling: a mutating event hits a managed resource but there's no
+	// change_extractor case for it (empty Changes). Instead of silently
+	// reporting "no drift", a coarse "resource modified" alert must fire.
+	d, spy := newTestDetector(t, nil, map[string]interface{}{"id": "sg-123", "ingress": "existing"})
+
+	ev := types.Event{
+		Provider:     "aws",
+		EventName:    "AuthorizeSecurityGroupIngress",
+		ResourceType: "aws_security_group",
+		ResourceID:   "sg-123",
+		UserIdentity: types.UserIdentity{UserName: "alice"},
+		Changes:      map[string]interface{}{}, // extractor produced nothing
+		RawEvent:     map[string]interface{}{"eventTime": "2026-07-22T00:00:00Z"},
+	}
+	d.handleEvent(ev)
+
+	require.Len(t, spy.sent, 1, "a mutating event on a managed resource must alert even with no extracted attribute changes")
+	require.Equal(t, "AuthorizeSecurityGroupIngress", spy.sent[0].NewValue, "coarse alert records the triggering event")
+	require.Equal(t, "alice", spy.sent[0].UserIdentity.UserName)
+}
+
+func TestHandleEvent_ReadOnlyEventDoesNotCoarseAlert(t *testing.T) {
+	// Defensive guard: a read-only event with no changes must NOT false-positive.
+	d, spy := newTestDetector(t, nil, map[string]interface{}{"id": "i-123", "instance_type": "t2.micro"})
+
+	ev := types.Event{
+		Provider: "aws", EventName: "DescribeInstances",
+		ResourceType: "aws_instance", ResourceID: "i-123",
+		Changes:  map[string]interface{}{},
+		RawEvent: map[string]interface{}{"eventTime": "2026-07-22T00:00:00Z"},
+	}
+	d.handleEvent(ev)
+
+	require.Empty(t, spy.sent, "read-only events must not produce a coarse drift alert")
+}
+
+func TestIsMutatingEvent(t *testing.T) {
+	for _, e := range []string{"AuthorizeSecurityGroupIngress", "ModifyVpcAttribute", "PutBucketAcl", "DeleteBucket", "CreateRole"} {
+		require.True(t, isMutatingEvent(e), "%s should be mutating", e)
+	}
+	for _, e := range []string{"DescribeInstances", "ListBuckets", "GetBucketAcl", "", "HeadObject"} {
+		require.False(t, isMutatingEvent(e), "%s should be read-only", e)
+	}
+}
