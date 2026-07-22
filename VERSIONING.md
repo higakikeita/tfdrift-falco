@@ -20,7 +20,7 @@ Format: `MAJOR.MINOR.PATCH`
 | Version | Date | Git Tag | Highlights |
 |---------|------|---------|------------|
 | 0.9.0 | 2026-03-29 | v0.9.0 | Azure FullProvider, azurerm backend, WebSocket enhancements |
-| 0.8.0 | 2026-03-22 | v0.8.0 | Enterprise Foundation (JWT, Helm, OpenAPI, Operations Runbook) |
+| 0.8.0 | 2026-03-22 | v0.8.0 | Enterprise Foundation (Helm, OpenAPI, Operations Runbook; JWT auth designed but not implemented — #319) |
 | 0.7.0 | 2026-03-22 | v0.7.0 | Dashboard UI, versioning policy |
 | 0.6.0 | 2026-03-xx | v0.6.0 | UI improvements (colors, Storybook) |
 | 0.5.0 | 2025-12-17 | v0.5.0 | Multi-Cloud GCP support |

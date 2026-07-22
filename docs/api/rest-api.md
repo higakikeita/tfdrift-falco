@@ -217,7 +217,7 @@ List all resources in Terraform state.
 
 Retrieve detailed information about a specific resource.
 
-**Endpoint:** `GET /api/v1/state/resources/:address`
+**Endpoint:** `GET /api/v1/state/resource/{id}`
 
 **Response:**
 ```json

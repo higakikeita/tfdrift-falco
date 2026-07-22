@@ -578,111 +578,52 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
 
 ## Monitoring & Observability
 
-### Prometheus Metrics
+### Metrics (OpenTelemetry)
 
-TFDrift-Falcoは以下のメトリクスを公開します（`/metrics` エンドポイント）:
-
-```prometheus
-# 検知したドリフトイベント数
-tfdrift_events_total{severity="critical"} 5
-tfdrift_events_total{severity="high"} 23
-
-# リソースタイプ別イベント数
-tfdrift_events_by_type{type="aws_instance"} 12
-tfdrift_events_by_type{type="aws_iam_role"} 8
-
-# 検知レイテンシー（秒）
-tfdrift_detection_latency_seconds{quantile="0.5"} 0.8
-tfdrift_detection_latency_seconds{quantile="0.95"} 2.3
-tfdrift_detection_latency_seconds{quantile="0.99"} 5.1
-
-# Falco接続状態
-tfdrift_falco_connected 1
-
-# Terraform State同期時刻（UnixTimestamp）
-tfdrift_state_last_sync_timestamp 1705312345
-```
-
-### Grafana Alerting
-
-**アラートルール例**:
+TFDrift-Falco はスクレイプ型の `/metrics` エンドポイントを公開しません。メトリクスとトレースは
+`telemetry.enabled: true` のときに **OpenTelemetry (OTLP)** で push エクスポートされます。
+OTLP コレクタ（例: OpenTelemetry Collector）を用意し、そこから Prometheus / Grafana など任意の
+バックエンドへ転送してください。
 
 ```yaml
-# grafana-alerts.yaml
-groups:
-  - name: tfdrift-alerts
-    interval: 1m
-    rules:
-      # Criticalドリフトが発生したら即座に通知
-      - alert: CriticalDriftDetected
-        expr: increase(tfdrift_events_total{severity="critical"}[5m]) > 0
-        for: 0m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Critical drift detected in {{ $labels.environment }}"
-          description: "{{ $value }} critical drift events detected in the last 5 minutes"
-
-      # 検知レイテンシーが10秒を超えたら警告
-      - alert: HighDetectionLatency
-        expr: tfdrift_detection_latency_seconds{quantile="0.95"} > 10
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High drift detection latency"
-          description: "P95 latency is {{ $value }}s (threshold: 10s)"
-
-      # Falco接続が切れたら即座にアラート
-      - alert: FalcoConnectionLost
-        expr: tfdrift_falco_connected == 0
-        for: 1m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Lost connection to Falco"
-          description: "TFDrift-Falco cannot connect to Falco gRPC endpoint"
-
-      # State同期が30分以上行われていない場合
-      - alert: TerraformStateStale
-        expr: (time() - tfdrift_state_last_sync_timestamp) > 1800
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Terraform state not synced for 30+ minutes"
-          description: "Last sync: {{ $value | humanizeDuration }}"
+telemetry:
+  enabled: true
+  traces_endpoint: "otel-collector:4317"
+  metrics_endpoint: "otel-collector:4317"
+  insecure: true
 ```
+
+### Alerting
+
+ドリフトの通知は組み込みの通知チャネル（Slack / Discord / 汎用 Webhook）で行います
+（`notifications:` セクション参照）。メトリクスベースのアラートは、上記 OTLP エクスポート先の
+観測バックエンド側で設定してください。
 
 ### Health Checks
 
-**Kubernetes Liveness & Readiness Probes**:
+API サーバは `GET /health`（および `/api/v1/health`）を公開します。Kubernetes の
+liveness / readiness は、どちらもこのエンドポイントに向けてください（専用の `/healthz`・`/ready`
+は現状ありません）。
 
 ```yaml
 livenessProbe:
   httpGet:
-    path: /healthz
+    path: /health
     port: 8080
   initialDelaySeconds: 30
   periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 3
 
 readinessProbe:
   httpGet:
-    path: /ready
+    path: /health
     port: 8080
   initialDelaySeconds: 10
   periodSeconds: 5
-  timeoutSeconds: 3
-  failureThreshold: 2
 ```
 
 **ヘルスチェックエンドポイント**:
 
-- `GET /healthz` - 基本的なヘルスチェック（プロセスが生きているか）
-- `GET /ready` - 準備状態チェック（Falco接続、State読み込み完了）
-- `GET /metrics` - Prometheusメトリクス
+- `GET /health` - ヘルスチェック（プロセス稼働＋基本状態）
 
 ---
 

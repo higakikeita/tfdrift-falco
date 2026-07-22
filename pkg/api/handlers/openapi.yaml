@@ -41,16 +41,6 @@ tags:
     description: Authentication and API key management
 
 components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-    ApiKeyAuth:
-      type: apiKey
-      in: header
-      name: X-API-Key
-
   schemas:
     APIResponse:
       type: object
@@ -298,10 +288,6 @@ components:
         end_filter:
           type: object
 
-security:
-  - BearerAuth: []
-  - ApiKeyAuth: []
-
 paths:
   /health:
     get:
@@ -328,19 +314,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthResponse"
-
-  /api/v1/version:
-    get:
-      tags: [Config]
-      summary: Get API version
-      security: []
-      responses:
-        "200":
-          description: Version information
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/APIResponse"
 
   /api/v1/events:
     get:
@@ -474,30 +447,6 @@ paths:
       responses:
         "200":
           description: System statistics including graph, drifts, events, and severity breakdown
-
-  /api/v1/analytics/summary:
-    get:
-      tags: [Analytics]
-      summary: Get analytics summary
-      responses:
-        "200":
-          description: Summary with total events, severity counts, providers, resolved rate
-
-  /api/v1/analytics/timeline:
-    get:
-      tags: [Analytics]
-      summary: Get event timeline (7-day)
-      responses:
-        "200":
-          description: Array of daily event counts by provider
-
-  /api/v1/analytics/breakdown:
-    get:
-      tags: [Analytics]
-      summary: Get event breakdown
-      responses:
-        "200":
-          description: Breakdown by provider, service, and severity
 
   /api/v1/graph:
     get:
@@ -757,30 +706,6 @@ paths:
         "200":
           description: Drift summary with counts and breakdown by type
 
-  /api/v1/config:
-    get:
-      tags: [Config]
-      summary: Get current configuration (safe subset)
-      responses:
-        "200":
-          description: Provider and notification configuration
-
-  /api/v1/config/webhooks/test:
-    post:
-      tags: [Config]
-      summary: Test webhook URL
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/WebhookTestRequest"
-      responses:
-        "200":
-          description: Webhook test result
-        "400":
-          description: Invalid URL
-
   /api/v1/stream:
     get:
       tags: [Events]
@@ -803,84 +728,3 @@ paths:
         "101":
           description: WebSocket upgrade
 
-  /api/v1/auth/token:
-    post:
-      tags: [Auth]
-      summary: Generate JWT token
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/TokenRequest"
-      responses:
-        "200":
-          description: JWT token
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/APIResponse"
-                  - properties:
-                      data:
-                        $ref: "#/components/schemas/TokenResponse"
-        "400":
-          description: Invalid request
-
-  /api/v1/auth/api-keys:
-    get:
-      tags: [Auth]
-      summary: List API keys (masked)
-      responses:
-        "200":
-          description: List of API keys with masked values
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/APIResponse"
-                  - properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/APIKeyInfo"
-    post:
-      tags: [Auth]
-      summary: Create API key
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateAPIKeyRequest"
-      responses:
-        "201":
-          description: Created API key (key shown only once)
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/APIResponse"
-                  - properties:
-                      data:
-                        $ref: "#/components/schemas/CreateAPIKeyResponse"
-        "400":
-          description: Invalid request
-    delete:
-      tags: [Auth]
-      summary: Revoke API key
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [name]
-              properties:
-                name:
-                  type: string
-      responses:
-        "200":
-          description: API key revoked
-        "404":
-          description: API key not found

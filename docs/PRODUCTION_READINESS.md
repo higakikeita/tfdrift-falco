@@ -480,10 +480,12 @@
   - アラートが発生した際の対応手順を文書化
   - エスカレーションフロー
 
-- [ ] **メトリクス収集**
+- [ ] **メトリクス収集（OpenTelemetry）**
   ```bash
-  # Prometheus メトリクスの確認
-  curl http://localhost:9090/metrics | grep tfdrift
+  # ヘルスチェック（API サーバは 8080）
+  curl http://localhost:8080/health
+  # メトリクス/トレースは telemetry.enabled: true 時に OTLP で push エクスポートされる
+  # （スクレイプ型 /metrics エンドポイントは無い）。OTLP コレクタ側で確認する。
   ```
 
 ---
