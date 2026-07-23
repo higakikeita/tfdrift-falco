@@ -254,28 +254,19 @@ state:
 
 ## Phase 3: Falco CloudTrailプラグインのセットアップ
 
-### 3.1 プラグインのダウンロード
+### 3.1 プラグインのインストール（falcoctl）
 
-FalcoのCloudTrailプラグインをダウンロードします。
+CloudTrail プラグインは、公式ツール `falcoctl` で署名検証付きインストールするのが正です（旧来の直接 tar ダウンロードは廃止）。
+
+> ⚠️ **バージョン互換（#311 で確定）**: CloudTrail プラグイン 0.17.1 は **Plugin API 3.11+** を要求します。**Falco 0.43.0** を使ってください（0.37 系では読み込めず、0.44+ は gRPC 出力が撤去され TFDrift の購読モデルでは使えません）。`docker-compose.yml` の falco イメージは 0.43.0 に固定済みです。
 
 ```bash
-cd deployments/falco/plugins
-
-# プラットフォームに応じたプラグインをダウンロード
-# ARM64 Mac の場合は x86_64 版を使用（Rosetta経由）
-PLUGIN_VERSION="0.13.0"
-PLATFORM="linux-x86_64"  # ARM64の場合もこれを使用
-
-curl -L -o cloudtrail-plugin.tar.gz \
-    "https://download.falco.org/plugins/stable/cloudtrail-${PLUGIN_VERSION}-${PLATFORM}.tar.gz"
-
-# 展開
-tar -xzf cloudtrail-plugin.tar.gz
-rm cloudtrail-plugin.tar.gz
-
-# 確認
-ls -lh libcloudtrail.so
+# Falco 0.43.0 イメージに同梱の falcoctl でインストール（Linux amd64）
+falcoctl artifact install cloudtrail:0.17.1 --plugins-dir /usr/share/falco/plugins
+# → ghcr.io/falcosecurity/plugins/plugin/cloudtrail から署名検証付きで取得
 ```
+
+Docker Compose では、falco コンテナ起動時に上記を実行してからプラグイン有効な設定で Falco を起動します（`deployments/falco/falco.yaml` の `load_plugins: [cloudtrail]`）。既定の `docker compose up -d`（`falco-simple.yaml`）はプラグイン無効の UI/API デモです。
 
 ### 3.2 Falco設定ファイルの編集
 
@@ -287,15 +278,17 @@ ls -lh libcloudtrail.so
 # CloudTrail Plugin Configuration
 plugins:
   - name: cloudtrail
-    library_path: /etc/falco/plugins/libcloudtrail.so
-    init_config: ""
-    open_params: "s3Bucket=tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1"  # ← あなたのバケット名
+    library_path: libcloudtrail.so   # falcoctl installs into /usr/share/falco/plugins; Falco resolves the bare name
+    init_config: '{"sqsDelete": true}'
+    # Live SQS mode (recommended — Falco stays resident and streams new events):
+    open_params: "sqs://YOUR-CLOUDTRAIL-SQS-QUEUE-NAME"
+    # or S3 batch mode (reads the bucket once): open_params: "s3://YOUR-CLOUDTRAIL-BUCKET"
 
 # Load plugins
 load_plugins: [cloudtrail]
 ```
 
-**注意**: `s3Bucket=`の後には、Phase 1で作成したS3バケット名を指定します。
+**注意**: `open_params` は現行プラグインの URI 形式（`sqs://<queue-name>` または `s3://<bucket>`）です。旧 `s3Bucket=` 形式は使いません。SQS ライブモードには CloudTrail→S3→SNS→SQS 配線が必要です。
 
 ### 3.3 Falcoルールの確認
 

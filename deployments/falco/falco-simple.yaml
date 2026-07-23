@@ -10,15 +10,14 @@ grpc:
   threadiness: 0
   private_key: "/etc/falco/certs/server.key"
   cert_chain: "/etc/falco/certs/server.crt"
-  root_certs: "/etc/falco/certs/server.crt"
+  root_certs: "/etc/falco/certs/ca.crt"
 
 # gRPC Output format
 grpc_output:
   enabled: true
 
-# Rules files
-rules_file:
-  - /etc/falco/falco_rules.yaml
+# Rules files (Falco 0.36+ uses the plural `rules_files` key)
+rules_files:
   - /etc/falco/rules.d
 
 # Output format
