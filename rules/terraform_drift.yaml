@@ -66,6 +66,7 @@
     (user=%ct.user
      event=%ct.name
      resource=%ct.request.name
+     request=%ct.request
      region=%ct.region
      source_ip=%ct.srcip
      aws_account=%ct.user.accountid)
@@ -89,6 +90,7 @@
     (user=%ct.user
      event=%ct.name
      resource=%ct.request.name
+     request=%ct.request
      region=%ct.region
      source_ip=%ct.srcip
      aws_account=%ct.user.accountid)
@@ -123,6 +125,7 @@
     (user=%ct.user
      event=%ct.name
      resource=%ct.request.name
+     request=%ct.request
      region=%ct.region
      source_ip=%ct.srcip
      aws_account=%ct.user.accountid)
