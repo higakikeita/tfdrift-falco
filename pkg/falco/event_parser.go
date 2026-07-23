@@ -2,6 +2,9 @@
 package falco
 
 import (
+	"encoding/json"
+	"strings"
+
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
@@ -122,5 +125,46 @@ func (s *Subscriber) extractResourceID(eventName string, fields map[string]strin
 		}
 	}
 
+	// Fallback: cloudtrail plugin 0.17.1 does not expose per-service id fields
+	// (ct.request.instanceid, ct.request.groupid, …) — only the aggregate
+	// ct.request (full requestParameters JSON). Pull the id out of that JSON
+	// using the same candidate field names (#362).
+	if id := resourceIDFromRequestJSON(fields, possibleFields); id != "" {
+		return id
+	}
+
+	return ""
+}
+
+// resourceIDFromRequestJSON extracts a resource ID from the plugin's aggregate
+// ct.request field (the full requestParameters JSON). For each candidate field
+// (e.g. "ct.request.instanceid") it strips the prefix and looks the key up
+// case-insensitively in the JSON — CloudTrail keys are camelCase (instanceId,
+// groupId, bucketName), while the mapping uses lowercase (#362).
+func resourceIDFromRequestJSON(fields map[string]string, candidates []string) string {
+	raw := getStringField(fields, "ct.request")
+	if raw == "" {
+		return ""
+	}
+	var req map[string]interface{}
+	if err := json.Unmarshal([]byte(raw), &req); err != nil {
+		return ""
+	}
+	// Index top-level keys case-insensitively once.
+	byLower := make(map[string]interface{}, len(req))
+	for k, v := range req {
+		byLower[strings.ToLower(k)] = v
+	}
+	for _, cand := range candidates {
+		key := cand
+		if i := strings.LastIndex(key, "."); i >= 0 {
+			key = key[i+1:]
+		}
+		if v, ok := byLower[strings.ToLower(key)]; ok {
+			if s, ok := v.(string); ok && s != "" {
+				return s
+			}
+		}
+	}
 	return ""
 }
