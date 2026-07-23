@@ -54,7 +54,14 @@ func coerceFields(raw map[string]interface{}) map[string]string {
 		case bool:
 			out[k] = strconv.FormatBool(val)
 		default:
-			out[k] = fmt.Sprintf("%v", val)
+			// Objects/arrays (e.g. ct.request may arrive as a nested object)
+			// are re-marshaled to JSON so downstream can parse them, rather
+			// than Go's %v map rendering which is not valid JSON.
+			if b, err := json.Marshal(val); err == nil {
+				out[k] = string(b)
+			} else {
+				out[k] = fmt.Sprintf("%v", val)
+			}
 		}
 	}
 	return out
