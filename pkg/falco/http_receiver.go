@@ -68,7 +68,7 @@ func (s *Subscriber) ParseHTTPAlert(body []byte) (*types.Event, error) {
 		return nil, fmt.Errorf("decode Falco alert: %w", err)
 	}
 	if a.Source == "" {
-		return nil, fmt.Errorf("Falco alert missing source")
+		return nil, fmt.Errorf("missing source in Falco alert")
 	}
 	return s.parseFalcoOutput(a.toResponse()), nil
 }
