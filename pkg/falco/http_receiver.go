@@ -10,9 +10,9 @@ import (
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
 	"github.com/falcosecurity/client-go/pkg/api/schema"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // maxFalcoBodyBytes caps the request body Falco's http_output may POST so a
@@ -50,10 +50,9 @@ func (a falcoAlert) toResponse() *outputs.Response {
 		res.Priority = schema.Priority(v)
 	}
 	if !a.Time.IsZero() {
-		res.Time = &timestamp.Timestamp{
-			Seconds: a.Time.Unix(),
-			Nanos:   int32(a.Time.Nanosecond()),
-		}
+		// timestamp.Timestamp (what outputs.Response.Time wants) is a type alias
+		// for timestamppb.Timestamp, so the modern constructor assigns directly.
+		res.Time = timestamppb.New(a.Time)
 	}
 	return res
 }
