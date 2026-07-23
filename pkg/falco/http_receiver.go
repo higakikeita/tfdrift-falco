@@ -1,10 +1,12 @@
 package falco
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,16 +23,41 @@ import (
 const maxFalcoBodyBytes = 1 << 20
 
 // falcoAlert mirrors the JSON Falco emits via http_output when json_output is
-// enabled. Only the fields the parsers consume are decoded (ADR-006).
+// enabled (ADR-006). output_fields is deliberately map[string]interface{}: real
+// Falco emits mixed value types there — e.g. "ct.request.name": null and
+// "evt.time.iso8601": <number> alongside string fields — so decoding straight
+// into map[string]string rejects real alerts. coerceFields normalizes it.
 type falcoAlert struct {
-	Time         time.Time         `json:"time"`
-	Priority     string            `json:"priority"`
-	Rule         string            `json:"rule"`
-	Output       string            `json:"output"`
-	Source       string            `json:"source"`
-	Hostname     string            `json:"hostname"`
-	Tags         []string          `json:"tags"`
-	OutputFields map[string]string `json:"output_fields"`
+	Time         time.Time              `json:"time"`
+	Priority     string                 `json:"priority"`
+	Rule         string                 `json:"rule"`
+	Output       string                 `json:"output"`
+	Source       string                 `json:"source"`
+	Hostname     string                 `json:"hostname"`
+	Tags         []string               `json:"tags"`
+	OutputFields map[string]interface{} `json:"output_fields"`
+}
+
+// coerceFields flattens Falco's mixed-type output_fields to the map[string]string
+// the parsers expect: strings pass through, numbers/bools are stringified (via
+// json.Number so large integers keep full precision), and nulls are dropped.
+func coerceFields(raw map[string]interface{}) map[string]string {
+	out := make(map[string]string, len(raw))
+	for k, v := range raw {
+		switch val := v.(type) {
+		case nil:
+			// e.g. "ct.request.name": null — omit rather than store ""
+		case string:
+			out[k] = val
+		case json.Number:
+			out[k] = val.String()
+		case bool:
+			out[k] = strconv.FormatBool(val)
+		default:
+			out[k] = fmt.Sprintf("%v", val)
+		}
+	}
+	return out
 }
 
 // toResponse adapts a decoded http_output alert into the gRPC outputs.Response
@@ -43,7 +70,7 @@ func (a falcoAlert) toResponse() *outputs.Response {
 		Source:       a.Source,
 		Hostname:     a.Hostname,
 		Tags:         a.Tags,
-		OutputFields: a.OutputFields,
+		OutputFields: coerceFields(a.OutputFields),
 	}
 	// Falco sends the priority as a name ("Warning"); the proto wants the enum.
 	if v, ok := schema.Priority_value[strings.ToUpper(a.Priority)]; ok {
@@ -63,7 +90,9 @@ func (a falcoAlert) toResponse() *outputs.Response {
 // Exposed for unit testing the HTTP transport independently of a live server.
 func (s *Subscriber) ParseHTTPAlert(body []byte) (*types.Event, error) {
 	var a falcoAlert
-	if err := json.Unmarshal(body, &a); err != nil {
+	dec := json.NewDecoder(bytes.NewReader(body))
+	dec.UseNumber() // keep large integer output_fields (e.g. evt.time.iso8601) exact
+	if err := dec.Decode(&a); err != nil {
 		return nil, fmt.Errorf("decode Falco alert: %w", err)
 	}
 	if a.Source == "" {

@@ -1,6 +1,7 @@
 package falco
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -42,6 +43,34 @@ func TestParseHTTPAlert_ValidDriftEvent(t *testing.T) {
 
 	assert.Equal(t, "i-1234567890abcdef0", event.ResourceID)
 	assert.Equal(t, "ModifyInstanceAttribute", event.EventName)
+}
+
+// realFalcoAuthorizeAlert is a verbatim Falco 0.43 http_output body captured on
+// real infra (#360 verification). Note output_fields mixes types: "ct.request.name"
+// is null and "evt.time.iso8601" is a large integer. Decoding this straight into
+// map[string]string returned HTTP 400 — this locks that regression.
+const realFalcoAuthorizeAlert = `{"hostname":"cca3f82eb5b6","output":"Warning Potential Terraform drift detected","output_fields":{"ct.name":"AuthorizeSecurityGroupIngress","ct.region":"ap-northeast-1","ct.request.name":null,"ct.srcip":"221.113.81.87","ct.user":"ADMIN_OKTA_TEST","ct.user.accountid":"230446364776","evt.time.iso8601":1784730281000000000},"priority":"Warning","rule":"Terraform Managed Resource Modified","source":"aws_cloudtrail","tags":["drift","iac","terraform"],"time":"2026-07-22T14:24:41.000000000Z"}`
+
+func TestParseHTTPAlert_RealFalcoMixedTypeFields(t *testing.T) {
+	sub := NewSubscriberWithDefaults()
+
+	// Must not error on null / numeric output_fields (the HTTP 400 regression).
+	_, err := sub.ParseHTTPAlert([]byte(realFalcoAuthorizeAlert))
+	require.NoError(t, err)
+}
+
+func TestCoerceFields_MixedTypes(t *testing.T) {
+	got := coerceFields(map[string]interface{}{
+		"str":  "keep",
+		"null": nil,
+		"num":  json.Number("1784730281000000000"),
+		"bool": true,
+	})
+	assert.Equal(t, "keep", got["str"])
+	assert.Equal(t, "1784730281000000000", got["num"], "large ints must keep precision")
+	assert.Equal(t, "true", got["bool"])
+	_, hasNull := got["null"]
+	assert.False(t, hasNull, "null fields must be dropped, not stored as empty")
 }
 
 func TestParseHTTPAlert_Errors(t *testing.T) {
