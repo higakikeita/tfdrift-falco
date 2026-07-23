@@ -253,11 +253,15 @@ func (c *Config) Validate() error {
 	if !c.Falco.Enabled {
 		return fmt.Errorf("falco must be enabled - TFDrift-Falco requires Falco gRPC connection")
 	}
-	if c.Falco.Hostname == "" {
-		return fmt.Errorf("falco hostname must be specified")
-	}
-	if c.Falco.Port == 0 {
-		return fmt.Errorf("falco port must be specified")
+	// hostname/port only apply to the legacy gRPC transport; the HTTP transport
+	// receives alerts on the API server and needs neither (ADR-006).
+	if !c.Falco.UsesHTTPTransport() {
+		if c.Falco.Hostname == "" {
+			return fmt.Errorf("falco hostname must be specified")
+		}
+		if c.Falco.Port == 0 {
+			return fmt.Errorf("falco port must be specified")
+		}
 	}
 
 	// Validate IaC tool selection (empty is allowed and means terraform)
