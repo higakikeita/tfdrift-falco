@@ -91,12 +91,27 @@ type AzureConfig struct {
 
 // FalcoConfig contains Falco integration settings
 type FalcoConfig struct {
-	Enabled    bool   `yaml:"enabled" mapstructure:"enabled"`
+	Enabled bool `yaml:"enabled" mapstructure:"enabled"`
+
+	// Transport selects how Falco alerts reach TFDrift (ADR-006):
+	//   "http" — Falco http_output POSTs to the TFDrift HTTP receiver (default
+	//            path going forward; works on Falco 0.44+).
+	//   "grpc" — legacy Falco gRPC Sub stream (Hostname/Port/Cert*). Removed by
+	//            Falco 0.44+; kept for one release. Empty is treated as "grpc"
+	//            for backward compatibility until deployments flip to http_output.
+	Transport string `yaml:"transport" mapstructure:"transport"`
+
 	Hostname   string `yaml:"hostname" mapstructure:"hostname"`
 	Port       uint16 `yaml:"port" mapstructure:"port"`
 	CertFile   string `yaml:"cert_file" mapstructure:"cert_file"`
 	KeyFile    string `yaml:"key_file" mapstructure:"key_file"`
 	CARootFile string `yaml:"ca_root_file" mapstructure:"ca_root_file"`
+}
+
+// UsesHTTPTransport reports whether Falco alerts arrive over the HTTP receiver
+// rather than the legacy gRPC stream (ADR-006).
+func (f FalcoConfig) UsesHTTPTransport() bool {
+	return f.Transport == "http"
 }
 
 // DriftRule defines a drift detection rule
