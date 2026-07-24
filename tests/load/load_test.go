@@ -13,11 +13,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestLoadScenario1_Small tests small-scale environment
-func TestLoadScenario1_Small(t *testing.T) {
+// requireLoadEnv gates the load tests. They spin up a full Docker stack
+// (Falco + Prometheus/Grafana/Loki/Promtail) and run for up to hours, and they
+// fail on any host without that stack — so they must never run during a normal
+// `go test ./...`. They run only when explicitly opted in, keeping main green
+// (#367). Use: TFDRIFT_LOAD_TEST=1 go test ./tests/load/...
+func requireLoadEnv(t *testing.T) {
+	t.Helper()
 	if testing.Short() {
 		t.Skip("Skipping load test in short mode")
 	}
+	if os.Getenv("TFDRIFT_LOAD_TEST") != "1" {
+		t.Skip("load tests need a Docker stack (Falco/Prometheus/Grafana/Loki); set TFDRIFT_LOAD_TEST=1 to run")
+	}
+}
+
+// TestLoadScenario1_Small tests small-scale environment
+func TestLoadScenario1_Small(t *testing.T) {
+	requireLoadEnv(t)
 
 	scenario := LoadScenario{
 		Name:               "Small Scale",
@@ -34,9 +47,7 @@ func TestLoadScenario1_Small(t *testing.T) {
 
 // TestLoadScenario2_Medium tests medium-scale environment
 func TestLoadScenario2_Medium(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping load test in short mode")
-	}
+	requireLoadEnv(t)
 
 	scenario := LoadScenario{
 		Name:               "Medium Scale",
@@ -53,9 +64,7 @@ func TestLoadScenario2_Medium(t *testing.T) {
 
 // TestLoadScenario3_Large tests large-scale environment
 func TestLoadScenario3_Large(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping load test in short mode")
-	}
+	requireLoadEnv(t)
 
 	scenario := LoadScenario{
 		Name:               "Large Scale",
@@ -299,9 +308,7 @@ func cleanupLoadTest(t *testing.T) {
 
 // TestLoadTest_QuickSmoke is a quick smoke test for load testing infrastructure
 func TestLoadTest_QuickSmoke(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping smoke test in short mode")
-	}
+	requireLoadEnv(t)
 
 	t.Log("Running quick smoke test of load testing infrastructure...")
 
