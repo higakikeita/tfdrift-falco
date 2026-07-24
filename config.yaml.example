@@ -5,6 +5,11 @@
 # a regression test (pkg/config/example_test.go) strict-decodes this file
 # against those structs, so any key that isn't a real field fails CI.
 
+# How often (seconds) to re-read the Terraform state so a long-running detector
+# picks up legitimate `terraform apply`s instead of flagging them as drift.
+# 0 = load once at startup (default). See #331.
+state_refresh_interval: 0
+
 # Cloud Provider Configuration
 providers:
   # AWS Configuration
