@@ -3,6 +3,7 @@ package detector
 import (
 	"context"
 	"fmt"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -42,6 +43,16 @@ func (d *Detector) Start(ctx context.Context) error {
 		d.processEvents(ctx)
 	}()
 
+	// Periodically re-read Terraform state so legit applies aren't flagged as
+	// drift forever (#331). Disabled (load-once) when the interval is 0.
+	if d.cfg.StateRefreshIntervalSec > 0 {
+		d.wg.Add(1)
+		go func() {
+			defer d.wg.Done()
+			d.refreshStatePeriodically(ctx)
+		}()
+	}
+
 	// Wait for context cancellation
 	<-ctx.Done()
 
@@ -49,6 +60,40 @@ func (d *Detector) Start(ctx context.Context) error {
 	d.wg.Wait()
 
 	return nil
+}
+
+// refreshStatePeriodically re-reads every provider's Terraform state on a timer
+// and rebuilds the graph, so a running detector picks up legitimate applies
+// instead of comparing against the startup snapshot forever (#331).
+func (d *Detector) refreshStatePeriodically(ctx context.Context) {
+	interval := time.Duration(d.cfg.StateRefreshIntervalSec) * time.Second
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	log.Infof("Terraform state refresh enabled: every %s", interval)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			d.refreshAllState(ctx)
+		}
+	}
+}
+
+// refreshAllState re-reads every provider's state once and rebuilds the graph.
+// Extracted from the ticker loop so the refresh is unit-testable without waiting
+// on wall-clock time (#331).
+func (d *Detector) refreshAllState(ctx context.Context) {
+	for name, sm := range d.stateManagers {
+		if err := sm.Refresh(ctx); err != nil {
+			log.Warnf("State refresh failed for provider %s: %v", name, err)
+		}
+	}
+	if d.graphStore != nil {
+		d.graphStore.RebuildGraphDB()
+	}
+	log.Debug("Terraform state refreshed")
 }
 
 // startCollectors starts the Falco event subscriber

@@ -21,7 +21,13 @@ type Config struct {
 	Remediation   RemediationConfig   `yaml:"remediation"`
 	GitHub        GitHubConfig        `yaml:"github"`
 	Policy        PolicyConfig        `yaml:"policy"`
-	DryRun        bool                `yaml:"-"`
+
+	// StateRefreshIntervalSec re-reads the Terraform state every N seconds so a
+	// long-running detector sees legitimate `terraform apply`s instead of
+	// flagging them as drift forever. 0 (default) = load once at startup (#331).
+	StateRefreshIntervalSec int `yaml:"state_refresh_interval" mapstructure:"state_refresh_interval"`
+
+	DryRun bool `yaml:"-"`
 }
 
 // TelemetryConfig contains OpenTelemetry settings
