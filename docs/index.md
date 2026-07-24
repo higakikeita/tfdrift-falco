@@ -17,7 +17,7 @@ TFDrift-Falco detects when your cloud infrastructure changes outside of Terrafor
 3. **Evaluating drift policies** via OPA/Rego (allow / alert / remediate / deny)
 4. **Auto-remediating** by generating Terraform code and GitHub PRs
 5. **Alerting via Falco** when drift is detected
-6. **Visualizing drift in Grafana** dashboards with cross-cloud correlation
+6. **Visualizing drift in the built-in React UI** (graph topology + live drift feed) with cross-cloud correlation
 
 ---
 
@@ -58,7 +58,7 @@ Sample policies included for AWS and GCP. Custom policies can be added to the `p
 
 - Correlation engine links related drifts across providers
 - Provider Status API with health monitoring
-- Grafana dashboards for unified multi-cloud visibility
+- Built-in React UI for unified multi-cloud visibility
 
 ### 🎨 Dashboard UI (v0.6.0+)
 
@@ -148,7 +148,7 @@ SSE Stream: http://localhost:8080/api/v1/stream
 
 ### 📊 Monitoring & Observability
 
-- **Grafana dashboards** for multi-cloud visibility
+- **Built-in React UI** (Cytoscape graph topology + drift feed) for multi-cloud visibility
 - **Falco rules** with severity levels
 - **User attribution** for every change (IAM principals, service accounts)
 - **Alert integration** ready (Slack, Discord, webhooks)
@@ -282,9 +282,9 @@ providers:
        ├───────────────┬──────────────┐
        ▼               ▼              ▼
 ┌─────────────┐ ┌──────────────┐ ┌──────────┐
-│   Grafana   │ │ API Server   │ │ Alerting │
-│  Dashboard  │ │ + Graph Store│ │(Slack/PD)│
-│  (Legacy)   │ │ (Chi Router) │ └──────────┘
+│  React UI   │ │ API Server   │ │ Alerting │
+│ (built-in:  │ │ + Graph Store│ │(Slack/PD)│
+│ graph+feed) │ │ (Chi Router) │ └──────────┘
 └─────────────┘ └──────┬───────┘
                        │
                     WS/SSE
