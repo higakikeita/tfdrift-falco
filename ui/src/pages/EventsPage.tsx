@@ -1,56 +1,54 @@
 import { useState, useMemo, useCallback } from 'react';
 import { EventTable } from '../components/events/EventTable';
 import { EventFilters } from '../components/events/EventFilters';
-import { EventDetailPanel } from '../components/events/EventDetailPanel';
-import { useEvents, useUpdateEventStatus } from '../api/hooks/useEvents';
+import { useDrifts } from '../api/hooks/useDrifts';
 import type { DriftFilters, DriftEvent } from '../types/drift';
-import type { FalcoEvent, EventStatus } from '../api/types';
-import { toast } from '../stores/toastStore';
+import type { DriftAlert } from '../api/types';
 
 /**
- * Adapt a FalcoEvent (API shape) to DriftEvent (UI shape) so existing
- * EventTable / EventFilters keep working with the same interface.
+ * Adapt a DriftAlert (API /drifts shape) to DriftEvent (UI shape) so the
+ * existing EventTable / EventFilters keep working. This page reads /drifts
+ * (detected drifts), not /events (raw CloudTrail feed, usually empty) — the
+ * "Drift Events" list must show drifts (#364).
  */
-function apiEventToDriftEvent(e: FalcoEvent): DriftEvent {
+function apiDriftToDriftEvent(d: DriftAlert): DriftEvent {
+  const hasNew = d.new_value && d.new_value !== 'null';
+  const hasOld = d.old_value && d.old_value !== 'null';
   return {
-    id: e.resource_id,
-    timestamp: e.timestamp || new Date().toISOString(),
-    severity: (e.severity as DriftEvent['severity']) || 'medium',
-    provider: (e.provider as DriftEvent['provider']) || 'aws',
-    resourceType: e.resource_type,
-    resourceId: e.resource_id,
-    resourceName: e.resource_id,
+    id: d.id || d.resource_id,
+    timestamp: d.timestamp || new Date().toISOString(),
+    severity: (d.severity as DriftEvent['severity']) || 'medium',
+    provider: 'aws',
+    resourceType: d.resource_type,
+    resourceId: d.resource_id,
+    resourceName: d.resource_name || d.resource_id,
     changeType: 'modified',
-    attribute: e.event_name,
-    oldValue: null,
-    newValue: null,
+    attribute: d.attribute || 'modified',
+    oldValue: hasOld ? d.old_value : null,
+    newValue: hasNew ? d.new_value : null,
     userIdentity: {
-      type: e.user_identity?.Type || '',
-      userName: e.user_identity?.UserName || 'unknown',
-      arn: e.user_identity?.ARN,
-      accountId: e.user_identity?.AccountID,
+      type: d.user_identity?.Type || '',
+      userName: d.user_identity?.UserName || d.user_identity?.ARN || 'unknown',
+      arn: d.user_identity?.ARN,
+      accountId: d.user_identity?.AccountID,
     },
-    region: e.region || '',
+    region: '',
   };
 }
 
 export function EventsPage() {
   const [filters, setFilters] = useState<DriftFilters>({});
   const [selectedDriftEvent, setSelectedDriftEvent] = useState<DriftEvent | null>(null);
-  const [selectedApiEvent, setSelectedApiEvent] = useState<FalcoEvent | null>(null);
 
-  // Fetch real events from API
-  const { data: apiData } = useEvents({
+  // Fetch detected drifts from /api/v1/drifts (#364).
+  const { data: apiData } = useDrifts({
     severity: filters.severity?.[0],
     provider: filters.provider?.[0],
     search: filters.search,
   });
-  const updateStatus = useUpdateEventStatus();
 
-  // Real events from the API only — no mock fallback (the empty state is
-  // itself meaningful: no drift has been detected yet).
-  const apiEvents = useMemo<FalcoEvent[]>(() => apiData?.data || [], [apiData]);
-  const baseEvents = useMemo(() => apiEvents.map(apiEventToDriftEvent), [apiEvents]);
+  const apiDrifts = useMemo<DriftAlert[]>(() => apiData?.data || [], [apiData]);
+  const baseEvents = useMemo(() => apiDrifts.map(apiDriftToDriftEvent), [apiDrifts]);
 
   const filtered = useMemo(() => {
     return baseEvents.filter((evt) => {
@@ -68,64 +66,13 @@ export function EventsPage() {
     });
   }, [baseEvents, filters]);
 
-  // Track selected index for prev/next navigation
-  const selectedIndex = useMemo(() => {
-    if (!selectedDriftEvent) return -1;
-    return filtered.findIndex((e) => e.id === selectedDriftEvent.id);
-  }, [filtered, selectedDriftEvent]);
-
-  const handleEventClick = useCallback(
-    (driftEvt: DriftEvent) => {
-      setSelectedDriftEvent(driftEvt);
-      // Find corresponding API event for the detail panel
-      const apiEvt = apiEvents.find((e) => e.resource_id === driftEvt.id);
-      setSelectedApiEvent(apiEvt || null);
-    },
-    [apiEvents]
-  );
+  const handleEventClick = useCallback((driftEvt: DriftEvent) => {
+    setSelectedDriftEvent(driftEvt);
+  }, []);
 
   const handleClose = useCallback(() => {
     setSelectedDriftEvent(null);
-    setSelectedApiEvent(null);
   }, []);
-
-  const handlePrev = useCallback(() => {
-    if (selectedIndex > 0) {
-      const prev = filtered[selectedIndex - 1];
-      handleEventClick(prev);
-    }
-  }, [selectedIndex, filtered, handleEventClick]);
-
-  const handleNext = useCallback(() => {
-    if (selectedIndex < filtered.length - 1) {
-      const next = filtered[selectedIndex + 1];
-      handleEventClick(next);
-    }
-  }, [selectedIndex, filtered, handleEventClick]);
-
-  const handleStatusChange = useCallback(
-    (id: string, status: EventStatus, reason?: string) => {
-      updateStatus.mutate(
-        { id, status, reason },
-        {
-          onSuccess: () => {
-            const labels: Record<string, string> = {
-              acknowledged: 'Acknowledged',
-              ignored: 'Ignored',
-              resolved: 'Resolved',
-              open: 'Reopened',
-            };
-            toast.success(`Event ${labels[status] || status}`, `Status updated for ${id}`);
-          },
-          onError: () => {
-            toast.error('Status update failed', 'Please try again.');
-          },
-        }
-      );
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [updateStatus, toast]
-  );
 
   return (
     <div className="space-y-4">
@@ -140,23 +87,8 @@ export function EventsPage() {
 
       <EventTable events={filtered} onEventClick={handleEventClick} />
 
-      {/* Detail Panel — uses API event if available, otherwise shows basic info */}
-      {selectedDriftEvent && selectedApiEvent && (
-        <EventDetailPanel
-          event={selectedApiEvent}
-          onClose={handleClose}
-          onStatusChange={handleStatusChange}
-          onPrev={handlePrev}
-          onNext={handleNext}
-          hasPrev={selectedIndex > 0}
-          hasNext={selectedIndex < filtered.length - 1}
-          currentIndex={selectedIndex}
-          totalCount={filtered.length}
-        />
-      )}
-
-      {/* Fallback: simple panel for mock events without API data */}
-      {selectedDriftEvent && !selectedApiEvent && (
+      {/* Detail panel for the selected drift */}
+      {selectedDriftEvent && (
         <div className="fixed inset-y-0 right-0 w-96 bg-white border-l border-slate-200 shadow-xl p-6 overflow-y-auto z-50">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-slate-900">Event Detail</h2>

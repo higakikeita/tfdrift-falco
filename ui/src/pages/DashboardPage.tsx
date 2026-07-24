@@ -1,18 +1,21 @@
 import { Activity, AlertTriangle, Database, Cloud } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useStats } from '../api/hooks/useStats';
-import { useEvents } from '../api/hooks/useEvents';
-import type { FalcoEvent } from '../api/types';
+import { useDrifts } from '../api/hooks/useDrifts';
+import type { DriftAlert } from '../api/types';
 
 export function DashboardPage() {
   const { data: stats, isLoading: statsLoading } = useStats();
-  const { data: eventsPage, isLoading: eventsLoading } = useEvents({
+  const { data: driftsPage, isLoading: driftsLoading } = useDrifts({
     limit: 8,
     sort: 'timestamp',
     order: 'desc',
   });
 
-  const events = eventsPage?.data ?? [];
+  // Recent Drift Events reads /drifts (detected drifts), not /events (raw
+  // CloudTrail feed, usually empty) — otherwise the list stays empty while the
+  // KPI counts drifts (#364).
+  const drifts = driftsPage?.data ?? [];
 
   // Safe accessors: the stats shape may be partially populated while the
   // backend warms up, so every field falls back to a dash rather than NaN.
@@ -62,9 +65,9 @@ export function DashboardPage() {
           </Link>
         </div>
 
-        {eventsLoading ? (
-          <div className="p-6 text-sm text-slate-400">Loading events…</div>
-        ) : events.length === 0 ? (
+        {driftsLoading ? (
+          <div className="p-6 text-sm text-slate-400">Loading drifts…</div>
+        ) : drifts.length === 0 ? (
           <div className="p-6 text-sm text-slate-400">
             No drift events yet. Changes made outside of Terraform/OpenTofu will appear here.
           </div>
@@ -73,16 +76,16 @@ export function DashboardPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-slate-500 border-b border-slate-100">
-                  <th className="px-6 py-2 font-medium">Event</th>
                   <th className="px-6 py-2 font-medium">Resource</th>
+                  <th className="px-6 py-2 font-medium">Change</th>
                   <th className="px-6 py-2 font-medium">User</th>
                   <th className="px-6 py-2 font-medium">Severity</th>
                   <th className="px-6 py-2 font-medium">When</th>
                 </tr>
               </thead>
               <tbody>
-                {events.map((e) => (
-                  <EventRow key={e.id} event={e} />
+                {drifts.map((d, i) => (
+                  <DriftRow key={d.id ? `${d.id}-${i}` : i} drift={d} />
                 ))}
               </tbody>
             </table>
@@ -93,21 +96,35 @@ export function DashboardPage() {
   );
 }
 
-function EventRow({ event }: { event: FalcoEvent }) {
+function DriftRow({ drift }: { drift: DriftAlert }) {
   return (
     <tr className="border-b border-slate-50 last:border-0 hover:bg-slate-50">
-      <td className="px-6 py-3 font-medium text-slate-800">{event.event_name}</td>
+      <td className="px-6 py-3 font-medium text-slate-800">
+        {drift.resource_type || 'resource'}
+        {drift.resource_id ? <span className="text-slate-400"> · {drift.resource_id}</span> : null}
+      </td>
+      <td className="px-6 py-3 text-slate-600">{formatChange(drift)}</td>
       <td className="px-6 py-3 text-slate-600">
-        {event.resource_type}
-        {event.resource_id ? <span className="text-slate-400"> · {event.resource_id}</span> : null}
+        {drift.user_identity?.UserName || drift.user_identity?.ARN || '—'}
       </td>
-      <td className="px-6 py-3 text-slate-600">{event.user_identity?.UserName || '—'}</td>
       <td className="px-6 py-3">
-        <SeverityBadge severity={event.severity} />
+        <SeverityBadge severity={drift.severity} />
       </td>
-      <td className="px-6 py-3 text-slate-500">{formatTime(event.timestamp)}</td>
+      <td className="px-6 py-3 text-slate-500">{formatTime(drift.timestamp)}</td>
     </tr>
   );
+}
+
+// formatChange renders the drift's attribute change: "attr: old → new" when the
+// values are known, else just the attribute label (coarse "resource modified").
+function formatChange(drift: DriftAlert): string {
+  const attr = drift.attribute || 'modified';
+  const oldV = drift.old_value;
+  const newV = drift.new_value;
+  if (newV && newV !== 'null') {
+    return oldV && oldV !== 'null' ? `${attr}: ${oldV} → ${newV}` : `${attr}: ${newV}`;
+  }
+  return attr;
 }
 
 function SeverityBadge({ severity }: { severity: string }) {
