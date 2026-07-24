@@ -51,9 +51,18 @@ func (d *Detector) Start(ctx context.Context) error {
 	return nil
 }
 
-// startCollectors starts the Falco event subscriber
+// startCollectors starts the Falco event source. With the HTTP transport
+// (ADR-006) there is no outbound stream to maintain — Falco POSTs alerts to the
+// receiver route mounted by the API server — so this goroutine just parks until
+// shutdown. With the legacy gRPC transport it runs the reconnecting Sub loop.
 func (d *Detector) startCollectors(ctx context.Context) error {
-	log.Info("Starting Falco subscriber...")
+	if d.cfg.Falco.UsesHTTPTransport() {
+		log.Info("Falco transport=http: ingesting alerts via the HTTP receiver route")
+		<-ctx.Done()
+		return ctx.Err()
+	}
+
+	log.Info("Starting Falco subscriber (transport=grpc)...")
 	if err := d.falcoSubscriber.Start(ctx, d.eventCh); err != nil {
 		return fmt.Errorf("falco subscriber error: %w", err)
 	}

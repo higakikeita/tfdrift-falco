@@ -2,6 +2,7 @@ package detector
 
 import (
 	"fmt"
+	"net/http"
 	"sync"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/api/broadcaster"
@@ -29,6 +30,20 @@ func (d *Detector) FalcoReadiness() (bool, map[string]string) {
 		return true, map[string]string{"falco": "connected"}
 	}
 	return false, map[string]string{"falco": "disconnected"}
+}
+
+// UsesHTTPFalcoTransport reports whether Falco alerts arrive over the HTTP
+// receiver instead of the legacy gRPC stream (ADR-006). The API server uses it
+// to decide whether to mount the Falco HTTP receiver route.
+func (d *Detector) UsesHTTPFalcoTransport() bool {
+	return d.cfg.Falco.Enabled && d.cfg.Falco.UsesHTTPTransport()
+}
+
+// FalcoHTTPHandler returns the receiver that ingests Falco http_output alerts
+// onto the same event channel the gRPC path feeds, so downstream processing is
+// identical regardless of transport (ADR-006).
+func (d *Detector) FalcoHTTPHandler() http.HandlerFunc {
+	return d.falcoSubscriber.HTTPHandler(d.eventCh)
 }
 
 // alertNotifier delivers drift alerts to the configured channels. It is an

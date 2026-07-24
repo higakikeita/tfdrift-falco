@@ -106,6 +106,14 @@ func (s *Server) setupRouter() {
 		// SSE endpoint (Phase 4) - no timeout middleware for streaming
 		r.Get("/stream", s.sseHandler.HandleSSE)
 
+		// Falco HTTP-output receiver (ADR-006). Only mounted when the Falco
+		// transport is "http"; Falco POSTs one JSON alert per request here.
+		// Auth/source-restriction for this ingress is folded into the API-wide
+		// auth work (#341); until then the API binds to localhost only (#328).
+		if s.detector != nil && s.detector.UsesHTTPFalcoTransport() {
+			r.Post("/falco/events", s.detector.FalcoHTTPHandler())
+		}
+
 		// Regular API routes with timeout
 		r.Group(func(r chi.Router) {
 			// Timeout for non-streaming API routes
