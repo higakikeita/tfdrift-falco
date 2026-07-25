@@ -1057,3 +1057,42 @@ func TestAWSParser_mapEventToResourceType_UnknownEvent(t *testing.T) {
 		})
 	}
 }
+
+// TestExtractResourceID_FromRequestJSON locks the #362 fix: cloudtrail plugin
+// 0.17.1 exposes only the aggregate ct.request (full requestParameters JSON),
+// not per-service id fields, so the resource ID must be pulled out of that JSON
+// via case-insensitive key match. Payloads mirror real Falco http_output.
+func TestExtractResourceID_FromRequestJSON(t *testing.T) {
+	sub := NewSubscriberWithDefaults()
+
+	tests := []struct {
+		name      string
+		eventName string
+		fields    map[string]string
+		want      string
+	}{
+		{
+			name:      "EC2 instanceId out of ct.request JSON",
+			eventName: "ModifyInstanceAttribute",
+			fields:    map[string]string{"ct.request": `{"instanceId":"i-0moneyshotdemo01","instanceType":{"value":"t3.xlarge"}}`},
+			want:      "i-0moneyshotdemo01",
+		},
+		{
+			name:      "SG groupId out of ct.request JSON",
+			eventName: "AuthorizeSecurityGroupIngress",
+			fields:    map[string]string{"ct.request": `{"groupId":"sg-056b65b187cd8ece3","ipPermissions":{}}`},
+			want:      "sg-056b65b187cd8ece3",
+		},
+		{
+			name:      "no ct.request yields empty",
+			eventName: "ModifyInstanceAttribute",
+			fields:    map[string]string{"ct.name": "ModifyInstanceAttribute"},
+			want:      "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, sub.extractResourceID(tt.eventName, tt.fields))
+		})
+	}
+}
