@@ -11,8 +11,9 @@ export const useStats = () => {
   const query = useQuery({
     queryKey: ['stats'],
     queryFn: async () => (await apiClient.getStats()) as Stats,
-    // Keep the dashboard live without hammering the backend
-    refetchInterval: 30000,
+    // Poll in step with the drift feed (useDrifts) so the KPI counters and the
+    // Recent Drift Events list update together as drifts arrive.
+    refetchInterval: 5000,
   });
 
   useEffect(() => {

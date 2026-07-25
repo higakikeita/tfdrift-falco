@@ -13,7 +13,7 @@ vi.mock('lucide-react', () => ({
 vi.mock('../api/client', () => ({
   apiClient: {
     getStats: vi.fn(),
-    getEvents: vi.fn(),
+    getDrifts: vi.fn(),
   },
 }));
 
@@ -47,13 +47,16 @@ describe('DashboardPage', () => {
       drifts: { total: 3, severity_counts: { critical: 1, high: 1, medium: 1 } },
       events: { total: 15 },
     } as never);
-    vi.mocked(apiClient.getEvents).mockResolvedValue({
+    // The Recent Drift Events feed reads /drifts (#364), not /events.
+    vi.mocked(apiClient.getDrifts).mockResolvedValue({
       data: [
         {
-          id: 'e1',
-          event_name: 'ModifyInstanceAttribute',
+          id: 'd1',
           resource_type: 'aws_instance',
           resource_id: 'i-123',
+          attribute: 'instance_type',
+          old_value: 't3.micro',
+          new_value: 't3.large',
           user_identity: { UserName: 'alice' },
           severity: 'critical',
           timestamp: '2026-07-20T00:00:00Z',
@@ -83,10 +86,11 @@ describe('DashboardPage', () => {
     expect(screen.queryByText(/Coming Soon/i)).not.toBeInTheDocument();
   });
 
-  it('renders a recent drift event with who/what', async () => {
+  it('renders a recent drift with who/what from /drifts', async () => {
     renderPage();
     await waitFor(() => {
-      expect(screen.getByText('ModifyInstanceAttribute')).toBeInTheDocument();
+      // resource + the attribute change + the actor
+      expect(screen.getByText('instance_type: t3.micro → t3.large')).toBeInTheDocument();
       expect(screen.getByText('alice')).toBeInTheDocument();
     });
   });

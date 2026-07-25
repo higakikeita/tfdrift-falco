@@ -1,6 +1,7 @@
 // Export all API hooks
 export { useGraph, useNodes, useEdges } from './useGraph';
 export { useEvent, useEvents, useUpdateEventStatus } from './useEvents';
+export { useDrifts } from './useDrifts';
 export { useState } from './useState';
 export {
   useNode,
