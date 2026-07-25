@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted
+Accepted — the event-driven ingestion decision stands, but the **Falco→TFDrift gRPC
+transport is superseded by [ADR-006](006-falco-http-output-migration.md)** (Falco
+removed gRPC output in 0.44+).
 
 ## Date
 

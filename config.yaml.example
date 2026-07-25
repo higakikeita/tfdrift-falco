@@ -62,7 +62,14 @@ providers:
 falco:
   enabled: true
 
-  # Falco gRPC server configuration
+  # How Falco alerts reach TFDrift (ADR-006):
+  #   http  — Falco http_output POSTs alerts to POST /api/v1/falco/events on the
+  #           TFDrift API server. Works on Falco 0.44+. Recommended.
+  #   grpc  — legacy Falco gRPC Sub stream (hostname/port/cert_* below). Removed
+  #           by Falco 0.44+. Empty is treated as grpc for backward compatibility.
+  transport: "http"
+
+  # gRPC transport settings (only used when transport: grpc)
   hostname: "localhost"  # Falco gRPC server hostname
   port: 5060             # Falco gRPC server port (default: 5060)
 

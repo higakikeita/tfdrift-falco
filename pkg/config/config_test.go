@@ -177,6 +177,26 @@ func TestValidate_FalcoMissingHostname(t *testing.T) {
 	assert.Contains(t, err.Error(), "falco hostname must be specified")
 }
 
+func TestValidate_FalcoHTTPTransportNeedsNoHostname(t *testing.T) {
+	// The HTTP transport receives alerts on the API server, so the gRPC-only
+	// hostname/port are not required (ADR-006).
+	cfg := &Config{
+		Providers: ProvidersConfig{
+			AWS: AWSConfig{
+				Enabled: true,
+				Regions: []string{"us-east-1"},
+			},
+		},
+		Falco: FalcoConfig{
+			Enabled:   true,
+			Transport: "http",
+			// no Hostname, no Port
+		},
+	}
+
+	assert.NoError(t, cfg.Validate())
+}
+
 func TestValidate_FalcoMissingPort(t *testing.T) {
 	cfg := &Config{
 		Providers: ProvidersConfig{
