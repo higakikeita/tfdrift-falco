@@ -206,8 +206,8 @@ func (d *DiscoveryClient) discoverSubnets(ctx context.Context) ([]*DiscoveredRes
 				"vpc_id":                          aws.ToString(subnet.VpcId),
 				"cidr_block":                      aws.ToString(subnet.CidrBlock),
 				"availability_zone":               aws.ToString(subnet.AvailabilityZone),
-				"map_public_ip_on_launch":         subnet.MapPublicIpOnLaunch,
-				"assign_ipv6_address_on_creation": subnet.AssignIpv6AddressOnCreation,
+				"map_public_ip_on_launch":         aws.ToBool(subnet.MapPublicIpOnLaunch),
+				"assign_ipv6_address_on_creation": aws.ToBool(subnet.AssignIpv6AddressOnCreation),
 			},
 			Tags: tags,
 		})
@@ -235,6 +235,9 @@ func (d *DiscoveryClient) discoverSecurityGroups(ctx context.Context) ([]*Discov
 				"vpc_id":      aws.ToString(sg.VpcId),
 				"description": aws.ToString(sg.Description),
 				"name":        aws.ToString(sg.GroupName),
+				// Canonical rule sets so ingress/egress drift is detectable (#338).
+				"ingress": canonicalizeAWSPermissions(sg.IpPermissions),
+				"egress":  canonicalizeAWSPermissions(sg.IpPermissionsEgress),
 			},
 			Tags: tags,
 		})

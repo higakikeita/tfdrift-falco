@@ -2,11 +2,27 @@ package aws
 
 import (
 	"reflect"
+	"sort"
 
 	"github.com/keitahigaki/tfdrift-falco/pkg/comparator"
 	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
 	"github.com/keitahigaki/tfdrift-falco/pkg/types"
 )
+
+// discoverableResourceTypes is the set of AWS resource types DiscoverAll actually
+// queries. A Terraform resource is only reported as `missing` when its type is in
+// this set — otherwise "not found in the cloud scan" just means "we never scanned
+// that type", which was being mis-reported as drift and inflating `missing` (#338).
+var discoverableResourceTypes = map[string]bool{
+	"aws_vpc":                           true,
+	"aws_subnet":                        true,
+	"aws_security_group":                true,
+	"aws_instance":                      true,
+	"aws_db_instance":                   true,
+	"aws_eks_cluster":                   true,
+	"aws_elasticache_replication_group": true,
+	"aws_lb":                            true,
+}
 
 // CompareStateWithActual compares Terraform state with actual AWS resources
 // and returns the differences (unmanaged, missing, and modified resources)
@@ -66,6 +82,18 @@ func CompareStateWithActual(tfResources []*terraform.Resource, awsResources []*t
 
 	result := comparator.CompareResources(config, convertTFResources(tfResources), convertCloudResources(awsResources))
 	result.Provider = "aws"
+
+	// Scope `missing` to types discovery actually scans. A resource of an
+	// unscanned type has no cloud match not because it was deleted but because we
+	// never looked — reporting it as missing is a false positive (#338).
+	scoped := result.MissingResources[:0]
+	for _, m := range result.MissingResources {
+		if m != nil && discoverableResourceTypes[m.Type] {
+			scoped = append(scoped, m)
+		}
+	}
+	result.MissingResources = scoped
+
 	return result
 }
 
@@ -127,6 +155,29 @@ func compareResourceAttributes(tfRes *terraform.Resource, awsRes *types.Discover
 				TerraformValue: tfValue,
 				ActualValue:    awsValue,
 			})
+		}
+	}
+
+	// Security-group rules: the AWS side is a pre-canonicalized rule set (from
+	// discovery); canonicalize the Terraform blocks the same way and compare as
+	// unordered sets, so an added/removed ingress/egress rule is caught (#338).
+	if tfRes.Type == "aws_security_group" {
+		for _, field := range []string{"ingress", "egress"} {
+			tfRules := canonicalizeTFRules(tfRes.Attributes[field])
+			awsRules := toStringSliceVal(awsRes.Attributes[field])
+			sort.Strings(awsRules)
+			// Treat nil and empty as equal (a missing key is not drift); only a
+			// genuine set difference counts.
+			if len(tfRules) == 0 && len(awsRules) == 0 {
+				continue
+			}
+			if !reflect.DeepEqual(tfRules, awsRules) {
+				differences = append(differences, &types.FieldDiff{
+					Field:          field,
+					TerraformValue: tfRules,
+					ActualValue:    awsRules,
+				})
+			}
 		}
 	}
 
