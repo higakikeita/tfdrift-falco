@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"time"
 )
 
@@ -245,14 +246,22 @@ func (c *GitHubClient) commitFiles(ctx context.Context, branchName, commitMsg st
 func (c *GitHubClient) createTree(ctx context.Context, files map[string]string, baseTreeSHA string) (string, error) {
 	url := fmt.Sprintf("%s/repos/%s/%s/git/trees", c.apiBase, c.owner, c.repo)
 
-	// Convert files to tree items
+	// Convert files to tree items, ordered by path. Ranging over the map
+	// directly would emit the entries in Go's randomized iteration order, so
+	// the same set of files produced a different request body on every call.
+	paths := make([]string, 0, len(files))
+	for path := range files {
+		paths = append(paths, path)
+	}
+	sort.Strings(paths)
+
 	treeItems := make([]treeItem, 0, len(files))
-	for path, content := range files {
+	for _, path := range paths {
 		treeItems = append(treeItems, treeItem{
 			Path:    path,
 			Mode:    "100644",
 			Type:    "blob",
-			Content: content,
+			Content: files[path],
 		})
 	}
 
