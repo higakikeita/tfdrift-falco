@@ -93,6 +93,9 @@ jobs:
           sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_API_TOKEN }}
           sysdig-secure-url: https://secure.sysdig.com
           severity-at-least: high
+          # evaluate only this project's policy — an unrelated policy in the
+          # Sysdig account would otherwise fail every PR here
+          use-policies: 'Fail Github Actions with critical vuln found'
           stop-on-failed-policy-eval: true
           stop-on-processing-error: true
 
@@ -174,6 +177,9 @@ jobs:
           sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_API_TOKEN }}
           sysdig-secure-url: https://secure.sysdig.com
           severity-at-least: high
+          # evaluate only this project's policy — an unrelated policy in the
+          # Sysdig account would otherwise fail every PR here
+          use-policies: 'Fail Github Actions with critical vuln found'
           stop-on-failed-policy-eval: true
           stop-on-processing-error: true
 
