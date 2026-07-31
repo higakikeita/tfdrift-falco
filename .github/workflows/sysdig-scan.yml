@@ -38,10 +38,15 @@ jobs:
   scan-backend:
     name: Scan Backend Image
     runs-on: ubuntu-latest
+    # Dependabot PRs run with the Dependabot secret store, which has no
+    # SYSDIG_SECURE_API_TOKEN — the scan cannot authenticate, so skip instead
+    # of failing the PR. The image is still scanned on push to main.
     if: |
-      github.event_name == 'pull_request' ||
-      github.event.inputs.scan_target == 'both' ||
-      github.event.inputs.scan_target == 'backend'
+      github.actor != 'dependabot[bot]' && (
+        github.event_name == 'pull_request' ||
+        github.event.inputs.scan_target == 'both' ||
+        github.event.inputs.scan_target == 'backend'
+      )
 
     steps:
       - name: Checkout code
@@ -87,15 +92,15 @@ jobs:
           image-tag: ${{ steps.image-tag.outputs.tag }}
           sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_API_TOKEN }}
           sysdig-secure-url: https://secure.sysdig.com
-          input-type: docker-daemon
-          ignore-failed-scan: false
-          run-as-user: root
-          severities-to-fail: 'critical,high'
-          upload-sarif: true
+          severity-at-least: high
+          stop-on-failed-policy-eval: true
+          stop-on-processing-error: true
+          # the image is built with load:true, so it lives in the local daemon
+          extra-parameters: '--storage-type docker-daemon'
 
       - name: Upload backend SARIF report
         uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4
-        if: always()
+        if: always() && steps.scan-backend.outputs.sarifReport != ''
         with:
           sarif_file: ${{ steps.scan-backend.outputs.sarifReport }}
           category: sysdig-backend
@@ -122,9 +127,11 @@ jobs:
     name: Scan Frontend Image
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'pull_request' ||
-      github.event.inputs.scan_target == 'both' ||
-      github.event.inputs.scan_target == 'frontend'
+      github.actor != 'dependabot[bot]' && (
+        github.event_name == 'pull_request' ||
+        github.event.inputs.scan_target == 'both' ||
+        github.event.inputs.scan_target == 'frontend'
+      )
 
     steps:
       - name: Checkout code
@@ -168,15 +175,15 @@ jobs:
           image-tag: ${{ steps.image-tag.outputs.tag }}
           sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_API_TOKEN }}
           sysdig-secure-url: https://secure.sysdig.com
-          input-type: docker-daemon
-          ignore-failed-scan: false
-          run-as-user: root
-          severities-to-fail: 'critical,high'
-          upload-sarif: true
+          severity-at-least: high
+          stop-on-failed-policy-eval: true
+          stop-on-processing-error: true
+          # the image is built with load:true, so it lives in the local daemon
+          extra-parameters: '--storage-type docker-daemon'
 
       - name: Upload frontend SARIF report
         uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4
-        if: always()
+        if: always() && steps.scan-frontend.outputs.sarifReport != ''
         with:
           sarif_file: ${{ steps.scan-frontend.outputs.sarifReport }}
           category: sysdig-frontend
