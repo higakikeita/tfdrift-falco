@@ -19,7 +19,16 @@ jobs:
 
       - name: Auto-merge patch and minor updates
         if: steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor'
-        run: gh pr merge --auto --squash "$PR_URL"
+        run: |
+          if gh pr merge --auto --squash "$PR_URL" 2>merge-err.log; then
+            exit 0
+          fi
+          if grep -q 'enablePullRequestAutoMerge' merge-err.log; then
+            echo "::notice title=auto-merge unavailable::This repository has auto-merge disabled (Settings -> General -> Allow auto-merge). Leaving the PR open for a human to merge."
+            exit 0
+          fi
+          cat merge-err.log >&2
+          exit 1
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
