@@ -95,8 +95,6 @@ jobs:
           severity-at-least: high
           stop-on-failed-policy-eval: true
           stop-on-processing-error: true
-          # the image is built with load:true, so it lives in the local daemon
-          extra-parameters: '--storage-type docker-daemon'
 
       - name: Upload backend SARIF report
         uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4
@@ -178,8 +176,6 @@ jobs:
           severity-at-least: high
           stop-on-failed-policy-eval: true
           stop-on-processing-error: true
-          # the image is built with load:true, so it lives in the local daemon
-          extra-parameters: '--storage-type docker-daemon'
 
       - name: Upload frontend SARIF report
         uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4
