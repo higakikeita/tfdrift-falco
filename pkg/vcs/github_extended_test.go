@@ -116,10 +116,15 @@ func TestCreateTree_Success(t *testing.T) {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
+			// createTree orders entries by path, so this is a contract, not
+			// a coincidence of Go's map iteration order.
 			assert.Len(t, req.Tree, 2)
 			assert.Equal(t, "file1.txt", req.Tree[0].Path)
+			assert.Equal(t, "content1", req.Tree[0].Content)
 			assert.Equal(t, "100644", req.Tree[0].Mode)
 			assert.Equal(t, "blob", req.Tree[0].Type)
+			assert.Equal(t, "file2.txt", req.Tree[1].Path)
+			assert.Equal(t, "content2", req.Tree[1].Content)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusCreated)
 			json.NewEncoder(w).Encode(treeResponse{SHA: "tree123"})
