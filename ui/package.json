@@ -48,7 +48,7 @@
     "reactflow": "^11.11.4",
     "recharts": "^3.8.0",
     "tailwind-merge": "^3.4.0",
-    "zustand": "^5.0.9"
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@axe-core/react": "^4.11.0",
