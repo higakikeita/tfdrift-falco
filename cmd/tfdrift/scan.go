@@ -65,7 +65,7 @@ func runScan(cfgPath string, regionsOverride []string, output string, failOnDrif
 	if cfgPath == "" {
 		cfgPath = "config.yaml"
 	}
-	cfg, err := config.Load(cfgPath)
+	cfg, err := config.LoadForScan(cfgPath)
 	if err != nil {
 		return 0, fmt.Errorf("load config %q: %w", cfgPath, err)
 	}

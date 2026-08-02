@@ -211,8 +211,19 @@ type PolicyConfig struct {
 	PolicyDir string `yaml:"policy_dir"` // Directory containing .rego files
 }
 
-// Load loads configuration from file
+// Load loads and validates configuration for normal (Falco-connected) operation.
 func Load(path string) (*Config, error) {
+	return load(path, (*Config).Validate)
+}
+
+// LoadForScan loads configuration for the read-only `scan` reconcile. scan does
+// not use Falco, so it validates providers/state but not the Falco connection
+// (#338) — requiring Falco to run a one-shot state-vs-cloud diff is wrong UX.
+func LoadForScan(path string) (*Config, error) {
+	return load(path, (*Config).ValidateForScan)
+}
+
+func load(path string, validate func(*Config) error) (*Config, error) {
 	if path == "" {
 		path = "config.yaml"
 	}
@@ -235,24 +246,17 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	// Validate configuration
-	if err := cfg.Validate(); err != nil {
+	if err := validate(&cfg); err != nil {
 		return nil, fmt.Errorf("invalid configuration: %w", err)
 	}
 
 	return &cfg, nil
 }
 
-// Validate validates the configuration
+// Validate validates the configuration for normal (Falco-connected) operation.
 func (c *Config) Validate() error {
-	if !c.Providers.AWS.Enabled && !c.Providers.GCP.Enabled && !c.Providers.Azure.Enabled {
-		return fmt.Errorf("at least one provider must be enabled")
-	}
-
-	if c.Providers.AWS.Enabled {
-		if len(c.Providers.AWS.Regions) == 0 {
-			return fmt.Errorf("AWS regions must be specified")
-		}
+	if err := c.validateProvidersAndTooling(); err != nil {
+		return err
 	}
 
 	// Validate Falco configuration
@@ -267,6 +271,26 @@ func (c *Config) Validate() error {
 		}
 		if c.Falco.Port == 0 {
 			return fmt.Errorf("falco port must be specified")
+		}
+	}
+
+	return nil
+}
+
+// ValidateForScan validates the subset needed by the read-only `scan` reconcile:
+// providers/state and tooling, but not the Falco connection (#338).
+func (c *Config) ValidateForScan() error {
+	return c.validateProvidersAndTooling()
+}
+
+func (c *Config) validateProvidersAndTooling() error {
+	if !c.Providers.AWS.Enabled && !c.Providers.GCP.Enabled && !c.Providers.Azure.Enabled {
+		return fmt.Errorf("at least one provider must be enabled")
+	}
+
+	if c.Providers.AWS.Enabled {
+		if len(c.Providers.AWS.Regions) == 0 {
+			return fmt.Errorf("AWS regions must be specified")
 		}
 	}
 

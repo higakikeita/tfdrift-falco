@@ -1237,3 +1237,16 @@ func TestConfig_EdgeCaseValues(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateForScan_DoesNotRequireFalco(t *testing.T) {
+	// scan is read-only and Falco-independent: providers valid + Falco disabled
+	// must pass ValidateForScan (while full Validate still requires Falco). (#338)
+	cfg := &Config{
+		Providers: ProvidersConfig{
+			AWS: AWSConfig{Enabled: true, Regions: []string{"ap-northeast-1"}},
+		},
+		Falco: FalcoConfig{Enabled: false},
+	}
+	assert.NoError(t, cfg.ValidateForScan(), "scan must not require Falco")
+	assert.Error(t, cfg.Validate(), "full validate still requires Falco")
+}
