@@ -1,0 +1,8 @@
+# runtime artifacts produced by run.sh / scan.sh
+.tfdrift
+.backend.log
+.backend.pid
+.ui.log
+.ui.pid
+.config.run.yaml
+.scan.run.yaml

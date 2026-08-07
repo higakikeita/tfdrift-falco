@@ -1,0 +1,8 @@
+# State path rewritten to an absolute path by scan.sh.
+providers:
+  aws:
+    enabled: true
+    regions: ["ap-northeast-1"]
+    state: {backend: "local", local_path: "REPLACED_BY_SCAN_SH"}
+falco: {enabled: false}
+logging: {level: "warn"}
