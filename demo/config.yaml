@@ -1,0 +1,10 @@
+# Demo backend config. State path is rewritten to an absolute path by run.sh.
+providers:
+  aws:
+    enabled: true
+    regions: ["ap-northeast-1"]
+    state: {backend: "local", local_path: "REPLACED_BY_RUN_SH"}
+falco:
+  enabled: true
+  transport: "http"   # ADR-006: Falco http_output → this API server
+logging: {level: "info"}
