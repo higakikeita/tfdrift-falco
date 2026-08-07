@@ -14,6 +14,7 @@ export const useStats = () => {
     // Poll in step with the drift feed (useDrifts) so the KPI counters and the
     // Recent Drift Events list update together as drifts arrive.
     refetchInterval: 5000,
+    refetchIntervalInBackground: true,
   });
 
   useEffect(() => {
