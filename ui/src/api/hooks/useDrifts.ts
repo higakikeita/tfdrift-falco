@@ -29,6 +29,7 @@ export const useDrifts = (params?: DriftsParams) => {
       return data as PaginatedResponse<DriftAlert>;
     },
     refetchInterval: 5000,
+    refetchIntervalInBackground: true,
   });
 
   useEffect(() => {
