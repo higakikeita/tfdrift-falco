@@ -33,16 +33,22 @@ Within ~5s a drift card appears on the Dashboard:
 `aws_instance i-0demoweb0000001 — ModifyInstanceAttribute — alice@corp.example — medium`.
 (The feed auto-refreshes even if the tab isn't focused.)
 
-### Act 3 — one-shot reconcile (live AWS)
+### Act 3 — live drift on real infra (live AWS)
 ```bash
-bash demo/scan.sh
+bash demo/scan.sh          # baseline
+bash demo/drift-sg.sh      # add a Terraform-unmanaged ingress rule to the lab SG
+bash demo/scan.sh          # the new rule shows immediately as ingress drift
+bash demo/undrift-sg.sh    # cleanup
 ```
-Prints `Drift detected: … modified=1` with the lab bastion SG's ingress/egress
-rule drift (rules present in the cloud but not in state).
+`scan` queries the live security-group state directly, so an added rule is
+reported instantly — no CloudTrail delivery latency. (Real-time streaming to the
+UI over live CloudTrail lags minutes, so the live act uses `scan`, not the UI
+stream; Act 2 covers the real-time visual.)
 
 ### Teardown
 ```bash
-bash demo/teardown.sh
+bash demo/undrift-sg.sh   # revoke the demo SG rule
+bash demo/teardown.sh    # stop backend + UI
 ```
 
 ## Suggested 3-act narration (~5 min)
