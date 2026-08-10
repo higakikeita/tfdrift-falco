@@ -1,0 +1,6 @@
+# terraform runtime artifacts (state contains resource ids; keep out of git)
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.*
+*.tfplan
