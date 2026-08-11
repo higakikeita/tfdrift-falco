@@ -688,3 +688,29 @@ func TestStateManager_ConcurrentGetResource(t *testing.T) {
 		<-done
 	}
 }
+
+func TestStateManager_SkipsDataSources(t *testing.T) {
+	// A data source (mode:"data") is a read-only lookup, not managed infra, so it
+	// must not be indexed for reconciliation — otherwise it shows up as a false
+	// "missing" resource in scan output (found while prepping the live demo).
+	state := `{
+      "version": 4, "terraform_version": "1.13.0", "serial": 1, "lineage": "x", "outputs": {},
+      "resources": [
+        {"mode":"data","type":"aws_vpc","name":"demo",
+         "instances":[{"attributes":{"id":"vpc-abc123"}}]},
+        {"mode":"managed","type":"aws_security_group","name":"web",
+         "instances":[{"attributes":{"id":"sg-abc123"}}]}
+      ]}`
+	tmp := filepath.Join(t.TempDir(), "terraform.tfstate")
+	require.NoError(t, os.WriteFile(tmp, []byte(state), 0o600))
+
+	sm, err := NewStateManager(config.TerraformStateConfig{Backend: "local", LocalPath: tmp})
+	require.NoError(t, err)
+	require.NoError(t, sm.Load(context.Background()))
+
+	assert.Equal(t, 1, sm.ResourceCount(), "only the managed resource is indexed")
+	_, sgOK := sm.GetResource("sg-abc123")
+	assert.True(t, sgOK, "managed SG is indexed")
+	_, vpcOK := sm.GetResource("vpc-abc123")
+	assert.False(t, vpcOK, "data-source VPC must be skipped")
+}

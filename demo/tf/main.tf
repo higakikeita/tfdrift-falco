@@ -27,14 +27,19 @@ provider "aws" {
   region = "ap-northeast-1"
 }
 
-data "aws_vpc" "default" {
-  default = true
+# Use an existing VPC (this shared account has no default VPC and is at its VPC
+# limit, so we don't create one). The SG is the only thing Terraform manages, so
+# `terraform destroy` removes exactly the demo SG and nothing else.
+data "aws_vpc" "demo" {
+  tags = {
+    Name = "tfdrift-lab-vpc"
+  }
 }
 
 resource "aws_security_group" "web" {
   name        = "tfdrift-demo-web"
-  description = "TFDrift demo — managed by Terraform, not by hand"
-  vpc_id      = data.aws_vpc.default.id
+  description = "TFDrift demo - managed by Terraform, not by hand"
+  vpc_id      = data.aws_vpc.demo.id
 
   # The only way in. Internal network only. This is the line the audience reads,
   # and the line the console change will contradict.

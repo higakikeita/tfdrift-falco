@@ -109,6 +109,12 @@ func (sm *StateManager) indexState(state State) error {
 	sm.resources = make(map[string]*Resource)
 
 	for _, resDef := range state.Resources {
+		// Skip data sources: they are read-only lookups, not infrastructure
+		// Terraform manages, so they must not be reconciled against the cloud
+		// (otherwise a `data "aws_vpc"` shows up as a false "missing" resource).
+		if resDef.Mode == "data" {
+			continue
+		}
 		for _, instance := range resDef.Instances {
 			resource := &Resource{
 				Mode:       resDef.Mode,
