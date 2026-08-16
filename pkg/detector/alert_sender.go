@@ -1,12 +1,12 @@
-// Package detector implements drift detection logic for TFDrift-Falco.
+// Package detector implements drift detection logic for driftwire.
 package detector
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/broadcaster"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/api/broadcaster"
+	"github.com/higakikeita/driftwire/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
 

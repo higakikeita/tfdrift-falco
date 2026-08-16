@@ -3,9 +3,9 @@ package benchmark
 import (
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/config"
+	"github.com/higakikeita/driftwire/pkg/detector"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // setupBenchmarkDetector creates a detector instance for benchmarking

@@ -5,10 +5,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/broadcaster"
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
-	"github.com/keitahigaki/tfdrift-falco/pkg/vcs"
+	"github.com/higakikeita/driftwire/pkg/api/broadcaster"
+	"github.com/higakikeita/driftwire/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/vcs"
 	log "github.com/sirupsen/logrus"
 )
 

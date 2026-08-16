@@ -1,6 +1,6 @@
 # Architecture Evolution
 
-This document tracks major architectural changes across TFDrift-Falco releases.
+This document tracks major architectural changes across driftwire releases.
 
 ---
 
@@ -203,7 +203,7 @@ func (r *NoPublicS3Rule) Match(event CloudTrailEvent, state TerraformState) bool
 
 ## Design Principles
 
-Throughout the evolution of TFDrift-Falco, we maintain these principles:
+Throughout the evolution of driftwire, we maintain these principles:
 
 ### 1. Modularity
 - Each AWS service is self-contained
@@ -241,4 +241,4 @@ See [v0.2.0-beta Release Notes](v0.2.0-beta.md#upgrade-guide)
 
 - [Architecture Documentation](../architecture.md)
 - [CHANGELOG](../../CHANGELOG.md)
-- [GitHub Discussions - Architecture](https://github.com/higakikeita/tfdrift-falco/discussions/categories/architecture)
+- [GitHub Discussions - Architecture](https://github.com/higakikeita/driftwire/discussions/categories/architecture)

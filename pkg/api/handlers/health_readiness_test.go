@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
+	"github.com/higakikeita/driftwire/pkg/api/models"
 )
 
 // envelope mirrors respondJSON's wrapper ({success, data}).

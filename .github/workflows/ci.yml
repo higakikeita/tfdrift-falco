@@ -132,14 +132,14 @@ jobs:
         run: |
           CGO_ENABLED=0 GOOS=linux go build \
             -ldflags="-s -w -X main.version=${{ github.ref_name }}" \
-            -o tfdrift \
-            ./cmd/tfdrift
+            -o driftwire \
+            ./cmd/driftwire
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: tfdrift-binary
-          path: tfdrift
+          name: driftwire-binary
+          path: driftwire
           retention-days: 7
 
   # ============================================
@@ -232,7 +232,7 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         continue-on-error: true
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/tfdrift-falco
+          images: ${{ secrets.DOCKER_USERNAME }}/driftwire
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
@@ -257,7 +257,7 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         continue-on-error: true
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/tfdrift-frontend
+          images: ${{ secrets.DOCKER_USERNAME }}/driftwire-frontend
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}

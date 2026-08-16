@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/testutil"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/config"
+	"github.com/higakikeita/driftwire/pkg/testutil"
+	"github.com/higakikeita/driftwire/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

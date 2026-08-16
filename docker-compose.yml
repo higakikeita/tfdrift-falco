@@ -4,7 +4,7 @@ services:
   # ============================================
   falco:
     image: falcosecurity/falco:0.43.0  # 0.37.1 was too old for the current CloudTrail plugin (Plugin API 3.11+); 0.43 loads it AND still ships grpc_output. Do NOT bump to 0.44+ (grpc_output removed). See #311.
-    container_name: tfdrift-falco-falco
+    container_name: driftwire-falco
     platform: linux/amd64  # Force x86_64 for CloudTrail plugin compatibility
     privileged: true
     restart: unless-stopped
@@ -19,7 +19,7 @@ services:
       - /dev:/host/dev:ro
       - /proc:/host/proc:ro
 
-      # TFDrift Falco rules
+      # driftwire Falco rules
       - ./rules/terraform_drift.yaml:/etc/falco/rules.d/terraform_drift.yaml:ro
 
       # Falco configuration (simplified for testing)
@@ -39,7 +39,7 @@ services:
       - AWS_SHARED_CREDENTIALS_FILE=/root/.aws/credentials
       - AWS_CONFIG_FILE=/root/.aws/config
     networks:
-      - tfdrift
+      - driftwire
     healthcheck:
       test: ["CMD", "grpc_health_probe", "-addr=:5060"]
       interval: 30s
@@ -48,14 +48,14 @@ services:
       start_period: 40s
 
   # ============================================
-  # TFDrift Backend - API Server
+  # driftwire Backend - API Server
   # ============================================
   backend:
     build:
       context: .
       dockerfile: Dockerfile
-    image: tfdrift-falco:latest
-    container_name: tfdrift-backend
+    image: driftwire:latest
+    container_name: driftwire-backend
     restart: unless-stopped
     # depends_on:
     #   falco:
@@ -69,25 +69,25 @@ services:
       - ./config.yaml:/config/config.yaml:ro
 
       # AWS credentials
-      - ${HOME}/.aws:/home/tfdrift/.aws:ro
+      - ${HOME}/.aws:/home/driftwire/.aws:ro
 
       # Terraform state (if using local backend)
       - ./terraform:/terraform:ro
 
       # Persistent data
-      - tfdrift-data:/data
+      - driftwire-data:/data
     environment:
       - AWS_REGION=${AWS_REGION:-us-east-1}
       - AWS_PROFILE=${AWS_PROFILE:-mytf}
-      - AWS_SHARED_CREDENTIALS_FILE=/home/tfdrift/.aws/credentials
-      - AWS_CONFIG_FILE=/home/tfdrift/.aws/config
+      - AWS_SHARED_CREDENTIALS_FILE=/home/driftwire/.aws/credentials
+      - AWS_CONFIG_FILE=/home/driftwire/.aws/config
       - TZ=${TZ:-UTC}
-      - TFDRIFT_FALCO_HOSTNAME=falco
-      - TFDRIFT_FALCO_PORT=5060
+      - DRIFTWIRE_FALCO_HOSTNAME=falco
+      - DRIFTWIRE_FALCO_PORT=5060
       # Optional Slack webhook
-      # - TFDRIFT_SLACK_WEBHOOK=${SLACK_WEBHOOK_URL}
+      # - DRIFTWIRE_SLACK_WEBHOOK=${SLACK_WEBHOOK_URL}
     networks:
-      - tfdrift
+      - driftwire
     command: ["--server", "--api-port", "8080", "--config", "/config/config.yaml"]
     healthcheck:
       # GET, not --spider: --spider probes with HEAD, which the router
@@ -99,14 +99,14 @@ services:
       start_period: 10s
 
   # ============================================
-  # TFDrift Frontend - React UI
+  # driftwire Frontend - React UI
   # ============================================
   frontend:
     build:
       context: ./ui
       dockerfile: Dockerfile
-    image: tfdrift-frontend:latest
-    container_name: tfdrift-frontend
+    image: driftwire-frontend:latest
+    container_name: driftwire-frontend
     restart: unless-stopped
     ports:
       # Bound to localhost only. See SECURITY.md before exposing.
@@ -118,7 +118,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - tfdrift
+      - driftwire
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -127,14 +127,14 @@ services:
       start_period: 5s
 
 networks:
-  tfdrift:
+  driftwire:
     driver: bridge
-    name: tfdrift-network
+    name: driftwire-network
 
 volumes:
-  tfdrift-data:
+  driftwire-data:
     driver: local
-    name: tfdrift-data
+    name: driftwire-data
 
 # ============================================
 # Usage Examples

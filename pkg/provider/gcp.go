@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	gcppkg "github.com/keitahigaki/tfdrift-falco/pkg/gcp"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	gcppkg "github.com/higakikeita/driftwire/pkg/gcp"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // Compile-time interface checks

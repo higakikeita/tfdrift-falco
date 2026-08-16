@@ -1,6 +1,6 @@
 # Auto-Import Guide
 
-TFDrift-Falcoは、Terraformで管理されていないリソースを検出すると、自動的に`terraform import`コマンドを生成・実行できます。
+driftwireは、Terraformで管理されていないリソースを検出すると、自動的に`terraform import`コマンドを生成・実行できます。
 
 ## 機能概要
 
@@ -166,10 +166,10 @@ resource "aws_iam_role" "production_api_role" {
 
 ## インタラクティブモード
 
-TFDrift-Falcoをインタラクティブモードで起動:
+driftwireをインタラクティブモードで起動:
 
 ```bash
-tfdrift --config config.yaml --interactive
+driftwire --config config.yaml --interactive
 ```
 
 **機能:**
@@ -182,16 +182,16 @@ tfdrift --config config.yaml --interactive
 
 ```bash
 # 保留中の承認リクエスト一覧
-tfdrift approval list
+driftwire approval list
 
 # 特定のリクエストを承認
-tfdrift approval approve import-production-api-role-1234567890
+driftwire approval approve import-production-api-role-1234567890
 
 # 特定のリクエストを却下
-tfdrift approval reject import-test-role-1234567890 --reason "Not needed"
+driftwire approval reject import-test-role-1234567890 --reason "Not needed"
 
 # 期限切れリクエストをクリーンアップ
-tfdrift approval cleanup --older-than 24h
+driftwire approval cleanup --older-than 24h
 ```
 
 ## API統合
@@ -259,7 +259,7 @@ auto_import:
 
 4. **Dry-Runモード**
    ```bash
-   tfdrift --config config.yaml --dry-run
+   driftwire --config config.yaml --dry-run
    ```
 
 ### ❌ 避けるべき設定
@@ -303,7 +303,7 @@ terraform validate
 
 **A: インタラクティブモードを確認**
 ```bash
-tfdrift --config config.yaml --interactive
+driftwire --config config.yaml --interactive
 ```
 
 ## まとめ

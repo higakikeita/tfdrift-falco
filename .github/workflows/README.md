@@ -1,6 +1,6 @@
 # GitHub Actions Workflows
 
-CI/CD workflows for TFDrift-Falco. All workflows run on GitHub Actions.
+CI/CD workflows for driftwire. All workflows run on GitHub Actions.
 
 ## Workflow Overview
 

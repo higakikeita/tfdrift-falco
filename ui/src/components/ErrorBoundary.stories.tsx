@@ -120,7 +120,7 @@ export const ComplexLayout: Story = {
           </ul>
         </aside>
         <main style={{ flex: 1, padding: '20px' }}>
-          <h1>Welcome to TFDrift Falco</h1>
+          <h1>Welcome to driftwire Falco</h1>
           <p>This is the main content area protected by ErrorBoundary.</p>
         </main>
       </div>

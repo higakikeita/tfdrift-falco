@@ -1,4 +1,4 @@
-# TFDrift-Falco Configuration for GCP
+# driftwire Configuration for GCP
 # This is an example configuration for Google Cloud Platform monitoring
 
 # Cloud Provider Configuration
@@ -131,7 +131,7 @@ notifications:
     url: "https://your-siem.example.com/webhook"
     headers:
       Authorization: "Bearer YOUR_TOKEN"
-      X-Source: "tfdrift-falco-gcp"
+      X-Source: "driftwire-gcp"
 
 # Logging
 logging:

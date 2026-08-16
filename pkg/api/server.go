@@ -8,16 +8,16 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/broadcaster"
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/handlers"
-	apimiddleware "github.com/keitahigaki/tfdrift-falco/pkg/api/middleware"
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/sse"
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/websocket"
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
-	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
-	"github.com/keitahigaki/tfdrift-falco/pkg/rbac"
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/api/broadcaster"
+	"github.com/higakikeita/driftwire/pkg/api/handlers"
+	apimiddleware "github.com/higakikeita/driftwire/pkg/api/middleware"
+	"github.com/higakikeita/driftwire/pkg/api/sse"
+	"github.com/higakikeita/driftwire/pkg/api/websocket"
+	"github.com/higakikeita/driftwire/pkg/config"
+	"github.com/higakikeita/driftwire/pkg/detector"
+	"github.com/higakikeita/driftwire/pkg/graph"
+	"github.com/higakikeita/driftwire/pkg/rbac"
+	"github.com/higakikeita/driftwire/pkg/terraform"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -84,7 +84,7 @@ func (s *Server) setupRouter() {
 	// Middleware
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(apimiddleware.OTelHTTP("tfdrift-falco-api"))
+	r.Use(apimiddleware.OTelHTTP("driftwire-api"))
 	r.Use(apimiddleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(apimiddleware.NewCORS().Handler)

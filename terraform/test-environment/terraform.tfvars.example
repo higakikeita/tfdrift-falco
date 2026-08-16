@@ -9,7 +9,7 @@ environment = "test"
 
 # S3 Bucket name (MUST be globally unique)
 # Add a unique suffix like your account ID or date
-test_bucket_name = "tfdrift-test-bucket-CHANGEME"
+test_bucket_name = "driftwire-test-bucket-CHANGEME"
 
 # VPC ID (use your default VPC or create a new one)
 # Find your default VPC: aws ec2 describe-vpcs --filters "Name=isDefault,Values=true"

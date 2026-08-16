@@ -10,7 +10,7 @@ import {
 } from '../mocks/graphData';
 
 /**
- * CytoscapeGraph - TFDrift-Falco Graph Visualization Component
+ * CytoscapeGraph - driftwire Graph Visualization Component
  *
  * AWS構成図を可視化するメインコンポーネント。
  * VPC/Subnet階層、Drift状態、複数のレイアウトアルゴリズムをサポート。
@@ -23,7 +23,7 @@ const meta = {
     docs: {
       description: {
         component: `
-TFDrift-FalcoのGraph Viewで使用されるCytoscape.jsベースの可視化コンポーネント。
+driftwireのGraph Viewで使用されるCytoscape.jsベースの可視化コンポーネント。
 
 ## 主な機能
 - **VPC/Subnet階層の可視化**: コンパウンドノードによる親子関係表示
@@ -125,7 +125,7 @@ export const Empty: Story = {
  * VPC/Subnet階層表示（推奨）
  *
  * fcoseレイアウトでVPC/Subnet階層を明確に表示。
- * これがTFDrift-Falcoの推奨構成です。
+ * これがdriftwireの推奨構成です。
  */
 export const WithVPCHierarchy: Story = {
   args: {

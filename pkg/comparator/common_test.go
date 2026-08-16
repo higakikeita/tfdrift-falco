@@ -3,7 +3,7 @@ package comparator
 import (
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 func TestGetNestedValue(t *testing.T) {

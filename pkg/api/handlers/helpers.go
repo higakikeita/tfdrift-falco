@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
+	"github.com/higakikeita/driftwire/pkg/api/models"
 )
 
 // respondJSON writes a JSON response with the given HTTP status code.

@@ -1,6 +1,6 @@
-# Extending TFDrift-Falco
+# Extending driftwire
 
-TFDrift-Falcoは拡張性を重視して設計されており、カスタムルール、通知チャネル、イベントハンドラーを簡単に追加できます。
+driftwireは拡張性を重視して設計されており、カスタムルール、通知チャネル、イベントハンドラーを簡単に追加できます。
 
 ## 📋 目次
 
@@ -14,7 +14,7 @@ TFDrift-Falcoは拡張性を重視して設計されており、カスタムル�
 
 ## カスタムFalcoルールの追加
 
-Falcoルールを追加することで、TFDrift-Falcoが検知するCloudTrail/GCP Audit Logイベントをカスタマイズできます。
+Falcoルールを追加することで、driftwireが検知するCloudTrail/GCP Audit Logイベントをカスタマイズできます。
 
 ### 基本的なFalcoルール構造
 
@@ -175,7 +175,7 @@ journalctl -u falco -f
 
 ## カスタム通知チャネルの追加
 
-TFDrift-Falcoは複数の通知チャネル（Slack, Discord, Webhook）をサポートしていますが、カスタムチャネルを追加することも可能です。
+driftwireは複数の通知チャネル（Slack, Discord, Webhook）をサポートしていますが、カスタムチャネルを追加することも可能です。
 
 ### Architecture Overview
 
@@ -406,7 +406,7 @@ func (n *PagerDutyNotifier) Notify(ctx context.Context, event *DriftEvent) error
 		"payload": map[string]interface{}{
 			"summary":  fmt.Sprintf("Drift Detected: %s", event.ResourceType),
 			"severity": n.mapSeverity(event.Severity),
-			"source":   "tfdrift-falco",
+			"source":   "driftwire",
 			"custom_details": map[string]interface{}{
 				"resource_type": event.ResourceType,
 				"resource_id":   event.ResourceID,
@@ -464,7 +464,7 @@ func (n *PagerDutyNotifier) Name() string {
 
 ## カスタムドリフトルールの追加
 
-TFDrift-Falcoのドリフト検知ルールは完全にカスタマイズ可能です。
+driftwireのドリフト検知ルールは完全にカスタマイズ可能です。
 
 ### ドリフトルールの構造
 
@@ -709,7 +709,7 @@ func TestMapEventToResourceType_AppRunner(t *testing.T) {
 
 ## プラグインアーキテクチャ
 
-TFDrift-Falcoは将来的にプラグインアーキテクチャをサポート予定です（v0.6.0+）。
+driftwireは将来的にプラグインアーキテクチャをサポート予定です（v0.6.0+）。
 
 ### プラグインインターフェース（計画中）
 
@@ -874,8 +874,8 @@ plugins:
 
 1. **フォークとクローン**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/tfdrift-falco.git
-   cd tfdrift-falco
+   git clone https://github.com/YOUR_USERNAME/driftwire.git
+   cd driftwire
    ```
 
 2. **ブランチ作成**
@@ -929,9 +929,9 @@ plugins:
 
 コミュニティによる拡張例を集めたリポジトリ（計画中）:
 
-- **tfdrift-falco-plugins** - 公式プラグインコレクション
-- **tfdrift-falco-rules** - カスタムFalcoルール集
-- **tfdrift-falco-notifiers** - サードパーティ通知チャネル
+- **driftwire-plugins** - 公式プラグインコレクション
+- **driftwire-rules** - カスタムFalcoルール集
+- **driftwire-notifiers** - サードパーティ通知チャネル
 
 ---
 
@@ -939,9 +939,9 @@ plugins:
 
 拡張機能の開発でサポートが必要な場合:
 
-- **GitHub Discussions**: https://github.com/higakikeita/tfdrift-falco/discussions
-- **Slack Community**: [Join Slack](https://join.slack.com/t/tfdrift-falco/...)
-- **Email**: support@tfdrift-falco.io
+- **GitHub Discussions**: https://github.com/higakikeita/driftwire/discussions
+- **Slack Community**: [Join Slack](https://join.slack.com/t/driftwire/...)
+- **Email**: support@driftwire.io
 
 ---
 

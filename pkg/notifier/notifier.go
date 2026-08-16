@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/diff"
-	"github.com/keitahigaki/tfdrift-falco/pkg/telemetry"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/config"
+	"github.com/higakikeita/driftwire/pkg/diff"
+	"github.com/higakikeita/driftwire/pkg/telemetry"
+	"github.com/higakikeita/driftwire/pkg/types"
 	"go.opentelemetry.io/otel/trace"
 )
 

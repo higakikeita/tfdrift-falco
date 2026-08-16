@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
+	"github.com/higakikeita/driftwire/pkg/config"
+	"github.com/higakikeita/driftwire/pkg/detector"
 )
 
 // TestNewApp tests that New creates a valid App instance

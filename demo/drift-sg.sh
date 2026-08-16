@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Demo drift: add a Terraform-unmanaged ingress rule to the lab SG so `tfdrift
+# Demo drift: add a Terraform-unmanaged ingress rule to the lab SG so `driftwire
 # scan` reports it. Idempotent-ish (ignores "already exists").
 set -euo pipefail
 : "${AWS_PROFILE:=draios-dev-developer}"; export AWS_PROFILE

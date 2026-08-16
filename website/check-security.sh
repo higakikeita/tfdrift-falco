@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🔍 TFDrift-Falco Website Security Check"
+echo "🔍 driftwire Website Security Check"
 echo "========================================"
 echo ""
 
@@ -63,7 +63,7 @@ if [ "$VULNERABLE" = true ]; then
     echo "❌ SECURITY ISSUES FOUND"
     echo ""
     echo "Run the following commands to fix:"
-    echo "  cd /Users/keita.higaki/tfdrift-falco/website"
+    echo "  cd /Users/keita.higaki/driftwire/website"
     echo "  npm install react@19.2.3 react-dom@19.2.3"
     echo "  npm run build"
     echo "  git add package.json package-lock.json"

@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-TFDrift-Falco's Dashboard UI needs to display drift events, alerts, and system status in real-time. The backend detects drift events continuously, and users expect to see them appear without refreshing the page.
+driftwire's Dashboard UI needs to display drift events, alerts, and system status in real-time. The backend detects drift events continuously, and users expect to see them appear without refreshing the page.
 
 Options considered:
 

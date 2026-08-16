@@ -1,6 +1,6 @@
 /**
  * Drift Event Types
- * TFDrift-Falcoで検知されたドリフトイベントの型定義
+ * driftwireで検知されたドリフトイベントの型定義
  */
 
 import type { Severity, ChangeType, Provider, UserIdentity } from './common';

@@ -1,4 +1,4 @@
-// Package telemetry provides OpenTelemetry integration for TFDrift-Falco.
+// Package telemetry provides OpenTelemetry integration for driftwire.
 // It manages trace and metric providers with OTLP export and Prometheus bridge.
 package telemetry
 
@@ -60,7 +60,7 @@ type Provider struct {
 func DefaultConfig() Config {
 	return Config{
 		Enabled:        false,
-		ServiceName:    "tfdrift-falco",
+		ServiceName:    "driftwire",
 		ServiceVersion: "0.9.0",
 		Environment:    "development",
 		Traces: TracesConfig{

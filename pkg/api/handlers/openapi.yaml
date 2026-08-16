@@ -1,13 +1,13 @@
 openapi: "3.0.3"
 info:
-  title: TFDrift-Falco API
+  title: driftwire API
   description: |
     Real-time, multi-cloud Terraform drift detection API with Falco integration.
     Supports AWS CloudTrail, GCP Audit Logs, and Azure Activity Logs.
   version: "0.9.0"
   contact:
     name: Keita Higaki
-    url: https://github.com/higakikeita/tfdrift-falco
+    url: https://github.com/higakikeita/driftwire
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT

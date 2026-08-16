@@ -17,7 +17,7 @@ Sysdigスキャンワークフロー（`sysdig-scan.yml`）は、Pull Request時
 2. 左下のプロフィールアイコンをクリック → **Settings**
 3. **User Profile** セクションの **API Tokens** タブに移動
 4. **Create API Token** をクリック
-   - Token Name: `GitHub Actions - tfdrift-falco`（任意の名前）
+   - Token Name: `GitHub Actions - driftwire`（任意の名前）
    - Permissions: **Scanning API** の権限を選択
 5. トークンをコピー（このトークンは一度しか表示されません）
 
@@ -30,7 +30,7 @@ Sysdigスキャンワークフロー（`sysdig-scan.yml`）は、Pull Request時
 
 ### 手順:
 
-1. GitHubリポジトリ [higakikeita/tfdrift-falco](https://github.com/higakikeita/tfdrift-falco) を開く
+1. GitHubリポジトリ [higakikeita/driftwire](https://github.com/higakikeita/driftwire) を開く
 2. **Settings** タブ → **Secrets and variables** → **Actions** に移動
 3. **New repository secret** をクリック
 4. 以下を入力:

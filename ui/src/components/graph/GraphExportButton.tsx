@@ -57,7 +57,7 @@ export function GraphExportButton({ getCyInstance, getGraphData, className }: Gr
         fetch(dataUrl)
           .then((res) => res.blob())
           .then((blob) => {
-            downloadBlob(blob, `tfdrift-graph-${timestamp()}.png`);
+            downloadBlob(blob, `driftwire-graph-${timestamp()}.png`);
             toast.success('Exported PNG', 'Graph saved as PNG image');
           });
       } else {
@@ -74,7 +74,7 @@ export function GraphExportButton({ getCyInstance, getGraphData, className }: Gr
       const cy = getCyInstance?.() as { svg?: (opts: Record<string, unknown>) => string } | null;
       if (cy?.svg) {
         const svgContent = cy.svg({ full: true, scale: 1, bg: '#ffffff' });
-        downloadText(svgContent, `tfdrift-graph-${timestamp()}.svg`, 'image/svg+xml');
+        downloadText(svgContent, `driftwire-graph-${timestamp()}.svg`, 'image/svg+xml');
         toast.success('Exported SVG', 'Graph saved as SVG vector');
       } else {
         toast.error('Export failed', 'SVG export requires cytoscape-svg extension');
@@ -93,7 +93,7 @@ export function GraphExportButton({ getCyInstance, getGraphData, className }: Gr
         const json = cy.json();
         downloadText(
           JSON.stringify(json, null, 2),
-          `tfdrift-graph-${timestamp()}.json`,
+          `driftwire-graph-${timestamp()}.json`,
           'application/json'
         );
         toast.success('Exported JSON', 'Graph data saved as JSON');
@@ -105,7 +105,7 @@ export function GraphExportButton({ getCyInstance, getGraphData, className }: Gr
       if (data) {
         downloadText(
           JSON.stringify(data, null, 2),
-          `tfdrift-graph-${timestamp()}.json`,
+          `driftwire-graph-${timestamp()}.json`,
           'application/json'
         );
         toast.success('Exported JSON', 'Graph data saved as JSON');

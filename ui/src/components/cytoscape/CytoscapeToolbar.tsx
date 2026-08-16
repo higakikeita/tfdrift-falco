@@ -75,7 +75,7 @@ export const CytoscapeToolbar: React.FC<CytoscapeToolbarProps> = ({
       if (png) {
         const link = document.createElement('a');
         link.href = png;
-        link.download = 'tfdrift-graph.png';
+        link.download = 'driftwire-graph.png';
         link.click();
       }
     }

@@ -88,7 +88,7 @@ test.describe('View Mode Switching', () => {
     }
 
     // Application should still be functional
-    await expect(page).toHaveTitle(/TFDrift Falco/i);
+    await expect(page).toHaveTitle(/driftwire Falco/i);
   });
 });
 

@@ -35,7 +35,7 @@ Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
 describe('WelcomeModal', () => {
   const mockOnClose = vi.fn();
-  const STORAGE_KEY = 'tfdrift-welcome-seen';
+  const STORAGE_KEY = 'driftwire-welcome-seen';
 
   beforeEach(() => {
     mockOnClose.mockClear();
@@ -50,7 +50,7 @@ describe('WelcomeModal', () => {
     it('should render welcome modal with first step', () => {
       renderWithProviders(<WelcomeModal onClose={mockOnClose} />);
 
-      expect(screen.getByText('TFDrift-Falcoへようこそ')).toBeInTheDocument();
+      expect(screen.getByText('driftwireへようこそ')).toBeInTheDocument();
       expect(screen.getByText('ステップ 1 / 6')).toBeInTheDocument();
     });
 
@@ -109,7 +109,7 @@ describe('WelcomeModal', () => {
       await user.click(prevButton);
 
       await waitFor(() => {
-        expect(screen.getByText('TFDrift-Falcoへようこそ')).toBeInTheDocument();
+        expect(screen.getByText('driftwireへようこそ')).toBeInTheDocument();
         expect(screen.getByText('ステップ 1 / 6')).toBeInTheDocument();
       });
     });
@@ -156,7 +156,7 @@ describe('WelcomeModal', () => {
       renderWithProviders(<WelcomeModal onClose={mockOnClose} />);
 
       const expectedSteps = [
-        'TFDrift-Falcoへようこそ',
+        'driftwireへようこそ',
         'グラフの操作方法',
         '依存関係の可視化',
         '検索とフィルタリング',
@@ -265,7 +265,7 @@ describe('WelcomeModal', () => {
     it('should have proper heading hierarchy', () => {
       renderWithProviders(<WelcomeModal onClose={mockOnClose} />);
 
-      const heading = screen.getByRole('heading', { name: 'TFDrift-Falcoへようこそ' });
+      const heading = screen.getByRole('heading', { name: 'driftwireへようこそ' });
       expect(heading).toBeInTheDocument();
     });
   });

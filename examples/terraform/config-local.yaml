@@ -1,4 +1,4 @@
-# TFDrift-Falco Local Configuration
+# driftwire Local Configuration
 providers:
   aws:
     enabled: true

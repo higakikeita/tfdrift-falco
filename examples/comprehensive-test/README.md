@@ -56,7 +56,7 @@ Additional Services:
 ## デプロイ手順
 
 ```bash
-cd ~/tfdrift-falco/examples/comprehensive-test
+cd ~/driftwire/examples/comprehensive-test
 
 # 初期化
 terraform init

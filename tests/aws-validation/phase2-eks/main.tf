@@ -1,5 +1,5 @@
-# TFDrift-Falco AWS Validation - Phase 2: EKS Cluster
-# Creates a minimal EKS cluster for Falco + tfdrift-falco deployment
+# driftwire AWS Validation - Phase 2: EKS Cluster
+# Creates a minimal EKS cluster for Falco + driftwire deployment
 #
 # Usage:
 #   cd tests/aws-validation/phase2-eks
@@ -22,7 +22,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket  = "tfdrift-validation-state"
+    bucket  = "driftwire-validation-state"
     key     = "phase2-eks/terraform.tfstate"
     region  = "ap-northeast-1"
     profile = "draios-dev-developer"
@@ -35,7 +35,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "tfdrift-falco-validation"
+      Project     = "driftwire-validation"
       Environment = "validation"
       ManagedBy   = "terraform"
       Owner       = "keita.higaki"
@@ -184,14 +184,14 @@ resource "aws_iam_role_policy" "eks_node_cloudtrail" {
           "sqs:GetQueueUrl"
         ]
         Resource = var.cloudtrail_sqs_arn != "" ? [var.cloudtrail_sqs_arn] : [
-          "arn:aws:sqs:${var.aws_region}:*:tfdrift-val-*"
+          "arn:aws:sqs:${var.aws_region}:*:driftwire-val-*"
         ]
       }
     ]
   })
 }
 
-# TF state read access for tfdrift-falco on nodes
+# TF state read access for driftwire on nodes
 resource "aws_iam_role_policy" "eks_node_tfstate" {
   name = "${var.cluster_name}-node-tfstate"
   role = aws_iam_role.eks_node.id
@@ -202,8 +202,8 @@ resource "aws_iam_role_policy" "eks_node_tfstate" {
       Effect   = "Allow"
       Action   = ["s3:GetObject", "s3:ListBucket"]
       Resource = [
-        "arn:aws:s3:::tfdrift-validation-state",
-        "arn:aws:s3:::tfdrift-validation-state/*"
+        "arn:aws:s3:::driftwire-validation-state",
+        "arn:aws:s3:::driftwire-validation-state/*"
       ]
     }]
   })

@@ -9,7 +9,7 @@ import (
 
 func TestDefaultConfig(t *testing.T) {
 	cfg := DefaultConfig()
-	assert.Equal(t, "tfdrift-falco", cfg.ServiceName)
+	assert.Equal(t, "driftwire", cfg.ServiceName)
 	assert.Equal(t, "0.9.0", cfg.ServiceVersion)
 	assert.Equal(t, "development", cfg.Environment)
 	assert.False(t, cfg.Enabled)

@@ -3,11 +3,11 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: 'tfdrift-falco'
+  - job_name: 'driftwire'
     static_configs:
-      - targets: ['tfdrift-falco:9090']
+      - targets: ['driftwire:9090']
         labels:
-          service: 'tfdrift-falco'
+          service: 'driftwire'
           environment: 'production'
 
   - job_name: 'prometheus'

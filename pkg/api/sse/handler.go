@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/broadcaster"
+	"github.com/higakikeita/driftwire/pkg/api/broadcaster"
 	log "github.com/sirupsen/logrus"
 )
 

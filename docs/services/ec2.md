@@ -2,7 +2,7 @@
 
 ## Overview
 
-TFDrift-Falco monitors Amazon EC2 for configuration drift by tracking CloudTrail events related to instances, AMIs, EBS volumes, snapshots, and network interfaces. This enables real-time detection of manual changes made outside of Terraform workflows.
+driftwire monitors Amazon EC2 for configuration drift by tracking CloudTrail events related to instances, AMIs, EBS volumes, snapshots, and network interfaces. This enables real-time detection of manual changes made outside of Terraform workflows.
 
 ## Supported CloudTrail Events
 

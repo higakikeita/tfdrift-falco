@@ -5,8 +5,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ec2Types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -1,16 +1,16 @@
-# TFDrift-Falco 完全セットアップガイド - リアルタイム Terraform Drift 検知を始めよう
+# driftwire 完全セットアップガイド - リアルタイム Terraform Drift 検知を始めよう
 
 ## はじめに
 
 「AWS Console で誰かが設定を変更したけど、Terraform State に反映されていない...」
 
-そんな **Terraform Drift（設定のズレ）** を**リアルタイムで検知**して、即座に Slack 通知してくれるのが **TFDrift-Falco** です。
+そんな **Terraform Drift（設定のズレ）** を**リアルタイムで検知**して、即座に Slack 通知してくれるのが **driftwire** です。
 
-この記事では、**ゼロから TFDrift-Falco をセットアップして、実際に動かすまで**を丁寧に解説します。
+この記事では、**ゼロから driftwire をセットアップして、実際に動かすまで**を丁寧に解説します。
 
-## TFDrift-Falco とは？
+## driftwire とは？
 
-TFDrift-Falco は、**Falco のランタイムセキュリティ機能を使って、Terraform で管理されているリソースの設定変更をリアルタイムで検知する**OSS ツールです。
+driftwire は、**Falco のランタイムセキュリティ機能を使って、Terraform で管理されているリソースの設定変更をリアルタイムで検知する**OSS ツールです。
 
 ### 仕組み
 
@@ -19,7 +19,7 @@ TFDrift-Falco は、**Falco のランタイムセキュリティ機能を使っ�
     ↓
 CloudTrail イベントを Falco が検知（数秒以内）
     ↓
-TFDrift-Falco が Terraform State と比較
+driftwire が Terraform State と比較
     ↓
 差分があれば Slack に即座に通知 🚨
 ```
@@ -35,7 +35,7 @@ TFDrift-Falco が Terraform State と比較
 
 ### 従来のツールとの違い
 
-| 機能 | TFDrift-Falco | terraform plan | driftctl |
+| 機能 | driftwire | terraform plan | driftctl |
 |------|--------------|----------------|----------|
 | 検知方法 | **リアルタイム** | 手動実行 | 定期スキャン |
 | レイテンシ | **数秒** | 手動 | 数分〜数時間 |
@@ -63,7 +63,7 @@ TFDrift-Falco が Terraform State と比較
 
 ### CloudTrail の確認
 
-TFDrift-Falco は CloudTrail のログを監視するため、まず CloudTrail が有効化されているか確認します。
+driftwire は CloudTrail のログを監視するため、まず CloudTrail が有効化されているか確認します。
 
 ```bash
 # CloudTrail が有効か確認
@@ -84,8 +84,8 @@ aws cloudtrail describe-trails | jq -r '.trailList[0].S3BucketName'
 
 ```bash
 cd ~/
-git clone https://github.com/higakikeita/tfdrift-falco.git
-cd tfdrift-falco
+git clone https://github.com/higakikeita/driftwire.git
+cd driftwire
 ```
 
 #### Step 2: 設定ファイルを作成
@@ -214,7 +214,7 @@ EOF
 
 ### Phase 2: Docker Compose で起動（5分）
 
-TFDrift-Falco のプロジェクトには、Falco と TFDrift-Falco の両方を起動する `docker-compose.yml` が含まれています。
+driftwire のプロジェクトには、Falco と driftwire の両方を起動する `docker-compose.yml` が含まれています。
 
 #### Step 1: Docker Compose で起動
 
@@ -230,8 +230,8 @@ docker-compose ps
 
 ```
 NAME                    STATUS
-tfdrift-falco-falco     Up (healthy)
-tfdrift-falco-app       Up (healthy)
+driftwire-falco     Up (healthy)
+driftwire-app       Up (healthy)
 ```
 
 #### Step 2: ログを確認
@@ -243,8 +243,8 @@ docker-compose logs -f
 # Falco のみ
 docker-compose logs -f falco
 
-# TFDrift のみ
-docker-compose logs -f tfdrift
+# driftwire のみ
+docker-compose logs -f driftwire
 ```
 
 #### Step 3: 正常起動の確認
@@ -259,12 +259,12 @@ Starting gRPC server at 0.0.0.0:5060
 Starting internal webserver, listening on port 8765
 ```
 
-**TFDrift-Falco のログ**:
+**driftwire のログ**:
 
 ```json
 {
   "level": "info",
-  "msg": "Starting TFDrift-Falco v0.1.0",
+  "msg": "Starting driftwire v0.1.0",
   "time": "2025-12-05T12:00:00Z"
 }
 {
@@ -292,7 +292,7 @@ Starting internal webserver, listening on port 8765
 
 1. https://api.slack.com/apps にアクセス
 2. **Create New App** → **From scratch**
-3. App Name: `TFDrift-Falco`、Workspace を選択
+3. App Name: `driftwire`、Workspace を選択
 4. **Incoming Webhooks** → **Activate Incoming Webhooks** をオン
 5. **Add New Webhook to Workspace**
 6. 通知先チャンネル（例: `#alerts`）を選択
@@ -328,14 +328,14 @@ notifications:
 #### Step 3: 再起動
 
 ```bash
-docker-compose restart tfdrift
+docker-compose restart driftwire
 ```
 
 ---
 
 ### Phase 4: 動作確認（10分）
 
-実際に AWS リソースを変更して、TFDrift-Falco が検知するかテストします。
+実際に AWS リソースを変更して、driftwire が検知するかテストします。
 
 #### Step 1: テスト用 EC2 インスタンスを作成
 
@@ -357,7 +357,7 @@ resource "aws_instance" "test" {
   instance_type = "t2.micro"
 
   tags = {
-    Name        = "tfdrift-test"
+    Name        = "driftwire-test"
     Environment = "development"
     ManagedBy   = "terraform"
   }
@@ -385,14 +385,14 @@ terraform output instance_id
 #### Step 2: AWS Console で変更
 
 1. AWS Console → EC2 → Instances
-2. `tfdrift-test` インスタンスを選択
+2. `driftwire-test` インスタンスを選択
 3. **Actions** → **Instance settings** → **Change termination protection**
 4. **Disable** を選択 → **Save**
 
-#### Step 3: TFDrift-Falco のログを確認
+#### Step 3: driftwire のログを確認
 
 ```bash
-docker-compose logs -f tfdrift
+docker-compose logs -f driftwire
 ```
 
 **期待される出力（JSON形式）**:
@@ -530,7 +530,7 @@ ls -la /path/to/your/terraform/terraform.tfstate
 docker-compose config | grep -A5 volumes
 
 # コンテナ内でファイルが見えるか確認
-docker-compose exec tfdrift ls -la /terraform/
+docker-compose exec driftwire ls -la /terraform/
 ```
 
 3. **config.yaml のパスを確認**
@@ -545,7 +545,7 @@ state:
 - ホスト側: `/Users/yourname/projects/terraform` → `TERRAFORM_STATE_DIR` に設定
 - コンテナ内: `/terraform/terraform.tfstate` → `local_path` に設定
 
-### Q3: Falco と TFDrift-Falco が接続できない
+### Q3: Falco と driftwire が接続できない
 
 **エラー**:
 ```
@@ -570,7 +570,7 @@ docker-compose logs falco | grep -i error
 docker-compose logs falco | grep -i grpc
 
 # ネットワークを確認
-docker network inspect tfdrift-network
+docker network inspect driftwire-network
 
 # Falco を再起動
 docker-compose restart falco
@@ -629,7 +629,7 @@ cd dashboards/grafana
 
 → http://localhost:3000 で Grafana ダッシュボードが開きます（admin/admin）
 
-詳細: [Grafana セットアップガイド](https://github.com/higakikeita/tfdrift-falco/blob/main/dashboards/grafana/GETTING_STARTED.md)
+詳細: [Grafana セットアップガイド](https://github.com/higakikeita/driftwire/blob/main/dashboards/grafana/GETTING_STARTED.md)
 
 ### 2. Auto-Import の有効化
 
@@ -673,7 +673,7 @@ auto_import:
 📄 Generated code: /terraform-imports/aws_s3_bucket_my_unmanaged_bucket.tf
 ```
 
-詳細: [Auto-Import ガイド](https://github.com/higakikeita/tfdrift-falco/blob/main/docs/auto-import-guide.md)
+詳細: [Auto-Import ガイド](https://github.com/higakikeita/driftwire/blob/main/docs/auto-import-guide.md)
 
 ### 3. S3 Backend の使用（推奨）
 
@@ -723,7 +723,7 @@ providers:
 │  │         ECS Cluster                │ │
 │  │                                    │ │
 │  │  ┌──────────┐  ┌───────────────┐ │ │
-│  │  │  Falco   │  │ TFDrift-Falco │ │ │
+│  │  │  Falco   │  │ driftwire │ │ │
 │  │  │  Task    │→ │     Task      │ │ │
 │  │  └──────────┘  └───────────────┘ │ │
 │  └────────────────────────────────────┘ │
@@ -767,7 +767,7 @@ providers:
 ```bash
 # Slack Webhook を Secrets Manager に保存
 aws secretsmanager create-secret \
-  --name tfdrift/slack-webhook \
+  --name driftwire/slack-webhook \
   --secret-string "https://hooks.slack.com/services/..."
 ```
 
@@ -786,7 +786,7 @@ aws secretsmanager create-secret \
 | コンポーネント | CPU | メモリ | ディスク |
 |---------------|-----|--------|----------|
 | Falco | 1-5% | 150MB | 100MB |
-| TFDrift-Falco | 1-3% | 100MB | 50MB |
+| driftwire | 1-3% | 100MB | 50MB |
 | **合計** | **<10%** | **250MB** | **150MB** |
 
 t3.small インスタンス（$0.0208/時間）で十分動作します。
@@ -831,14 +831,14 @@ API Token は環境変数 `TF_CLOUD_TOKEN` で設定してください。
 
 A:
 
-| 比較項目 | terraform plan | TFDrift-Falco |
+| 比較項目 | terraform plan | driftwire |
 |---------|---------------|--------------|
 | 実行タイミング | 手動 | **リアルタイム** |
 | 検知速度 | 数分〜数時間 | **数秒** |
 | ユーザー特定 | × | **○** |
 | 自動通知 | × | **○** |
 
-TFDrift-Falco は `terraform plan` を置き換えるものではなく、**補完する**ツールです。
+driftwire は `terraform plan` を置き換えるものではなく、**補完する**ツールです。
 
 ### Q: CloudTrail の費用が心配です
 
@@ -856,7 +856,7 @@ A: CloudTrail イベント発生から通知まで、通常 **3-10 秒**です�
 
 ## まとめ
 
-TFDrift-Falco を使えば：
+driftwire を使えば：
 
 ✅ **リアルタイムで Drift を検知** - 手動変更を見逃さない
 ✅ **誰が変更したか特定** - インシデント対応が迅速化
@@ -868,7 +868,7 @@ TFDrift-Falco を使えば：
 
 ## 次のステップ
 
-1. ✅ [GitHub リポジトリ](https://github.com/higakikeita/tfdrift-falco) を Star ⭐
+1. ✅ [GitHub リポジトリ](https://github.com/higakikeita/driftwire) を Star ⭐
 2. ✅ サンプル環境で試してみる
 3. ✅ Slack 通知を設定
 4. ✅ Grafana ダッシュボードを追加
@@ -876,14 +876,14 @@ TFDrift-Falco を使えば：
 
 ## リンク
 
-- **GitHub**: https://github.com/higakikeita/tfdrift-falco
-- **Grafana セットアップガイド**: [dashboards/grafana/GETTING_STARTED.md](https://github.com/higakikeita/tfdrift-falco/blob/main/dashboards/grafana/GETTING_STARTED.md)
-- **Auto-Import ガイド**: [docs/auto-import-guide.md](https://github.com/higakikeita/tfdrift-falco/blob/main/docs/auto-import-guide.md)
-- **Issue / 質問**: https://github.com/higakikeita/tfdrift-falco/issues
+- **GitHub**: https://github.com/higakikeita/driftwire
+- **Grafana セットアップガイド**: [dashboards/grafana/GETTING_STARTED.md](https://github.com/higakikeita/driftwire/blob/main/dashboards/grafana/GETTING_STARTED.md)
+- **Auto-Import ガイド**: [docs/auto-import-guide.md](https://github.com/higakikeita/driftwire/blob/main/docs/auto-import-guide.md)
+- **Issue / 質問**: https://github.com/higakikeita/driftwire/issues
 
 ## フィードバック募集中！
 
-使ってみた感想や、機能リクエストがあれば、ぜひ [GitHub Issues](https://github.com/higakikeita/tfdrift-falco/issues) でお知らせください！
+使ってみた感想や、機能リクエストがあれば、ぜひ [GitHub Issues](https://github.com/higakikeita/driftwire/issues) でお知らせください！
 
 ---
 

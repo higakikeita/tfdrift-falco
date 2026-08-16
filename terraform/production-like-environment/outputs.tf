@@ -265,16 +265,16 @@ output "deployment_summary" {
 }
 
 # ==================================================
-# TFDrift Configuration Snippet
+# driftwire Configuration Snippet
 # ==================================================
-output "tfdrift_config_snippet" {
-  description = "Configuration snippet for TFDrift config.yaml"
+output "driftwire_config_snippet" {
+  description = "Configuration snippet for driftwire config.yaml"
   value = <<-EOT
   # Add this to your config.yaml:
   terraform:
     backend: s3
     s3:
-      bucket: "tfdrift-prod-state-230446364776-20251221"
+      bucket: "driftwire-prod-state-230446364776-20251221"
       key: "production-like-environment/terraform.tfstate"
       region: "${var.aws_region}"
     refresh_interval: 30s

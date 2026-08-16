@@ -1,10 +1,14 @@
-// Package config provides configuration management for TFDrift-Falco.
+// Package config provides configuration management for driftwire.
 package config
 
 import (
 	"fmt"
 	"os"
+	"sort"
+	"strings"
+	"sync"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 )
@@ -99,8 +103,8 @@ type AzureConfig struct {
 type FalcoConfig struct {
 	Enabled bool `yaml:"enabled" mapstructure:"enabled"`
 
-	// Transport selects how Falco alerts reach TFDrift (ADR-006):
-	//   "http" — Falco http_output POSTs to the TFDrift HTTP receiver (default
+	// Transport selects how Falco alerts reach driftwire (ADR-006):
+	//   "http" — Falco http_output POSTs to the driftwire HTTP receiver (default
 	//            path going forward; works on Falco 0.44+).
 	//   "grpc" — legacy Falco gRPC Sub stream (Hostname/Port/Cert*). Removed by
 	//            Falco 0.44+; kept for one release. Empty is treated as "grpc"
@@ -234,7 +238,8 @@ func load(path string, validate func(*Config) error) (*Config, error) {
 
 	// Read environment variables
 	v.AutomaticEnv()
-	v.SetEnvPrefix("TFDRIFT")
+	v.SetEnvPrefix(envPrefix)
+	adoptLegacyEnv()
 
 	// Read config file
 	if err := v.ReadInConfig(); err != nil {
@@ -261,7 +266,7 @@ func (c *Config) Validate() error {
 
 	// Validate Falco configuration
 	if !c.Falco.Enabled {
-		return fmt.Errorf("falco must be enabled - TFDrift-Falco requires Falco gRPC connection")
+		return fmt.Errorf("falco must be enabled - driftwire requires Falco gRPC connection")
 	}
 	// hostname/port only apply to the legacy gRPC transport; the HTTP transport
 	// receives alerts on the API server and needs neither (ADR-006).
@@ -314,4 +319,48 @@ func (c *Config) Save(path string) error {
 	}
 
 	return nil
+}
+
+// envPrefix is the current environment-variable prefix. The project was renamed
+// from tfdrift-falco to driftwire, so anything an existing user has exported is
+// still spelled TFDRIFT_*.
+const (
+	envPrefix       = "DRIFTWIRE"
+	legacyEnvPrefix = "TFDRIFT"
+)
+
+var legacyEnvOnce sync.Once
+
+// adoptLegacyEnv copies any TFDRIFT_* variable to its DRIFTWIRE_* equivalent so a
+// configuration that predates the rename keeps working, and warns once so the
+// operator knows to migrate. An explicitly set DRIFTWIRE_* value always wins.
+func adoptLegacyEnv() {
+	var adopted []string
+	for _, kv := range os.Environ() {
+		eq := strings.IndexByte(kv, '=')
+		if eq < 0 {
+			continue
+		}
+		key, val := kv[:eq], kv[eq+1:]
+		suffix, ok := strings.CutPrefix(key, legacyEnvPrefix+"_")
+		if !ok {
+			continue
+		}
+		current := envPrefix + "_" + suffix
+		if _, exists := os.LookupEnv(current); exists {
+			continue // the new name is set explicitly; leave it alone
+		}
+		if err := os.Setenv(current, val); err != nil {
+			continue
+		}
+		adopted = append(adopted, key)
+	}
+	if len(adopted) == 0 {
+		return
+	}
+	sort.Strings(adopted)
+	legacyEnvOnce.Do(func() {
+		log.Warnf("deprecated environment variables in use: %s — rename %s_* to %s_*; the old names will be removed in a future release",
+			strings.Join(adopted, ", "), legacyEnvPrefix, envPrefix)
+	})
 }

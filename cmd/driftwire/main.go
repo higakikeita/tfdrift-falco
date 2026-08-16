@@ -1,4 +1,4 @@
-// Package main provides the TFDrift-Falco CLI for real-time Terraform drift detection.
+// Package main provides the driftwire CLI for real-time Terraform drift detection.
 package main
 
 import (
@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/app"
+	"github.com/higakikeita/driftwire/pkg/app"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -33,9 +33,9 @@ var (
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:   "tfdrift",
+		Use:   "driftwire",
 		Short: "Real-time Terraform/OpenTofu drift detection powered by Falco",
-		Long: `TFDrift-Falco detects manual (non-IaC) changes in your cloud environment
+		Long: `driftwire detects manual (non-IaC) changes in your cloud environment
 in real-time by combining Falco runtime security monitoring, CloudTrail events,
 and Terraform/OpenTofu state comparison.`,
 		Version: version,
@@ -109,7 +109,7 @@ func run(_ *cobra.Command, _ []string) {
 		log.Fatalf("Application error: %v", err)
 	}
 
-	log.Info("TFDrift-Falco stopped")
+	log.Info("driftwire stopped")
 }
 
 func initLogger() {
@@ -143,12 +143,12 @@ func newApprovalListCmd() *cobra.Command {
 		Use:   "list",
 		Short: "List pending approval requests",
 		Run: func(_ *cobra.Command, _ []string) {
-			fmt.Println("⚠️  This feature requires a running TFDrift-Falco instance with persistent state.")
+			fmt.Println("⚠️  This feature requires a running driftwire instance with persistent state.")
 			fmt.Println("Currently, approval requests are only available during interactive sessions.")
 			fmt.Println("\nTo use approval workflow:")
 			fmt.Println("  1. Enable auto_import in config.yaml")
 			fmt.Println("  2. Set require_approval: true")
-			fmt.Println("  3. Run: tfdrift --config config.yaml --interactive")
+			fmt.Println("  3. Run: driftwire --config config.yaml --interactive")
 		},
 	}
 }
@@ -162,9 +162,9 @@ func newApprovalApproveCmd() *cobra.Command {
 		Run: func(_ *cobra.Command, args []string) {
 			requestID := args[0]
 			fmt.Printf("⚠️  Approving request %s\n", requestID)
-			fmt.Println("This feature requires a running TFDrift-Falco instance with persistent state.")
+			fmt.Println("This feature requires a running driftwire instance with persistent state.")
 			fmt.Println("\nFor now, use interactive mode:")
-			fmt.Println("  tfdrift --config config.yaml --interactive")
+			fmt.Println("  driftwire --config config.yaml --interactive")
 		},
 	}
 }
@@ -183,9 +183,9 @@ func newApprovalRejectCmd() *cobra.Command {
 			if reason != "" {
 				fmt.Printf("Reason: %s\n", reason)
 			}
-			fmt.Println("This feature requires a running TFDrift-Falco instance with persistent state.")
+			fmt.Println("This feature requires a running driftwire instance with persistent state.")
 			fmt.Println("\nFor now, use interactive mode:")
-			fmt.Println("  tfdrift --config config.yaml --interactive")
+			fmt.Println("  driftwire --config config.yaml --interactive")
 		},
 	}
 
@@ -202,7 +202,7 @@ func newApprovalCleanupCmd() *cobra.Command {
 		Short: "Clean up expired approval requests",
 		Run: func(_ *cobra.Command, _ []string) {
 			fmt.Printf("⚠️  Cleaning up requests older than %s\n", olderThan)
-			fmt.Println("This feature requires a running TFDrift-Falco instance with persistent state.")
+			fmt.Println("This feature requires a running driftwire instance with persistent state.")
 			fmt.Println("\nFor now, approval requests are automatically cleaned up during interactive sessions.")
 		},
 	}

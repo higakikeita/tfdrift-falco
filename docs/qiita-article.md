@@ -1,15 +1,15 @@
 ---
-title: TFDrift-Falcoを「使いやすく」「つながる」ツールに進化させた話 - v0.3.1→v0.4.1の実装
+title: driftwireを「使いやすく」「つながる」ツールに進化させた話 - v0.3.1→v0.4.1の実装
 tags: Terraform, Go, Falco, DevOps, AWS
 author: Keita Higaki
 slide: false
 ---
 
-# TFDrift-Falcoを「使いやすく」「つながる」ツールに進化させた話 - v0.3.1→v0.4.1の実装
+# driftwireを「使いやすく」「つながる」ツールに進化させた話 - v0.3.1→v0.4.1の実装
 
 ## はじめに
 
-オープンソースプロジェクト「TFDrift-Falco」を、**"お手軽に使える"** × **"他システムとつながる"** ツールに進化させた取り組みを紹介します。
+オープンソースプロジェクト「driftwire」を、**"お手軽に使える"** × **"他システムとつながる"** ツールに進化させた取り組みを紹介します。
 
 3週間で以下の機能を実装しました：
 
@@ -27,16 +27,16 @@ slide: false
 - 🔔 **v0.4.1**: Slack/Teamsへの自動通知（リトライ付き）
 - ✅ **テスト**: 全バージョンで包括的なテストケース追加
 
-## TFDrift-Falcoとは
+## driftwireとは
 
-**TFDrift-Falco**は、Falcoを使ってTerraformのドリフト（手動変更による設定差異）をリアルタイムで検出するツールです。
+**driftwire**は、Falcoを使ってTerraformのドリフト（手動変更による設定差異）をリアルタイムで検出するツールです。
 
 ```bash
 # 従来のTerraform drift検出
 terraform plan  # 定期的に実行する必要がある
 
-# TFDrift-Falcoの場合
-tfdrift --config config.yaml  # リアルタイムで検出
+# driftwireの場合
+driftwire --config config.yaml  # リアルタイムで検出
 ```
 
 CloudTrailイベントをFalcoで監視し、Terraform stateと比較することで、**誰が・いつ・何を変更したか**を即座に検知します。
@@ -79,7 +79,7 @@ notifications:
 ### 課題2: 他システムとの連携が困難
 
 ```
-TFDrift-Falco (v0.3.0)
+driftwire (v0.3.0)
     ↓
   ログ出力（人間向けテキスト）
     ↓
@@ -110,7 +110,7 @@ L2（Full-Config）：完全にコントロール
 ### アプローチ2: イベント駆動アーキテクチャ
 
 ```
-TFDrift-Falco
+driftwire
     ↓
 構造化イベント（JSON）
     ↓ ↓ ↓
@@ -125,22 +125,22 @@ TFDrift-Falco
 
 ```bash
 # L0: ゼロコンフィグ
-tfdrift --auto
+driftwire --auto
 
 # L1: リージョンだけ変更
-tfdrift --auto --region us-west-2,ap-northeast-1
+driftwire --auto --region us-west-2,ap-northeast-1
 
 # L1: Falcoエンドポイントを指定
-tfdrift --auto --falco-endpoint prod-falco:5061
+driftwire --auto --falco-endpoint prod-falco:5061
 
 # L1: ローカルstateファイルを指定
-tfdrift --auto --state-path ./terraform.tfstate
+driftwire --auto --state-path ./terraform.tfstate
 
 # L1: バックエンドタイプを強制
-tfdrift --auto --backend local
+driftwire --auto --backend local
 
 # L1: 複数のオプションを組み合わせ
-tfdrift --auto \
+driftwire --auto \
   --region us-west-2 \
   --falco-endpoint localhost:5060 \
   --state-path ./terraform.tfstate
@@ -148,7 +148,7 @@ tfdrift --auto \
 
 ### コア実装：applyConfigOverrides()
 
-**cmd/tfdrift/main.go**:
+**cmd/driftwire/main.go**:
 
 ```go
 // applyConfigOverrides applies L1 semi-auto mode flag overrides to the config
@@ -212,7 +212,7 @@ func applyConfigOverrides(cfg *config.Config) error {
 
 ### テスト戦略
 
-**cmd/tfdrift/main_test.go**に7つのテストケースを追加：
+**cmd/driftwire/main_test.go**に7つのテストケースを追加：
 
 ```go
 func TestApplyConfigOverrides_RegionOverride(t *testing.T) {
@@ -474,25 +474,25 @@ func (m *Manager) formatHumanMessage(event *types.DriftEvent) string {
 
 ```bash
 # Human-readable output (default)
-tfdrift --auto
+driftwire --auto
 # Output to stderr:
 # 🚨 [critical] modified: aws_security_group (sg-12345) by admin in us-west-2
 
 # JSON output only
-tfdrift --auto --output json
+driftwire --auto --output json
 # Output to stdout (NDJSON):
 # {"event_type":"terraform_drift","provider":"aws","resource_type":"aws_security_group",...}
 
 # Both outputs
-tfdrift --auto --output both
+driftwire --auto --output both
 # stderr: 🚨 [critical] modified: aws_security_group (sg-12345)
 # stdout: {"event_type":"terraform_drift",...}
 
 # Pipeline to jq
-tfdrift --auto --output json | jq 'select(.severity == "critical")'
+driftwire --auto --output json | jq 'select(.severity == "critical")'
 
 # Pipeline to Fluent Bit
-tfdrift --auto --output json | fluent-bit -c fluent-bit.conf
+driftwire --auto --output json | fluent-bit -c fluent-bit.conf
 ```
 
 ### テスト戦略
@@ -629,7 +629,7 @@ func FormatSlackPayload(event *types.DriftEvent) map[string]interface{} {
             {
                 "color":       severity,
                 "text":        text,
-                "footer":      "TFDrift-Falco",
+                "footer":      "driftwire",
                 "footer_icon": "https://falco.org/img/brand/falco-logo.png",
                 "ts":          event.DetectedAt.Unix(),
             },
@@ -738,13 +738,13 @@ notifications:
 
 ```bash
 # Slackに通知
-tfdrift --config config-slack.yaml
+driftwire --config config-slack.yaml
 
 # Microsoft Teamsに通知
-tfdrift --config config-teams.yaml
+driftwire --config config-teams.yaml
 
 # カスタムWebhook + JSON出力
-tfdrift --config config-custom.yaml --output both
+driftwire --config config-custom.yaml --output both
 ```
 
 ### テスト戦略
@@ -854,7 +854,7 @@ func TestWebhookOutput_Write_CustomHeaders(t *testing.T) {
 
 ```
 ┌─────────────────┐
-│  TFDrift-Falco  │
+│  driftwire  │
 └────────┬────────┘
          │
          ↓
@@ -865,7 +865,7 @@ func TestWebhookOutput_Write_CustomHeaders(t *testing.T) {
 
 ```
 ┌─────────────────┐
-│  TFDrift-Falco  │
+│  driftwire  │
 └────────┬────────┘
          │
          ↓
@@ -977,9 +977,9 @@ func (j *JSONOutput) Write(event *types.DriftEvent) error {
 ```
 "考えなくていいけど、逃げ道はある"
     ↓
-tfdrift --auto                    ← L0: 考えない
-tfdrift --auto --region us-west-2 ← L1: 一部カスタマイズ
-tfdrift --config config.yaml      ← L2: 完全コントロール
+driftwire --auto                    ← L0: 考えない
+driftwire --auto --region us-west-2 ← L1: 一部カスタマイズ
+driftwire --config config.yaml      ← L2: 完全コントロール
 ```
 
 **プラットフォーム化の達成**:
@@ -992,9 +992,9 @@ tfdrift --config config.yaml      ← L2: 完全コントロール
 
 ## 参考リンク
 
-- [GitHubリポジトリ](https://github.com/higakikeita/tfdrift-falco)
+- [GitHubリポジトリ](https://github.com/higakikeita/driftwire)
 - [ホームページ](https://tfdrift-falco.vercel.app/)
-- [README](https://github.com/higakikeita/tfdrift-falco/blob/main/README.md)
+- [README](https://github.com/higakikeita/driftwire/blob/main/README.md)
 
 ---
 

@@ -1,4 +1,4 @@
-// Package app provides the core application logic for TFDrift-Falco.
+// Package app provides the core application logic for driftwire.
 package app
 
 import (
@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api"
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
+	"github.com/higakikeita/driftwire/pkg/api"
+	"github.com/higakikeita/driftwire/pkg/config"
+	"github.com/higakikeita/driftwire/pkg/detector"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -46,7 +46,7 @@ func New(cfg *Config) *App {
 
 // Run executes the main application logic and returns an error if something fails
 func (a *App) Run(ctx context.Context) error {
-	log.Infof("Starting TFDrift-Falco v%s", a.cfg.Version)
+	log.Infof("Starting driftwire v%s", a.cfg.Version)
 
 	// Load configuration
 	if err := a.loadConfig(); err != nil {
@@ -187,13 +187,13 @@ func (a *App) runDetector(ctx context.Context, det *detector.Detector) error {
 	if err := det.Start(ctx); err != nil {
 		return fmt.Errorf("detector error: %w", err)
 	}
-	log.Info("TFDrift-Falco stopped")
+	log.Info("driftwire stopped")
 	return nil
 }
 
 // runAPIServer runs the detector with the API server
 func (a *App) runAPIServer(ctx context.Context, det *detector.Detector) error {
-	log.Info("Starting TFDrift-Falco in API server mode")
+	log.Info("Starting driftwire in API server mode")
 	srv := api.NewServer(a.appCfg, det, a.cfg.APIPort, a.cfg.Version)
 
 	// Connect detector to broadcaster for real-time events

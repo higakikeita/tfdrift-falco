@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
-	"github.com/keitahigaki/tfdrift-falco/pkg/falco"
-	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/falco"
+	"github.com/higakikeita/driftwire/pkg/graph"
+	"github.com/higakikeita/driftwire/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
 

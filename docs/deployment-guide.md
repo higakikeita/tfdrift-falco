@@ -1,4 +1,4 @@
-# TFDrift-Falco 本番環境デプロイガイド
+# driftwire 本番環境デプロイガイド
 
 ## 目次
 
@@ -33,8 +33,8 @@
 ### 1. リポジトリクローン
 
 ```bash
-git clone https://github.com/higakikeita/tfdrift-falco.git
-cd tfdrift-falco
+git clone https://github.com/higakikeita/driftwire.git
+cd driftwire
 ```
 
 ### 2. 環境変数設定
@@ -70,8 +70,8 @@ docker-compose up -d
 | 変数名 | 説明 | デフォルト値 |
 |--------|------|-------------|
 | `AWS_REGION` | AWS region | `us-east-1` |
-| `TFDRIFT_FALCO_HOSTNAME` | Falco hostname | `falco` |
-| `TFDRIFT_FALCO_PORT` | Falco gRPC port | `5060` |
+| `DRIFTWIRE_FALCO_HOSTNAME` | Falco hostname | `falco` |
+| `DRIFTWIRE_FALCO_PORT` | Falco gRPC port | `5060` |
 
 ### オプション変数
 
@@ -142,7 +142,7 @@ docker-compose down -v
 
 ```bash
 # Helm chartをインストール
-helm install tfdrift ./charts/tfdrift-falco \
+helm install driftwire ./charts/driftwire \
   --set backend.image.tag=latest \
   --set frontend.image.tag=latest \
   --set aws.region=us-east-1
@@ -152,7 +152,7 @@ helm install tfdrift ./charts/tfdrift-falco \
 
 ```bash
 # ConfigMapとSecretを作成
-kubectl create configmap tfdrift-config --from-file=config.yaml
+kubectl create configmap driftwire-config --from-file=config.yaml
 
 kubectl create secret generic aws-credentials \
   --from-file=credentials=$HOME/.aws/credentials \
@@ -162,8 +162,8 @@ kubectl create secret generic aws-credentials \
 kubectl apply -f k8s/
 
 # 状態確認
-kubectl get pods -l app=tfdrift
-kubectl logs -f deployment/tfdrift-backend
+kubectl get pods -l app=driftwire
+kubectl logs -f deployment/driftwire-backend
 ```
 
 ---
@@ -317,15 +317,15 @@ curl http://localhost:3000/health
 ```bash
 # バックアップ
 docker run --rm \
-  -v tfdrift-data:/data \
+  -v driftwire-data:/data \
   -v $(pwd):/backup \
-  alpine tar czf /backup/tfdrift-data-backup.tar.gz /data
+  alpine tar czf /backup/driftwire-data-backup.tar.gz /data
 
 # 復元
 docker run --rm \
-  -v tfdrift-data:/data \
+  -v driftwire-data:/data \
   -v $(pwd):/backup \
-  alpine tar xzf /backup/tfdrift-data-backup.tar.gz -C /
+  alpine tar xzf /backup/driftwire-data-backup.tar.gz -C /
 ```
 
 ---
@@ -400,8 +400,8 @@ curl http://localhost:8080/health
 
 問題が解決しない場合:
 
-1. **GitHub Issues**: https://github.com/higakikeita/tfdrift-falco/issues
-2. **ドキュメント**: https://higakikeita.github.io/tfdrift-falco/
+1. **GitHub Issues**: https://github.com/higakikeita/driftwire/issues
+2. **ドキュメント**: https://higakikeita.github.io/driftwire/
 3. **FAQ**: [docs/FAQ.md](FAQ.md)
 
 ---

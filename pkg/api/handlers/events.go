@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
+	"github.com/higakikeita/driftwire/pkg/graph"
 	log "github.com/sirupsen/logrus"
 )
 

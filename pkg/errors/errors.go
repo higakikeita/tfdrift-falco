@@ -1,4 +1,4 @@
-// Package errors defines sentinel errors for the tfdrift-falco application.
+// Package errors defines sentinel errors for the driftwire application.
 package errors
 
 import "errors"

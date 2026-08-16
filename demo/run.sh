@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-command demo bring-up for the OSS Summit money-shot: builds tfdrift, starts
+# One-command demo bring-up for the OSS Summit money-shot: builds driftwire, starts
 # the API backend (Falco http transport) + the React UI, then returns. Run it
 # once before the talk (first build downloads deps and can take ~1min).
 set -euo pipefail
@@ -9,11 +9,11 @@ API_PORT="${API_PORT:-8080}"
 
 sed "s#REPLACED_BY_RUN_SH#$HERE/state.tfstate#" "$HERE/config.yaml" > "$HERE/.config.run.yaml"
 
-echo "▶ building tfdrift…"
-( cd "$ROOT" && go build -o "$HERE/.tfdrift" ./cmd/tfdrift )
+echo "▶ building driftwire…"
+( cd "$ROOT" && go build -o "$HERE/.driftwire" ./cmd/driftwire )
 
 echo "▶ starting backend on :$API_PORT …"
-nohup "$HERE/.tfdrift" --server --api-port "$API_PORT" --config "$HERE/.config.run.yaml" > "$HERE/.backend.log" 2>&1 &
+nohup "$HERE/.driftwire" --server --api-port "$API_PORT" --config "$HERE/.config.run.yaml" > "$HERE/.backend.log" 2>&1 &
 echo $! > "$HERE/.backend.pid"; disown || true
 for _ in 1 2 3 4 5 6 7 8; do curl -sf "http://127.0.0.1:$API_PORT/health" >/dev/null 2>&1 && break; sleep 1; done
 curl -sf "http://127.0.0.1:$API_PORT/health" >/dev/null 2>&1 && echo "  backend: healthy" || { echo "  backend FAILED — see $HERE/.backend.log"; exit 1; }

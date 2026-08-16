@@ -1,4 +1,4 @@
-# TFDrift-Falco Frontend Dockerfile
+# driftwire Frontend Dockerfile
 # Multi-stage build for optimized production image
 
 # ============================================

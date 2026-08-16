@@ -155,7 +155,7 @@ export const FullPageLoadingState: Story = {
         borderRadius: '8px',
       }}
     >
-      <LoadingSpinner size="lg" text="Loading TFDrift Falco Dashboard..." />
+      <LoadingSpinner size="lg" text="Loading driftwire Falco Dashboard..." />
     </div>
   ),
 };

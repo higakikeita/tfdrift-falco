@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/aws"
-	"github.com/keitahigaki/tfdrift-falco/pkg/falco"
-	"github.com/keitahigaki/tfdrift-falco/pkg/falco/mappings"
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/aws"
+	"github.com/higakikeita/driftwire/pkg/falco"
+	"github.com/higakikeita/driftwire/pkg/falco/mappings"
+	"github.com/higakikeita/driftwire/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // Compile-time interface checks

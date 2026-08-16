@@ -1,6 +1,6 @@
 # Overview
 
-TFDrift-Falco is a **real-time multi-cloud Terraform drift detection system** that monitors cloud infrastructure changes (AWS, GCP, Azure) and alerts when resources drift from their Terraform-defined state.
+driftwire is a **real-time multi-cloud Terraform drift detection system** that monitors cloud infrastructure changes (AWS, GCP, Azure) and alerts when resources drift from their Terraform-defined state.
 
 > **Version:** v0.14.0 | **Providers:** AWS + GCP + Azure | **Status:** Beta (pre-1.0; API has no built-in auth — run on a trusted network)
 
@@ -42,11 +42,11 @@ Common causes:
 
 ---
 
-## The TFDrift-Falco Solution
+## The driftwire Solution
 
 ### How It Works
 
-TFDrift-Falco solves drift detection by combining cloud audit logs, Terraform state, and Falco:
+driftwire solves drift detection by combining cloud audit logs, Terraform state, and Falco:
 
 1. **Cloud Audit Logs**: Real-time event stream of all cloud API calls
    - AWS: CloudTrail
@@ -55,21 +55,21 @@ TFDrift-Falco solves drift detection by combining cloud audit logs, Terraform st
 3. **Falco**: Runtime security engine for alerting
 
 ```
-Cloud Change → Audit Log Event → TFDrift Detection → Falco Alert → Action
+Cloud Change → Audit Log Event → driftwire Detection → Falco Alert → Action
 ```
 
 ### Key Capabilities
 
 #### 1. Real-time Detection (Sub-minute)
 
-Unlike scheduled drift detection tools (Terraform plan runs), TFDrift-Falco detects drift **immediately** when it happens.
+Unlike scheduled drift detection tools (Terraform plan runs), driftwire detects drift **immediately** when it happens.
 
 **Traditional Approach:**
 ```
 Change happens → Wait 1 hour → Terraform plan runs → Drift found
 ```
 
-**TFDrift-Falco:**
+**driftwire:**
 ```
 Change happens → CloudTrail event → Drift detected (< 30s)
 ```
@@ -101,7 +101,7 @@ Change happens → CloudTrail event → Drift detected (< 30s)
 
 #### 3. Intelligent Change Detection
 
-Not all CloudTrail events indicate drift. TFDrift-Falco intelligently distinguishes:
+Not all CloudTrail events indicate drift. driftwire intelligently distinguishes:
 
 ✅ **True Drift** (alert)
 - Manual change to instance type via Console
@@ -133,7 +133,7 @@ EC2 Instance Type Changed
 
 ## Architecture Components
 
-### 1. TFDrift Detector
+### 1. driftwire Detector
 
 The core detection engine that:
 - Polls CloudTrail for new events
@@ -187,7 +187,7 @@ Monitor one AWS account's infrastructure.
 **Use case:** Small teams, single production account
 
 ```
-AWS Account → CloudTrail → TFDrift → Falco
+AWS Account → CloudTrail → driftwire → Falco
 ```
 
 ### 2. Multi-Account Centralized
@@ -198,7 +198,7 @@ Monitor multiple AWS accounts from a central monitoring account.
 
 ```
 AWS Account 1 → CloudTrail → \
-AWS Account 2 → CloudTrail → → TFDrift (Central) → Falco
+AWS Account 2 → CloudTrail → → driftwire (Central) → Falco
 AWS Account 3 → CloudTrail → /
 ```
 
@@ -214,7 +214,7 @@ Monitor resources across multiple AWS regions.
 
 ### vs. Terraform Plan
 
-| Feature | Terraform Plan | TFDrift-Falco |
+| Feature | Terraform Plan | driftwire |
 |---------|----------------|---------------|
 | Detection Speed | Scheduled (hourly) | Real-time (< 1 min) |
 | Resource Consumption | High (full plan) | Low (event-based) |
@@ -223,7 +223,7 @@ Monitor resources across multiple AWS regions.
 
 ### vs. AWS Config
 
-| Feature | AWS Config | TFDrift-Falco |
+| Feature | AWS Config | driftwire |
 |---------|-----------|---------------|
 | Terraform-aware | ❌ No | ✅ Yes |
 | Cost | $$$$ (per config item) | $ (compute only) |
@@ -232,7 +232,7 @@ Monitor resources across multiple AWS regions.
 
 ### vs. Cloud Custodian
 
-| Feature | Cloud Custodian | TFDrift-Falco |
+| Feature | Cloud Custodian | driftwire |
 |---------|-----------------|---------------|
 | Drift Detection | Policy-based | Terraform state-based |
 | Real-time | ❌ No (Lambda scheduled) | ✅ Yes (event-driven) |
@@ -241,7 +241,7 @@ Monitor resources across multiple AWS regions.
 
 ---
 
-## When to Use TFDrift-Falco
+## When to Use driftwire
 
 ### ✅ Good Fit
 
@@ -265,4 +265,4 @@ Monitor resources across multiple AWS regions.
 
 1. [Understand the Architecture →](architecture.md)
 2. [Check Service Coverage →](services/ec2.md)
-3. [Deploy TFDrift-Falco →](quickstart.md)
+3. [Deploy driftwire →](quickstart.md)

@@ -1,4 +1,4 @@
-# Azure Activity Log Event Mappings for tfdrift-falco
+# Azure Activity Log Event Mappings for driftwire
 # This file defines Azure operation names to Terraform resource type mappings
 # and relevant event operation names for drift detection
 

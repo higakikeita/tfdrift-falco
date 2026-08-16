@@ -97,7 +97,7 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
       pixelRatio: 2 // High quality
     }).then((dataUrl) => {
       const link = document.createElement('a');
-      link.download = `tfdrift-graph-${Date.now()}.png`;
+      link.download = `driftwire-graph-${Date.now()}.png`;
       link.href = dataUrl;
       link.click();
     }).catch((error) => {
@@ -125,7 +125,7 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
       },
     }).then((dataUrl) => {
       const link = document.createElement('a');
-      link.download = `tfdrift-graph-${Date.now()}.svg`;
+      link.download = `driftwire-graph-${Date.now()}.svg`;
       link.href = dataUrl;
       link.click();
     }).catch((error) => {
@@ -162,7 +162,7 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
       // Feature: Fetch dependencies from API and highlight them in the graph.
       // This requires implementing an API endpoint that returns node dependencies and updating the highlighting logic.
       // Currently opens the detail panel to allow users to view node information manually.
-      // See: https://github.com/higakikeita/tfdrift-falco/issues/XX
+      // See: https://github.com/higakikeita/driftwire/issues/XX
       const node = initialNodes.find(n => n.id === nodeId);
       if (node) {
         setSelectedNode(node);
@@ -176,7 +176,7 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
       // This requires implementing an impact analysis endpoint that calculates which resources would be affected
       // by changes to this node, then updating the highlighting logic to show the impact radius.
       // Currently opens the detail panel to allow users to view node information manually.
-      // See: https://github.com/higakikeita/tfdrift-falco/issues/XX
+      // See: https://github.com/higakikeita/driftwire/issues/XX
       const node = initialNodes.find(n => n.id === nodeId);
       if (node) {
         setSelectedNode(node);
@@ -316,7 +316,7 @@ export const ReactFlowGraph: React.FC<ReactFlowGraphProps> = ({
         {/* Info Panel */}
         <Panel position="top-left" className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-3 border border-gray-200">
           <div className="text-sm font-semibold text-gray-700">
-            TFDrift-Falco Graph
+            driftwire Graph
           </div>
           <div className="text-xs text-gray-500 mt-1">
             {nodes.length} nodes, {edges.length} edges

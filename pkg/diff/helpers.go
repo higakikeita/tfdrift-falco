@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // formatValueChange formats the old -> new value change

@@ -1,6 +1,6 @@
 # Integration Tests
 
-Integration tests for TFDrift-Falco components with mocked external dependencies.
+Integration tests for driftwire components with mocked external dependencies.
 
 ## Overview
 

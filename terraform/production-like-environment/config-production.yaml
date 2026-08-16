@@ -1,4 +1,4 @@
-# TFDrift-Falco Configuration for Production-Like Environment
+# driftwire Configuration for Production-Like Environment
 # Generated on: 2025-12-21
 
 # Cloud Provider Configuration
@@ -12,7 +12,7 @@ providers:
     # Terraform State Backend
     state:
       backend: "s3"
-      s3_bucket: "tfdrift-prod-state-230446364776-20251221"
+      s3_bucket: "driftwire-prod-state-230446364776-20251221"
       s3_key: "production-like-environment/terraform.tfstate"
       s3_region: "us-east-1"
 
@@ -22,9 +22,9 @@ falco:
   hostname: "localhost"
   port: 5060
   # TLS certificate files
-  cert_file: "/Users/keita.higaki/tfdrift-falco/deployments/falco/server.crt"
-  key_file: "/Users/keita.higaki/tfdrift-falco/deployments/falco/server.key"
-  ca_root_file: "/Users/keita.higaki/tfdrift-falco/deployments/falco/server.crt"
+  cert_file: "/Users/keita.higaki/driftwire/deployments/falco/server.crt"
+  key_file: "/Users/keita.higaki/driftwire/deployments/falco/server.key"
+  ca_root_file: "/Users/keita.higaki/driftwire/deployments/falco/server.crt"
 
 # Drift Detection Rules
 drift_rules:

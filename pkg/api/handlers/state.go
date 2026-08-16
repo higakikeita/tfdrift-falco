@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/terraform"
 	log "github.com/sirupsen/logrus"
 )
 

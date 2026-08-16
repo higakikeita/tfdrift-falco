@@ -4,7 +4,7 @@ set -euo pipefail
 
 AWS_PROFILE="${AWS_PROFILE:-draios-dev-developer}"
 AWS_REGION="${AWS_REGION:-ap-northeast-1}"
-BUCKET_NAME="tfdrift-validation-state"
+BUCKET_NAME="driftwire-validation-state"
 
 echo "Creating TF state bucket: ${BUCKET_NAME} in ${AWS_REGION}..."
 

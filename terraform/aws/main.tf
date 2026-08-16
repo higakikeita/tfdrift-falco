@@ -1,5 +1,5 @@
-# TFDrift-Falco AWS Infrastructure Module
-# This module sets up all required AWS resources for TFDrift-Falco
+# driftwire AWS Infrastructure Module
+# This module sets up all required AWS resources for driftwire
 
 terraform {
   required_version = ">= 1.0"
@@ -12,8 +12,8 @@ terraform {
   }
 }
 
-# ECS Cluster for TFDrift-Falco
-resource "aws_ecs_cluster" "tfdrift" {
+# ECS Cluster for driftwire
+resource "aws_ecs_cluster" "driftwire" {
   name = var.cluster_name
 
   setting {
@@ -30,7 +30,7 @@ resource "aws_ecs_cluster" "tfdrift" {
 }
 
 # CloudWatch Log Group
-resource "aws_cloudwatch_log_group" "tfdrift" {
+resource "aws_cloudwatch_log_group" "driftwire" {
   name              = "/ecs/${var.cluster_name}"
   retention_in_days = var.log_retention_days
 
@@ -63,7 +63,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# IAM Role for ECS Task (TFDrift-Falco application)
+# IAM Role for ECS Task (driftwire application)
 resource "aws_iam_role" "ecs_task" {
   name = "${var.cluster_name}-ecs-task"
 
@@ -83,10 +83,10 @@ resource "aws_iam_role" "ecs_task" {
   tags = var.tags
 }
 
-# IAM Policy for TFDrift-Falco (Terraform State access)
-resource "aws_iam_policy" "tfdrift_state_access" {
+# IAM Policy for driftwire (Terraform State access)
+resource "aws_iam_policy" "driftwire_state_access" {
   name        = "${var.cluster_name}-state-access"
-  description = "Allow TFDrift-Falco to read Terraform state from S3"
+  description = "Allow driftwire to read Terraform state from S3"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -117,13 +117,13 @@ resource "aws_iam_policy" "tfdrift_state_access" {
 }
 
 # Attach State Access Policy
-resource "aws_iam_role_policy_attachment" "tfdrift_state_access" {
+resource "aws_iam_role_policy_attachment" "driftwire_state_access" {
   role       = aws_iam_role.ecs_task.name
-  policy_arn = aws_iam_policy.tfdrift_state_access.arn
+  policy_arn = aws_iam_policy.driftwire_state_access.arn
 }
 
 # IAM Policy for CloudTrail access
-resource "aws_iam_policy" "tfdrift_cloudtrail_access" {
+resource "aws_iam_policy" "driftwire_cloudtrail_access" {
   name        = "${var.cluster_name}-cloudtrail-access"
   description = "Allow Falco to read CloudTrail logs"
 
@@ -157,15 +157,15 @@ resource "aws_iam_policy" "tfdrift_cloudtrail_access" {
 }
 
 # Attach CloudTrail Access Policy
-resource "aws_iam_role_policy_attachment" "tfdrift_cloudtrail_access" {
+resource "aws_iam_role_policy_attachment" "driftwire_cloudtrail_access" {
   role       = aws_iam_role.ecs_task.name
-  policy_arn = aws_iam_policy.tfdrift_cloudtrail_access.arn
+  policy_arn = aws_iam_policy.driftwire_cloudtrail_access.arn
 }
 
 # Security Group for ECS Tasks
-resource "aws_security_group" "tfdrift" {
+resource "aws_security_group" "driftwire" {
   name        = "${var.cluster_name}-sg"
-  description = "Security group for TFDrift-Falco ECS tasks"
+  description = "Security group for driftwire ECS tasks"
   vpc_id      = var.vpc_id
 
   # Falco gRPC internal communication
@@ -204,7 +204,7 @@ resource "aws_security_group" "tfdrift" {
 }
 
 # ECS Task Definition
-resource "aws_ecs_task_definition" "tfdrift" {
+resource "aws_ecs_task_definition" "driftwire" {
   family                   = var.cluster_name
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
@@ -236,15 +236,15 @@ resource "aws_ecs_task_definition" "tfdrift" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.tfdrift.name
+          "awslogs-group"         = aws_cloudwatch_log_group.driftwire.name
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "falco"
         }
       }
     },
     {
-      name      = "tfdrift"
-      image     = "ghcr.io/higakikeita/tfdrift-falco:${var.tfdrift_version}"
+      name      = "driftwire"
+      image     = "ghcr.io/higakikeita/driftwire:${var.driftwire_version}"
       essential = true
 
       environment = [
@@ -290,9 +290,9 @@ resource "aws_ecs_task_definition" "tfdrift" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.tfdrift.name
+          "awslogs-group"         = aws_cloudwatch_log_group.driftwire.name
           "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "tfdrift"
+          "awslogs-stream-prefix" = "driftwire"
         }
       }
     }
@@ -302,16 +302,16 @@ resource "aws_ecs_task_definition" "tfdrift" {
 }
 
 # ECS Service
-resource "aws_ecs_service" "tfdrift" {
+resource "aws_ecs_service" "driftwire" {
   name            = var.cluster_name
-  cluster         = aws_ecs_cluster.tfdrift.id
-  task_definition = aws_ecs_task_definition.tfdrift.arn
+  cluster         = aws_ecs_cluster.driftwire.id
+  task_definition = aws_ecs_task_definition.driftwire.arn
   desired_count   = var.desired_count
   launch_type     = "FARGATE"
 
   network_configuration {
     subnets          = var.subnet_ids
-    security_groups  = [aws_security_group.tfdrift.id]
+    security_groups  = [aws_security_group.driftwire.id]
     assign_public_ip = var.assign_public_ip
   }
 
@@ -329,11 +329,11 @@ resource "aws_cloudwatch_metric_alarm" "ecs_cpu_high" {
   period              = "300"
   statistic           = "Average"
   threshold           = "80"
-  alarm_description   = "TFDrift-Falco CPU utilization is too high"
+  alarm_description   = "driftwire CPU utilization is too high"
 
   dimensions = {
-    ClusterName = aws_ecs_cluster.tfdrift.name
-    ServiceName = aws_ecs_service.tfdrift.name
+    ClusterName = aws_ecs_cluster.driftwire.name
+    ServiceName = aws_ecs_service.driftwire.name
   }
 
   alarm_actions = var.alarm_sns_topic_arn != "" ? [var.alarm_sns_topic_arn] : []
@@ -351,11 +351,11 @@ resource "aws_cloudwatch_metric_alarm" "ecs_memory_high" {
   period              = "300"
   statistic           = "Average"
   threshold           = "80"
-  alarm_description   = "TFDrift-Falco memory utilization is too high"
+  alarm_description   = "driftwire memory utilization is too high"
 
   dimensions = {
-    ClusterName = aws_ecs_cluster.tfdrift.name
-    ServiceName = aws_ecs_service.tfdrift.name
+    ClusterName = aws_ecs_cluster.driftwire.name
+    ServiceName = aws_ecs_service.driftwire.name
   }
 
   alarm_actions = var.alarm_sns_topic_arn != "" ? [var.alarm_sns_topic_arn] : []

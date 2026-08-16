@@ -91,7 +91,7 @@ priority: critical
 
 ## Known Limitations
 
-- KMS key usage (Encrypt/Decrypt operations) not tracked by TFDrift (requires CloudTrail data events)
+- KMS key usage (Encrypt/Decrypt operations) not tracked by driftwire (requires CloudTrail data events)
 - Grant drift tracked but grant tokens not parsed
 - Multi-region key replica drift partial (eventual consistency)
 - Custom key store (CloudHSM) drift not fully supported yet

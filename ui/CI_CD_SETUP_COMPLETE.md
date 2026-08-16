@@ -2,7 +2,7 @@
 
 ## 🎉 完了しました！
 
-TFDrift-Falco UI の CI/CD パイプラインとテスト拡充が完了しました。
+driftwire UI の CI/CD パイプラインとテスト拡充が完了しました。
 
 ---
 
@@ -324,7 +324,7 @@ CI_CD_SETUP_COMPLETE.md            # このファイル ★NEW
 
 ```
 ┌─────────────────────────────────────┐
-│   TFDrift-Falco UI Quality Gates   │
+│   driftwire UI Quality Gates   │
 ├─────────────────────────────────────┤
 │                                     │
 │  🔍 Lint & TypeScript Check         │

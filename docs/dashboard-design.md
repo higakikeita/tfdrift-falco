@@ -1,4 +1,4 @@
-# TFDrift-Falco Dashboard Design
+# driftwire Dashboard Design
 
 > **実装状況（2026-07）**: 出荷している UI は **組み込みの React + Cytoscape UI**
 > （グラフトポロジ＋ドリフトフィード、下記「オプションA」）です。本ドキュメントの
@@ -9,7 +9,7 @@
 ## 現在の状態
 
 ### 出力方式
-現在、TFDrift-Falcoは以下の形式で出力しています:
+現在、driftwireは以下の形式で出力しています:
 
 1. **Console出力** (ANSI色付き)
    - ターミナルでの視覚的な表示
@@ -36,7 +36,7 @@
 
 #### オプションA: 組み込みWebダッシュボード
 ```
-TFDrift-Falco
+driftwire
   ├── Detector (既存)
   └── Web Server (新規)
        ├── REST API
@@ -56,12 +56,12 @@ TFDrift-Falco
 - シンプルな構成
 
 **デメリット:**
-- TFDrift-Falcoに多くの機能追加
+- driftwireに多くの機能追加
 - 単一障害点
 
 #### オプションB: 外部ダッシュボード統合
 ```
-TFDrift-Falco → Metrics Export → Grafana/Kibana
+driftwire → Metrics Export → Grafana/Kibana
                   ↓
                 Prometheus/Elasticsearch
 ```
@@ -82,7 +82,7 @@ TFDrift-Falco → Metrics Export → Grafana/Kibana
 
 #### オプションC: ハイブリッド (推奨)
 ```
-TFDrift-Falco
+driftwire
   ├── Detector
   ├── Simple Web UI (内蔵)
   └── Metrics/Logs Export
@@ -100,7 +100,7 @@ TFDrift-Falco
 ### トップページ
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  🛰️ TFDrift-Falco Dashboard                    [Settings] │
+│  🛰️ driftwire Dashboard                    [Settings] │
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
 │  📊 Statistics (Last 24h)                                    │
@@ -215,7 +215,7 @@ TFDrift-Falco
 ### サイドバーナビゲーション
 ```
 ┌────────────────┐
-│ 🛰️ TFDrift     │
+│ 🛰️ driftwire     │
 ├────────────────┤
 │ 📊 Dashboard   │
 │ 🔴 Alerts      │
@@ -338,14 +338,14 @@ Accent:     #4A90E2 (青)
 # grafana-dashboard.json
 {
   "dashboard": {
-    "title": "TFDrift-Falco Monitoring",
+    "title": "driftwire Monitoring",
     "panels": [
       {
         "title": "Drift Events by Severity",
         "type": "piechart",
         "targets": [
           {
-            "expr": "sum by(severity) (tfdrift_alerts_total)"
+            "expr": "sum by(severity) (driftwire_alerts_total)"
           }
         ]
       },
@@ -354,7 +354,7 @@ Accent:     #4A90E2 (青)
         "type": "graph",
         "targets": [
           {
-            "expr": "rate(tfdrift_alerts_total[5m])"
+            "expr": "rate(driftwire_alerts_total[5m])"
           }
         ]
       },
@@ -363,7 +363,7 @@ Accent:     #4A90E2 (青)
         "type": "table",
         "targets": [
           {
-            "expr": "topk(10, sum by(resource_type) (tfdrift_alerts_total))"
+            "expr": "topk(10, sum by(resource_type) (driftwire_alerts_total))"
           }
         ]
       }

@@ -1,4 +1,4 @@
-# TFDrift-Falco E2E Test Configuration
+# driftwire E2E Test Configuration
 # Copy this to config.yaml and customize
 
 providers:
@@ -13,7 +13,7 @@ providers:
 
 falco:
   enabled: true
-  hostname: "localhost"  # Or "tfdrift-e2e-falco" if running in Docker network
+  hostname: "localhost"  # Or "driftwire-e2e-falco" if running in Docker network
   port: 5060
 
 drift_rules:

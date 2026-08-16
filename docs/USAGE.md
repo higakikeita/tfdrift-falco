@@ -1,4 +1,4 @@
-# TFDrift-Falco Usage Guide
+# driftwire Usage Guide
 
 ## Quick Start
 
@@ -14,7 +14,7 @@ auto_import:
 
 **Run:**
 ```bash
-tfdrift --config examples/config-with-autoimport.yaml
+driftwire --config examples/config-with-autoimport.yaml
 ```
 
 **Output when unmanaged resource detected:**
@@ -52,7 +52,7 @@ auto_import:
 
 **Run:**
 ```bash
-tfdrift --config config.yaml --interactive
+driftwire --config config.yaml --interactive
 ```
 
 **Interactive Flow:**
@@ -108,7 +108,7 @@ auto_import:
 
 **Run:**
 ```bash
-tfdrift --config config.yaml
+driftwire --config config.yaml
 ```
 
 **Behavior:**
@@ -141,35 +141,35 @@ auto_import:
 
 ```bash
 # Basic run with config
-tfdrift --config config.yaml
+driftwire --config config.yaml
 
 # Interactive mode (for manual approval)
-tfdrift --config config.yaml --interactive
+driftwire --config config.yaml --interactive
 
 # Dry-run mode (no actual imports or notifications)
-tfdrift --config config.yaml --dry-run
+driftwire --config config.yaml --dry-run
 
 # Daemon mode (background process)
-tfdrift --config config.yaml --daemon
+driftwire --config config.yaml --daemon
 ```
 
 ### Approval Management
 
 ```bash
 # List pending approval requests
-tfdrift approval list
+driftwire approval list
 
 # Approve a specific request
-tfdrift approval approve <request-id>
+driftwire approval approve <request-id>
 
 # Reject a request with reason
-tfdrift approval reject <request-id> --reason "Not needed"
+driftwire approval reject <request-id> --reason "Not needed"
 
 # Clean up expired requests
-tfdrift approval cleanup --older-than 24h
+driftwire approval cleanup --older-than 24h
 ```
 
-**Note:** Approval commands currently require a running TFDrift-Falco instance. For now, use `--interactive` mode instead.
+**Note:** Approval commands currently require a running driftwire instance. For now, use `--interactive` mode instead.
 
 ---
 
@@ -241,7 +241,7 @@ logging:
 
 3. **Start with dry-run**
    ```bash
-   tfdrift --config config.yaml --dry-run
+   driftwire --config config.yaml --dry-run
    ```
 
 4. **Review generated .tf files**
@@ -290,7 +290,7 @@ terraform init
 
 **Solution:** Use `--interactive` flag:
 ```bash
-tfdrift --config config.yaml --interactive
+driftwire --config config.yaml --interactive
 ```
 
 ### Resource not being auto-imported
@@ -302,7 +302,7 @@ tfdrift --config config.yaml --interactive
 
 **Debug:**
 ```bash
-tfdrift --config config.yaml --dry-run
+driftwire --config config.yaml --dry-run
 # Check log output for approval workflow messages
 ```
 

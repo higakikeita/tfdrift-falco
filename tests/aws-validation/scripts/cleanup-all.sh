@@ -7,7 +7,7 @@ AWS_PROFILE="${AWS_PROFILE:-draios-dev-developer}"
 AWS_REGION="${AWS_REGION:-ap-northeast-1}"
 BASE_DIR="$(dirname "$0")/.."
 
-echo "=== TFDrift-Falco Validation Cleanup ==="
+echo "=== driftwire Validation Cleanup ==="
 echo "This will destroy ALL validation resources."
 echo ""
 read -p "Are you sure? (yes/no): " confirm
@@ -19,9 +19,9 @@ fi
 # Phase 3: Remove K8s resources
 echo ""
 echo "[Phase 3] Removing Kubernetes deployments..."
-kubectl delete -f "${BASE_DIR}/phase3-deploy/tfdrift-falco.yaml" --ignore-not-found 2>/dev/null || true
+kubectl delete -f "${BASE_DIR}/phase3-deploy/driftwire.yaml" --ignore-not-found 2>/dev/null || true
 helm uninstall falco -n falco 2>/dev/null || echo "  Falco helm release not found"
-kubectl delete namespace tfdrift --ignore-not-found 2>/dev/null || true
+kubectl delete namespace driftwire --ignore-not-found 2>/dev/null || true
 kubectl delete namespace falco --ignore-not-found 2>/dev/null || true
 
 # Phase 2: Destroy EKS
@@ -46,11 +46,11 @@ fi
 
 # State bucket (optional)
 echo ""
-read -p "Delete TF state bucket (tfdrift-validation-state)? (yes/no): " del_bucket
+read -p "Delete TF state bucket (driftwire-validation-state)? (yes/no): " del_bucket
 if [ "${del_bucket}" = "yes" ]; then
   echo "Emptying and deleting state bucket..."
-  aws s3 rm "s3://tfdrift-validation-state" --recursive --profile "${AWS_PROFILE}" --region "${AWS_REGION}" 2>/dev/null || true
-  aws s3api delete-bucket --bucket "tfdrift-validation-state" --profile "${AWS_PROFILE}" --region "${AWS_REGION}" 2>/dev/null || true
+  aws s3 rm "s3://driftwire-validation-state" --recursive --profile "${AWS_PROFILE}" --region "${AWS_REGION}" 2>/dev/null || true
+  aws s3api delete-bucket --bucket "driftwire-validation-state" --profile "${AWS_PROFILE}" --region "${AWS_REGION}" 2>/dev/null || true
   echo "  Deleted"
 fi
 

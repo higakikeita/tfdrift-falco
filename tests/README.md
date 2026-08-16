@@ -1,6 +1,6 @@
-# TFDrift-Falco Test Suite
+# driftwire Test Suite
 
-Comprehensive testing infrastructure for TFDrift-Falco including E2E, integration, and benchmark tests.
+Comprehensive testing infrastructure for driftwire including E2E, integration, and benchmark tests.
 
 ## 📁 Test Structure
 
@@ -16,7 +16,7 @@ tests/
 │   ├── notification_test.go          # Notification delivery tests
 │   ├── falco_reconnect_test.go       # Falco reconnection scenarios
 │   ├── helpers.go                     # E2E test helpers
-│   ├── docker-compose.e2e.yml        # Falco + TFDrift stack
+│   ├── docker-compose.e2e.yml        # Falco + driftwire stack
 │   └── Makefile                       # E2E test commands
 ├── integration/                       # Integration tests (lighter than E2E)
 │   ├── README.md                      # Integration test guide
@@ -177,14 +177,14 @@ go test -v ./tests/e2e/...
 go test -v -run TestDriftDetection ./tests/e2e/
 
 # Enable debug logging
-export TFDRIFT_LOG_LEVEL=debug
+export DRIFTWIRE_LOG_LEVEL=debug
 go test -v ./tests/e2e/...
 
 # Check Falco logs
-docker logs tfdrift-falco-falco
+docker logs driftwire-falco
 
-# Check TFDrift logs
-docker logs tfdrift-falco-app
+# Check driftwire logs
+docker logs driftwire-app
 ```
 
 ## 📝 Test Data Management
@@ -195,7 +195,7 @@ Test fixtures are located in `*/fixtures/` directories:
 
 ```
 fixtures/
-├── config.yaml           # Test TFDrift config
+├── config.yaml           # Test driftwire config
 ├── terraform.tfstate     # Sample Terraform state
 ├── events/               # Sample CloudTrail events
 │   ├── ec2_modify.json
@@ -276,7 +276,7 @@ docker ps | grep falco
 nc -zv localhost 5060
 
 # Check Falco logs
-docker logs tfdrift-falco-falco
+docker logs driftwire-falco
 ```
 
 #### "AWS credentials not found"
@@ -305,5 +305,5 @@ go test -timeout 30m ./tests/e2e/...
 
 ---
 
-**Maintained by**: TFDrift-Falco Team
+**Maintained by**: driftwire Team
 **Last Updated**: 2025-11-20

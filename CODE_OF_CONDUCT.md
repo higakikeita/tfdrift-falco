@@ -61,7 +61,7 @@ representative at an online or offline event.
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement at
 [@keitah0322 on X (Twitter)](https://x.com/keitah0322) or through
-[GitHub Issues](https://github.com/higakikeita/tfdrift-falco/issues).
+[GitHub Issues](https://github.com/higakikeita/driftwire/issues).
 
 All complaints will be reviewed and investigated promptly and fairly.
 

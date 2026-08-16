@@ -10,8 +10,8 @@ terraform {
 
   # S3 backend configuration
   backend "s3" {
-    bucket = "tfdrift-falco-state-test"
-    key    = "tfdrift-test/terraform.tfstate"
+    bucket = "driftwire-state-test"
+    key    = "driftwire-test/terraform.tfstate"
     region = "us-east-1"
   }
 }
@@ -29,7 +29,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Project name for resource naming"
   type        = string
-  default     = "tfdrift-test"
+  default     = "driftwire-test"
 }
 
 # ======================

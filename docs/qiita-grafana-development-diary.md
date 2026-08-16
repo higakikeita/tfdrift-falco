@@ -1,21 +1,21 @@
-# TFDrift-Falco に Grafana ダッシュボードを実装した話【開発日記】
+# driftwire に Grafana ダッシュボードを実装した話【開発日記】
 
 ## はじめに
 
-こんにちは！OSS の Terraform Drift 検知ツール [TFDrift-Falco](https://github.com/higakikeita/tfdrift-falco) を開発しています。
+こんにちは！OSS の Terraform Drift 検知ツール [driftwire](https://github.com/higakikeita/driftwire) を開発しています。
 
 今回、**Grafana による可視化機能を追加**したので、その開発プロセスを開発日記形式でまとめます。
 
-## TFDrift-Falco とは？
+## driftwire とは？
 
-TFDrift-Falco は、**Falco のランタイムセキュリティ機能を使って、Terraform で管理されているリソースの設定変更をリアルタイムで検知する**ツールです。
+driftwire は、**Falco のランタイムセキュリティ機能を使って、Terraform で管理されているリソースの設定変更をリアルタイムで検知する**ツールです。
 
 ```
 誰かが AWS Console で EC2 の設定を変更
     ↓
 CloudTrail イベントを Falco が検知
     ↓
-TFDrift-Falco が Terraform State と比較
+driftwire が Terraform State と比較
     ↓
 差分があれば Slack に即座に通知
 ```
@@ -75,23 +75,23 @@ Promtail が JSON を正しくパースできていなかったため、`pipelin
 **Before**:
 ```yaml
 scrape_configs:
-  - job_name: "tfdrift-falco"
+  - job_name: "driftwire"
     static_configs:
       - targets: [localhost]
         labels:
-          job: tfdrift-falco
-          __path__: /var/log/tfdrift/*.jsonl
+          job: driftwire
+          __path__: /var/log/driftwire/*.jsonl
 ```
 
 **After**:
 ```yaml
 scrape_configs:
-  - job_name: "tfdrift-falco-jsonl"
+  - job_name: "driftwire-jsonl"
     static_configs:
       - targets: [localhost]
         labels:
-          job: tfdrift-falco
-          __path__: /var/log/tfdrift/*.jsonl
+          job: driftwire
+          __path__: /var/log/driftwire/*.jsonl
     pipeline_stages:
       - json:
           expressions:
@@ -165,13 +165,13 @@ Failed: 0
 
 ```logql
 # Critical ドリフトの検知
-count_over_time({job="tfdrift-falco"} | json | severity="critical" [5m])
+count_over_time({job="driftwire"} | json | severity="critical" [5m])
 
 # Security Group ドリフトの検知
-count_over_time({job="tfdrift-falco"} | json | resource_type="aws_security_group" [5m])
+count_over_time({job="driftwire"} | json | resource_type="aws_security_group" [5m])
 
 # S3 公開アクセスの変更検知
-count_over_time({job="tfdrift-falco"} | json | resource_type="aws_s3_bucket" | line_match_regex "public_access_block" [5m])
+count_over_time({job="driftwire"} | json | resource_type="aws_s3_bucket" | line_match_regex "public_access_block" [5m])
 ```
 
 #### 通知チャネルの設定
@@ -183,7 +183,7 @@ contactPoints:
     type: slack
     settings:
       url: ${SLACK_WEBHOOK_URL}
-      title: '[{{ .Status }}] TFDrift Alert'
+      title: '[{{ .Status }}] driftwire Alert'
 
 # Email 通知
   - name: email-alerts
@@ -274,7 +274,7 @@ contactPoints:
 #!/bin/bash
 # quick-start.sh
 
-echo "TFDrift-Falco Grafana Quick Start"
+echo "driftwire Grafana Quick Start"
 
 # 1. Docker チェック
 echo "[1/4] Checking Docker..."
@@ -373,7 +373,7 @@ pipeline_stages:
 これにより、Grafana で以下のようなクエリが可能に：
 
 ```logql
-{job="tfdrift-falco", severity="critical"} | json
+{job="driftwire", severity="critical"} | json
 ```
 
 ### 2. LogQL クエリパターン
@@ -382,23 +382,23 @@ pipeline_stages:
 
 ```logql
 # 深刻度別の集計
-sum by (severity) (count_over_time({job="tfdrift-falco"} | json [1h]))
+sum by (severity) (count_over_time({job="driftwire"} | json [1h]))
 
 # Top 10 のリソース
-topk(10, sum by (resource_id) (count_over_time({job="tfdrift-falco"} | json [$__range])))
+topk(10, sum by (resource_id) (count_over_time({job="driftwire"} | json [$__range])))
 ```
 
 #### フィルタリング
 
 ```logql
 # 正規表現でフィルタ
-{job="tfdrift-falco"} | json | severity=~"high|critical"
+{job="driftwire"} | json | severity=~"high|critical"
 
 # IAM 関連のドリフト
-{job="tfdrift-falco"} | json | resource_type=~"aws_iam_.*"
+{job="driftwire"} | json | resource_type=~"aws_iam_.*"
 
 # S3 の公開設定変更
-{job="tfdrift-falco"} | json | resource_type="aws_s3_bucket" | line_match_regex "public_access_block"
+{job="driftwire"} | json | resource_type="aws_s3_bucket" | line_match_regex "public_access_block"
 ```
 
 ### 3. アラートのしきい値設計
@@ -510,19 +510,19 @@ cd dashboards/grafana
 ### パターン2: 実際のデータと連携
 
 ```bash
-# 1. TFDrift-Falco の設定を変更
+# 1. driftwire の設定を変更
 # config.yaml
 output:
   file:
     enabled: true
-    path: /var/log/tfdrift/drift-events.jsonl
+    path: /var/log/driftwire/drift-events.jsonl
     format: json
 
 # 2. Promtail にログをマウント
 # docker-compose.yaml
 promtail:
   volumes:
-    - /var/log/tfdrift:/var/log/tfdrift:ro
+    - /var/log/driftwire:/var/log/driftwire:ro
 
 # 3. 再起動
 docker-compose restart promtail
@@ -617,7 +617,7 @@ docker stats grafana-grafana-1 grafana-loki-1 grafana-promtail-1
 
 ## まとめ
 
-TFDrift-Falco に Grafana ダッシュボードを実装したことで：
+driftwire に Grafana ダッシュボードを実装したことで：
 
 ✅ **リアルタイム可視化** - ドリフトの発生状況を一目で把握
 ✅ **自動アラート** - 重要な変更を見逃さない
@@ -629,13 +629,13 @@ TFDrift-Falco に Grafana ダッシュボードを実装したことで：
 
 ## リンク
 
-- **GitHub リポジトリ**: [TFDrift-Falco](https://github.com/higakikeita/tfdrift-falco)
-- **Getting Started Guide**: [dashboards/grafana/GETTING_STARTED.md](https://github.com/higakikeita/tfdrift-falco/blob/main/dashboards/grafana/GETTING_STARTED.md)
-- **Alert Configuration**: [dashboards/grafana/ALERTS.md](https://github.com/higakikeita/tfdrift-falco/blob/main/dashboards/grafana/ALERTS.md)
+- **GitHub リポジトリ**: [driftwire](https://github.com/higakikeita/driftwire)
+- **Getting Started Guide**: [dashboards/grafana/GETTING_STARTED.md](https://github.com/higakikeita/driftwire/blob/main/dashboards/grafana/GETTING_STARTED.md)
+- **Alert Configuration**: [dashboards/grafana/ALERTS.md](https://github.com/higakikeita/driftwire/blob/main/dashboards/grafana/ALERTS.md)
 
 ## フィードバック募集中！
 
-TFDrift-Falco を使ってみた感想や、機能リクエストがあれば、ぜひ [GitHub Issues](https://github.com/higakikeita/tfdrift-falco/issues) でお知らせください！
+driftwire を使ってみた感想や、機能リクエストがあれば、ぜひ [GitHub Issues](https://github.com/higakikeita/driftwire/issues) でお知らせください！
 
 Star ⭐ もお待ちしています！
 

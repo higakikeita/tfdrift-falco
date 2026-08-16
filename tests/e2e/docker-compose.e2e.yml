@@ -4,7 +4,7 @@ services:
   # Falco for E2E testing
   falco:
     image: falcosecurity/falco:0.37.1
-    container_name: tfdrift-e2e-falco
+    container_name: driftwire-e2e-falco
     privileged: true
     restart: unless-stopped
     ports:
@@ -22,7 +22,7 @@ services:
       - CLOUDTRAIL_SQS_QUEUE=${CLOUDTRAIL_SQS_QUEUE}
       - CLOUDTRAIL_USE_SQS=${CLOUDTRAIL_USE_SQS:-false}
     networks:
-      - tfdrift-e2e
+      - driftwire-e2e
     healthcheck:
       test: ["CMD", "pgrep", "-f", "falco"]
       interval: 10s
@@ -31,9 +31,9 @@ services:
       start_period: 10s
 
 networks:
-  tfdrift-e2e:
+  driftwire-e2e:
     driver: bridge
-    name: tfdrift-e2e-network
+    name: driftwire-e2e-network
 
 # Usage:
 #
@@ -45,7 +45,7 @@ networks:
 #    docker-compose -f docker-compose.e2e.yml up -d
 #
 # 3. Verify Falco is running:
-#    docker logs tfdrift-e2e-falco
+#    docker logs driftwire-e2e-falco
 #    grpcurl -plaintext localhost:5060 list
 #
 # 4. Run E2E tests:

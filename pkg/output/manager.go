@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
 

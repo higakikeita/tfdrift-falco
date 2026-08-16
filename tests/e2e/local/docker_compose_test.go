@@ -23,7 +23,7 @@ import (
 
 const (
 	falcoHTTPEndpoint  = "http://localhost:8081"
-	tfdriftAPIEndpoint = "http://localhost:8080"
+	driftwireAPIEndpoint = "http://localhost:8080"
 	testTimeout        = 30 * time.Second
 	healthCheckTimeout = 60 * time.Second
 )
@@ -62,8 +62,8 @@ func TestLocalE2E(t *testing.T) {
 	t.Log("Waiting for Falco service to be healthy...")
 	require.NoError(t, waitForHealthy(falcoHTTPEndpoint, healthCheckTimeout))
 
-	t.Log("Waiting for TFDrift API service to be healthy...")
-	require.NoError(t, waitForHealthy(tfdriftAPIEndpoint, healthCheckTimeout))
+	t.Log("Waiting for driftwire API service to be healthy...")
+	require.NoError(t, waitForHealthy(driftwireAPIEndpoint, healthCheckTimeout))
 
 	// Run test scenarios
 	t.Run("TriggerEC2DriftEvent", func(t *testing.T) {
@@ -102,9 +102,9 @@ func testEC2DriftDetection(t *testing.T) {
 	// Give the system time to process the event
 	time.Sleep(2 * time.Second)
 
-	// Poll TFDrift API for drift detection
+	// Poll driftwire API for drift detection
 	t.Log("Checking for drift detection...")
-	driftDetected := pollForDrift(ctx, tfdriftAPIEndpoint, "aws_instance")
+	driftDetected := pollForDrift(ctx, driftwireAPIEndpoint, "aws_instance")
 	assert.True(t, driftDetected, "Expected drift to be detected for aws_instance")
 }
 
@@ -127,9 +127,9 @@ func testSecurityGroupDriftDetection(t *testing.T) {
 	// Give the system time to process the event
 	time.Sleep(2 * time.Second)
 
-	// Poll TFDrift API for drift detection
+	// Poll driftwire API for drift detection
 	t.Log("Checking for drift detection...")
-	driftDetected := pollForDrift(ctx, tfdriftAPIEndpoint, "aws_security_group")
+	driftDetected := pollForDrift(ctx, driftwireAPIEndpoint, "aws_security_group")
 	assert.True(t, driftDetected, "Expected drift to be detected for aws_security_group")
 }
 
@@ -152,15 +152,15 @@ func testS3DriftDetection(t *testing.T) {
 	// Give the system time to process the event
 	time.Sleep(2 * time.Second)
 
-	// Poll TFDrift API for drift detection
+	// Poll driftwire API for drift detection
 	t.Log("Checking for drift detection...")
-	driftDetected := pollForDrift(ctx, tfdriftAPIEndpoint, "aws_s3_bucket")
+	driftDetected := pollForDrift(ctx, driftwireAPIEndpoint, "aws_s3_bucket")
 	assert.True(t, driftDetected, "Expected drift to be detected for aws_s3_bucket")
 }
 
-// testAPIHealthCheck verifies the TFDrift API is responsive
+// testAPIHealthCheck verifies the driftwire API is responsive
 func testAPIHealthCheck(t *testing.T) {
-	resp, err := http.Get(tfdriftAPIEndpoint + "/health")
+	resp, err := http.Get(driftwireAPIEndpoint + "/health")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -192,7 +192,7 @@ func waitForHealthy(endpoint string, timeout time.Duration) error {
 	return fmt.Errorf("service at %s did not become healthy within %v", endpoint, timeout)
 }
 
-// pollForDrift checks the TFDrift API for detected drift
+// pollForDrift checks the driftwire API for detected drift
 func pollForDrift(ctx context.Context, apiEndpoint, resourceType string) bool {
 	pollDeadline := time.Now().Add(10 * time.Second)
 

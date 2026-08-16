@@ -10,7 +10,7 @@ export default function Home() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
               <ShieldIcon className="w-8 h-8 text-indigo-400" />
-              <span className="text-2xl font-bold text-white">TFDrift-Falco</span>
+              <span className="text-2xl font-bold text-white">driftwire</span>
             </div>
             <div className="flex items-center space-x-6">
               <Link href="/blog" className="text-slate-300 hover:text-white transition-colors">
@@ -23,7 +23,7 @@ export default function Home() {
                 Docs
               </Link>
               <a
-                href="https://github.com/higakikeita/tfdrift-falco"
+                href="https://github.com/higakikeita/driftwire"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center space-x-2 text-slate-300 hover:text-white transition-colors"
@@ -65,7 +65,7 @@ export default function Home() {
                 Get Started
               </Link>
               <a
-                href="https://github.com/higakikeita/tfdrift-falco"
+                href="https://github.com/higakikeita/driftwire"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold transition-all border border-slate-600"
@@ -81,14 +81,14 @@ export default function Home() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-800/50">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-16">
-            Why TFDrift-Falco?
+            Why driftwire?
           </h2>
 
           <div className="grid md:grid-cols-3 gap-8">
             <FeatureCard
               icon={<BoltIcon className="w-8 h-8 text-indigo-400" />}
               title="Zero-Config Mode"
-              description="Just run 'tfdrift --auto' and start monitoring. Auto-detects Terraform state from local files, S3, or GCS backend."
+              description="Just run 'driftwire --auto' and start monitoring. Auto-detects Terraform state from local files, S3, or GCS backend."
             />
             <FeatureCard
               icon={<ShieldIcon className="w-8 h-8 text-indigo-400" />}

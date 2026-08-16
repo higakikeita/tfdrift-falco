@@ -85,7 +85,7 @@ priority: error
 
 ## Known Limitations
 
-- Image push/pull events not tracked by TFDrift (use CloudTrail data events if needed)
+- Image push/pull events not tracked by driftwire (use CloudTrail data events if needed)
 - ECR Public repositories have separate API (not covered yet)
 - Vulnerability scan results not included in drift logs
 - Cross-region replication status not real-time (eventual consistency)

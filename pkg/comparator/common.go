@@ -8,7 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // GetNestedValue retrieves a value from a nested map using dot notation (e.g., "vpc_config.subnet_ids").

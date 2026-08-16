@@ -1,5 +1,5 @@
 // Package azure provides Azure Activity Log parsing and resource mapping
-// for TFDrift-Falco. It processes Azure Activity Logs received via Falco's
+// for driftwire. It processes Azure Activity Logs received via Falco's
 // azure_activity plugin and maps them to Terraform resource types for drift detection.
 //
 // The package supports 100+ Azure operation types across 20+ services including:
@@ -30,11 +30,11 @@ import (
 	"strings"
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
-	"github.com/keitahigaki/tfdrift-falco/pkg/parser"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/parser"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
-// ActivityParser parses Azure Activity Log events from Falco into TFDrift events.
+// ActivityParser parses Azure Activity Log events from Falco into driftwire events.
 //
 // The parser extracts relevant information from Falco's azure_activity plugin output,
 // including resource identifiers, user identity, subscription/resource group information,
@@ -58,7 +58,7 @@ func NewActivityParser() *ActivityParser {
 	return ap
 }
 
-// Parse converts a Falco output response into a TFDrift event for drift detection.
+// Parse converts a Falco output response into a driftwire event for drift detection.
 //
 // The method performs the following operations:
 //   - Validates the response is from the azure_activity source

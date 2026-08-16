@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Trigger intentional drift on Phase 1 resources
-# This simulates real-world drift that tfdrift-falco should detect
+# This simulates real-world drift that driftwire should detect
 set -euo pipefail
 
 AWS_PROFILE="${AWS_PROFILE:-draios-dev-developer}"
@@ -12,7 +12,7 @@ SG_ID=$(terraform output -raw security_group_id)
 INSTANCE_ID=$(terraform output -raw instance_id)
 BUCKET_NAME=$(terraform output -raw s3_bucket_name)
 
-echo "=== TFDrift-Falco Drift Test ==="
+echo "=== driftwire Drift Test ==="
 echo "Security Group: ${SG_ID}"
 echo "Instance:       ${INSTANCE_ID}"
 echo "S3 Bucket:      ${BUCKET_NAME}"
@@ -70,5 +70,5 @@ echo "  3. Instance ${INSTANCE_ID}: unexpected ManualChange tag"
 echo "  4. S3 ${BUCKET_NAME}: versioning Suspended (should be Enabled)"
 echo ""
 echo "Wait 5-15 minutes for CloudTrail events to propagate, then check:"
-echo "  kubectl logs -n tfdrift -l app=tfdrift-falco --tail=50"
+echo "  kubectl logs -n driftwire -l app=driftwire --tail=50"
 echo "  kubectl logs -n falco -l app.kubernetes.io/name=falco --tail=50"

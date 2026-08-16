@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
 

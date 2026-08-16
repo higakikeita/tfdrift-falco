@@ -1,6 +1,6 @@
-# TFDrift-Falco Test Environment
+# driftwire Test Environment
 
-This Terraform configuration creates a test AWS environment for validating TFDrift-Falco drift detection capabilities.
+This Terraform configuration creates a test AWS environment for validating driftwire drift detection capabilities.
 
 ## Resources Created
 
@@ -50,7 +50,7 @@ terraform output
 
 ## Testing Drift Detection
 
-After applying this configuration, you can test TFDrift-Falco by manually changing resources:
+After applying this configuration, you can test driftwire by manually changing resources:
 
 ### Test Case 1: EC2 Termination Protection
 
@@ -112,7 +112,7 @@ aws iam update-assume-role-policy \
   }'
 ```
 
-## Running TFDrift-Falco
+## Running driftwire
 
 From the project root:
 
@@ -124,7 +124,7 @@ cd ../..
 # local_path: "./examples/terraform/terraform.tfstate"
 
 # Run the detector
-go run ./cmd/tfdrift/main.go --config test-config.yaml
+go run ./cmd/driftwire/main.go --config test-config.yaml
 ```
 
 ## Cleanup
@@ -150,7 +150,7 @@ This example uses **local state** for simplicity. For production use, consider:
 terraform {
   backend "s3" {
     bucket = "your-terraform-state-bucket"
-    key    = "tfdrift-falco/test/terraform.tfstate"
+    key    = "driftwire/test/terraform.tfstate"
     region = "us-east-1"
   }
 }

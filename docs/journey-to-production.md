@@ -1,6 +1,6 @@
-# TFDrift-Falco: サンプルデータから実用システムへの道のり
+# driftwire: サンプルデータから実用システムへの道のり
 
-**著者**: TFDrift-Falco Development Team
+**著者**: driftwire Development Team
 **日付**: 2025-12-22
 **タグ**: #terraform #drift-detection #falco #aws #cloudtrail #production-readiness
 
@@ -20,13 +20,13 @@
 
 ## はじめに
 
-TFDrift-Falcoは、Terraformで管理されているクラウドインフラストラクチャに対する手動変更（ドリフト）をリアルタイムで検知するシステムです。Falcoのランタイムセキュリティ監視とCloudTrailイベントを組み合わせることで、Infrastructure as Codeの整合性を保ちます。
+driftwireは、Terraformで管理されているクラウドインフラストラクチャに対する手動変更（ドリフト）をリアルタイムで検知するシステムです。Falcoのランタイムセキュリティ監視とCloudTrailイベントを組み合わせることで、Infrastructure as Codeの整合性を保ちます。
 
 しかし、**サンプルデータでの概念実証**と**実用可能なプロダクト**の間には大きなギャップがあることが判明しました。この記事では、実環境での動作検証を通じて発見された課題と、本番適用可能なシステムへの改善提案をまとめます。
 
 ### この記事で学べること
 
-- 実環境でのTFDrift-Falcoのセットアップ手順
+- 実環境でのdriftwireのセットアップ手順
 - サンプルデータと実データの違い
 - プロダクション化に必要な機能と改善点
 - 具体的な実装ロードマップ
@@ -52,7 +52,7 @@ TFDrift-Falcoは、Terraformで管理されているクラウドインフラス�
           │ Read State            │ Read Events
           ▼                       ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    TFDrift-Falco System                      │
+│                    driftwire System                      │
 │                                                              │
 │  ┌──────────────┐      ┌─────────────────┐                 │
 │  │    Falco     │      │    Backend      │                 │
@@ -119,7 +119,7 @@ TFDrift-Falcoは、Terraformで管理されているクラウドインフラス�
 ```hcl
 terraform {
   backend "s3" {
-    bucket         = "tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID"
+    bucket         = "driftwire-terraform-state-YOUR-AWS-ACCOUNT-ID"
     key            = "production-test/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "terraform-state-lock"
@@ -136,8 +136,8 @@ CloudTrailを作成し、API操作ログをS3に記録する設定を行いま�
 #!/bin/bash
 # scripts/setup-cloudtrail.sh
 
-TRAIL_NAME="tfdrift-falco-trail"
-BUCKET_NAME="tfdrift-cloudtrail-${AWS_ACCOUNT_ID}-${AWS_REGION}"
+TRAIL_NAME="driftwire-trail"
+BUCKET_NAME="driftwire-cloudtrail-${AWS_ACCOUNT_ID}-${AWS_REGION}"
 
 # S3バケット作成
 aws s3api create-bucket --bucket ${BUCKET_NAME} --region ${AWS_REGION}
@@ -157,7 +157,7 @@ aws cloudtrail start-logging --name ${TRAIL_NAME}
 
 **結果**: CloudTrailログが正常に記録され、9個以上のログファイルが確認できました。
 
-#### Step 3: TFDrift-Falco システムの起動
+#### Step 3: driftwire システムの起動
 
 docker-compose.ymlを修正し、実環境用の設定を適用しました。
 
@@ -174,11 +174,11 @@ docker-compose.ymlを修正し、実環境用の設定を適用しました。
    ```yaml
    backend:
      volumes:
-       - ${HOME}/.aws:/home/tfdrift/.aws:ro
+       - ${HOME}/.aws:/home/driftwire/.aws:ro
      environment:
        - AWS_PROFILE=${AWS_PROFILE:-mytf}
-       - AWS_SHARED_CREDENTIALS_FILE=/home/tfdrift/.aws/credentials
-       - AWS_CONFIG_FILE=/home/tfdrift/.aws/config
+       - AWS_SHARED_CREDENTIALS_FILE=/home/driftwire/.aws/credentials
+       - AWS_CONFIG_FILE=/home/driftwire/.aws/config
    ```
 
 3. **config.yamlの更新**
@@ -187,11 +187,11 @@ docker-compose.ymlを修正し、実環境用の設定を適用しました。
      aws:
        state:
          backend: "s3"
-         s3_bucket: "tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID"
+         s3_bucket: "driftwire-terraform-state-YOUR-AWS-ACCOUNT-ID"
          s3_key: "production-test/terraform.tfstate"
          s3_region: "us-east-1"
        cloudtrail:
-         s3_bucket: "tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1"
+         s3_bucket: "driftwire-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1"
    ```
 
 ### 検証結果
@@ -200,8 +200,8 @@ docker-compose.ymlを修正し、実環境用の設定を適用しました。
 
 1. **Backend API**
    ```
-   [INFO] Starting TFDrift-Falco vdev
-   [INFO] Loading Terraform state from S3: s3://tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID/...
+   [INFO] Starting driftwire vdev
+   [INFO] Loading Terraform state from S3: s3://driftwire-terraform-state-YOUR-AWS-ACCOUNT-ID/...
    [INFO] Successfully loaded 24103 bytes from S3
    [INFO] Indexed 13 resources from Terraform state
    [INFO] Loaded Terraform state: 13 resources
@@ -227,7 +227,7 @@ docker-compose.ymlを修正し、実環境用の設定を適用しました。
 
 1. **Falco CloudTrail Plugin**
    ```
-   Error: cloudtrail plugin error: cannot open s3Bucket=tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1
+   Error: cloudtrail plugin error: cannot open s3Bucket=driftwire-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1
    ```
    - AWS認証情報の取り扱い問題
    - プラグインのエラーハンドリング不足
@@ -345,8 +345,8 @@ func (s *Store) BuildGraph() models.CytoscapeElements {
 #### ユーザーの期待
 
 ```bash
-git clone https://github.com/username/tfdrift-falco.git
-cd tfdrift-falco
+git clone https://github.com/username/driftwire.git
+cd driftwire
 ./setup.sh
 docker-compose up -d
 # → 動く
@@ -472,7 +472,7 @@ func (s *Store) BuildGraph() models.CytoscapeElements {
 #### 目標
 
 ```bash
-./setup-tfdrift.sh
+./setup-driftwire.sh
 # → すべて自動でセットアップ
 # → エラーは明確なメッセージで表示
 # → 5分以内に完了
@@ -482,11 +482,11 @@ func (s *Store) BuildGraph() models.CytoscapeElements {
 
 ```bash
 #!/bin/bash
-# setup-tfdrift.sh
+# setup-driftwire.sh
 
 set -e
 
-echo "🚀 TFDrift-Falco セットアップを開始します..."
+echo "🚀 driftwire セットアップを開始します..."
 
 # 前提条件チェック
 check_prerequisites() {
@@ -510,7 +510,7 @@ check_aws_credentials() {
 # Terraform Backend作成
 setup_terraform_backend() {
     echo "🗄️  Terraform State Backend を作成中..."
-    BUCKET="tfdrift-terraform-state-${AWS_ACCOUNT_ID}"
+    BUCKET="driftwire-terraform-state-${AWS_ACCOUNT_ID}"
 
     if ! aws s3 ls "s3://${BUCKET}" 2>/dev/null; then
         aws s3api create-bucket --bucket ${BUCKET} --region us-east-1
@@ -575,10 +575,10 @@ providers:
     regions:
       - us-east-1
     cloudtrail:
-      s3_bucket: "tfdrift-cloudtrail-${AWS_ACCOUNT_ID}-us-east-1"
+      s3_bucket: "driftwire-cloudtrail-${AWS_ACCOUNT_ID}-us-east-1"
     state:
       backend: "s3"
-      s3_bucket: "tfdrift-terraform-state-${AWS_ACCOUNT_ID}"
+      s3_bucket: "driftwire-terraform-state-${AWS_ACCOUNT_ID}"
       s3_key: "production-test/terraform.tfstate"
       s3_region: "us-east-1"
 
@@ -711,7 +711,7 @@ func (c *FalcoCollector) startFallbackMode() error {
 | | - BuildGraph()改善 | | |
 | | - テストと検証 | | |
 | 3-4 | セットアップ自動化 | DevOps | 🔴 Critical |
-| | - setup-tfdrift.sh作成 | | |
+| | - setup-driftwire.sh作成 | | |
 | | - 前提条件チェック | | |
 | | - エラーハンドリング | | |
 | 5-7 | Falco統合改善 | Backend | 🟡 High |
@@ -795,7 +795,7 @@ func (c *FalcoCollector) startFallbackMode() error {
 **Why**: セットアップの複雑さがユーザー離脱の主因
 **What**: ワンコマンドセットアップ
 **How**:
-- [ ] `setup-tfdrift.sh` 作成
+- [ ] `setup-driftwire.sh` 作成
 - [ ] 前提条件チェック（aws, terraform, docker）
 - [ ] AWS認証情報確認
 - [ ] Terraform Backend自動作成
@@ -804,7 +804,7 @@ func (c *FalcoCollector) startFallbackMode() error {
 - [ ] config.yaml自動生成
 - [ ] エラーハンドリングとロールバック
 
-**Expected Result**: `./setup-tfdrift.sh` で5分以内にセットアップ完了
+**Expected Result**: `./setup-driftwire.sh` で5分以内にセットアップ完了
 
 ### 🟡 優先度：High（今週中）
 
@@ -860,7 +860,7 @@ func (c *FalcoCollector) startFallbackMode() error {
 
 ### 現在地
 
-TFDrift-Falcoは**技術的には動作する概念実証**ですが、**ユーザーに提供可能な実用システム**にはまだ距離があります。
+driftwireは**技術的には動作する概念実証**ですが、**ユーザーに提供可能な実用システム**にはまだ距離があります。
 
 **現在の状態**:
 - ✅ Terraform State読み込み
@@ -911,9 +911,9 @@ TFDrift-Falcoは**技術的には動作する概念実証**ですが、**ユー�
 
 ---
 
-**著者について**: この記事は、TFDrift-Falcoの実環境検証セッション（2025-12-22）の結果をまとめたものです。
+**著者について**: この記事は、driftwireの実環境検証セッション（2025-12-22）の結果をまとめたものです。
 
-**フィードバック**: 改善提案やご意見は [GitHub Issues](https://github.com/higakikeita/tfdrift-falco/issues) までお願いします。
+**フィードバック**: 改善提案やご意見は [GitHub Issues](https://github.com/higakikeita/driftwire/issues) までお願いします。
 
 ---
 

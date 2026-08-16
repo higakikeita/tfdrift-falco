@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // TestExtractRDSTags_Behavior tests the RDS tag extraction helper behavior

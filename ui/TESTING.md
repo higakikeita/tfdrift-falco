@@ -1,6 +1,6 @@
 # Testing Guide
 
-TFDrift-Falco UI の包括的なテスト戦略とツールのガイドです。
+driftwire UI の包括的なテスト戦略とツールのガイドです。
 
 ## 📋 テスト概要
 

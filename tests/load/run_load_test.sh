@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TFDrift-Falco Load Test Runner
+# driftwire Load Test Runner
 # This script orchestrates the complete load testing process
 
 set -euo pipefail
@@ -39,7 +39,7 @@ usage() {
     cat << EOF
 Usage: $0 [OPTIONS] <scenario>
 
-Run TFDrift-Falco load tests with specified scenario.
+Run driftwire load tests with specified scenario.
 
 Scenarios:
   small   - 100 events/min, 500 resources, 1 hour
@@ -48,7 +48,7 @@ Scenarios:
 
 Options:
   -h, --help              Show this help message
-  -o, --output DIR        Output directory (default: /tmp/tfdrift-load-test)
+  -o, --output DIR        Output directory (default: /tmp/driftwire-load-test)
   -c, --cleanup           Cleanup after test
   --skip-build            Skip Docker image build
   --skip-generate         Skip data generation (use existing)
@@ -64,7 +64,7 @@ EOF
 
 # Parse arguments
 SCENARIO=""
-OUTPUT_DIR="/tmp/tfdrift-load-test"
+OUTPUT_DIR="/tmp/driftwire-load-test"
 CLEANUP=false
 SKIP_BUILD=false
 SKIP_GENERATE=false
@@ -109,7 +109,7 @@ fi
 # Parse scenario parameters
 IFS=':' read -r EVENT_RATE RESOURCES DURATION <<< "${SCENARIOS[$SCENARIO]}"
 
-log_info "TFDrift-Falco Load Test"
+log_info "driftwire Load Test"
 log_info "========================"
 log_info "Scenario: $SCENARIO"
 log_info "  Event Rate: $EVENT_RATE events/min"
@@ -147,7 +147,7 @@ fi
 # Step 2: Build Docker image
 if [ "$SKIP_BUILD" = false ]; then
     log_step "Step 2: Building Docker image"
-    docker build -t tfdrift-falco:load-test ../../
+    docker build -t driftwire:load-test ../../
     log_info "Docker build complete"
     echo ""
 else
@@ -158,7 +158,7 @@ fi
 log_step "Step 3: Creating configuration"
 
 cat > "$OUTPUT_DIR/config.yaml" << EOF
-# TFDrift-Falco Load Test Configuration
+# driftwire Load Test Configuration
 
 providers:
   aws:
@@ -191,7 +191,7 @@ logging:
   level: "info"
   format: "json"
   output: "file"
-  file: "/var/log/tfdrift/tfdrift.jsonl"
+  file: "/var/log/driftwire/driftwire.jsonl"
 
 advanced:
   state_refresh_interval: "5m"
@@ -257,7 +257,7 @@ echo ""
 log_step "Step 7: Generating report"
 
 cat > "$OUTPUT_DIR/report.md" << EOF
-# TFDrift-Falco Load Test Report
+# driftwire Load Test Report
 
 **Scenario**: $SCENARIO
 **Date**: $(date)

@@ -12,7 +12,7 @@ import (
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
 	"github.com/falcosecurity/client-go/pkg/api/schema"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -91,7 +91,7 @@ func (a falcoAlert) toResponse() *outputs.Response {
 	return res
 }
 
-// ParseHTTPAlert decodes a single Falco http_output alert body into a TFDrift
+// ParseHTTPAlert decodes a single Falco http_output alert body into a driftwire
 // event via the shared parse path. Returns (nil, nil) when the alert is valid
 // but not drift-relevant (e.g. a read-only event), mirroring parseFalcoOutput.
 // Exposed for unit testing the HTTP transport independently of a live server.

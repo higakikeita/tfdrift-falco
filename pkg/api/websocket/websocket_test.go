@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/broadcaster"
+	"github.com/higakikeita/driftwire/pkg/api/broadcaster"
 	"github.com/stretchr/testify/assert"
 )
 

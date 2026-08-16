@@ -1,4 +1,4 @@
-# TFDrift-Falco AWS Validation - Phase 1: Test Resources
+# driftwire AWS Validation - Phase 1: Test Resources
 # Creates VPC, EC2, S3 resources to validate drift detection
 #
 # Usage:
@@ -25,7 +25,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket  = "tfdrift-validation-state"
+    bucket  = "driftwire-validation-state"
     key     = "phase1-resources/terraform.tfstate"
     region  = "ap-northeast-1"
     profile = "draios-dev-developer"
@@ -38,7 +38,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "tfdrift-falco-validation"
+      Project     = "driftwire-validation"
       Environment = "validation"
       ManagedBy   = "terraform"
       Owner       = "keita.higaki"
@@ -53,7 +53,7 @@ resource "random_id" "suffix" {
 }
 
 locals {
-  name_prefix = "tfdrift-val-${random_id.suffix.hex}"
+  name_prefix = "driftwire-val-${random_id.suffix.hex}"
 }
 
 # ==========================================================
@@ -179,7 +179,7 @@ resource "aws_instance" "webserver" {
 
   tags = {
     Name        = "${local.name_prefix}-webserver"
-    Application = "tfdrift-validation"
+    Application = "driftwire-validation"
   }
 }
 

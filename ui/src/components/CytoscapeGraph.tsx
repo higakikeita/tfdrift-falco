@@ -1,7 +1,7 @@
 /**
  * CytoscapeGraph Component
  *
- * TFDrift-Falco因果関係グラフのメインビジュアライゼーション
+ * driftwire因果関係グラフのメインビジュアライゼーション
  * This component is a thin wrapper that composes the split cytoscape modules
  */
 

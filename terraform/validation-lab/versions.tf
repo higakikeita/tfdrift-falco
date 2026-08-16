@@ -14,7 +14,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "tfdrift-falco"
+      Project     = "driftwire"
       Environment = "validation-lab"
       ManagedBy   = "terraform"
       Purpose     = "drift-detection-e2e"

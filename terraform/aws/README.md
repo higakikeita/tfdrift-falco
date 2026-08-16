@@ -1,6 +1,6 @@
-# TFDrift-Falco AWS Terraform Module
+# driftwire AWS Terraform Module
 
-This Terraform module deploys TFDrift-Falco on AWS ECS Fargate with all required infrastructure.
+This Terraform module deploys driftwire on AWS ECS Fargate with all required infrastructure.
 
 ## Features
 
@@ -24,8 +24,8 @@ This Terraform module deploys TFDrift-Falco on AWS ECS Fargate with all required
 ### Basic Example
 
 ```hcl
-module "tfdrift_falco" {
-  source = "github.com/higakikeita/tfdrift-falco//terraform/aws"
+module "driftwire_falco" {
+  source = "github.com/higakikeita/driftwire//terraform/aws"
 
   # Network Configuration
   vpc_id     = "vpc-12345678"
@@ -49,11 +49,11 @@ module "tfdrift_falco" {
 ### Advanced Example with All Options
 
 ```hcl
-module "tfdrift_falco" {
-  source = "github.com/higakikeita/tfdrift-falco//terraform/aws"
+module "driftwire_falco" {
+  source = "github.com/higakikeita/driftwire//terraform/aws"
 
   # Basic Configuration
-  cluster_name = "tfdrift-falco-prod"
+  cluster_name = "driftwire-prod"
   aws_region   = "us-east-1"
 
   # Network Configuration
@@ -77,7 +77,7 @@ module "tfdrift_falco" {
 
   # Container Versions
   falco_version   = "0.37.1"
-  tfdrift_version = "0.9.0"
+  driftwire_version = "0.9.0"
 
   # Notification Configuration
   slack_webhook_secret_arn = aws_secretsmanager_secret.slack_webhook.arn
@@ -95,13 +95,13 @@ module "tfdrift_falco" {
     Environment = "production"
     Team        = "security"
     ManagedBy   = "Terraform"
-    Application = "TFDrift-Falco"
+    Application = "driftwire"
   }
 }
 
 # Store Slack webhook URL in Secrets Manager
 resource "aws_secretsmanager_secret" "slack_webhook" {
-  name = "tfdrift-falco/slack-webhook"
+  name = "driftwire/slack-webhook"
   tags = {
     Environment = "production"
   }
@@ -114,7 +114,7 @@ resource "aws_secretsmanager_secret_version" "slack_webhook" {
 
 # SNS Topic for CloudWatch Alarms
 resource "aws_sns_topic" "alerts" {
-  name = "tfdrift-falco-alerts"
+  name = "driftwire-alerts"
 }
 
 resource "aws_sns_topic_subscription" "alerts_email" {
@@ -128,10 +128,10 @@ resource "aws_sns_topic_subscription" "alerts_email" {
 
 ```hcl
 # US-East-1
-module "tfdrift_falco_us_east_1" {
-  source = "github.com/higakikeita/tfdrift-falco//terraform/aws"
+module "driftwire_falco_us_east_1" {
+  source = "github.com/higakikeita/driftwire//terraform/aws"
 
-  cluster_name               = "tfdrift-falco-us-east-1"
+  cluster_name               = "driftwire-us-east-1"
   aws_region                 = "us-east-1"
   vpc_id                     = data.aws_vpc.us_east_1.id
   subnet_ids                 = data.aws_subnets.us_east_1_private.ids
@@ -141,10 +141,10 @@ module "tfdrift_falco_us_east_1" {
 }
 
 # AP-Northeast-1
-module "tfdrift_falco_ap_northeast_1" {
-  source = "github.com/higakikeita/tfdrift-falco//terraform/aws"
+module "driftwire_falco_ap_northeast_1" {
+  source = "github.com/higakikeita/driftwire//terraform/aws"
 
-  cluster_name               = "tfdrift-falco-ap-northeast-1"
+  cluster_name               = "driftwire-ap-northeast-1"
   aws_region                 = "ap-northeast-1"
   vpc_id                     = data.aws_vpc.ap_northeast_1.id
   subnet_ids                 = data.aws_subnets.ap_northeast_1_private.ids
@@ -158,9 +158,9 @@ module "tfdrift_falco_ap_northeast_1" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|----------|
-| cluster_name | Name of the ECS cluster | string | "tfdrift-falco" | no |
-| aws_region | AWS region to deploy TFDrift-Falco | string | "us-east-1" | no |
-| vpc_id | VPC ID where TFDrift-Falco will be deployed | string | - | yes |
+| cluster_name | Name of the ECS cluster | string | "driftwire" | no |
+| aws_region | AWS region to deploy driftwire | string | "us-east-1" | no |
+| vpc_id | VPC ID where driftwire will be deployed | string | - | yes |
 | subnet_ids | List of subnet IDs for ECS tasks | list(string) | - | yes |
 | assign_public_ip | Assign public IP to ECS tasks | bool | false | no |
 | terraform_state_bucket | S3 bucket containing Terraform state | string | - | yes |
@@ -172,7 +172,7 @@ module "tfdrift_falco_ap_northeast_1" {
 | task_memory | Memory for ECS task in MB | string | "1024" | no |
 | desired_count | Number of ECS tasks to run | number | 1 | no |
 | falco_version | Falco container image version | string | "0.37.1" | no |
-| tfdrift_version | TFDrift-Falco container image version | string | "latest" | no |
+| driftwire_version | driftwire container image version | string | "latest" | no |
 | slack_webhook_secret_arn | AWS Secrets Manager ARN containing Slack webhook URL | string | "" | no |
 | enable_cloudwatch_alarms | Enable CloudWatch alarms for CPU and memory | bool | true | no |
 | alarm_sns_topic_arn | SNS topic ARN for CloudWatch alarm notifications | string | "" | no |
@@ -188,7 +188,7 @@ module "tfdrift_falco_ap_northeast_1" {
 | ecs_cluster_arn | ARN of the ECS cluster |
 | ecs_service_name | Name of the ECS service |
 | ecs_task_definition_arn | ARN of the ECS task definition |
-| security_group_id | Security group ID for TFDrift-Falco ECS tasks |
+| security_group_id | Security group ID for driftwire ECS tasks |
 | ecs_task_role_arn | IAM role ARN for ECS tasks |
 | ecs_task_execution_role_arn | IAM role ARN for ECS task execution |
 | cloudwatch_log_group_name | CloudWatch log group name |
@@ -199,17 +199,17 @@ module "tfdrift_falco_ap_northeast_1" {
 ### Using AWS Console
 
 1. Navigate to CloudWatch → Log groups
-2. Select `/ecs/tfdrift-falco` (or your custom cluster name)
-3. View log streams for `falco` and `tfdrift`
+2. Select `/ecs/driftwire` (or your custom cluster name)
+3. View log streams for `falco` and `driftwire`
 
 ### Using AWS CLI
 
 ```bash
-# View TFDrift-Falco logs
-aws logs tail /ecs/tfdrift-falco --follow --filter-pattern "tfdrift"
+# View driftwire logs
+aws logs tail /ecs/driftwire --follow --filter-pattern "driftwire"
 
 # View Falco logs
-aws logs tail /ecs/tfdrift-falco --follow --filter-pattern "falco"
+aws logs tail /ecs/driftwire --follow --filter-pattern "falco"
 ```
 
 ## Monitoring
@@ -222,7 +222,7 @@ The module creates CloudWatch alarms for:
 
 ## Cost Estimation
 
-Typical costs for running TFDrift-Falco on AWS ECS Fargate:
+Typical costs for running driftwire on AWS ECS Fargate:
 
 | Resource | Configuration | Estimated Monthly Cost (us-east-1) |
 |----------|---------------|-----------------------------------|
@@ -239,8 +239,8 @@ For high availability (2 tasks), multiply by 2: **~$36-50/month**
 
 **Check IAM permissions:**
 ```bash
-aws iam get-role --role-name tfdrift-falco-ecs-task
-aws iam list-attached-role-policies --role-name tfdrift-falco-ecs-task
+aws iam get-role --role-name driftwire-ecs-task
+aws iam list-attached-role-policies --role-name driftwire-ecs-task
 ```
 
 ### Issue: Cannot access Terraform state
@@ -265,13 +265,13 @@ aws cloudtrail get-trail-status --name my-trail
 
 ## Upgrading
 
-To upgrade TFDrift-Falco version:
+To upgrade driftwire version:
 
 ```hcl
-module "tfdrift_falco" {
+module "driftwire_falco" {
   # ...
 
-  tfdrift_version = "0.9.0"  # Update version
+  driftwire_version = "0.9.0"  # Update version
 }
 ```
 
@@ -295,8 +295,8 @@ ECS will perform a rolling update with zero downtime.
 ## Support
 
 For issues or questions:
-- GitHub Issues: https://github.com/higakikeita/tfdrift-falco/issues
-- Documentation: https://github.com/higakikeita/tfdrift-falco/docs
+- GitHub Issues: https://github.com/higakikeita/driftwire/issues
+- Documentation: https://github.com/higakikeita/driftwire/docs
 
 ## License
 

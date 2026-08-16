@@ -3,7 +3,7 @@ package detector
 import (
 	"reflect"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/terraform"
 )
 
 // AttributeDrift represents a single attribute change

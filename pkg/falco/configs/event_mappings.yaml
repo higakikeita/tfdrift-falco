@@ -1,4 +1,4 @@
-# AWS CloudTrail Event Mappings for tfdrift-falco
+# AWS CloudTrail Event Mappings for driftwire
 # This file defines which CloudTrail events are relevant for drift detection
 # and how to map them to Terraform resource types and field extraction paths.
 

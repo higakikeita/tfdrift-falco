@@ -1,4 +1,4 @@
-// Package terraform provides Terraform-related functionality for TFDrift-Falco.
+// Package terraform provides Terraform-related functionality for driftwire.
 package terraform
 
 import (
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // RemediationGenerator generates remediation proposals for detected drifts and unmanaged resources

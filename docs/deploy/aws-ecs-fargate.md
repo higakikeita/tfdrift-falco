@@ -1,6 +1,6 @@
 # AWS ECS/Fargate Deployment Guide
 
-This guide covers deploying TFDrift-Falco on AWS ECS using AWS Fargate for a serverless container experience.
+This guide covers deploying driftwire on AWS ECS using AWS Fargate for a serverless container experience.
 
 ## Table of Contents
 
@@ -39,7 +39,7 @@ This guide covers deploying TFDrift-Falco on AWS ECS using AWS Fargate for a ser
   - ALB (allow HTTP/HTTPS traffic)
   - ECS tasks (allow traffic from ALB)
   - Database access (if using RDS)
-- ECR repository (create via `aws ecr create-repository --repository-name tfdrift-falco`)
+- ECR repository (create via `aws ecr create-repository --repository-name driftwire`)
 - CloudWatch Log Group (create via AWS console or CLI)
 
 ### Local Tools
@@ -66,7 +66,7 @@ The architecture consists of:
 
 ## Task Definition
 
-Create an ECS task definition for TFDrift-Falco with recommended settings.
+Create an ECS task definition for driftwire with recommended settings.
 
 ### Memory and CPU Configuration
 
@@ -81,15 +81,15 @@ Create an ECS task definition for TFDrift-Falco with recommended settings.
 
 ```json
 {
-  "family": "tfdrift-falco",
+  "family": "driftwire",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
   "memory": "1024",
   "containerDefinitions": [
     {
-      "name": "tfdrift-falco",
-      "image": "123456789.dkr.ecr.us-east-1.amazonaws.com/tfdrift-falco:latest",
+      "name": "driftwire",
+      "image": "123456789.dkr.ecr.us-east-1.amazonaws.com/driftwire:latest",
       "essential": true,
       "portMappings": [
         {
@@ -100,28 +100,28 @@ Create an ECS task definition for TFDrift-Falco with recommended settings.
       ],
       "environment": [
         {
-          "name": "TFDRIFT_FALCO_PORT",
+          "name": "DRIFTWIRE_FALCO_PORT",
           "value": "8080"
         },
         {
-          "name": "TFDRIFT_FALCO_LOG_LEVEL",
+          "name": "DRIFTWIRE_FALCO_LOG_LEVEL",
           "value": "info"
         },
         {
-          "name": "TFDRIFT_FALCO_LOG_FORMAT",
+          "name": "DRIFTWIRE_FALCO_LOG_FORMAT",
           "value": "json"
         }
       ],
       "secrets": [
         {
           "name": "JWT_SECRET",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:tfdrift-falco/jwt-secret:jwt_secret::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:driftwire/jwt-secret:jwt_secret::"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/tfdrift-falco",
+          "awslogs-group": "/ecs/driftwire",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
@@ -163,14 +163,14 @@ Create an ECS task definition for TFDrift-Falco with recommended settings.
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
-      "Resource": "arn:aws:logs:us-east-1:123456789:log-group:/ecs/tfdrift-falco:*"
+      "Resource": "arn:aws:logs:us-east-1:123456789:log-group:/ecs/driftwire:*"
     },
     {
       "Effect": "Allow",
       "Action": [
         "secretsmanager:GetSecretValue"
       ],
-      "Resource": "arn:aws:secretsmanager:us-east-1:123456789:secret:tfdrift-falco/*"
+      "Resource": "arn:aws:secretsmanager:us-east-1:123456789:secret:driftwire/*"
     }
   ]
 }
@@ -217,9 +217,9 @@ Create an ECS task definition for TFDrift-Falco with recommended settings.
 
 ```json
 {
-  "serviceName": "tfdrift-falco-service",
+  "serviceName": "driftwire-service",
   "cluster": "production",
-  "taskDefinition": "tfdrift-falco:1",
+  "taskDefinition": "driftwire:1",
   "desiredCount": 3,
   "launchType": "FARGATE",
   "platformVersion": "LATEST",
@@ -230,15 +230,15 @@ Create an ECS task definition for TFDrift-Falco with recommended settings.
         "subnet-87654321"
       ],
       "securityGroups": [
-        "sg-tfdrift-falco-tasks"
+        "sg-driftwire-tasks"
       ],
       "assignPublicIp": "DISABLED"
     }
   },
   "loadBalancers": [
     {
-      "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/tfdrift-falco/abcd1234",
-      "containerName": "tfdrift-falco",
+      "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/driftwire/abcd1234",
+      "containerName": "driftwire",
       "containerPort": 8080
     }
   ],
@@ -261,15 +261,15 @@ Create an ECS task definition for TFDrift-Falco with recommended settings.
 ```bash
 # Create ALB
 aws elbv2 create-load-balancer \
-  --name tfdrift-falco-alb \
+  --name driftwire-alb \
   --subnets subnet-12345678 subnet-87654321 \
-  --security-groups sg-alb-tfdrift \
+  --security-groups sg-alb-driftwire \
   --scheme internet-facing \
   --type application
 
 # Create target group
 aws elbv2 create-target-group \
-  --name tfdrift-falco-targets \
+  --name driftwire-targets \
   --protocol HTTP \
   --port 8080 \
   --vpc-id vpc-12345678 \
@@ -282,10 +282,10 @@ aws elbv2 create-target-group \
 
 # Create listener
 aws elbv2 create-listener \
-  --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:123456789:loadbalancer/app/tfdrift-falco-alb/1234567890abcdef \
+  --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:123456789:loadbalancer/app/driftwire-alb/1234567890abcdef \
   --protocol HTTP \
   --port 80 \
-  --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/tfdrift-falco-targets/1234567890abcdef
+  --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/driftwire-targets/1234567890abcdef
 ```
 
 ### HTTPS Configuration
@@ -293,15 +293,15 @@ aws elbv2 create-listener \
 ```bash
 # Create HTTPS listener (requires SSL certificate)
 aws elbv2 create-listener \
-  --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:123456789:loadbalancer/app/tfdrift-falco-alb/1234567890abcdef \
+  --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:123456789:loadbalancer/app/driftwire-alb/1234567890abcdef \
   --protocol HTTPS \
   --port 443 \
   --certificates CertificateArn=arn:aws:acm:us-east-1:123456789:certificate/12345678-1234-1234-1234-123456789012 \
-  --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/tfdrift-falco-targets/1234567890abcdef
+  --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/driftwire-targets/1234567890abcdef
 
 # Redirect HTTP to HTTPS
 aws elbv2 modify-listener \
-  --listener-arn arn:aws:elasticloadbalancing:us-east-1:123456789:listener/app/tfdrift-falco-alb/1234567890abcdef/1234567890abcdef \
+  --listener-arn arn:aws:elasticloadbalancing:us-east-1:123456789:listener/app/driftwire-alb/1234567890abcdef/1234567890abcdef \
   --default-actions Type=redirect,RedirectConfig='{Protocol=HTTPS,Port=443,StatusCode=HTTP_301}'
 ```
 
@@ -311,13 +311,13 @@ aws elbv2 modify-listener \
 
 ```bash
 # Core Configuration
-TFDRIFT_FALCO_PORT=8080
-TFDRIFT_FALCO_LOG_LEVEL=info
-TFDRIFT_FALCO_LOG_FORMAT=json
+DRIFTWIRE_FALCO_PORT=8080
+DRIFTWIRE_FALCO_LOG_LEVEL=info
+DRIFTWIRE_FALCO_LOG_FORMAT=json
 
 # Falco Integration
-TFDRIFT_FALCO_HOSTNAME=falco.example.com
-TFDRIFT_FALCO_PORT_GRPC=5060
+DRIFTWIRE_FALCO_HOSTNAME=falco.example.com
+DRIFTWIRE_FALCO_PORT_GRPC=5060
 
 # AWS Configuration
 AWS_REGION=us-east-1
@@ -350,19 +350,19 @@ Use AWS Secrets Manager to manage sensitive data.
 ```bash
 # Create JWT secret
 aws secretsmanager create-secret \
-  --name tfdrift-falco/jwt-secret \
-  --description "JWT signing secret for TFDrift-Falco" \
+  --name driftwire/jwt-secret \
+  --description "JWT signing secret for driftwire" \
   --secret-string "$(openssl rand -base64 32)"
 
 # Create database credentials (if using RDS)
 aws secretsmanager create-secret \
-  --name tfdrift-falco/db-password \
+  --name driftwire/db-password \
   --description "Database password" \
   --secret-string '{"username":"dbuser","password":"secure-password"}'
 
 # Create API keys
 aws secretsmanager create-secret \
-  --name tfdrift-falco/api-keys \
+  --name driftwire/api-keys \
   --description "External API keys" \
   --secret-string '{"slack_webhook":"https://...","datadog_api_key":"..."}'
 ```
@@ -375,11 +375,11 @@ Secrets are injected as environment variables via the task definition:
 "secrets": [
   {
     "name": "JWT_SECRET",
-    "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:tfdrift-falco/jwt-secret:jwt_secret::"
+    "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:driftwire/jwt-secret:jwt_secret::"
   },
   {
     "name": "DB_PASSWORD",
-    "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:tfdrift-falco/db-password:password::"
+    "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:driftwire/db-password:password::"
   }
 ]
 ```
@@ -389,13 +389,13 @@ Secrets are injected as environment variables via the task definition:
 ```bash
 # Update a secret (creates new version)
 aws secretsmanager put-secret-value \
-  --secret-id tfdrift-falco/jwt-secret \
+  --secret-id driftwire/jwt-secret \
   --secret-string "$(openssl rand -base64 32)"
 
 # Force tasks to refresh and pick up new secret
 aws ecs update-service \
   --cluster production \
-  --service tfdrift-falco-service \
+  --service driftwire-service \
   --force-new-deployment
 ```
 
@@ -407,16 +407,16 @@ aws ecs update-service \
 # Register scalable target
 aws application-autoscaling register-scalable-target \
   --service-namespace ecs \
-  --resource-id service/production/tfdrift-falco-service \
+  --resource-id service/production/driftwire-service \
   --scalable-dimension ecs:service:DesiredCount \
   --min-capacity 3 \
   --max-capacity 10
 
 # Create scaling policy (CPU-based)
 aws application-autoscaling put-scaling-policy \
-  --policy-name tfdrift-falco-cpu-scaling \
+  --policy-name driftwire-cpu-scaling \
   --service-namespace ecs \
-  --resource-id service/production/tfdrift-falco-service \
+  --resource-id service/production/driftwire-service \
   --scalable-dimension ecs:service:DesiredCount \
   --policy-type TargetTrackingScaling \
   --target-tracking-scaling-policy-configuration '{
@@ -430,9 +430,9 @@ aws application-autoscaling put-scaling-policy \
 
 # Create scaling policy (Memory-based)
 aws application-autoscaling put-scaling-policy \
-  --policy-name tfdrift-falco-memory-scaling \
+  --policy-name driftwire-memory-scaling \
   --service-namespace ecs \
-  --resource-id service/production/tfdrift-falco-service \
+  --resource-id service/production/driftwire-service \
   --scalable-dimension ecs:service:DesiredCount \
   --policy-type TargetTrackingScaling \
   --target-tracking-scaling-policy-configuration '{
@@ -446,9 +446,9 @@ aws application-autoscaling put-scaling-policy \
 
 # Create scaling policy (ALB Request Count)
 aws application-autoscaling put-scaling-policy \
-  --policy-name tfdrift-falco-request-scaling \
+  --policy-name driftwire-request-scaling \
   --service-namespace ecs \
-  --resource-id service/production/tfdrift-falco-service \
+  --resource-id service/production/driftwire-service \
   --scalable-dimension ecs:service:DesiredCount \
   --policy-type TargetTrackingScaling \
   --target-tracking-scaling-policy-configuration '{
@@ -483,11 +483,11 @@ ScaleInCooldown: 300s       # Wait before scaling in again
 
 ```bash
 # Create log group
-aws logs create-log-group --log-group-name /ecs/tfdrift-falco
+aws logs create-log-group --log-group-name /ecs/driftwire
 
 # Set retention policy (30 days)
 aws logs put-retention-policy \
-  --log-group-name /ecs/tfdrift-falco \
+  --log-group-name /ecs/driftwire \
   --retention-in-days 30
 ```
 
@@ -505,7 +505,7 @@ aws ecs update-cluster-settings \
 ```bash
 # Alarm for high CPU
 aws cloudwatch put-metric-alarm \
-  --alarm-name tfdrift-falco-high-cpu \
+  --alarm-name driftwire-high-cpu \
   --alarm-description "Alert when CPU exceeds 80%" \
   --metric-name CPUUtilization \
   --namespace AWS/ECS \
@@ -518,7 +518,7 @@ aws cloudwatch put-metric-alarm \
 
 # Alarm for task failures
 aws cloudwatch put-metric-alarm \
-  --alarm-name tfdrift-falco-task-failures \
+  --alarm-name driftwire-task-failures \
   --alarm-description "Alert when tasks fail" \
   --metric-name RunningCount \
   --namespace AWS/ECS \
@@ -531,7 +531,7 @@ aws cloudwatch put-metric-alarm \
 
 # Alarm for ALB target health
 aws cloudwatch put-metric-alarm \
-  --alarm-name tfdrift-falco-unhealthy-targets \
+  --alarm-name driftwire-unhealthy-targets \
   --alarm-description "Alert when targets become unhealthy" \
   --metric-name UnHealthyHostCount \
   --namespace AWS/ApplicationELB \
@@ -548,7 +548,7 @@ aws cloudwatch put-metric-alarm \
 ```bash
 # Create dashboard with key metrics
 aws cloudwatch put-dashboard \
-  --dashboard-name TFDrift-Falco-Production \
+  --dashboard-name driftwire-Production \
   --dashboard-body file://dashboard.json
 ```
 
@@ -569,7 +569,7 @@ Sample `dashboard.json`:
         "period": 300,
         "stat": "Average",
         "region": "us-east-1",
-        "title": "TFDrift-Falco Performance"
+        "title": "driftwire Performance"
       }
     }
   ]
@@ -622,7 +622,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 
 ```bash
 aws elbv2 modify-target-group \
-  --target-group-arn arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/tfdrift-falco/1234567890abcdef \
+  --target-group-arn arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/driftwire/1234567890abcdef \
   --health-check-protocol HTTP \
   --health-check-path /health \
   --health-check-interval-seconds 30 \
@@ -657,7 +657,7 @@ resource "aws_ecs_cluster" "main" {
 
 # Task Definition
 resource "aws_ecs_task_definition" "app" {
-  family                   = "tfdrift-falco"
+  family                   = "driftwire"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"
@@ -668,7 +668,7 @@ resource "aws_ecs_task_definition" "app" {
 
   container_definitions = jsonencode([
     {
-      name      = "tfdrift-falco"
+      name      = "driftwire"
       image     = "${aws_ecr_repository.app.repository_url}:latest"
       essential = true
 
@@ -694,7 +694,7 @@ resource "aws_ecs_task_definition" "app" {
 
 # ECS Service
 resource "aws_ecs_service" "app" {
-  name            = "tfdrift-falco-service"
+  name            = "driftwire-service"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = 3
@@ -708,7 +708,7 @@ resource "aws_ecs_service" "app" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
-    container_name   = "tfdrift-falco"
+    container_name   = "driftwire"
     container_port   = 8080
   }
 
@@ -757,13 +757,13 @@ resource "aws_appautoscaling_policy" "ecs_policy_cpu" {
 
 ```bash
 # Build image
-docker build -t tfdrift-falco:latest .
+docker build -t driftwire:latest .
 
 # Tag for ECR
-docker tag tfdrift-falco:latest 123456789.dkr.ecr.us-east-1.amazonaws.com/tfdrift-falco:latest
+docker tag driftwire:latest 123456789.dkr.ecr.us-east-1.amazonaws.com/driftwire:latest
 
 # Push to ECR
-docker push 123456789.dkr.ecr.us-east-1.amazonaws.com/tfdrift-falco:latest
+docker push 123456789.dkr.ecr.us-east-1.amazonaws.com/driftwire:latest
 ```
 
 ### 2. Create Task Definition
@@ -778,18 +778,18 @@ aws ecs register-task-definition --cli-input-json file://task-definition.json
 # Create service
 aws ecs create-service \
   --cluster production \
-  --service-name tfdrift-falco-service \
-  --task-definition tfdrift-falco:1 \
+  --service-name driftwire-service \
+  --task-definition driftwire:1 \
   --desired-count 3 \
   --launch-type FARGATE \
-  --network-configuration "awsvpcConfiguration={subnets=[subnet-12345678,subnet-87654321],securityGroups=[sg-tfdrift],assignPublicIp=DISABLED}" \
-  --load-balancers "targetGroupArn=arn:aws:...,containerName=tfdrift-falco,containerPort=8080"
+  --network-configuration "awsvpcConfiguration={subnets=[subnet-12345678,subnet-87654321],securityGroups=[sg-driftwire],assignPublicIp=DISABLED}" \
+  --load-balancers "targetGroupArn=arn:aws:...,containerName=driftwire,containerPort=8080"
 
 # Or update existing service
 aws ecs update-service \
   --cluster production \
-  --service tfdrift-falco-service \
-  --task-definition tfdrift-falco:2 \
+  --service driftwire-service \
+  --task-definition driftwire:2 \
   --force-new-deployment
 ```
 
@@ -799,19 +799,19 @@ aws ecs update-service \
 # Check service status
 aws ecs describe-services \
   --cluster production \
-  --services tfdrift-falco-service
+  --services driftwire-service
 
 # Check running tasks
 aws ecs list-tasks \
   --cluster production \
-  --service-name tfdrift-falco-service
+  --service-name driftwire-service
 
 # Check target health
 aws elbv2 describe-target-health \
-  --target-group-arn arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/tfdrift-falco/1234567890abcdef
+  --target-group-arn arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/driftwire/1234567890abcdef
 
 # Watch logs
-aws logs tail /ecs/tfdrift-falco --follow
+aws logs tail /ecs/driftwire --follow
 ```
 
 ## Troubleshooting
@@ -839,10 +839,10 @@ aws ecs describe-tasks \
 ```bash
 # Check target group health
 aws elbv2 describe-target-health \
-  --target-group-arn arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/tfdrift-falco/1234567890abcdef
+  --target-group-arn arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/driftwire/1234567890abcdef
 
 # Check logs for errors
-aws logs tail /ecs/tfdrift-falco --follow | grep -i error
+aws logs tail /ecs/driftwire --follow | grep -i error
 
 # Common causes:
 # 1. Health check endpoint not responding - verify /health endpoint
@@ -862,8 +862,8 @@ aws ecs register-task-definition \
 # Update service to use new task definition
 aws ecs update-service \
   --cluster production \
-  --service tfdrift-falco-service \
-  --task-definition tfdrift-falco:3
+  --service driftwire-service \
+  --task-definition driftwire:3
 ```
 
 ### Connection to Falco Failing
@@ -875,12 +875,12 @@ aws ecs update-service \
 aws ecs execute-command \
   --cluster production \
   --task task-id \
-  --container tfdrift-falco \
+  --container driftwire \
   --interactive \
   --command "/bin/sh -c 'nc -zv falco.example.com 5060'"
 
 # Check security group rules
-aws ec2 describe-security-groups --group-ids sg-tfdrift-tasks
+aws ec2 describe-security-groups --group-ids sg-driftwire-tasks
 ```
 
 ### Deployment Stuck During Rollout
@@ -891,19 +891,19 @@ aws ec2 describe-security-groups --group-ids sg-tfdrift-tasks
 # Check deployment status
 aws ecs describe-services \
   --cluster production \
-  --services tfdrift-falco-service
+  --services driftwire-service
 
 # Rollback to previous task definition
 aws ecs update-service \
   --cluster production \
-  --service tfdrift-falco-service \
-  --task-definition tfdrift-falco:1 \
+  --service driftwire-service \
+  --task-definition driftwire:1 \
   --force-new-deployment
 
 # Increase deployment timeout
 aws ecs update-service \
   --cluster production \
-  --service tfdrift-falco-service \
+  --service driftwire-service \
   --deployment-configuration maximumPercent=300,minimumHealthyPercent=50
 ```
 

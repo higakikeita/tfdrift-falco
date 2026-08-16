@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/app"
+	"github.com/higakikeita/driftwire/pkg/app"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -82,12 +82,12 @@ func TestNewApprovalListCmd_Execute(t *testing.T) {
 	output := buf.String()
 
 	// Verify output contains expected messages
-	assert.Contains(t, output, "This feature requires a running TFDrift-Falco instance")
+	assert.Contains(t, output, "This feature requires a running driftwire instance")
 	assert.Contains(t, output, "approval requests are only available during interactive sessions")
 	assert.Contains(t, output, "To use approval workflow:")
 	assert.Contains(t, output, "Enable auto_import in config.yaml")
 	assert.Contains(t, output, "require_approval: true")
-	assert.Contains(t, output, "tfdrift --config config.yaml --interactive")
+	assert.Contains(t, output, "driftwire --config config.yaml --interactive")
 }
 
 func TestNewApprovalApproveCmd(t *testing.T) {

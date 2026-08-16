@@ -2,7 +2,7 @@
 
 ## はじめに
 
-[TFDrift-Falco](https://github.com/higakikeita/tfdrift-falco) は、Falco を使って Terraform のドリフト（状態のズレ）をリアルタイムに検知する OSS ツールです。
+[driftwire](https://github.com/higakikeita/driftwire) は、Falco を使って Terraform のドリフト（状態のズレ）をリアルタイムに検知する OSS ツールです。
 
 しかし、なぜ「Falco」を間に挟む必要があるのでしょうか？
 Terraform だけではダメなのでしょうか？
@@ -185,7 +185,7 @@ driftctl scan
 
 ### Falco を挟むと
 
-TFDrift-Falco のアプローチ：
+driftwire のアプローチ：
 
 ```
 IAM User が API を叩いた
@@ -211,7 +211,7 @@ Terraform State と比較
 
 ## 📊 比較表
 
-| 観点 | 従来のドリフト検知 | Falco + TFDrift |
+| 観点 | 従来のドリフト検知 | Falco + driftwire |
 |------|-------------------|-----------------|
 | **検知対象** | 差分（結果） | 行為（原因） |
 | **主語** | リソース | 人 / Role / Bot |
@@ -238,7 +238,7 @@ $ terraform plan
 - ❌ いつ変更されたか不明
 - ❌ なぜ変更したか不明
 
-**TFDrift-Falco:**
+**driftwire:**
 ```
 [2025-01-15 14:32:10] ALERT Drift Detected!
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -277,7 +277,7 @@ graph TB
     A[AWS CloudTrail] --> B[Falco<br/>CloudTrail Plugin]
     B --> C[Falco Rules<br/>Engine]
     C --> D[Falco gRPC<br/>Output Stream]
-    D --> E[TFDrift-Falco<br/>Subscriber]
+    D --> E[driftwire<br/>Subscriber]
 
     F[Terraform State<br/>S3/Local] --> E
 
@@ -306,7 +306,7 @@ graph TB
 2. **Falco がイベントを検知**
    → CloudTrail Plugin 経由でストリーミング
 
-3. **TFDrift-Falco が受信**
+3. **driftwire が受信**
    → Terraform State と比較
 
 4. **ドリフト判定**
@@ -328,7 +328,7 @@ graph TB
 |--------|------|
 | **Terraform** | 「あるべき姿」を定義 |
 | **Falco** | 「実際に起きた行為」を観測 |
-| **TFDrift-Falco** | 両者を翻訳して意味を抽出 |
+| **driftwire** | 両者を翻訳して意味を抽出 |
 
 ### Falco の本質
 
@@ -346,9 +346,9 @@ Falco は単なるログ収集ツールではありません。
 
 ## 🔗 リンク
 
-- **TFDrift-Falco 公式ページ**: https://tfdrift-falco-7k8pircx3-higakikeitas-projects.vercel.app/
-- **TFDrift-Falco ドキュメント**: https://higakikeita.github.io/tfdrift-falco/
-- **TFDrift-Falco リポジトリ**: https://github.com/higakikeita/tfdrift-falco
+- **driftwire 公式ページ**: https://driftwire-7k8pircx3-higakikeitas-projects.vercel.app/
+- **driftwire ドキュメント**: https://higakikeita.github.io/driftwire/
+- **driftwire リポジトリ**: https://github.com/higakikeita/driftwire
 - **Falco 公式サイト**: https://falco.org/
 - **Sysdig Community**: https://community.sysdig.com/
 
@@ -369,4 +369,4 @@ Falco は単なるログ収集ツールではありません。
 
 **Written by [@keitah0322](https://x.com/keitah0322)**
 **GitHub: [@higakikeita](https://github.com/higakikeita)**
-**Project: [TFDrift-Falco](https://github.com/higakikeita/tfdrift-falco)**
+**Project: [driftwire](https://github.com/higakikeita/driftwire)**

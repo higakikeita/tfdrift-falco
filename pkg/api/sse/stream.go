@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/broadcaster"
+	"github.com/higakikeita/driftwire/pkg/api/broadcaster"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -66,7 +66,7 @@ func (s *Stream) Start() {
 	// Send initial connection event
 	s.sendEvent("connected", map[string]interface{}{
 		"stream_id": s.id,
-		"message":   "Connected to TFDrift-Falco SSE stream v0.9.0",
+		"message":   "Connected to driftwire SSE stream v0.9.0",
 		"version":   "0.9.0",
 		"events":    []string{"drift", "falco", "state_change", "drift_result", "discovery_progress", "provider_status", "unmanaged_resource"},
 		"timestamp": time.Now().Format(time.RFC3339),

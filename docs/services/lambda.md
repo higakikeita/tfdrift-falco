@@ -2,7 +2,7 @@
 
 ## Overview
 
-TFDrift-Falco monitors AWS Lambda for configuration drift by tracking CloudTrail events related to functions, permissions, event source mappings, and concurrency settings. This enables real-time detection of manual changes made outside of Terraform workflows.
+driftwire monitors AWS Lambda for configuration drift by tracking CloudTrail events related to functions, permissions, event source mappings, and concurrency settings. This enables real-time detection of manual changes made outside of Terraform workflows.
 
 ## Supported CloudTrail Events
 
@@ -191,7 +191,7 @@ TFDrift-Falco monitors AWS Lambda for configuration drift by tracking CloudTrail
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_lambda_function.process_orders
 Changed: memory_size = 512 → 1024
@@ -217,7 +217,7 @@ Severity: HIGH
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_lambda_permission.secure_function
 Added: statement_id = AllowS3Invoke
@@ -242,7 +242,7 @@ Severity: CRITICAL
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_lambda_event_source_mapping.stream_processor
 Changed: batch_size = 100 → 500
@@ -265,7 +265,7 @@ Severity: HIGH
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_lambda_function.high_traffic_api
 Changed: reserved_concurrent_executions = null → 50

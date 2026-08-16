@@ -1,13 +1,13 @@
-# TFDrift-Falco Local E2E Test Environment
+# driftwire Local E2E Test Environment
 
-This directory contains a Docker Compose-based end-to-end test environment for TFDrift-Falco that works completely locally without requiring real cloud resources.
+This directory contains a Docker Compose-based end-to-end test environment for driftwire that works completely locally without requiring real cloud resources.
 
 ## Overview
 
 The local E2E environment includes:
 
 - **Mock Falco gRPC Server** (`mock_falco_server.go`): A lightweight Go server that implements the Falco outputs gRPC service and provides HTTP endpoints to trigger CloudTrail-like events
-- **TFDrift-Falco API Server**: Runs in Docker and consumes events from the mock Falco server
+- **driftwire API Server**: Runs in Docker and consumes events from the mock Falco server
 - **Terraform State Fixture** (`fixtures/simple.tfstate`): A minimal terraform state file with sample AWS resources
 - **Docker Compose Orchestration** (`docker-compose.yml`): Manages container startup, networking, and health checks
 - **E2E Tests** (`docker_compose_test.go`): Go test suite with build tag `//go:build e2e` that exercises the full system
@@ -39,7 +39,7 @@ tests/e2e/local/
 ├── Dockerfile.mock-falco           # Build image for mock Falco server
 ├── mock_falco_server.go            # Mock Falco gRPC server implementation
 ├── docker_compose_test.go           # E2E test suite (tagged: e2e)
-├── config.yaml                      # TFDrift configuration for local testing
+├── config.yaml                      # driftwire configuration for local testing
 ├── Makefile                         # Development and testing shortcuts
 ├── README.md                        # This file
 └── fixtures/
@@ -52,7 +52,7 @@ tests/e2e/local/
 - `make down` - Stop and remove services
 - `make logs` - Follow logs from all services
 - `make logs-falco` - Follow logs from mock Falco server
-- `make logs-tfdrift` - Follow logs from TFDrift API
+- `make logs-driftwire` - Follow logs from driftwire API
 - `make test` - Run the E2E test suite
 - `make build` - Build Docker images
 - `make clean` - Remove all containers and volumes
@@ -84,17 +84,17 @@ The `mock_falco_server.go` implements a full Falco outputs service server with b
 1. Test calls HTTP endpoint on mock Falco server (e.g., `/trigger-ec2-change`)
 2. Server creates a fake CloudTrail event with gRPC `outputs.Response` structure
 3. Event is broadcast to all connected gRPC clients
-4. TFDrift-Falco consumes the event via gRPC subscription
+4. driftwire consumes the event via gRPC subscription
 5. Detector processes the event and detects drift
-6. Test verifies drift was detected via TFDrift API
+6. Test verifies drift was detected via driftwire API
 
 ### Docker Network
 
-Services communicate via the `tfdrift-network` bridge network:
+Services communicate via the `driftwire-network` bridge network:
 - `mock-falco` - Mock Falco server (hostname in compose)
-- `tfdrift` - TFDrift API server
+- `driftwire` - driftwire API server
 
-TFDrift is configured to connect to `mock-falco:5060` (internal Docker network).
+driftwire is configured to connect to `mock-falco:5060` (internal Docker network).
 
 ## Configuration
 
@@ -113,9 +113,9 @@ To customize, edit `config.yaml` and restart services with `make down && make up
 
 Services configuration:
 - **mock-falco**: Built from `Dockerfile.mock-falco`, exposes ports 5060 (gRPC) and 8081 (HTTP)
-- **tfdrift**: Built from project Dockerfile, exposes port 8080 (API)
+- **driftwire**: Built from project Dockerfile, exposes port 8080 (API)
 - Both have health checks configured
-- TFDrift depends on mock-falco service
+- driftwire depends on mock-falco service
 
 ## Running Tests
 
@@ -148,13 +148,13 @@ make health
 ### View logs from specific service:
 ```bash
 make logs-falco    # Mock Falco server
-make logs-tfdrift  # TFDrift API
+make logs-driftwire  # driftwire API
 ```
 
 ### Open shell in container:
 ```bash
 make shell-falco
-make shell-tfdrift
+make shell-driftwire
 ```
 
 ### Manual event triggering:
@@ -162,7 +162,7 @@ make shell-tfdrift
 # Trigger EC2 event
 curl -X POST http://localhost:8081/trigger-ec2-change
 
-# Check TFDrift API
+# Check driftwire API
 curl http://localhost:8080/health
 ```
 
@@ -203,7 +203,7 @@ make logs
 
 # Test connectivity manually
 curl http://localhost:8081/health  # Falco
-curl http://localhost:8080/health  # TFDrift
+curl http://localhost:8080/health  # driftwire
 ```
 
 ### Tests fail with "connection refused"
@@ -275,7 +275,7 @@ The mock Falco server uses goroutines to handle streaming:
 
 ## Related Documentation
 
-- [TFDrift Main README](../../../README.md)
+- [driftwire Main README](../../../README.md)
 - [AWS E2E Tests](../README.md)
 - [Falco Client-Go](https://github.com/falcosecurity/client-go)
 - [Docker Compose Docs](https://docs.docker.com/compose/)

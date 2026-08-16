@@ -48,8 +48,8 @@ func TestOutputFormatting(t *testing.T) {
 	}{
 		{
 			name:     "Header with emoji",
-			input:    "🧪 TFDrift-Falco Test - Drift Detection Simulation",
-			expected: "🧪 TFDrift-Falco Test - Drift Detection Simulation",
+			input:    "🧪 driftwire Test - Drift Detection Simulation",
+			expected: "🧪 driftwire Test - Drift Detection Simulation",
 		},
 		{
 			name:     "Test case header",

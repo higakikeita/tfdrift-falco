@@ -33,7 +33,7 @@ function getBlogPosts(): BlogPost[] {
         title: data.title || 'Untitled',
         date: data.date || new Date().toISOString(),
         excerpt: data.excerpt || '',
-        author: data.author || 'TFDrift-Falco Team',
+        author: data.author || 'driftwire Team',
         tags: data.tags || []
       }
     })
@@ -52,7 +52,7 @@ export default function BlogPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="text-2xl font-bold text-white hover:text-indigo-400 transition-colors">
-              TFDrift-Falco
+              driftwire
             </Link>
             <div className="flex items-center space-x-6">
               <Link href="/" className="text-slate-300 hover:text-white transition-colors">
@@ -65,7 +65,7 @@ export default function BlogPage() {
                 Docs
               </Link>
               <a
-                href="https://github.com/higakikeita/tfdrift-falco"
+                href="https://github.com/higakikeita/driftwire"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-slate-300 hover:text-white transition-colors"
@@ -84,7 +84,7 @@ export default function BlogPage() {
             Blog
           </h1>
           <p className="text-xl text-slate-300">
-            Latest updates, tutorials, and insights about TFDrift-Falco
+            Latest updates, tutorials, and insights about driftwire
           </p>
         </div>
       </div>

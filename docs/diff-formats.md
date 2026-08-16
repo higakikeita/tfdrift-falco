@@ -1,6 +1,6 @@
 # Diff Format Examples
 
-TFDrift-Falco provides multiple diff formats to display the differences between Terraform state and actual runtime configuration.
+driftwire provides multiple diff formats to display the differences between Terraform state and actual runtime configuration.
 
 ## Table of Contents
 
@@ -268,7 +268,7 @@ Machine-readable format for API integrations and SIEM systems.
 
 ```bash
 # Get JSON format
-curl -X GET http://tfdrift-api:8080/drifts/latest \
+curl -X GET http://driftwire-api:8080/drifts/latest \
   -H "Accept: application/json" | jq .
 
 # Send to SIEM
@@ -380,7 +380,7 @@ output:
 
     json:
       enabled: true
-      file: "/var/log/tfdrift/drifts.json"
+      file: "/var/log/driftwire/drifts.json"
 ```
 
 ### Color Customization
@@ -404,7 +404,7 @@ output:
 ### Go API
 
 ```go
-import "github.com/keitahigaki/tfdrift-falco/pkg/diff"
+import "github.com/higakikeita/driftwire/pkg/diff"
 
 // Create formatter
 formatter := diff.NewFormatter(true) // Enable colors
@@ -423,16 +423,16 @@ fmt.Println(consoleDiff)
 
 ```bash
 # Default console format
-tfdrift --config config.yaml
+driftwire --config config.yaml
 
 # JSON output
-tfdrift --config config.yaml --format json
+driftwire --config config.yaml --format json
 
 # Unified diff format
-tfdrift --config config.yaml --format diff
+driftwire --config config.yaml --format diff
 
 # Markdown format (for piping to Slack)
-tfdrift --config config.yaml --format markdown | slack-cli post
+driftwire --config config.yaml --format markdown | slack-cli post
 ```
 
 ---
@@ -443,14 +443,14 @@ tfdrift --config config.yaml --format markdown | slack-cli post
 
 Use colorized console format when running interactively:
 ```bash
-tfdrift --config config.yaml
+driftwire --config config.yaml
 ```
 
 ### 2. JSON for Automation
 
 Use JSON format when integrating with other tools:
 ```bash
-tfdrift --format json | jq '.severity == "critical"' | while read drift; do
+driftwire --format json | jq '.severity == "critical"' | while read drift; do
   # Send to PagerDuty
   curl -X POST https://api.pagerduty.com/incidents ...
 done
@@ -469,7 +469,7 @@ notifications:
 
 Use unified diff format for committing to audit repository:
 ```bash
-tfdrift --format diff > drifts/$(date +%Y-%m-%d-%H%M%S).diff
+driftwire --format diff > drifts/$(date +%Y-%m-%d-%H%M%S).diff
 git add drifts/*.diff
 git commit -m "Detected drifts: $(date)"
 ```

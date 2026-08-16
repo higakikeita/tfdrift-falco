@@ -1,13 +1,13 @@
 blank_issues_enabled: true
 contact_links:
   - name: 💬 GitHub Discussions
-    url: https://github.com/higakikeita/tfdrift-falco/discussions
+    url: https://github.com/higakikeita/driftwire/discussions
     about: Ask questions, share ideas, and engage with the community
   - name: 🔒 Security Vulnerability
-    url: https://github.com/higakikeita/tfdrift-falco/security/advisories/new
+    url: https://github.com/higakikeita/driftwire/security/advisories/new
     about: Report security vulnerabilities privately
   - name: 📚 Documentation
-    url: https://github.com/higakikeita/tfdrift-falco#readme
+    url: https://github.com/higakikeita/driftwire#readme
     about: Read the documentation
   - name: 🐦 X (Twitter)
     url: https://x.com/keitah0322

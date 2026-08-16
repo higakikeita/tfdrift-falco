@@ -82,7 +82,7 @@ func (e *Engine) compile() error {
 }
 
 // Evaluate evaluates a drift input against loaded policies and returns
-// the decision. The default query path is "data.tfdrift.decision".
+// the decision. The default query path is "data.driftwire.decision".
 //
 // Policy output contract (Rego):
 //
@@ -100,7 +100,7 @@ func (e *Engine) Evaluate(ctx context.Context, input *DriftInput) (*EvalResult, 
 	}
 
 	r := rego.New(
-		rego.Query("data.tfdrift"),
+		rego.Query("data.driftwire"),
 		rego.Compiler(e.compiler),
 		rego.Store(e.store),
 		rego.Input(input),
@@ -115,7 +115,7 @@ func (e *Engine) Evaluate(ctx context.Context, input *DriftInput) (*EvalResult, 
 		return &EvalResult{Decision: DecisionAlert, Reason: "policy returned no result"}, nil
 	}
 
-	// The result is data.tfdrift which should be an object
+	// The result is data.driftwire which should be an object
 	raw, ok := rs[0].Expressions[0].Value.(map[string]interface{})
 	if !ok {
 		return &EvalResult{Decision: DecisionAlert, Reason: "policy result is not an object"}, nil

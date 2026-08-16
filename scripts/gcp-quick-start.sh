@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# TFDrift-Falco GCP Quick Start Script
+# driftwire GCP Quick Start Script
 #
-# This script automates the setup of TFDrift-Falco for Google Cloud Platform.
-# It creates the necessary GCP resources, installs Falco, and configures TFDrift-Falco.
+# This script automates the setup of driftwire for Google Cloud Platform.
+# It creates the necessary GCP resources, installs Falco, and configures driftwire.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/higakikeita/tfdrift-falco/main/scripts/gcp-quick-start.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/higakikeita/driftwire/main/scripts/gcp-quick-start.sh | bash
 #
 # Or download and run:
 #   chmod +x gcp-quick-start.sh
@@ -106,21 +106,21 @@ create_pubsub() {
     print_step "Creating Pub/Sub infrastructure..."
 
     # Create topic
-    if gcloud pubsub topics describe tfdrift-audit-logs --project="$PROJECT_ID" &>/dev/null; then
-        print_warning "Pub/Sub topic 'tfdrift-audit-logs' already exists"
+    if gcloud pubsub topics describe driftwire-audit-logs --project="$PROJECT_ID" &>/dev/null; then
+        print_warning "Pub/Sub topic 'driftwire-audit-logs' already exists"
     else
-        gcloud pubsub topics create tfdrift-audit-logs \
+        gcloud pubsub topics create driftwire-audit-logs \
             --project="$PROJECT_ID" \
             --quiet
         print_success "Created Pub/Sub topic"
     fi
 
     # Create log sink
-    if gcloud logging sinks describe tfdrift-sink --project="$PROJECT_ID" &>/dev/null; then
-        print_warning "Log sink 'tfdrift-sink' already exists"
+    if gcloud logging sinks describe driftwire-sink --project="$PROJECT_ID" &>/dev/null; then
+        print_warning "Log sink 'driftwire-sink' already exists"
     else
-        gcloud logging sinks create tfdrift-sink \
-            pubsub.googleapis.com/projects/$PROJECT_ID/topics/tfdrift-audit-logs \
+        gcloud logging sinks create driftwire-sink \
+            pubsub.googleapis.com/projects/$PROJECT_ID/topics/driftwire-audit-logs \
             --log-filter='protoPayload.serviceName="compute.googleapis.com"' \
             --project="$PROJECT_ID" \
             --quiet
@@ -128,8 +128,8 @@ create_pubsub() {
     fi
 
     # Grant permissions to sink
-    SINK_SA=$(gcloud logging sinks describe tfdrift-sink --project="$PROJECT_ID" --format="value(writerIdentity)")
-    gcloud pubsub topics add-iam-policy-binding tfdrift-audit-logs \
+    SINK_SA=$(gcloud logging sinks describe driftwire-sink --project="$PROJECT_ID" --format="value(writerIdentity)")
+    gcloud pubsub topics add-iam-policy-binding driftwire-audit-logs \
         --member="$SINK_SA" \
         --role="roles/pubsub.publisher" \
         --project="$PROJECT_ID" \
@@ -137,11 +137,11 @@ create_pubsub() {
     print_success "Granted permissions to log sink"
 
     # Create subscription
-    if gcloud pubsub subscriptions describe tfdrift-falco-sub --project="$PROJECT_ID" &>/dev/null; then
-        print_warning "Subscription 'tfdrift-falco-sub' already exists"
+    if gcloud pubsub subscriptions describe driftwire-sub --project="$PROJECT_ID" &>/dev/null; then
+        print_warning "Subscription 'driftwire-sub' already exists"
     else
-        gcloud pubsub subscriptions create tfdrift-falco-sub \
-            --topic=tfdrift-audit-logs \
+        gcloud pubsub subscriptions create driftwire-sub \
+            --topic=driftwire-audit-logs \
             --project="$PROJECT_ID" \
             --quiet
         print_success "Created Pub/Sub subscription"
@@ -151,14 +151,14 @@ create_pubsub() {
 create_service_account() {
     print_step "Creating service account for Falco..."
 
-    SA_EMAIL="tfdrift-falco@$PROJECT_ID.iam.gserviceaccount.com"
+    SA_EMAIL="driftwire@$PROJECT_ID.iam.gserviceaccount.com"
 
     # Check if service account exists
     if gcloud iam service-accounts describe $SA_EMAIL --project="$PROJECT_ID" &>/dev/null; then
         print_warning "Service account already exists"
     else
-        gcloud iam service-accounts create tfdrift-falco \
-            --display-name="TFDrift Falco Service Account" \
+        gcloud iam service-accounts create driftwire \
+            --display-name="driftwire Falco Service Account" \
             --project="$PROJECT_ID" \
             --quiet
         print_success "Created service account"
@@ -172,23 +172,23 @@ create_service_account() {
     print_success "Granted Pub/Sub subscriber role"
 
     # Create key
-    mkdir -p ~/tfdrift-config
-    if [ -f ~/tfdrift-config/gcp-key.json ]; then
-        print_warning "Service account key already exists at ~/tfdrift-config/gcp-key.json"
+    mkdir -p ~/driftwire-config
+    if [ -f ~/driftwire-config/gcp-key.json ]; then
+        print_warning "Service account key already exists at ~/driftwire-config/gcp-key.json"
     else
-        gcloud iam service-accounts keys create ~/tfdrift-config/gcp-key.json \
+        gcloud iam service-accounts keys create ~/driftwire-config/gcp-key.json \
             --iam-account=$SA_EMAIL \
             --project="$PROJECT_ID" \
             --quiet
-        print_success "Created service account key: ~/tfdrift-config/gcp-key.json"
+        print_success "Created service account key: ~/driftwire-config/gcp-key.json"
     fi
 }
 
 configure_falco() {
     print_step "Configuring Falco..."
 
-    cat > ~/tfdrift-config/falco.yaml <<EOF
-# Falco configuration for TFDrift-Falco (GCP)
+    cat > ~/driftwire-config/falco.yaml <<EOF
+# Falco configuration for driftwire (GCP)
 # Generated by gcp-quick-start.sh
 
 # Use modern eBPF engine (no kernel module needed for cloud audit logs)
@@ -203,7 +203,7 @@ plugins:
     library_path: /usr/share/falco/plugins/libgcpaudit.so
     init_config:
       project_id: "$PROJECT_ID"
-      subscription: "tfdrift-falco-sub"
+      subscription: "driftwire-sub"
     open_params: ""
 
 # Load rules for GCP
@@ -223,7 +223,7 @@ grpc_output:
   enabled: true
 EOF
 
-    print_success "Created Falco configuration: ~/tfdrift-config/falco.yaml"
+    print_success "Created Falco configuration: ~/driftwire-config/falco.yaml"
 }
 
 run_falco() {
@@ -240,7 +240,7 @@ run_falco() {
     docker run -d \
         --name falco \
         -p 5060:5060 \
-        -v ~/tfdrift-config:/etc/falco \
+        -v ~/driftwire-config:/etc/falco \
         -e GOOGLE_APPLICATION_CREDENTIALS=/etc/falco/gcp-key.json \
         falcosecurity/falco:latest \
         -c /etc/falco/falco.yaml
@@ -260,11 +260,11 @@ run_falco() {
     fi
 }
 
-configure_tfdrift() {
-    print_step "Configuring TFDrift-Falco..."
+configure_driftwire() {
+    print_step "Configuring driftwire..."
 
-    cat > ~/tfdrift-config/config-gcp.yaml <<EOF
-# TFDrift-Falco Configuration (GCP)
+    cat > ~/driftwire-config/config-gcp.yaml <<EOF
+# driftwire Configuration (GCP)
 # Generated by gcp-quick-start.sh
 
 providers:
@@ -311,7 +311,7 @@ logging:
   format: "text"
 EOF
 
-    print_success "Created TFDrift-Falco configuration: ~/tfdrift-config/config-gcp.yaml"
+    print_success "Created driftwire configuration: ~/driftwire-config/config-gcp.yaml"
 }
 
 print_summary() {
@@ -320,7 +320,7 @@ print_summary() {
     echo -e "${GREEN}Setup Complete!${NC}"
     echo -e "${GREEN}========================================${NC}"
     echo ""
-    echo "Configuration files created in: ~/tfdrift-config/"
+    echo "Configuration files created in: ~/driftwire-config/"
     echo "  - falco.yaml"
     echo "  - config-gcp.yaml"
     echo "  - gcp-key.json"
@@ -332,17 +332,17 @@ print_summary() {
     echo "1. Create a test Terraform resource:"
     echo "   cat > main.tf <<'TFEOF'"
     echo "   resource \"google_compute_network\" \"test\" {"
-    echo "     name                    = \"tfdrift-test-network\""
+    echo "     name                    = \"driftwire-test-network\""
     echo "     auto_create_subnetworks = false"
     echo "   }"
     echo "   TFEOF"
     echo "   terraform init && terraform apply -auto-approve"
     echo ""
-    echo "2. Run TFDrift-Falco:"
-    echo "   tfdrift --config ~/tfdrift-config/config-gcp.yaml"
+    echo "2. Run driftwire:"
+    echo "   driftwire --config ~/driftwire-config/config-gcp.yaml"
     echo ""
     echo "3. Make a manual change to trigger drift detection:"
-    echo "   gcloud compute networks update tfdrift-test-network \\"
+    echo "   gcloud compute networks update driftwire-test-network \\"
     echo "     --description=\"Manual change - should trigger drift\""
     echo ""
     echo "4. Check Falco logs:"
@@ -351,19 +351,19 @@ print_summary() {
     echo -e "${BLUE}Clean Up (when done testing):${NC}"
     echo "  terraform destroy -auto-approve"
     echo "  docker stop falco && docker rm falco"
-    echo "  gcloud pubsub subscriptions delete tfdrift-falco-sub --project=$PROJECT_ID"
-    echo "  gcloud pubsub topics delete tfdrift-audit-logs --project=$PROJECT_ID"
-    echo "  gcloud logging sinks delete tfdrift-sink --project=$PROJECT_ID"
+    echo "  gcloud pubsub subscriptions delete driftwire-sub --project=$PROJECT_ID"
+    echo "  gcloud pubsub topics delete driftwire-audit-logs --project=$PROJECT_ID"
+    echo "  gcloud logging sinks delete driftwire-sink --project=$PROJECT_ID"
     echo ""
     echo -e "${YELLOW}Documentation:${NC}"
-    echo "  https://github.com/higakikeita/tfdrift-falco/blob/main/docs/gcp-setup.md"
+    echo "  https://github.com/higakikeita/driftwire/blob/main/docs/gcp-setup.md"
     echo ""
 }
 
 # Main execution
 main() {
     echo -e "${BLUE}========================================${NC}"
-    echo -e "${BLUE}TFDrift-Falco GCP Quick Start${NC}"
+    echo -e "${BLUE}driftwire GCP Quick Start${NC}"
     echo -e "${BLUE}========================================${NC}"
     echo ""
 
@@ -374,7 +374,7 @@ main() {
     create_service_account
     configure_falco
     run_falco
-    configure_tfdrift
+    configure_driftwire
     print_summary
 }
 

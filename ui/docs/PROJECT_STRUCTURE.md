@@ -1,4 +1,4 @@
-# TFDrift-Falco UI - Project Structure
+# driftwire UI - Project Structure
 
 > **MECE原則に基づく体系的なプロジェクト構造ドキュメント**
 
@@ -460,4 +460,4 @@ export const Component: React.FC<Props> = ({ prop }) => {
 ---
 
 **最終更新**: 2026-01-01
-**メンテナー**: TFDrift-Falco Team
+**メンテナー**: driftwire Team

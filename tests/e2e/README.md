@@ -1,4 +1,4 @@
-# E2E Tests for TFDrift-Falco
+# E2E Tests for driftwire
 
 End-to-end tests that validate complete drift detection workflows with real AWS resources and Falco.
 
@@ -33,7 +33,7 @@ End-to-end tests that validate complete drift detection workflows with real AWS 
 
 6. **Falco Reconnection** (`falco_reconnect_test.go`)
    - Simulate Falco restart
-   - Verify TFDrift reconnects
+   - Verify driftwire reconnects
    - No event loss
 
 ## 🛠️ Setup
@@ -49,7 +49,7 @@ End-to-end tests that validate complete drift detection workflows with real AWS 
 
 2. **S3 Bucket for Terraform State**
    ```bash
-   aws s3 mb s3://tfdrift-test-state-$(date +%s)
+   aws s3 mb s3://driftwire-test-state-$(date +%s)
    ```
 
 3. **Docker** (for Falco)
@@ -103,7 +103,7 @@ End-to-end tests that validate complete drift detection workflows with real AWS 
 
 2. **Verify Falco is Running**
    ```bash
-   docker logs tfdrift-e2e-falco
+   docker logs driftwire-e2e-falco
    grpcurl -plaintext localhost:5060 list
    ```
 
@@ -176,8 +176,8 @@ make all
 
 ```go
 func TestDriftDetection_EC2(t *testing.T) {
-    // 1. Start TFDrift
-    detector := startTFDrift(t)
+    // 1. Start driftwire
+    detector := startdriftwire(t)
     defer detector.Stop()
 
     // 2. Wait for initialization
@@ -232,7 +232,7 @@ All resources are tagged with `AutoDelete: true`. You can use the cleanup script
 ```bash
 # Check Falco status
 docker ps | grep falco
-docker logs tfdrift-e2e-falco
+docker logs driftwire-e2e-falco
 
 # Restart Falco
 docker-compose -f docker-compose.e2e.yml restart falco
@@ -262,8 +262,8 @@ cd terraform && terraform apply
 # Increase timeout
 go test -v -run TestName -timeout 30m
 
-# Check TFDrift logs
-docker logs tfdrift-e2e-app
+# Check driftwire logs
+docker logs driftwire-e2e-app
 
 # Manually verify CloudTrail event
 aws cloudtrail lookup-events \
@@ -274,15 +274,15 @@ aws cloudtrail lookup-events \
 
 ```bash
 # Enable debug logging
-export TFDRIFT_LOG_LEVEL=debug
+export DRIFTWIRE_LOG_LEVEL=debug
 export FALCO_LOG_LEVEL=debug
 
 # Run with verbose output
 go test -v -run TestDriftDetection
 
 # Collect logs
-docker logs tfdrift-e2e-falco > falco.log
-docker logs tfdrift-e2e-app > tfdrift.log
+docker logs driftwire-e2e-falco > falco.log
+docker logs driftwire-e2e-app > driftwire.log
 ```
 
 ## 📊 Expected Results
@@ -301,7 +301,7 @@ docker logs tfdrift-e2e-app > tfdrift.log
 === RUN   TestFalcoReconnect
 --- PASS: TestFalcoReconnect (15.34s)
 PASS
-ok      github.com/keitahigaki/tfdrift-falco/tests/e2e    156.750s
+ok      github.com/higakikeita/driftwire/tests/e2e    156.750s
 ```
 
 ### Performance Expectations

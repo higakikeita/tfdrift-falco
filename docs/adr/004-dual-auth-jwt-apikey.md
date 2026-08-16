@@ -17,7 +17,7 @@ your own gateway/mTLS. See SECURITY.md (authoritative) for the honest status.
 
 ## Context
 
-TFDrift-Falco's REST API was initially open without authentication, suitable for development but not for enterprise deployment. We needed to add authentication that supports both:
+driftwire's REST API was initially open without authentication, suitable for development but not for enterprise deployment. We needed to add authentication that supports both:
 
 - **Interactive users** accessing the Dashboard UI (session-based, time-limited)
 - **Programmatic clients** (CI/CD pipelines, monitoring systems, scripts) that need persistent credentials

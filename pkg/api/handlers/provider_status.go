@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/provider"
+	"github.com/higakikeita/driftwire/pkg/provider"
 )
 
 // ProviderStatusHandler handles provider status and health endpoints.

@@ -1,7 +1,7 @@
-# TFDrift-Falco プロジェクトメタデータ
+# driftwire プロジェクトメタデータ
 # Claude Code による検索・管理を効率化
 
-name: "TFDrift-Falco"
+name: "driftwire"
 category: oss-development
 tags:
   - terraform
@@ -30,9 +30,9 @@ last_updated: "2025-11-18"
 
 # 関連記事（tech-articles内）
 related_articles:
-  - "tech-articles/qiita/2025-01-15_tfdrift-falco-oss-journey.md"
-  - "tech-articles/qiita/2025-01-15_tfdrift-falco-progress-01.md"
-  - "tech-articles/zenn/2025-01-15_tfdrift-falco-technical-old.md"
+  - "tech-articles/qiita/2025-01-15_driftwire-oss-journey.md"
+  - "tech-articles/qiita/2025-01-15_driftwire-progress-01.md"
+  - "tech-articles/zenn/2025-01-15_driftwire-technical-old.md"
 
 # マイルストーン
 milestones:

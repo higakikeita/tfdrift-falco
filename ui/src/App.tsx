@@ -1,5 +1,5 @@
 /**
- * TFDrift-Falco Graph UI
+ * driftwire Graph UI
  *
  * 因果関係グラフビジュアライゼーション - メインアプリケーション
  */
@@ -77,7 +77,7 @@ function App() {
         <header className="bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-4 shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">TFDrift-Falco Graph UI</h1>
+              <h1 className="text-2xl font-bold">driftwire Graph UI</h1>
               <p className="text-sm opacity-90">因果関係グラフビジュアライゼーション</p>
             </div>
             <div className="text-right text-sm">
@@ -180,7 +180,7 @@ function App() {
       <div className="bg-white border-t border-gray-200 px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            <p className="font-semibold">TFDrift-Falcoの本質:</p>
+            <p className="font-semibold">driftwireの本質:</p>
             <p className="text-xs">
               Terraform Drift → IAM → ServiceAccount → Pod → Container → Falco Event
               <span className="ml-2 text-red-600">この因果関係が "物語" になる</span>

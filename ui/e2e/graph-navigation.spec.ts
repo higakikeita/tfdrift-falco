@@ -10,7 +10,7 @@ test.describe('Graph Visualization', () => {
     await page.goto('/');
 
     // Check that the page loaded
-    await expect(page).toHaveTitle(/TFDrift Falco/i);
+    await expect(page).toHaveTitle(/driftwire Falco/i);
   });
 
   test('should display graph canvas', async ({ page }) => {

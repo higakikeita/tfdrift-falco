@@ -1,8 +1,8 @@
 #!/bin/bash
-# TFDrift-Falco Test Environment Cleanup Script
+# driftwire Test Environment Cleanup Script
 set -e
 
-echo "🧹 TFDrift-Falco Test Environment Cleanup"
+echo "🧹 driftwire Test Environment Cleanup"
 echo "=========================================="
 
 # Colors

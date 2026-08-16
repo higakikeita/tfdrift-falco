@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { BoltIcon, BookIcon, GitHubIcon, LinkedInIcon, ShieldIcon, XIcon } from '../components/Icons'
 
 export const metadata: Metadata = {
-  title: 'Links — TFDrift-Falco',
-  description: 'Everything from the talk: code, documentation and contact for TFDrift-Falco, Remedify and WhyQ.',
+  title: 'Links — driftwire',
+  description: 'Everything from the talk: code, documentation and contact for driftwire, Remedify and WhyQ.',
   // One QR code points here, so this page has to stay at this path.
   alternates: { canonical: 'https://tfdrift-falco.vercel.app/links' },
 }
@@ -21,8 +21,8 @@ const sections: { heading: string; items: LinkItem[] }[] = [
     heading: 'Code',
     items: [
       {
-        label: 'TFDrift',
-        href: 'https://github.com/higakikeita/tfdrift-falco',
+        label: 'driftwire',
+        href: 'https://github.com/higakikeita/driftwire',
         hint: 'Real-time drift detection, on Falco',
         icon: ShieldIcon,
       },
@@ -44,7 +44,7 @@ const sections: { heading: string; items: LinkItem[] }[] = [
     heading: 'Documentation',
     items: [
       {
-        label: 'TFDrift Docs',
+        label: 'driftwire Docs',
         href: 'https://tfdrift-falco.vercel.app',
         hint: 'Getting started and architecture',
         icon: BookIcon,
@@ -72,7 +72,7 @@ export default function LinksPage() {
       <main className="mx-auto max-w-xl px-5 py-14 sm:py-20">
         <header className="space-y-3 text-center">
           <ShieldIcon className="mx-auto h-10 w-10 text-indigo-400" />
-          <h1 className="text-2xl font-bold text-white sm:text-3xl">TFDrift-Falco</h1>
+          <h1 className="text-2xl font-bold text-white sm:text-3xl">driftwire</h1>
           <p className="text-slate-300">Terraform Drift Detection with Falco</p>
         </header>
 

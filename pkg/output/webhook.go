@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -178,7 +178,7 @@ func FormatSlackPayload(event *types.DriftEvent) map[string]interface{} {
 			{
 				"color":       severity,
 				"text":        text,
-				"footer":      "TFDrift-Falco",
+				"footer":      "driftwire",
 				"footer_icon": "https://falco.org/img/brand/falco-logo.png",
 				"ts":          event.DetectedAt.Unix(),
 			},

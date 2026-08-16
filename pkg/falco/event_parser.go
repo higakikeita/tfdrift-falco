@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
 
-// parseFalcoOutput parses a Falco output response into a TFDrift event
+// parseFalcoOutput parses a Falco output response into a driftwire event
 // Supports AWS CloudTrail, GCP Audit Log, and Azure Activity Log events
 func (s *Subscriber) parseFalcoOutput(res *outputs.Response) *types.Event {
 	// Handle nil response

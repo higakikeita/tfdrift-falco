@@ -5,13 +5,13 @@
 > **Total Events:** 500+ events
 > **Total Services:** 40+ services
 
-TFDrift-Falco v0.5.0 introduces comprehensive Google Cloud Platform (GCP) support, enabling real-time drift detection for GCP resources through Falco's gcpaudit plugin.
+driftwire v0.5.0 introduces comprehensive Google Cloud Platform (GCP) support, enabling real-time drift detection for GCP resources through Falco's gcpaudit plugin.
 
 ---
 
 ## Overview
 
-TFDrift-Falco monitors GCP Audit Logs to detect infrastructure drift in real-time. The system:
+driftwire monitors GCP Audit Logs to detect infrastructure drift in real-time. The system:
 
 1. **Receives** GCP Audit Log events via Falco's gcpaudit plugin
 2. **Parses** events to extract resource changes
@@ -106,7 +106,7 @@ TFDrift-Falco monitors GCP Audit Logs to detect infrastructure drift in real-tim
 
 ### Supported Operations
 
-TFDrift-Falco detects the following types of infrastructure changes:
+driftwire detects the following types of infrastructure changes:
 
 | Operation Type | GCP Method Pattern | Example |
 |----------------|-------------------|---------|
@@ -141,7 +141,7 @@ gcp.authenticationInfo.principalEmail: "admin@example.com"
 
 ## Coverage Comparison
 
-### TFDrift-Falco v0.5.0 GCP Coverage
+### driftwire v0.5.0 GCP Coverage
 
 | Category | Event Count | Service Count | Coverage Level |
 |----------|-------------|---------------|----------------|
@@ -255,9 +255,9 @@ drift_rules:
 
 ## Support
 
-- **GitHub Issues:** [Report bugs and request features](https://github.com/higakikeita/tfdrift-falco/issues)
-- **GitHub Discussions:** [Ask questions and share ideas](https://github.com/higakikeita/tfdrift-falco/discussions)
-- **Documentation:** [Complete documentation](https://higakikeita.github.io/tfdrift-falco/)
+- **GitHub Issues:** [Report bugs and request features](https://github.com/higakikeita/driftwire/issues)
+- **GitHub Discussions:** [Ask questions and share ideas](https://github.com/higakikeita/driftwire/discussions)
+- **Documentation:** [Complete documentation](https://higakikeita.github.io/driftwire/)
 
 ---
 

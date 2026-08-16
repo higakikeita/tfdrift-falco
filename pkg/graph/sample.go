@@ -3,7 +3,7 @@ package graph
 import (
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // PopulateSampleData adds sample data to the store for testing

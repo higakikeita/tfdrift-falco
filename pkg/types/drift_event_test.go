@@ -17,7 +17,7 @@ func TestNewDriftEvent(t *testing.T) {
 	assert.Equal(t, "aws_security_group", event.ResourceType)
 	assert.Equal(t, "sg-12345", event.ResourceID)
 	assert.Equal(t, ChangeTypeModified, event.ChangeType)
-	assert.Equal(t, "tfdrift-falco", event.Source)
+	assert.Equal(t, "driftwire", event.Source)
 	assert.Equal(t, SeverityMedium, event.Severity)
 	assert.Equal(t, EventSchemaVersion, event.Version)
 	assert.False(t, event.DetectedAt.IsZero())

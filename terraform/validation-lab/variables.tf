@@ -7,7 +7,7 @@ variable "region" {
 variable "name_prefix" {
   description = "Prefix for all resource names"
   type        = string
-  default     = "tfdrift-lab"
+  default     = "driftwire-lab"
 }
 
 variable "vpc_cidr" {

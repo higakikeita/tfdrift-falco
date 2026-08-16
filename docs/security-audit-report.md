@@ -1,8 +1,8 @@
-# TFDrift-Falco Security Audit Report
+# driftwire Security Audit Report
 
 ## Executive Summary
 
-This report documents the security audit and improvements implemented for the TFDrift-Falco project (Issue #140). The audit focused on critical security gaps in the HTTP/WebSocket API layer and implemented comprehensive security controls.
+This report documents the security audit and improvements implemented for the driftwire project (Issue #140). The audit focused on critical security gaps in the HTTP/WebSocket API layer and implemented comprehensive security controls.
 
 **Date Completed:** March 30, 2026
 **Scope:** API security, middleware implementation, and WebSocket CORS restrictions
@@ -294,7 +294,7 @@ r.Use(apimiddleware.RateLimit(rateLimitCfg))
 
 ### Run Security Middleware Tests
 ```bash
-cd /tmp/tfdrift-push
+cd /tmp/driftwire-push
 go clean -cache
 go test ./pkg/api/middleware/validation_test.go ./pkg/api/middleware/validation.go -v -count=1
 go test ./pkg/api/middleware/security_test.go ./pkg/api/middleware/security.go -v -count=1
@@ -315,7 +315,7 @@ go vet ./pkg/api/middleware/...
 ### Integration Testing (recommended)
 ```bash
 # Start the server
-go run cmd/tfdrift-falco/main.go
+go run cmd/driftwire/main.go
 
 # Test WebSocket CORS
 curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" \
@@ -338,7 +338,7 @@ curl -i http://localhost:8080/api/v1/health | grep -E "X-|Strict|Content-Securit
 
 ## 8. Version Information
 
-- **TFDrift-Falco Version:** 0.9.0
+- **driftwire Version:** 0.9.0
 - **Go Version:** 1.21+
 - **gorilla/websocket:** Latest compatible version
 - **chi Router:** v5 with middleware
@@ -374,7 +374,7 @@ curl -i http://localhost:8080/api/v1/health | grep -E "X-|Strict|Content-Securit
 
 ## 10. Conclusion
 
-The security audit has successfully implemented critical security controls for the TFDrift-Falco API. The WebSocket CORS restrictions, input validation, security headers, and rate limiting middleware provide a solid foundation for API security.
+The security audit has successfully implemented critical security controls for the driftwire API. The WebSocket CORS restrictions, input validation, security headers, and rate limiting middleware provide a solid foundation for API security.
 
 However, security is an ongoing process. The recommendations in this report should be prioritized and implemented as part of your security roadmap. Regular security audits, dependency updates, and monitoring are essential for maintaining a secure system.
 

@@ -1,6 +1,6 @@
-# TFDrift-Falco Use Cases
+# driftwire Use Cases
 
-This document provides detailed, real-world use cases for TFDrift-Falco with concrete examples and implementation patterns.
+This document provides detailed, real-world use cases for driftwire with concrete examples and implementation patterns.
 
 ## Table of Contents
 
@@ -27,7 +27,7 @@ This document provides detailed, real-world use cases for TFDrift-Falco with con
    ↓
 3. Falco CloudTrail plugin processes event
    ↓
-4. TFDrift-Falco compares with Terraform state
+4. driftwire compares with Terraform state
    ↓
 5. Drift detected: ingress rule added (port 22, 0.0.0.0/0)
    ↓
@@ -145,7 +145,7 @@ resource "aws_iam_role_policy" "app_policy" {
 }
 ```
 
-**TFDrift-Falco Alert**:
+**driftwire Alert**:
 ```json
 {
   "event_type": "terraform_drift_detected",
@@ -216,7 +216,7 @@ notifications:
         "payload": {
           "summary": "S3 Encryption Disabled - {{ .ResourceID }}",
           "severity": "critical",
-          "source": "tfdrift-falco",
+          "source": "driftwire",
           "custom_details": {
             "resource": "{{ .ResourceID }}",
             "user": "{{ .User }}",
@@ -419,7 +419,7 @@ ORDER BY timestamp DESC;
 │  (Monitoring)   │
 │                 │
 │  Falco          │
-│  TFDrift-Falco  │
+│  driftwire  │
 └────────┬────────┘
          │
          ├──────────┬──────────┬──────────┐
@@ -446,7 +446,7 @@ providers:
           backend: "s3"
           s3_bucket: "dev-terraform-state"
           s3_key: "terraform.tfstate"
-          role_arn: "arn:aws:iam::123456789012:role/TFDriftMonitor"
+          role_arn: "arn:aws:iam::123456789012:role/driftwireMonitor"
 
       - account_id: "456789012345"
         name: "staging"
@@ -455,7 +455,7 @@ providers:
           backend: "s3"
           s3_bucket: "staging-terraform-state"
           s3_key: "terraform.tfstate"
-          role_arn: "arn:aws:iam::456789012345:role/TFDriftMonitor"
+          role_arn: "arn:aws:iam::456789012345:role/driftwireMonitor"
 
       - account_id: "789012345678"
         name: "production-us"
@@ -464,7 +464,7 @@ providers:
           backend: "s3"
           s3_bucket: "prod-us-terraform-state"
           s3_key: "terraform.tfstate"
-          role_arn: "arn:aws:iam::789012345678:role/TFDriftMonitor"
+          role_arn: "arn:aws:iam::789012345678:role/driftwireMonitor"
 
       - account_id: "101112131415"
         name: "production-eu"
@@ -473,7 +473,7 @@ providers:
           backend: "s3"
           s3_bucket: "prod-eu-terraform-state"
           s3_key: "terraform.tfstate"
-          role_arn: "arn:aws:iam::101112131415:role/TFDriftMonitor"
+          role_arn: "arn:aws:iam::101112131415:role/driftwireMonitor"
 
 notifications:
   slack:
@@ -504,7 +504,7 @@ notifications:
 ❌ Console Change (Blocked Pattern)
    Developer → AWS Console → Modify Resource
                                     ↓
-                            TFDrift Alert
+                            driftwire Alert
                                     ↓
                             Auto-Revert (Optional)
 
@@ -641,7 +641,7 @@ notifications:
         "payload": {
           "summary": "🚨 SECURITY INCIDENT: {{ .ResourceType }} modified",
           "severity": "critical",
-          "source": "tfdrift-falco",
+          "source": "driftwire",
           "custom_details": {
             "resource": "{{ .ResourceID }}",
             "user": "{{ .User }}",
@@ -670,7 +670,7 @@ notifications:
 
 ### Use Case 10: Hybrid AWS + GCP Infrastructure Monitoring
 
-**Scenario**: Monitor both AWS and GCP resources from a single TFDrift-Falco instance.
+**Scenario**: Monitor both AWS and GCP resources from a single driftwire instance.
 
 **Configuration**:
 ```yaml
@@ -772,7 +772,7 @@ Action: Review both changes immediately.
 
 ## Summary
 
-TFDrift-Falco provides comprehensive drift detection across multiple scenarios:
+driftwire provides comprehensive drift detection across multiple scenarios:
 
 | Use Case | Detection Time | Severity | Integration |
 |----------|---------------|----------|-------------|
@@ -789,5 +789,5 @@ TFDrift-Falco provides comprehensive drift detection across multiple scenarios:
 ## Next Steps
 
 - [Best Practices](BEST_PRACTICES.md) - Operational best practices for production deployments
-- [Extending TFDrift-Falco](EXTENDING.md) - Add custom rules and notification channels
+- [Extending driftwire](EXTENDING.md) - Add custom rules and notification channels
 - [Architecture](architecture.md) - Detailed system architecture

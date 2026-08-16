@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.mock-falco
-    container_name: tfdrift-e2e-falco
+    container_name: driftwire-e2e-falco
     ports:
       - "5060:5060"    # gRPC server
       - "8081:8081"    # HTTP control API
@@ -19,22 +19,22 @@ services:
       retries: 5
       start_period: 5s
     networks:
-      - tfdrift-network
+      - driftwire-network
 
-  # TFDrift-Falco API server
-  tfdrift:
+  # driftwire API server
+  driftwire:
     build:
       context: ../..
       dockerfile: Dockerfile
       target: runtime
-    container_name: tfdrift-e2e-api
+    container_name: driftwire-e2e-api
     ports:
       - "8080:8080"    # API server
     volumes:
       - ./fixtures/simple.tfstate:/data/terraform.tfstate:ro
       - ./config.yaml:/config/config.yaml:ro
     environment:
-      - TFDRIFT_CONFIG=/config/config.yaml
+      - DRIFTWIRE_CONFIG=/config/config.yaml
       - LOG_LEVEL=debug
     depends_on:
       mock-falco:
@@ -46,7 +46,7 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - tfdrift-network
+      - driftwire-network
     command: [
       "--server",
       "--api-port", "8080",
@@ -54,5 +54,5 @@ services:
     ]
 
 networks:
-  tfdrift-network:
+  driftwire-network:
     driver: bridge

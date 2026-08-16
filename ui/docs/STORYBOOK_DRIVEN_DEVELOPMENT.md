@@ -12,7 +12,7 @@
 
 ---
 
-## 🔄 TFDrift-Falco UIでの開発フロー
+## 🔄 driftwire UIでの開発フロー
 
 ### 1. Story作成（設計フェーズ）
 
@@ -171,7 +171,7 @@ export const WithNodeSelection: Story = {
 
 ---
 
-## 🎨 TFDrift-Falcoで重視するStory
+## 🎨 driftwireで重視するStory
 
 ### CytoscapeGraphコンポーネント:
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
+	"github.com/higakikeita/driftwire/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 

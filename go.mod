@@ -1,4 +1,4 @@
-module github.com/keitahigaki/tfdrift-falco
+module github.com/higakikeita/driftwire
 
 go 1.25.8
 

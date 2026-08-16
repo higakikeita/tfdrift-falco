@@ -1,14 +1,14 @@
 ---
-title: "TFDrift-Falco v0.3.0 Released: 203 CloudTrail Events Across 19 AWS Services"
+title: "driftwire v0.3.0 Released: 203 CloudTrail Events Across 19 AWS Services"
 date: "2025-12-14"
 excerpt: "Major milestone achieved! v0.3.0 delivers comprehensive AWS drift detection with 203 CloudTrail events (103% of target), covering 19 AWS services including SageMaker, enhanced DynamoDB, VPC, and RDS support."
 author: "Keita Higaki"
 tags: ["release", "milestone", "v0.3.0", "aws", "terraform", "drift-detection"]
 ---
 
-# TFDrift-Falco v0.3.0 Released: 203 CloudTrail Events Across 19 AWS Services
+# driftwire v0.3.0 Released: 203 CloudTrail Events Across 19 AWS Services
 
-We're thrilled to announce the **official release of TFDrift-Falco v0.3.0**! This major milestone delivers comprehensive AWS infrastructure drift detection, achieving **103% of our target** with **203 CloudTrail events** across **19 AWS services**.
+We're thrilled to announce the **official release of driftwire v0.3.0**! This major milestone delivers comprehensive AWS infrastructure drift detection, achieving **103% of our target** with **203 CloudTrail events** across **19 AWS services**.
 
 ## 🎯 Milestone Achievement
 
@@ -174,14 +174,14 @@ Track cost-impacting changes:
 
 ```bash
 # Clone repository
-git clone https://github.com/higakikeita/tfdrift-falco.git
-cd tfdrift-falco
+git clone https://github.com/higakikeita/driftwire.git
+cd driftwire
 
 # Build and install
 make install
 
 # Or use Docker
-docker pull ghcr.io/higakikeita/tfdrift-falco:v0.3.0
+docker pull ghcr.io/higakikeita/driftwire:v0.3.0
 ```
 
 ### 2. Quick Start Configuration
@@ -207,18 +207,18 @@ notifications:
     channel: "#infrastructure-alerts"
 ```
 
-### 3. Run TFDrift-Falco
+### 3. Run driftwire
 
 ```bash
 # Start monitoring
-tfdrift-falco --config config.yaml
+driftwire --config config.yaml
 
 # Or with Docker
 docker run -d \
-  --name tfdrift-falco \
+  --name driftwire \
   -v $(pwd)/config.yaml:/config/config.yaml:ro \
   -v ~/.aws:/root/.aws:ro \
-  ghcr.io/higakikeita/tfdrift-falco:v0.3.0 \
+  ghcr.io/higakikeita/driftwire:v0.3.0 \
   --config /config/config.yaml
 ```
 
@@ -441,22 +441,22 @@ While v0.3.0 completes our AWS coverage goals, we're already planning Phase 2:
 
 ## 🤝 Contributing
 
-TFDrift-Falco is open source and welcomes contributions!
+driftwire is open source and welcomes contributions!
 
 ### Ways to Contribute
 
-1. **Report Issues** - [GitHub Issues](https://github.com/higakikeita/tfdrift-falco/issues)
-2. **Request Features** - [GitHub Discussions](https://github.com/higakikeita/tfdrift-falco/discussions)
-3. **Submit PRs** - See [CONTRIBUTING.md](https://github.com/higakikeita/tfdrift-falco/blob/main/CONTRIBUTING.md)
+1. **Report Issues** - [GitHub Issues](https://github.com/higakikeita/driftwire/issues)
+2. **Request Features** - [GitHub Discussions](https://github.com/higakikeita/driftwire/discussions)
+3. **Submit PRs** - See [CONTRIBUTING.md](https://github.com/higakikeita/driftwire/blob/main/CONTRIBUTING.md)
 4. **Improve Documentation** - Help expand service guides
-5. **Share Use Cases** - Tell us how you use TFDrift-Falco
+5. **Share Use Cases** - Tell us how you use driftwire
 
 ### Development Setup
 
 ```bash
 # Clone and build
-git clone https://github.com/higakikeita/tfdrift-falco.git
-cd tfdrift-falco
+git clone https://github.com/higakikeita/driftwire.git
+cd driftwire
 go mod download
 
 # Run tests
@@ -481,10 +481,10 @@ Special thanks to:
 ## 📞 Get in Touch
 
 - **Website**: [tfdrift-falco.vercel.app](https://tfdrift-falco.vercel.app/)
-- **GitHub**: [github.com/higakikeita/tfdrift-falco](https://github.com/higakikeita/tfdrift-falco)
+- **GitHub**: [github.com/higakikeita/driftwire](https://github.com/higakikeita/driftwire)
 - **Documentation**: [tfdrift-falco.vercel.app/docs](https://tfdrift-falco.vercel.app/docs)
-- **Issues**: [GitHub Issues](https://github.com/higakikeita/tfdrift-falco/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/higakikeita/tfdrift-falco/discussions)
+- **Issues**: [GitHub Issues](https://github.com/higakikeita/driftwire/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/higakikeita/driftwire/discussions)
 
 ---
 
@@ -493,23 +493,23 @@ Special thanks to:
 ```bash
 # Quick start with Docker
 docker run -d \
-  --name tfdrift-falco \
+  --name driftwire \
   -e TF_STATE_BACKEND=s3 \
   -e TF_STATE_S3_BUCKET=your-terraform-state \
   -e TF_STATE_S3_KEY=prod/terraform.tfstate \
   -e AWS_REGION=us-east-1 \
   -e SLACK_WEBHOOK_URL=https://hooks.slack.com/services/... \
   -v ~/.aws:/root/.aws:ro \
-  ghcr.io/higakikeita/tfdrift-falco:v0.3.0
+  ghcr.io/higakikeita/driftwire:v0.3.0
 
 # View logs
-docker logs -f tfdrift-falco
+docker logs -f driftwire
 ```
 
 **Start monitoring your infrastructure in real-time today!** 🚀
 
 ---
 
-**TFDrift-Falco v0.3.0** - Real-time Terraform Drift Detection Powered by Falco
+**driftwire v0.3.0** - Real-time Terraform Drift Detection Powered by Falco
 
 *203 CloudTrail Events • 19 AWS Services • 100% Test Coverage • Production Ready*

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/provider"
+	"github.com/higakikeita/driftwire/pkg/provider"
 )
 
 // ProvidersHandler handles provider status and capability endpoints (v0.6.0)

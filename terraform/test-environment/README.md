@@ -1,6 +1,6 @@
-# TFDrift-Falco Test Environment
+# driftwire Test Environment
 
-実際のAWS環境でTFDrift-Falcoをテストするための簡単なTerraform構成です。
+実際のAWS環境でdriftwireをテストするための簡単なTerraform構成です。
 
 ## 📋 作成されるリソース
 
@@ -31,7 +31,7 @@ Terraform stateを保存するS3バケットを作成します：
 
 ```bash
 # バケット名を決定（グローバルにユニークな名前）
-export STATE_BUCKET="tfdrift-test-state-$(date +%Y%m%d)"
+export STATE_BUCKET="driftwire-test-state-$(date +%Y%m%d)"
 export AWS_REGION="us-east-1"
 
 # バケットを作成
@@ -65,7 +65,7 @@ echo "✅ State bucket created: $STATE_BUCKET"
 ```hcl
 terraform {
   backend "s3" {
-    bucket = "tfdrift-test-state-20231215"  # ← ここを更新
+    bucket = "driftwire-test-state-20231215"  # ← ここを更新
     key    = "test-environment/terraform.tfstate"
     region = "us-east-1"                    # ← 必要に応じて更新
   }
@@ -90,7 +90,7 @@ echo "Default VPC: $DEFAULT_VPC"
 cat > terraform.tfvars <<EOF
 aws_region       = "us-east-1"
 environment      = "test"
-test_bucket_name = "tfdrift-test-$(date +%Y%m%d)-$(openssl rand -hex 4)"
+test_bucket_name = "driftwire-test-$(date +%Y%m%d)-$(openssl rand -hex 4)"
 vpc_id           = "$DEFAULT_VPC"
 alert_email      = ""  # 必要に応じてメールアドレスを設定
 EOF
@@ -124,7 +124,7 @@ terraform output -json > resources.json
 cat resources.json | jq
 ```
 
-## 🔧 TFDrift設定の更新
+## 🔧 driftwire設定の更新
 
 ### config.yaml の作成
 
@@ -138,7 +138,7 @@ export AWS_REGION="us-east-1"
 
 # config.yaml を作成
 cat > config.yaml <<EOF
-# TFDrift-Falco Configuration
+# driftwire Configuration
 
 # Terraform State Configuration
 terraform:
@@ -225,13 +225,13 @@ notifications:
   # slack:
   #   enabled: true
   #   webhook_url: \${SLACK_WEBHOOK_URL}
-  #   channel: "#tfdrift-alerts"
-  #   username: "TFDrift Bot"
+  #   channel: "#driftwire-alerts"
+  #   username: "driftwire Bot"
 
   # SNS notifications (optional)
   # sns:
   #   enabled: true
-  #   topic_arn: "arn:aws:sns:us-east-1:123456789012:tfdrift-alerts"
+  #   topic_arn: "arn:aws:sns:us-east-1:123456789012:driftwire-alerts"
 
 # Logging
 logging:
@@ -248,15 +248,15 @@ cat config.yaml
 ### テストシナリオ 1: S3バケット暗号化の無効化
 
 ```bash
-# 1. TFDrift を起動（別のターミナルで）
-./tfdrift --config config.yaml
+# 1. driftwire を起動（別のターミナルで）
+./driftwire --config config.yaml
 
 # 2. AWSコンソールまたはCLIでS3バケットの暗号化を無効化
 export BUCKET_NAME=$(cd terraform/test-environment && terraform output -raw s3_bucket_name)
 
 aws s3api delete-bucket-encryption --bucket $BUCKET_NAME
 
-# 3. TFDriftのログで検知を確認
+# 3. driftwireのログで検知を確認
 # 期待される出力:
 # {
 #   "level": "warn",
@@ -280,7 +280,7 @@ aws ec2 authorize-security-group-ingress \
   --port 22 \
   --cidr 0.0.0.0/0
 
-# 3. TFDriftのログで検知を確認
+# 3. driftwireのログで検知を確認
 # 期待される出力:
 # {
 #   "level": "warn",
@@ -310,7 +310,7 @@ aws iam create-policy-version \
   }' \
   --set-as-default
 
-# 3. TFDriftのログで検知を確認
+# 3. driftwireのログで検知を確認
 ```
 
 ### テストシナリオ 4: タグの追加/削除
@@ -321,7 +321,7 @@ aws s3api put-bucket-tagging \
   --bucket $BUCKET_NAME \
   --tagging 'TagSet=[{Key=Unauthorized,Value=true}]'
 
-# 2. TFDriftのログで検知を確認
+# 2. driftwireのログで検知を確認
 ```
 
 ## 🔄 ドリフトの修復
@@ -364,7 +364,7 @@ aws ec2 revoke-security-group-ingress \
 
 ## 📊 UIでの確認
 
-TFDrift Web UIでドリフトを可視化：
+driftwire Web UIでドリフトを可視化：
 
 ```bash
 # UIを起動（既にDockerで起動済みの場合はスキップ）
@@ -423,7 +423,7 @@ aws s3 rb s3://$STATE_BUCKET --force
 
 ```bash
 # bucket の存在確認
-aws s3 ls | grep tfdrift
+aws s3 ls | grep driftwire
 
 # bucket を再作成
 aws s3api create-bucket --bucket YOUR_BUCKET_NAME --region us-east-1
@@ -439,7 +439,7 @@ aws ec2 describe-vpcs --filters "Name=isDefault,Values=true"
 aws ec2 create-default-vpc
 ```
 
-### TFDrift が state を読めない
+### driftwire が state を読めない
 
 ```bash
 # AWS認証情報の確認
@@ -451,7 +451,7 @@ aws s3 ls s3://YOUR_BUCKET_NAME/test-environment/
 
 ## 📚 参考リンク
 
-- [TFDrift-Falco Documentation](https://higakikeita.github.io/tfdrift-falco/)
+- [driftwire Documentation](https://higakikeita.github.io/driftwire/)
 - [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 - [AWS CloudTrail](https://aws.amazon.com/cloudtrail/)
 - [Falco Documentation](https://falco.org/docs/)

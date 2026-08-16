@@ -14,7 +14,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "TFDrift-Falco"
+      Project     = "driftwire"
       Environment = "test"
       ManagedBy   = "Terraform"
     }
@@ -28,7 +28,7 @@ resource "aws_vpc" "test" {
   enable_dns_support   = true
 
   tags = {
-    Name = "tfdrift-test-vpc"
+    Name = "driftwire-test-vpc"
   }
 }
 
@@ -37,7 +37,7 @@ resource "aws_internet_gateway" "test" {
   vpc_id = aws_vpc.test.id
 
   tags = {
-    Name = "tfdrift-test-igw"
+    Name = "driftwire-test-igw"
   }
 }
 
@@ -49,7 +49,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "tfdrift-test-public-subnet"
+    Name = "driftwire-test-public-subnet"
   }
 }
 
@@ -63,7 +63,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name = "tfdrift-test-public-rt"
+    Name = "driftwire-test-public-rt"
   }
 }
 
@@ -74,7 +74,7 @@ resource "aws_route_table_association" "public" {
 
 # Security Group for EC2
 resource "aws_security_group" "webserver" {
-  name        = "tfdrift-test-webserver-sg"
+  name        = "driftwire-test-webserver-sg"
   description = "Security group for test webserver"
   vpc_id      = aws_vpc.test.id
 
@@ -103,7 +103,7 @@ resource "aws_security_group" "webserver" {
   }
 
   tags = {
-    Name = "tfdrift-test-webserver-sg"
+    Name = "driftwire-test-webserver-sg"
   }
 }
 
@@ -125,7 +125,7 @@ resource "aws_instance" "webserver" {
   }
 
   tags = {
-    Name = "tfdrift-test-webserver"
+    Name = "driftwire-test-webserver"
   }
 }
 
@@ -150,7 +150,7 @@ resource "aws_s3_bucket" "data" {
   bucket = "${var.project_name}-test-data-${random_id.bucket_suffix.hex}"
 
   tags = {
-    Name = "tfdrift-test-data-bucket"
+    Name = "driftwire-test-data-bucket"
   }
 }
 
@@ -207,7 +207,7 @@ resource "aws_iam_role" "app" {
   })
 
   tags = {
-    Name = "tfdrift-test-app-role"
+    Name = "driftwire-test-app-role"
   }
 }
 

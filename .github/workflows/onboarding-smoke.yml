@@ -1,6 +1,6 @@
 name: Onboarding Smoke
 
-# T-1 acceptance gate (#318, handoff/tfdrift-acceptance-test.md):
+# T-1 acceptance gate (#318, handoff/driftwire-acceptance-test.md):
 # a fresh clone following the documented quickstart must bring the default
 # stack up healthy. AWS-free — this proves the "clone → quick-start → compose
 # up" onboarding doesn't silently break. Real-time CloudTrail detection is the

@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-TFDrift-Falco builds a dependency graph of cloud resources, Terraform state, and drift relationships. This graph needs to support queries like "show all resources affected by this drift" and "visualize the topology of resources in this VPC."
+driftwire builds a dependency graph of cloud resources, Terraform state, and drift relationships. This graph needs to support queries like "show all resources affected by this drift" and "visualize the topology of resources in this VPC."
 
 We considered several storage options:
 

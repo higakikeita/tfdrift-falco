@@ -1,6 +1,6 @@
 # Google Kubernetes Engine (GKE) Deployment Guide
 
-This guide covers deploying TFDrift-Falco on Google Kubernetes Engine (GKE) using Helm charts for production-ready deployments.
+This guide covers deploying driftwire on Google Kubernetes Engine (GKE) using Helm charts for production-ready deployments.
 
 ## Table of Contents
 
@@ -49,17 +49,17 @@ helm version
 ### GCP Service Account
 
 ```bash
-# Create service account for TFDrift-Falco
-gcloud iam service-accounts create tfdrift-falco \
-  --display-name="TFDrift-Falco Service Account"
+# Create service account for driftwire
+gcloud iam service-accounts create driftwire \
+  --display-name="driftwire Service Account"
 
 # Grant permissions
 gcloud projects add-iam-policy-binding PROJECT_ID \
-  --member="serviceAccount:tfdrift-falco@PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:driftwire@PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/compute.viewer"
 
 gcloud projects add-iam-policy-binding PROJECT_ID \
-  --member="serviceAccount:tfdrift-falco@PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:driftwire@PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/storage.objectViewer"
 ```
 
@@ -72,7 +72,7 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
 gcloud config set project PROJECT_ID
 
 # Create cluster
-gcloud container clusters create tfdrift-falco \
+gcloud container clusters create driftwire \
   --zone us-central1-a \
   --num-nodes 3 \
   --machine-type n1-standard-2 \
@@ -88,7 +88,7 @@ gcloud container clusters create tfdrift-falco \
   --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver
 
 # Get cluster credentials
-gcloud container clusters get-credentials tfdrift-falco --zone us-central1-a
+gcloud container clusters get-credentials driftwire --zone us-central1-a
 ```
 
 ### Verify Cluster Access
@@ -107,14 +107,14 @@ kubectl get namespace
 ### Create Namespace
 
 ```bash
-# Create namespace for TFDrift-Falco
-kubectl create namespace tfdrift-falco
+# Create namespace for driftwire
+kubectl create namespace driftwire
 
 # Set as default namespace
-kubectl config set-context --current --namespace=tfdrift-falco
+kubectl config set-context --current --namespace=driftwire
 
 # Verify
-kubectl get namespace tfdrift-falco
+kubectl get namespace driftwire
 ```
 
 ## Helm Chart Deployment
@@ -123,56 +123,56 @@ kubectl get namespace tfdrift-falco
 
 ```bash
 # If hosting chart on a repository
-helm repo add tfdrift https://charts.example.com
+helm repo add driftwire https://charts.example.com
 helm repo update
 
 # Or use local chart (from project root)
-cd /path/to/tfdrift-falco
+cd /path/to/driftwire
 ```
 
 ### Deploy Using Helm
 
 ```bash
 # Create values file (see section below)
-cp charts/tfdrift-falco/values.yaml values-production.yaml
+cp charts/driftwire/values.yaml values-production.yaml
 
 # Edit for your environment
 # See Production Values Configuration section
 
 # Deploy with Helm
-helm install tfdrift-falco charts/tfdrift-falco \
-  --namespace tfdrift-falco \
+helm install driftwire charts/driftwire \
+  --namespace driftwire \
   --values values-production.yaml
 
 # Or upgrade existing release
-helm upgrade --install tfdrift-falco charts/tfdrift-falco \
-  --namespace tfdrift-falco \
+helm upgrade --install driftwire charts/driftwire \
+  --namespace driftwire \
   --values values-production.yaml
 
 # Check deployment status
-helm status tfdrift-falco --namespace tfdrift-falco
+helm status driftwire --namespace driftwire
 
 # List releases
-helm list --namespace tfdrift-falco
+helm list --namespace driftwire
 ```
 
 ### Verify Deployment
 
 ```bash
 # Check pods
-kubectl get pods -n tfdrift-falco
+kubectl get pods -n driftwire
 
 # Check services
-kubectl get svc -n tfdrift-falco
+kubectl get svc -n driftwire
 
 # Check deployments
-kubectl get deployments -n tfdrift-falco
+kubectl get deployments -n driftwire
 
 # Watch deployment progress
-kubectl rollout status deployment/tfdrift-falco -n tfdrift-falco
+kubectl rollout status deployment/driftwire -n driftwire
 
 # View logs
-kubectl logs -n tfdrift-falco -l app=tfdrift-falco -f
+kubectl logs -n driftwire -l app=driftwire -f
 ```
 
 ## Production Values Configuration
@@ -185,7 +185,7 @@ kubectl logs -n tfdrift-falco -l app=tfdrift-falco -f
 replicaCount: 3
 
 image:
-  repository: gcr.io/PROJECT_ID/tfdrift-falco
+  repository: gcr.io/PROJECT_ID/driftwire
   tag: "1.0.0"
   pullPolicy: IfNotPresent
 
@@ -195,8 +195,8 @@ imagePullSecrets: []
 serviceAccount:
   create: true
   annotations:
-    iam.gke.io/gcp-service-account: tfdrift-falco@PROJECT_ID.iam.gserviceaccount.com
-  name: tfdrift-falco
+    iam.gke.io/gcp-service-account: driftwire@PROJECT_ID.iam.gserviceaccount.com
+  name: driftwire
 
 # Security context
 podSecurityContext:
@@ -218,7 +218,7 @@ podDisruptionBudget:
   enabled: true
   minAvailable: 2
 
-# Pod annotations (optional). TFDrift-Falco has no scrape-style /metrics
+# Pod annotations (optional). driftwire has no scrape-style /metrics
 # endpoint; metrics/traces are pushed via OpenTelemetry (OTLP) when
 # telemetry.enabled: true. Point telemetry at your OTLP collector instead.
 podAnnotations: {}
@@ -236,24 +236,24 @@ ingress:
   className: "gce"
   annotations:
     kubernetes.io/ingress.class: "gce"
-    kubernetes.io/ingress.global-static-ip-name: "tfdrift-falco-ip"
-    networking.gke.io/managed-certificates: "tfdrift-falco-cert"
+    kubernetes.io/ingress.global-static-ip-name: "driftwire-ip"
+    networking.gke.io/managed-certificates: "driftwire-cert"
     kubernetes.io/ingress.allow-http: "false"
   hosts:
-    - host: tfdrift-falco.example.com
+    - host: driftwire.example.com
       paths:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: tfdrift-falco-tls
+    - secretName: driftwire-tls
       hosts:
-        - tfdrift-falco.example.com
+        - driftwire.example.com
 
 # Managed Certificate (Google Cloud)
 managedCertificate:
   enabled: true
   domains:
-    - tfdrift-falco.example.com
+    - driftwire.example.com
 
 # Network Policy
 networkPolicy:
@@ -293,7 +293,7 @@ affinity:
               - key: app
                 operator: In
                 values:
-                  - tfdrift-falco
+                  - driftwire
           topologyKey: kubernetes.io/hostname
 
 # Health checks
@@ -313,7 +313,7 @@ config:
 
   auth:
     enabled: true
-    jwtIssuer: "tfdrift-falco"
+    jwtIssuer: "driftwire"
     jwtExpiry: "24h"
 
   rateLimit:
@@ -342,7 +342,7 @@ googleSecretManager:
   projectId: "PROJECT_ID"
   secrets:
     - name: jwt-secret
-      key: tfdrift-falco-jwt-secret
+      key: driftwire-jwt-secret
 
 # ServiceMonitor for Prometheus
 serviceMonitor:
@@ -377,14 +377,14 @@ Workload Identity allows your GKE pods to authenticate to GCP services without m
 ```bash
 # Link Kubernetes ServiceAccount to GCP ServiceAccount
 gcloud iam service-accounts add-iam-policy-binding \
-  tfdrift-falco@PROJECT_ID.iam.gserviceaccount.com \
+  driftwire@PROJECT_ID.iam.gserviceaccount.com \
   --role roles/iam.workloadIdentityUser \
-  --member "serviceAccount:PROJECT_ID.svc.id.goog[tfdrift-falco/tfdrift-falco]"
+  --member "serviceAccount:PROJECT_ID.svc.id.goog[driftwire/driftwire]"
 
 # Annotate Kubernetes ServiceAccount
-kubectl annotate serviceaccount tfdrift-falco \
-  --namespace tfdrift-falco \
-  iam.gke.io/gcp-service-account=tfdrift-falco@PROJECT_ID.iam.gserviceaccount.com
+kubectl annotate serviceaccount driftwire \
+  --namespace driftwire \
+  iam.gke.io/gcp-service-account=driftwire@PROJECT_ID.iam.gserviceaccount.com
 ```
 
 ### Verify Workload Identity
@@ -392,8 +392,8 @@ kubectl annotate serviceaccount tfdrift-falco \
 ```bash
 # Test from pod
 kubectl run -it --image google/cloud-sdk:slim \
-  --serviceaccount tfdrift-falco \
-  --namespace tfdrift-falco \
+  --serviceaccount driftwire \
+  --namespace driftwire \
   test-workload-identity -- bash
 
 # Inside pod, verify credentials
@@ -411,31 +411,31 @@ Cloud Armor protects your application with advanced DDoS and WAF capabilities.
 
 ```bash
 # Create policy
-gcloud compute security-policies create tfdrift-falco-policy \
-  --description="Cloud Armor policy for TFDrift-Falco"
+gcloud compute security-policies create driftwire-policy \
+  --description="Cloud Armor policy for driftwire"
 
 # Allow traffic from known IPs
 gcloud compute security-policies rules create 1000 \
-  --security-policy tfdrift-falco-policy \
+  --security-policy driftwire-policy \
   --action allow \
   --expression "origin.ip in ['203.0.113.0/24']"
 
 # Block traffic from suspicious IPs
 gcloud compute security-policies rules create 2000 \
-  --security-policy tfdrift-falco-policy \
+  --security-policy driftwire-policy \
   --action deny-403 \
   --expression "evaluatePreconfiguredExpr('xss-stable')"
 
 # Rate limiting
 gcloud compute security-policies rules create 3000 \
-  --security-policy tfdrift-falco-policy \
+  --security-policy driftwire-policy \
   --action rate-based-ban \
   --rate-limit-options "rate-limit-threshold-count=100,rate-limit-threshold-interval-sec=60" \
   --ban-duration-sec=600
 
 # Default rule
 gcloud compute security-policies rules create 65000 \
-  --security-policy tfdrift-falco-policy \
+  --security-policy driftwire-policy \
   --action allow
 ```
 
@@ -443,8 +443,8 @@ gcloud compute security-policies rules create 65000 \
 
 ```bash
 # Create backend service with Cloud Armor
-gcloud compute backend-services update tfdrift-falco-backend \
-  --security-policy tfdrift-falco-policy \
+gcloud compute backend-services update driftwire-backend \
+  --security-policy driftwire-policy \
   --global
 ```
 
@@ -454,9 +454,9 @@ gcloud compute backend-services update tfdrift-falco-backend \
 
 ```bash
 # Cloud Monitoring is automatically enabled with GKE.
-# TFDrift-Falco exports metrics/traces via OpenTelemetry (OTLP) when
+# driftwire exports metrics/traces via OpenTelemetry (OTLP) when
 # telemetry.enabled: true — send them to an OTLP collector, not a scrape target.
-kubectl get pods -n tfdrift-falco
+kubectl get pods -n driftwire
 ```
 
 ### Create Monitoring Dashboard
@@ -465,7 +465,7 @@ kubectl get pods -n tfdrift-falco
 # Create dashboard
 gcloud monitoring dashboards create --config-from-file=- <<'EOF'
 {
-  "displayName": "TFDrift-Falco GKE",
+  "displayName": "driftwire GKE",
   "mosaicLayout": {
     "columns": 12,
     "tiles": [
@@ -479,7 +479,7 @@ gcloud monitoring dashboards create --config-from-file=- <<'EOF'
               {
                 "timeSeriesQuery": {
                   "timeSeriesFilter": {
-                    "filter": "metric.type=\"kubernetes.io/container/cpu/core_usage_time\" resource.type=\"k8s_container\" metadata.system_labels.top_level_controller_name=\"tfdrift-falco\"",
+                    "filter": "metric.type=\"kubernetes.io/container/cpu/core_usage_time\" resource.type=\"k8s_container\" metadata.system_labels.top_level_controller_name=\"driftwire\"",
                     "aggregation": {
                       "alignmentPeriod": "60s",
                       "perSeriesAligner": "ALIGN_RATE"
@@ -502,7 +502,7 @@ gcloud monitoring dashboards create --config-from-file=- <<'EOF'
               {
                 "timeSeriesQuery": {
                   "timeSeriesFilter": {
-                    "filter": "metric.type=\"kubernetes.io/container/memory/used_bytes\" resource.type=\"k8s_container\" metadata.system_labels.top_level_controller_name=\"tfdrift-falco\"",
+                    "filter": "metric.type=\"kubernetes.io/container/memory/used_bytes\" resource.type=\"k8s_container\" metadata.system_labels.top_level_controller_name=\"driftwire\"",
                     "aggregation": {
                       "alignmentPeriod": "60s",
                       "perSeriesAligner": "ALIGN_MEAN"
@@ -526,20 +526,20 @@ EOF
 # Alert for pod failures
 gcloud alpha monitoring policies create \
   --notification-channels=CHANNEL_ID \
-  --display-name="TFDrift-Falco Pod Failures" \
+  --display-name="driftwire Pod Failures" \
   --condition-display-name="Pods Not Running" \
   --condition-threshold-value=2 \
   --condition-threshold-duration=300s \
-  --condition-threshold-filter='resource.type="k8s_pod" AND metadata.user_labels.app="tfdrift-falco" AND metric.type="kubernetes.io/pod/running"'
+  --condition-threshold-filter='resource.type="k8s_pod" AND metadata.user_labels.app="driftwire" AND metric.type="kubernetes.io/pod/running"'
 
 # Alert for high CPU
 gcloud alpha monitoring policies create \
   --notification-channels=CHANNEL_ID \
-  --display-name="TFDrift-Falco High CPU" \
+  --display-name="driftwire High CPU" \
   --condition-display-name="CPU > 80%" \
   --condition-threshold-value=80 \
   --condition-threshold-duration=300s \
-  --condition-threshold-filter='resource.type="k8s_container" AND metadata.system_labels.top_level_controller_name="tfdrift-falco" AND metric.type="kubernetes.io/container/cpu/request_utilization"'
+  --condition-threshold-filter='resource.type="k8s_container" AND metadata.system_labels.top_level_controller_name="driftwire" AND metric.type="kubernetes.io/container/cpu/request_utilization"'
 ```
 
 ## Network Configuration
@@ -551,12 +551,12 @@ gcloud alpha monitoring policies create \
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: tfdrift-falco-network-policy
-  namespace: tfdrift-falco
+  name: driftwire-network-policy
+  namespace: driftwire
 spec:
   podSelector:
     matchLabels:
-      app: tfdrift-falco
+      app: driftwire
   policyTypes:
     - Ingress
     - Egress
@@ -589,7 +589,7 @@ spec:
 
 ```bash
 # Allow traffic to cluster
-gcloud compute firewall-rules create allow-tfdrift-falco \
+gcloud compute firewall-rules create allow-driftwire \
   --allow tcp:8080 \
   --source-ranges 0.0.0.0/0 \
   --target-tags kubernetes-cluster
@@ -607,26 +607,26 @@ gcloud compute firewall-rules create deny-all-egress \
 
 ```bash
 # Check all resources
-kubectl get all -n tfdrift-falco
+kubectl get all -n driftwire
 
 # Check Pod status
-kubectl get pods -n tfdrift-falco -o wide
+kubectl get pods -n driftwire -o wide
 
 # Describe pod for details
-kubectl describe pod <pod-name> -n tfdrift-falco
+kubectl describe pod <pod-name> -n driftwire
 
 # Check logs
-kubectl logs -n tfdrift-falco -l app=tfdrift-falco --tail=50 -f
+kubectl logs -n driftwire -l app=driftwire --tail=50 -f
 
 # Check events
-kubectl get events -n tfdrift-falco --sort-by='.lastTimestamp'
+kubectl get events -n driftwire --sort-by='.lastTimestamp'
 ```
 
 ### Test Connectivity
 
 ```bash
 # Port forward for testing
-kubectl port-forward -n tfdrift-falco svc/tfdrift-falco 8080:8080
+kubectl port-forward -n driftwire svc/driftwire 8080:8080
 
 # Test health endpoint
 curl http://localhost:8080/health
@@ -641,12 +641,12 @@ curl http://localhost:8080/api/v1/drifts
 
 ```bash
 # Scale replicas
-kubectl scale deployment tfdrift-falco \
-  --namespace tfdrift-falco \
+kubectl scale deployment driftwire \
+  --namespace driftwire \
   --replicas=5
 
 # Check scaling
-kubectl get deployment tfdrift-falco -n tfdrift-falco
+kubectl get deployment driftwire -n driftwire
 ```
 
 ### Horizontal Pod Autoscaling (HPA)
@@ -655,13 +655,13 @@ HPA is configured in the Helm values. Monitor it with:
 
 ```bash
 # Check HPA status
-kubectl get hpa -n tfdrift-falco
+kubectl get hpa -n driftwire
 
 # Describe HPA
-kubectl describe hpa tfdrift-falco -n tfdrift-falco
+kubectl describe hpa driftwire -n driftwire
 
 # Watch HPA behavior
-kubectl get hpa -n tfdrift-falco --watch
+kubectl get hpa -n driftwire --watch
 ```
 
 ### Vertical Pod Autoscaling (VPA)
@@ -670,11 +670,11 @@ If VPA is enabled, it recommends resource requests:
 
 ```bash
 # Check VPA recommendations
-kubectl describe vpa tfdrift-falco -n tfdrift-falco
+kubectl describe vpa driftwire -n driftwire
 
 # Apply recommendations
-kubectl patch vpa tfdrift-falco \
-  --namespace tfdrift-falco \
+kubectl patch vpa driftwire \
+  --namespace driftwire \
   --type merge \
   --patch '{"spec":{"updatePolicy":{"updateMode":"Auto"}}}'
 ```
@@ -683,11 +683,11 @@ kubectl patch vpa tfdrift-falco \
 
 ```bash
 # Check node pools
-gcloud container node-pools list --cluster tfdrift-falco
+gcloud container node-pools list --cluster driftwire
 
 # Update node pool autoscaling
 gcloud container node-pools update default-pool \
-  --cluster tfdrift-falco \
+  --cluster driftwire \
   --min-nodes 3 \
   --max-nodes 10 \
   --enable-autoscaling
@@ -699,31 +699,31 @@ gcloud container node-pools update default-pool \
 
 ```bash
 # Check pod status
-kubectl describe pod <pod-name> -n tfdrift-falco
+kubectl describe pod <pod-name> -n driftwire
 
 # Check image pull
-kubectl describe pod <pod-name> -n tfdrift-falco | grep -A 5 "Events:"
+kubectl describe pod <pod-name> -n driftwire | grep -A 5 "Events:"
 
 # Verify image exists in GCR
 gcloud container images list --repository=gcr.io/PROJECT_ID
 
 # Check logs
-kubectl logs <pod-name> -n tfdrift-falco
+kubectl logs <pod-name> -n driftwire
 ```
 
 ### Workload Identity Issues
 
 ```bash
 # Verify annotation
-kubectl get serviceaccount tfdrift-falco -n tfdrift-falco -o yaml | grep gcp-service-account
+kubectl get serviceaccount driftwire -n driftwire -o yaml | grep gcp-service-account
 
 # Check IAM binding
-gcloud iam service-accounts get-iam-policy tfdrift-falco@PROJECT_ID.iam.gserviceaccount.com
+gcloud iam service-accounts get-iam-policy driftwire@PROJECT_ID.iam.gserviceaccount.com
 
 # Test from pod
 kubectl run -it --image google/cloud-sdk:slim \
-  --serviceaccount tfdrift-falco \
-  --namespace tfdrift-falco \
+  --serviceaccount driftwire \
+  --namespace driftwire \
   test -- gcloud auth list
 ```
 
@@ -735,7 +735,7 @@ kubectl get pods -n falco
 
 # Test connectivity
 kubectl run -it --image alpine:latest \
-  --namespace tfdrift-falco \
+  --namespace driftwire \
   test -- nc -zv falco.falco 5060
 ```
 
@@ -743,7 +743,7 @@ kubectl run -it --image alpine:latest \
 
 ```bash
 # Check cluster status
-gcloud container clusters describe tfdrift-falco --zone us-central1-a
+gcloud container clusters describe driftwire --zone us-central1-a
 
 # Check node status
 kubectl get nodes -o wide

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	azurepkg "github.com/keitahigaki/tfdrift-falco/pkg/azure"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	azurepkg "github.com/higakikeita/driftwire/pkg/azure"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // Compile-time interface checks

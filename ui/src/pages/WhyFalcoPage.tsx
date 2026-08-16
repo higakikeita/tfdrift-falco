@@ -141,7 +141,7 @@ export default function WhyFalcoPage({ onBack }: WhyFalcoPageProps) {
                 <tr className="border-b border-gray-700">
                   <th className="py-3 px-4 text-gray-400 font-medium">Aspect</th>
                   <th className="py-3 px-4 text-gray-400 font-medium">Periodic Scan</th>
-                  <th className="py-3 px-4 text-green-400 font-medium">TFDrift-Falco</th>
+                  <th className="py-3 px-4 text-green-400 font-medium">driftwire</th>
                 </tr>
               </thead>
               <tbody className="text-gray-300">
@@ -151,11 +151,11 @@ export default function WhyFalcoPage({ onBack }: WhyFalcoPageProps) {
                   ['When?', 'Approximate', 'Exact timestamp'],
                   ['How?', 'Unknown', 'CloudTrail event detail'],
                   ['Mechanism', 'terraform plan / polling', 'Falco gRPC stream'],
-                ].map(([aspect, traditional, tfdrift]) => (
+                ].map(([aspect, traditional, driftwire]) => (
                   <tr key={aspect} className="border-b border-gray-800">
                     <td className="py-3 px-4 font-medium text-gray-200">{aspect}</td>
                     <td className="py-3 px-4 text-gray-500">{traditional}</td>
-                    <td className="py-3 px-4 text-green-300">{tfdrift}</td>
+                    <td className="py-3 px-4 text-green-300">{driftwire}</td>
                   </tr>
                 ))}
               </tbody>

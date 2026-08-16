@@ -55,7 +55,7 @@ func TestConfigExample_RealSectionsPresent(t *testing.T) {
 
 	// Sections that were missing from the old example (#320): telemetry,
 	// remediation, github, policy. They must at least be representable.
-	require.Equal(t, "tfdrift-falco", cfg.Telemetry.ServiceName, "telemetry section should be documented")
+	require.Equal(t, "driftwire", cfg.Telemetry.ServiceName, "telemetry section should be documented")
 	require.False(t, cfg.Remediation.Enabled, "remediation section should be documented")
 	require.Equal(t, "main", cfg.GitHub.Branch, "github section should be documented")
 	require.Equal(t, "./policies", cfg.Policy.PolicyDir, "policy section should be documented")

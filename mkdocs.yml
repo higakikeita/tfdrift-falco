@@ -1,11 +1,11 @@
-# TFDrift-Falco Documentation (MECE Restructured)
+# driftwire Documentation (MECE Restructured)
 # Based on MECE principles: Mutually Exclusive, Collectively Exhaustive
 
-site_name: TFDrift-Falco Documentation
+site_name: driftwire Documentation
 site_description: Real-time Multi-Cloud Terraform Drift Detection (AWS + GCP) using Falco - Complete Guide
-site_url: https://higakikeita.github.io/tfdrift-falco/
-repo_url: https://github.com/higakikeita/tfdrift-falco
-repo_name: higakikeita/tfdrift-falco
+site_url: https://higakikeita.github.io/driftwire/
+repo_url: https://github.com/higakikeita/driftwire
+repo_name: higakikeita/driftwire
 edit_uri: edit/main/docs/
 
 theme:
@@ -219,7 +219,7 @@ markdown_extensions:
   - pymdownx.magiclink:
       repo_url_shorthand: true
       user: higakikeita
-      repo: tfdrift-falco
+      repo: driftwire
   - pymdownx.mark
   - pymdownx.smartsymbols
   - pymdownx.snippets:
@@ -243,7 +243,7 @@ extra:
     default: stable
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/higakikeita/tfdrift-falco
+      link: https://github.com/higakikeita/driftwire
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/higakikeita
   analytics:

@@ -3,8 +3,8 @@ package aws
 import (
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 func TestDiscoveredResource_Structure(t *testing.T) {

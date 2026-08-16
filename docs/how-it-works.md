@@ -1,6 +1,6 @@
 # How It Works
 
-This document explains the technical details of how TFDrift-Falco detects Terraform drift in real-time.
+This document explains the technical details of how driftwire detects Terraform drift in real-time.
 
 ---
 
@@ -22,7 +22,7 @@ This document explains the technical details of how TFDrift-Falco detects Terraf
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ 3. TFDrift Detector Polls CloudTrail                            │
+│ 3. driftwire Detector Polls CloudTrail                            │
 │    - Fetch events from last 5 minutes                           │
 │    - Filter by supported event names                            │
 └────────────────────┬────────────────────────────────────────────┘
@@ -384,4 +384,4 @@ func parseBulkChanges(event CloudTrailEvent) []AttributeChange {
 
 1. [Understand the Architecture →](architecture.md)
 2. [Review Service Coverage →](services/ec2.md)
-3. [Deploy TFDrift-Falco →](quickstart.md)
+3. [Deploy driftwire →](quickstart.md)

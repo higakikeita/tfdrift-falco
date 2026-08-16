@@ -1,10 +1,10 @@
-# Falco Setup Guide for TFDrift-Falco (AWS)
+# Falco Setup Guide for driftwire (AWS)
 
-This guide explains how to set up Falco with the CloudTrail plugin to work with TFDrift-Falco for **AWS drift detection**.
+This guide explains how to set up Falco with the CloudTrail plugin to work with driftwire for **AWS drift detection**.
 
 > **📝 Note**: This guide is for AWS. If you're using Google Cloud Platform (GCP), see the [GCP Setup Guide](./gcp-setup.md) instead.
 >
-> **🎉 New in v0.5.0**: TFDrift-Falco now supports multi-cloud environments! You can monitor both AWS and GCP resources simultaneously. See the [Multi-Cloud Configuration](#multi-cloud-configuration) section below.
+> **🎉 New in v0.5.0**: driftwire now supports multi-cloud environments! You can monitor both AWS and GCP resources simultaneously. See the [Multi-Cloud Configuration](#multi-cloud-configuration) section below.
 
 ## Prerequisites
 
@@ -38,7 +38,7 @@ docker pull falcosecurity/falco:latest
 
 ### Step 2: Install Falco CloudTrail Plugin
 
-The CloudTrail plugin is required for TFDrift-Falco to receive AWS events.
+The CloudTrail plugin is required for driftwire to receive AWS events.
 
 ```bash
 # Download CloudTrail plugin
@@ -51,12 +51,12 @@ cd /usr/share/falco/plugins
 sudo tar -xzf libcloudtrail.so cloudtrail-latest-x86_64.tar.gz
 ```
 
-### Step 3: Configure Falco for TFDrift
+### Step 3: Configure Falco for driftwire
 
 Create or edit `/etc/falco/falco.yaml`:
 
 ```yaml
-# Enable gRPC output (required for TFDrift-Falco)
+# Enable gRPC output (required for driftwire)
 grpc:
   enabled: true
   bind_address: "0.0.0.0:5060"
@@ -87,8 +87,8 @@ rules_file:
   - /etc/falco/falco_rules.yaml
   - /etc/falco/falco_rules.local.yaml
   - /etc/falco/rules.d
-  # Add TFDrift-Falco rules
-  - /path/to/tfdrift-falco/rules/terraform_drift.yaml
+  # Add driftwire rules
+  - /path/to/driftwire/rules/terraform_drift.yaml
 
 # Output configuration
 json_output: true
@@ -100,10 +100,10 @@ log_syslog: false
 log_level: info
 ```
 
-### Step 4: Copy TFDrift Rules to Falco
+### Step 4: Copy driftwire Rules to Falco
 
 ```bash
-sudo cp /path/to/tfdrift-falco/rules/terraform_drift.yaml /etc/falco/rules.d/
+sudo cp /path/to/driftwire/rules/terraform_drift.yaml /etc/falco/rules.d/
 ```
 
 ### Step 5: Configure AWS Credentials
@@ -221,9 +221,9 @@ services:
       - -c
       - /etc/falco/falco.yaml
 
-  tfdrift-falco:
-    image: tfdrift-falco:latest
-    container_name: tfdrift
+  driftwire:
+    image: driftwire:latest
+    container_name: driftwire
     depends_on:
       - falco
     volumes:
@@ -246,7 +246,7 @@ docker-compose up -d
 
 ### Falco gRPC Not Starting
 
-**Symptom**: TFDrift-Falco fails to connect with "connection refused"
+**Symptom**: driftwire fails to connect with "connection refused"
 
 **Solutions**:
 ```bash
@@ -371,21 +371,21 @@ plugins:
 
 After Falco is set up and running:
 
-1. **Configure TFDrift-Falco**: Edit `config.yaml` with your Falco gRPC endpoint
-2. **Run TFDrift-Falco**: `tfdrift --config config.yaml`
+1. **Configure driftwire**: Edit `config.yaml` with your Falco gRPC endpoint
+2. **Run driftwire**: `driftwire --config config.yaml`
 3. **Test drift detection**: Make a manual change to a Terraform-managed resource
 4. **Check alerts**: Verify you receive notifications (Slack, Discord, etc.)
 5. **(Optional) Add GCP monitoring**: See the [Multi-Cloud Configuration](#multi-cloud-configuration) section to monitor both AWS and GCP
 
 ## Multi-Cloud Configuration
 
-**New in v0.5.0**: You can now monitor both AWS and GCP resources in a single TFDrift-Falco instance.
+**New in v0.5.0**: You can now monitor both AWS and GCP resources in a single driftwire instance.
 
 ### Running Both AWS and GCP Monitoring
 
 1. Set up Falco for AWS (this guide)
 2. Set up Falco for GCP with gcpaudit plugin (see [GCP Setup Guide](./gcp-setup.md))
-3. Configure TFDrift-Falco to monitor both providers:
+3. Configure driftwire to monitor both providers:
 
 ```yaml
 # config.yaml
@@ -448,5 +448,5 @@ notifications:
 - [Falco Official Documentation](https://falco.org/docs/)
 - [Falco CloudTrail Plugin](https://github.com/falcosecurity/plugins/tree/master/plugins/cloudtrail)
 - [AWS CloudTrail Documentation](https://docs.aws.amazon.com/cloudtrail/)
-- [TFDrift-Falco Repository](https://github.com/higakikeita/tfdrift-falco)
+- [driftwire Repository](https://github.com/higakikeita/driftwire)
 - [GCP Setup Guide](./gcp-setup.md) - For Google Cloud Platform setup

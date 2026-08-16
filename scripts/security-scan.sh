@@ -3,7 +3,7 @@
 
 set -e
 
-echo "=== TFDrift-Falco Security Scan ==="
+echo "=== driftwire Security Scan ==="
 echo ""
 
 # Check if gosec is installed

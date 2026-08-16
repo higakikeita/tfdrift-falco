@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 func sampleDrift() *types.DriftResult {

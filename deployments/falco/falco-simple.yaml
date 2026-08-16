@@ -1,9 +1,9 @@
 #
-# Simplified Falco Configuration for TFDrift-Falco Testing
+# Simplified Falco Configuration for driftwire Testing
 # This configuration enables gRPC output without CloudTrail plugin
 #
 
-# gRPC Output (Required for TFDrift-Falco)
+# gRPC Output (Required for driftwire)
 grpc:
   enabled: true
   bind_address: "0.0.0.0:5060"
@@ -88,7 +88,7 @@ engine:
 #   - name: cloudtrail
 #     library_path: /etc/falco/plugins/libcloudtrail.so
 #     init_config: ""
-#     open_params: "s3Bucket=tfdrift-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1"
+#     open_params: "s3Bucket=driftwire-cloudtrail-YOUR-AWS-ACCOUNT-ID-us-east-1"
 
 # Load rules for CloudTrail plugin (DISABLED)
 # load_plugins: [cloudtrail]

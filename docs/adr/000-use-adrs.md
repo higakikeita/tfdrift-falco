@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-As TFDrift-Falco grows in complexity (multi-cloud support, enterprise security features, Kubernetes deployment), architectural decisions are being made that have long-term consequences. Without a formal record, the reasoning behind decisions is lost, making it difficult for new contributors to understand design choices and for the team to revisit decisions when circumstances change.
+As driftwire grows in complexity (multi-cloud support, enterprise security features, Kubernetes deployment), architectural decisions are being made that have long-term consequences. Without a formal record, the reasoning behind decisions is lost, making it difficult for new contributors to understand design choices and for the team to revisit decisions when circumstances change.
 
 ## Decision
 

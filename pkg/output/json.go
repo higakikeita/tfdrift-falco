@@ -6,7 +6,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // JSONOutput writes drift events as NDJSON (newline-delimited JSON) to a writer

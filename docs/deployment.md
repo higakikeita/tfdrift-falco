@@ -1,6 +1,6 @@
-# TFDrift-Falco Deployment Guide
+# driftwire Deployment Guide
 
-This guide covers different deployment methods for TFDrift-Falco in production environments.
+This guide covers different deployment methods for driftwire in production environments.
 
 ## Table of Contents
 
@@ -23,7 +23,7 @@ This guide covers different deployment methods for TFDrift-Falco in production e
 make docker-build
 
 # Or directly with Docker
-docker build -t tfdrift-falco:latest .
+docker build -t driftwire:latest .
 ```
 
 #### Step 2: Prepare Configuration
@@ -56,31 +56,31 @@ notifications:
 
 ```bash
 docker run -d \
-  --name tfdrift-falco \
+  --name driftwire \
   -v $(pwd)/config.yaml:/config/config.yaml:ro \
   -v ~/.aws:/root/.aws:ro \
   -e AWS_REGION=us-east-1 \
-  tfdrift-falco:latest \
+  driftwire:latest \
   --config /config/config.yaml
 ```
 
 #### Step 4: View Logs
 
 ```bash
-docker logs -f tfdrift-falco
+docker logs -f driftwire
 ```
 
 ---
 
 ## Docker Compose Deployment
 
-Docker Compose is the recommended method for running TFDrift-Falco with all dependencies.
+Docker Compose is the recommended method for running driftwire with all dependencies.
 
 ### Architecture
 
 The Docker Compose stack includes:
 - **Falco**: Runtime security with CloudTrail plugin
-- **TFDrift-Falco**: Main drift detection service
+- **driftwire**: Main drift detection service
 
 ### Step 1: Configure Environment Variables
 
@@ -102,7 +102,7 @@ TZ=America/New_York
 ### Step 2: Prepare Configuration Files
 
 Ensure these files exist:
-- `config.yaml` - TFDrift configuration
+- `config.yaml` - driftwire configuration
 - `deployments/falco/falco.yaml` - Falco configuration (provided)
 - `rules/terraform_drift.yaml` - Falco rules (provided)
 
@@ -135,7 +135,7 @@ make docker-compose-ps
 make docker-compose-logs
 
 # Or for specific service
-docker-compose logs -f tfdrift
+docker-compose logs -f driftwire
 docker-compose logs -f falco
 ```
 
@@ -148,7 +148,7 @@ aws ec2 modify-instance-attribute \
   --disable-api-termination
 
 # Check logs for drift detection
-docker-compose logs tfdrift | grep -i "drift"
+docker-compose logs driftwire | grep -i "drift"
 ```
 
 ### Management Commands
@@ -171,7 +171,7 @@ make docker-compose-ps
 
 ## Kubernetes Deployment
 
-For Kubernetes environments, deploy TFDrift-Falco as a Deployment with Falco as a DaemonSet.
+For Kubernetes environments, deploy driftwire as a Deployment with Falco as a DaemonSet.
 
 ### Prerequisites
 
@@ -196,12 +196,12 @@ helm install falco falcosecurity/falco \
   --set collectors.cloudtrail.sqsQueue=my-cloudtrail-queue
 ```
 
-### Step 2: Create ConfigMap for TFDrift Config
+### Step 2: Create ConfigMap for driftwire Config
 
 ```bash
-kubectl create configmap tfdrift-config \
+kubectl create configmap driftwire-config \
   --from-file=config.yaml=./config.yaml \
-  --namespace tfdrift
+  --namespace driftwire
 ```
 
 ### Step 3: Create Secret for AWS Credentials
@@ -210,10 +210,10 @@ kubectl create configmap tfdrift-config \
 kubectl create secret generic aws-credentials \
   --from-file=credentials=$HOME/.aws/credentials \
   --from-file=config=$HOME/.aws/config \
-  --namespace tfdrift
+  --namespace driftwire
 ```
 
-### Step 4: Deploy TFDrift-Falco
+### Step 4: Deploy driftwire
 
 Create `k8s/deployment.yaml`:
 
@@ -221,28 +221,28 @@ Create `k8s/deployment.yaml`:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: tfdrift
+  name: driftwire
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tfdrift-falco
-  namespace: tfdrift
+  name: driftwire
+  namespace: driftwire
   labels:
-    app: tfdrift-falco
+    app: driftwire
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: tfdrift-falco
+      app: driftwire
   template:
     metadata:
       labels:
-        app: tfdrift-falco
+        app: driftwire
     spec:
       containers:
-      - name: tfdrift
-        image: tfdrift-falco:latest
+      - name: driftwire
+        image: driftwire:latest
         imagePullPolicy: IfNotPresent
         args:
           - --config
@@ -250,9 +250,9 @@ spec:
         env:
         - name: AWS_REGION
           value: "us-east-1"
-        - name: TFDRIFT_FALCO_HOSTNAME
+        - name: DRIFTWIRE_FALCO_HOSTNAME
           value: "falco-grpc.falco.svc.cluster.local"
-        - name: TFDRIFT_FALCO_PORT
+        - name: DRIFTWIRE_FALCO_PORT
           value: "5060"
         volumeMounts:
         - name: config
@@ -271,7 +271,7 @@ spec:
       volumes:
       - name: config
         configMap:
-          name: tfdrift-config
+          name: driftwire-config
       - name: aws-credentials
         secret:
           secretName: aws-credentials
@@ -279,11 +279,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tfdrift-falco
-  namespace: tfdrift
+  name: driftwire
+  namespace: driftwire
 spec:
   selector:
-    app: tfdrift-falco
+    app: driftwire
   ports:
   - name: http
     port: 8080
@@ -300,13 +300,13 @@ kubectl apply -f k8s/deployment.yaml
 
 ```bash
 # Check pod status
-kubectl get pods -n tfdrift
+kubectl get pods -n driftwire
 
 # View logs
-kubectl logs -f deployment/tfdrift-falco -n tfdrift
+kubectl logs -f deployment/driftwire -n driftwire
 
 # Check Falco connection
-kubectl exec -it deployment/tfdrift-falco -n tfdrift -- /bin/sh
+kubectl exec -it deployment/driftwire -n driftwire -- /bin/sh
 # Inside container:
 # nc -zv falco-grpc.falco.svc.cluster.local 5060
 ```
@@ -315,7 +315,7 @@ kubectl exec -it deployment/tfdrift-falco -n tfdrift -- /bin/sh
 
 ## Systemd Service
 
-For running TFDrift-Falco as a native systemd service on Linux.
+For running driftwire as a native systemd service on Linux.
 
 ### Step 1: Build and Install Binary
 
@@ -324,49 +324,49 @@ For running TFDrift-Falco as a native systemd service on Linux.
 make build-linux
 
 # Install binary
-sudo cp bin/tfdrift-linux-amd64 /usr/local/bin/tfdrift
-sudo chmod +x /usr/local/bin/tfdrift
+sudo cp bin/driftwire-linux-amd64 /usr/local/bin/driftwire
+sudo chmod +x /usr/local/bin/driftwire
 ```
 
 ### Step 2: Create Configuration Directory
 
 ```bash
-sudo mkdir -p /etc/tfdrift
-sudo cp config.yaml /etc/tfdrift/
-sudo chmod 600 /etc/tfdrift/config.yaml
+sudo mkdir -p /etc/driftwire
+sudo cp config.yaml /etc/driftwire/
+sudo chmod 600 /etc/driftwire/config.yaml
 ```
 
 ### Step 3: Create Systemd Service File
 
-Create `/etc/systemd/system/tfdrift.service`:
+Create `/etc/systemd/system/driftwire.service`:
 
 ```ini
 [Unit]
-Description=TFDrift-Falco Terraform Drift Detection
-Documentation=https://github.com/keitahigaki/tfdrift-falco
+Description=driftwire Terraform Drift Detection
+Documentation=https://github.com/higakikeita/driftwire
 After=network.target falco.service
 Requires=falco.service
 
 [Service]
 Type=simple
-User=tfdrift
-Group=tfdrift
-WorkingDirectory=/var/lib/tfdrift
+User=driftwire
+Group=driftwire
+WorkingDirectory=/var/lib/driftwire
 Environment="AWS_REGION=us-east-1"
-Environment="HOME=/var/lib/tfdrift"
-ExecStart=/usr/local/bin/tfdrift --config /etc/tfdrift/config.yaml
+Environment="HOME=/var/lib/driftwire"
+ExecStart=/usr/local/bin/driftwire --config /etc/driftwire/config.yaml
 Restart=on-failure
 RestartSec=10s
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=tfdrift
+SyslogIdentifier=driftwire
 
 # Security hardening
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/tfdrift
+ReadWritePaths=/var/lib/driftwire
 
 [Install]
 WantedBy=multi-user.target
@@ -375,11 +375,11 @@ WantedBy=multi-user.target
 ### Step 4: Create Service User
 
 ```bash
-sudo useradd -r -s /bin/false -d /var/lib/tfdrift tfdrift
-sudo mkdir -p /var/lib/tfdrift/.aws
-sudo cp ~/.aws/credentials /var/lib/tfdrift/.aws/
-sudo cp ~/.aws/config /var/lib/tfdrift/.aws/
-sudo chown -R tfdrift:tfdrift /var/lib/tfdrift
+sudo useradd -r -s /bin/false -d /var/lib/driftwire driftwire
+sudo mkdir -p /var/lib/driftwire/.aws
+sudo cp ~/.aws/credentials /var/lib/driftwire/.aws/
+sudo cp ~/.aws/config /var/lib/driftwire/.aws/
+sudo chown -R driftwire:driftwire /var/lib/driftwire
 ```
 
 ### Step 5: Enable and Start Service
@@ -389,16 +389,16 @@ sudo chown -R tfdrift:tfdrift /var/lib/tfdrift
 sudo systemctl daemon-reload
 
 # Enable service to start on boot
-sudo systemctl enable tfdrift
+sudo systemctl enable driftwire
 
 # Start service
-sudo systemctl start tfdrift
+sudo systemctl start driftwire
 
 # Check status
-sudo systemctl status tfdrift
+sudo systemctl status driftwire
 
 # View logs
-sudo journalctl -u tfdrift -f
+sudo journalctl -u driftwire -f
 ```
 
 ---
@@ -408,7 +408,7 @@ sudo journalctl -u tfdrift -f
 ### High Availability
 
 #### Multiple Replicas
-- Run multiple TFDrift instances for redundancy
+- Run multiple driftwire instances for redundancy
 - Use different availability zones
 - Share state via external storage
 
@@ -435,7 +435,7 @@ sudo journalctl -u tfdrift -f
 - Use least-privilege IAM policies
 
 #### Network Security
-- Restrict Falco gRPC access to TFDrift only
+- Restrict Falco gRPC access to driftwire only
 - Use TLS/mTLS for Falco gRPC communication
 - Place services in private subnets
 
@@ -450,7 +450,7 @@ sudo journalctl -u tfdrift -f
 ```yaml
 # Docker Compose
 services:
-  tfdrift:
+  driftwire:
     deploy:
       resources:
         limits:
@@ -469,12 +469,12 @@ services:
 ### Backup and Recovery
 
 #### State Backup
-- TFDrift is stateless (no persistent data)
+- driftwire is stateless (no persistent data)
 - Configuration is stored in config.yaml
 - Terraform state is external (S3/remote)
 
 #### Recovery Procedures
-1. Stop TFDrift service
+1. Stop driftwire service
 2. Update configuration if needed
 3. Restart service
 4. Verify Falco connection
@@ -487,7 +487,7 @@ services:
 - Monitor resource usage
 
 #### Horizontal Scaling
-- Run multiple TFDrift instances
+- Run multiple driftwire instances
 - Each instance processes all events independently
 - No coordination needed
 
@@ -500,29 +500,29 @@ docker-compose pull
 docker-compose up -d
 
 # Systemd
-sudo systemctl stop tfdrift
-sudo cp new-binary /usr/local/bin/tfdrift
-sudo systemctl start tfdrift
+sudo systemctl stop driftwire
+sudo cp new-binary /usr/local/bin/driftwire
+sudo systemctl start driftwire
 ```
 
 #### Configuration Changes
 ```bash
 # Validate config
-tfdrift --config config.yaml --dry-run
+driftwire --config config.yaml --dry-run
 
 # Apply changes
 # Docker Compose
-docker-compose restart tfdrift
+docker-compose restart driftwire
 
 # Systemd
-sudo systemctl restart tfdrift
+sudo systemctl restart driftwire
 ```
 
 ### Troubleshooting
 
 #### Common Issues
 
-**TFDrift can't connect to Falco**
+**driftwire can't connect to Falco**
 ```bash
 # Check Falco is running
 docker-compose logs falco
@@ -544,8 +544,8 @@ docker exec falco falco -L | grep terraform
 # Verify CloudTrail events
 aws cloudtrail lookup-events --max-results 10
 
-# Check TFDrift logs
-docker-compose logs tfdrift | grep -i event
+# Check driftwire logs
+docker-compose logs driftwire | grep -i event
 ```
 
 **High memory usage**
@@ -561,11 +561,11 @@ After deployment:
 1. [Configure alerts](../examples/config.yaml)
 2. [Access the React Dashboard UI](./quickstart.md#step-10-access-the-dashboard-ui-v060)
 3. [Review security best practices](./SECURITY.md)
-4. [Join the community](https://github.com/keitahigaki/tfdrift-falco/discussions)
+4. [Join the community](https://github.com/higakikeita/driftwire/discussions)
 
 ## Support
 
 For deployment issues:
-- [GitHub Issues](https://github.com/keitahigaki/tfdrift-falco/issues)
-- [Documentation](https://github.com/keitahigaki/tfdrift-falco/tree/main/docs)
-- [Community Discussions](https://github.com/keitahigaki/tfdrift-falco/discussions)
+- [GitHub Issues](https://github.com/higakikeita/driftwire/issues)
+- [Documentation](https://github.com/higakikeita/driftwire/tree/main/docs)
+- [Community Discussions](https://github.com/higakikeita/driftwire/discussions)

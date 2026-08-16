@@ -1,6 +1,6 @@
-# Getting Started with TFDrift-Falco
+# Getting Started with driftwire
 
-このガイドでは、TFDrift-Falcoを**5分でセットアップ**して、すぐにTerraformドリフト検知を開始する方法を説明します。
+このガイドでは、driftwireを**5分でセットアップ**して、すぐにTerraformドリフト検知を開始する方法を説明します。
 
 ## 📋 目次
 
@@ -67,8 +67,8 @@ EOF
 ### ステップ 1: リポジトリをクローン
 
 ```bash
-git clone https://github.com/higakikeita/tfdrift-falco.git
-cd tfdrift-falco
+git clone https://github.com/higakikeita/driftwire.git
+cd driftwire
 ```
 
 ### ステップ 2: Quick Start スクリプトを実行
@@ -84,7 +84,7 @@ make quick-start
 - ✅ AWS credentials の確認（未設定の場合は対話的に設定）
 - ✅ Falco設定ファイルの生成 (`deployments/falco/falco.yaml`)
 - ✅ Falcoルールファイルの生成 (`rules/terraform_drift.yaml`)
-- ✅ TFDrift-Falco設定ファイルの生成 (`config.yaml`)
+- ✅ driftwire設定ファイルの生成 (`config.yaml`)
 - ✅ 対話的な設定（AWS Region、Terraform State Backend、Slack Webhook）
 
 **対話的な質問例：**
@@ -103,7 +103,7 @@ S3 key (e.g., prod/terraform.tfstate): prod/terraform.tfstate ⏎
 Slack webhook URL (optional, press Enter to skip): https://hooks.slack.com/... ⏎
 ```
 
-### ステップ 3: TFDrift-Falcoを起動
+### ステップ 3: driftwireを起動
 
 ```bash
 docker compose up -d
@@ -132,7 +132,7 @@ mkdir -p examples/terraform
 **ファイル**: `deployments/falco/falco.yaml`
 
 ```yaml
-# Falco configuration for TFDrift-Falco
+# Falco configuration for driftwire
 watch_config_files: true
 time_format_iso_8601: true
 
@@ -142,7 +142,7 @@ rules_file:
   - /etc/falco/falco_rules.local.yaml
   - /etc/falco/rules.d
 
-# gRPC output (required for TFDrift-Falco)
+# gRPC output (required for driftwire)
 grpc:
   enabled: true
   bind_address: "0.0.0.0:5060"
@@ -175,12 +175,12 @@ plugins:
 load_plugins: [cloudtrail]
 ```
 
-### 3. TFDrift Falcoルールを作成
+### 3. driftwire Falcoルールを作成
 
 **ファイル**: `rules/terraform_drift.yaml`
 
 ```yaml
-# TFDrift-Falco Rules
+# driftwire Rules
 - rule: Terraform Managed Resource Modified
   desc: Detect modifications to resources that should be managed by Terraform
   condition: >
@@ -214,12 +214,12 @@ load_plugins: [cloudtrail]
   source: aws_cloudtrail
 ```
 
-### 4. TFDrift-Falco設定ファイルを作成
+### 4. driftwire設定ファイルを作成
 
 **ファイル**: `config.yaml`
 
 ```yaml
-# TFDrift-Falco Configuration
+# driftwire Configuration
 
 # Cloud Provider Configuration
 providers:
@@ -271,7 +271,7 @@ notifications:
   slack:
     enabled: false  # Slackを使う場合はtrueに変更
     webhook_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
-    channel: "#tfdrift-alerts"
+    channel: "#driftwire-alerts"
 
   falco_output:
     enabled: true
@@ -303,15 +303,15 @@ make status
 
 # 期待される出力:
 # NAME                    STATUS              PORTS
-# tfdrift-falco-app       Up 30 seconds       0.0.0.0:8080->8080/tcp
-# tfdrift-falco-falco     Up 30 seconds       0.0.0.0:5060->5060/tcp
+# driftwire-app       Up 30 seconds       0.0.0.0:8080->8080/tcp
+# driftwire-falco     Up 30 seconds       0.0.0.0:5060->5060/tcp
 ```
 
 ### 2. ログを確認
 
 ```bash
-# TFDrift-Falcoのログ
-docker compose logs -f tfdrift
+# driftwireのログ
+docker compose logs -f driftwire
 
 # Falcoのログ
 docker compose logs -f falco
@@ -325,14 +325,14 @@ make logs
 **正常起動時のログ例：**
 
 ```
-tfdrift-falco-app    | INFO  Starting TFDrift-Falco v0.5.0
-tfdrift-falco-app    | INFO  Loaded Terraform state: 142 resources
-tfdrift-falco-app    | INFO  Connected to Falco gRPC endpoint: falco:5060
-tfdrift-falco-app    | INFO  Listening for CloudTrail events...
+driftwire-app    | INFO  Starting driftwire v0.5.0
+driftwire-app    | INFO  Loaded Terraform state: 142 resources
+driftwire-app    | INFO  Connected to Falco gRPC endpoint: falco:5060
+driftwire-app    | INFO  Listening for CloudTrail events...
 
-tfdrift-falco-falco  | Falco initialized with configuration file: /etc/falco/falco.yaml
-tfdrift-falco-falco  | Loading plugin cloudtrail from /usr/share/falco/plugins/libcloudtrail.so
-tfdrift-falco-falco  | gRPC server listening on 0.0.0.0:5060
+driftwire-falco  | Falco initialized with configuration file: /etc/falco/falco.yaml
+driftwire-falco  | Loading plugin cloudtrail from /usr/share/falco/plugins/libcloudtrail.so
+driftwire-falco  | gRPC server listening on 0.0.0.0:5060
 ```
 
 ### 3. ドリフトを手動でテストする
@@ -345,26 +345,26 @@ aws ec2 modify-instance-attribute \
   --instance-id i-1234567890abcdef0 \
   --no-disable-api-termination
 
-# TFDrift-Falcoのログを確認
-docker compose logs -f tfdrift
+# driftwireのログを確認
+docker compose logs -f driftwire
 ```
 
 **期待されるアラート：**
 
 ```
-tfdrift-falco-app | ALERT Drift Detected!
-tfdrift-falco-app | ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-tfdrift-falco-app | Resource:     aws_instance.web_server
-tfdrift-falco-app | Type:         Manual Modification
-tfdrift-falco-app | Severity:     HIGH
-tfdrift-falco-app |
-tfdrift-falco-app | Changed Attribute:
-tfdrift-falco-app |   disable_api_termination: true → false
-tfdrift-falco-app |
-tfdrift-falco-app | Context:
-tfdrift-falco-app |   User:         admin@example.com
-tfdrift-falco-app |   Region:       us-east-1
-tfdrift-falco-app |   Timestamp:    2025-12-19T10:35:10Z
+driftwire-app | ALERT Drift Detected!
+driftwire-app | ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+driftwire-app | Resource:     aws_instance.web_server
+driftwire-app | Type:         Manual Modification
+driftwire-app | Severity:     HIGH
+driftwire-app |
+driftwire-app | Changed Attribute:
+driftwire-app |   disable_api_termination: true → false
+driftwire-app |
+driftwire-app | Context:
+driftwire-app |   User:         admin@example.com
+driftwire-app |   Region:       us-east-1
+driftwire-app |   Timestamp:    2025-12-19T10:35:10Z
 ```
 
 ### 4. Slackで通知を受け取る
@@ -415,7 +415,7 @@ ERROR Failed to connect to Falco gRPC endpoint: connection refused
 
 4. **ネットワーク接続を確認**
    ```bash
-   docker network inspect tfdrift-network
+   docker network inspect driftwire-network
    ```
 
 ### 問題 2: "Terraform state file not found"
@@ -524,7 +524,7 @@ INFO  Listening for CloudTrail events...
 ### 問題 5: メモリ使用量が高い
 
 **症状:**
-- TFDrift-FalcoコンテナがOOMKillerで再起動される
+- driftwireコンテナがOOMKillerで再起動される
 - メモリ使用量が1GB以上
 
 **解決策:**
@@ -539,7 +539,7 @@ INFO  Listening for CloudTrail events...
 
 2. **Docker Composeのメモリ制限を増やす**
    ```yaml
-   tfdrift:
+   driftwire:
      deploy:
        resources:
          limits:
@@ -562,7 +562,7 @@ INFO  Listening for CloudTrail events...
 
 1. **[Use Cases](USE_CASES.md)** - 実際の使用例とシナリオ
 2. **[Best Practices](BEST_PRACTICES.md)** - 本番環境での運用ベストプラクティス
-3. **[Extending TFDrift-Falco](EXTENDING.md)** - カスタムルール・通知チャネルの追加方法
+3. **[Extending driftwire](EXTENDING.md)** - カスタムルール・通知チャネルの追加方法
 4. **[Configuration Guide](../README.md#-configuration)** - 詳細な設定オプション
 
 ---
@@ -571,9 +571,9 @@ INFO  Listening for CloudTrail events...
 
 問題が解決しない場合：
 
-- **GitHub Issues**: https://github.com/higakikeita/tfdrift-falco/issues
-- **Discussions**: https://github.com/higakikeita/tfdrift-falco/discussions
-- **Slack Community**: [Join Slack](https://join.slack.com/t/tfdrift-falco/...)
+- **GitHub Issues**: https://github.com/higakikeita/driftwire/issues
+- **Discussions**: https://github.com/higakikeita/driftwire/discussions
+- **Slack Community**: [Join Slack](https://join.slack.com/t/driftwire/...)
 
 ---
 

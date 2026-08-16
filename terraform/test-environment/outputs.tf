@@ -1,4 +1,4 @@
-# Outputs for TFDrift-Falco Test Environment
+# Outputs for driftwire Test Environment
 
 output "s3_bucket_name" {
   description = "Name of the test S3 bucket"
@@ -46,7 +46,7 @@ output "sns_topic_arn" {
 }
 
 output "terraform_state_location" {
-  description = "Location of Terraform state (for TFDrift config)"
+  description = "Location of Terraform state (for driftwire config)"
   value       = "s3://${terraform.backend.config.bucket}/${terraform.backend.config.key}"
 }
 

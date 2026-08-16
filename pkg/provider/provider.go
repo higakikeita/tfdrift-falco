@@ -1,4 +1,4 @@
-// Package provider defines the common interface for cloud providers in TFDrift-Falco.
+// Package provider defines the common interface for cloud providers in driftwire.
 //
 // The provider system uses a layered interface design:
 //   - Provider: core interface for event parsing and resource mapping (required)
@@ -17,7 +17,7 @@ package provider
 import (
 	"context"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // Provider defines the core interface that all cloud providers must implement.

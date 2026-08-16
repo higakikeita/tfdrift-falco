@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-TFDrift-Falco supports drift detection across AWS, GCP, and Azure. Each cloud provider has different audit log formats, API naming conventions, and Terraform resource type mappings. We needed a way to handle these differences without duplicating core logic.
+driftwire supports drift detection across AWS, GCP, and Azure. Each cloud provider has different audit log formats, API naming conventions, and Terraform resource type mappings. We needed a way to handle these differences without duplicating core logic.
 
 Options considered:
 

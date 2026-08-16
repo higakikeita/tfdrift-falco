@@ -2,7 +2,7 @@
 # title: GCP-specific drift policies
 # description: Policy rules for Google Cloud Platform resources.
 
-package tfdrift
+package driftwire
 
 import rego.v1
 

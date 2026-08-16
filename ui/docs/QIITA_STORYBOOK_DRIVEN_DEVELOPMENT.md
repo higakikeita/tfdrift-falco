@@ -1,15 +1,15 @@
-# Storybook駆動開発で変わるフロントエンド開発体験 - TFDrift-Falcoでの実践
+# Storybook駆動開発で変わるフロントエンド開発体験 - driftwireでの実践
 
 ## はじめに
 
 フロントエンド開発で「コンポーネントを作ってから動作確認」という流れに疲れていませんか？
 アプリ全体を起動し、特定の画面まで遷移し、条件を整えてやっと目的のコンポーネントが表示される...そんな非効率な開発体験を変える手法が **Storybook駆動開発（Storybook-Driven Development: SDD）** です。
 
-本記事では、AWSインフラのDrift検出ツール **TFDrift-Falco** の開発で実践したStorybook駆動開発の導入事例を紹介します。
+本記事では、AWSインフラのDrift検出ツール **driftwire** の開発で実践したStorybook駆動開発の導入事例を紹介します。
 
-## TFDrift-Falcoとは
+## driftwireとは
 
-TFDrift-Falcoは、Terraformで管理されているAWSリソースと実際のAWSインフラの差分（Drift）を検出・可視化するOSSツールです。
+driftwireは、Terraformで管理されているAWSリソースと実際のAWSインフラの差分（Drift）を検出・可視化するOSSツールです。
 
 - **バックエンド**: Go（Terraform State解析、AWS API連携）
 - **フロントエンド**: React + TypeScript + Vite
@@ -176,7 +176,7 @@ export function generateLargeGraph(nodeCount: number): CytoscapeElements {
 
 ### Step 3: 包括的なStoriesの作成
 
-TFDrift-Falcoでは、**17個のStories** を作成しました。
+driftwireでは、**17個のStories** を作成しました。
 
 #### 基本Stories
 
@@ -350,7 +350,7 @@ npm run storybook
 
 従来なら「アプリ起動 → 画面遷移 → 確認 → 修正 → 再起動」を繰り返していたところが、**Storybookなら1秒でフィードバック** が得られます。
 
-## TFDrift-Falcoで遭遇した問題とStorybookによる解決
+## driftwireで遭遇した問題とStorybookによる解決
 
 ### 問題1: ノードサイズの最適化
 
@@ -406,7 +406,7 @@ Storybookでリアルタイム確認 → 即座に「これだ！」と確定。
 
 ### 問題3: 4種類のレイアウトアルゴリズムの比較
 
-TFDrift-Falcoは4種類のレイアウトをサポート：
+driftwireは4種類のレイアウトをサポート：
 - **fcose**: Force-directed compound spring embedder（推奨）
 - **dagre**: 階層的有向グラフ
 - **cose**: 物理シミュレーション
@@ -426,7 +426,7 @@ export const LayoutGrid: Story = { /* ... */ };
 
 ## Storybook駆動開発のベストプラクティス
 
-TFDrift-Falcoで実践して効果的だったルールを紹介します。
+driftwireで実践して効果的だったルールを紹介します。
 
 ### 1. Story First（コンポーネントより先にStoryを書く）
 
@@ -533,7 +533,7 @@ Storybook UIで **リアルタイムにプロパティを変更** → 即座に�
 
 ## プロジェクト構成
 
-TFDrift-Falcoのディレクトリ構成：
+driftwireのディレクトリ構成：
 
 ```
 ui/
@@ -647,7 +647,7 @@ Storybook駆動開発は単なる「Storybookを使う」という話ではあ�
 
 **本質は「コンポーネントを独立した環境で設計・開発・テスト・ドキュメント化する」という思想です。**
 
-### TFDrift-Falcoでの成果
+### driftwireでの成果
 
 - ✅ **17個のStories** で全バリエーションをカバー
 - ✅ **開発速度30倍**: フィードバックループの短縮
@@ -663,7 +663,7 @@ Storybook駆動開発は単なる「Storybookを使う」という話ではあ�
 
 ### 参考リンク
 
-- [TFDrift-Falco GitHub](https://github.com/higakikeita/tfdrift-falco)
+- [driftwire GitHub](https://github.com/higakikeita/driftwire)
 - [Storybook公式ドキュメント](https://storybook.js.org/)
 - [Component-Driven Development](https://www.componentdriven.org/)
 

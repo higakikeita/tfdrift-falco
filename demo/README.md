@@ -1,8 +1,8 @@
-# TFDrift-Falco — live demo runner (OSS Summit money-shot)
+# driftwire — live demo runner (OSS Summit money-shot)
 
 A turnkey, low-risk demo of the core value: **a change made outside Terraform is
-caught by TFDrift in real time, with who / what / when** — plus a one-shot
-state-vs-cloud reconcile (`tfdrift scan`).
+caught by driftwire in real time, with who / what / when** — plus a one-shot
+state-vs-cloud reconcile (`driftwire scan`).
 
 ## Why it's built this way
 
@@ -62,11 +62,11 @@ bash demo/teardown.sh    # stop backend + UI
 
 ## Backup (record before the talk)
 
-Record a screencast of the full **real cloud → Falco → TFDrift → UI** flow while
+Record a screencast of the full **real cloud → Falco → driftwire → UI** flow while
 your AWS session is fresh, and keep it ready in case anything fails live.
 
 ## Honest framing
 
-Continuous delivery uses Falco `http_output` → the TFDrift receiver. Production
+Continuous delivery uses Falco `http_output` → the driftwire receiver. Production
 continuous ingestion (periodic CloudTrail pickup) is tracked in #360; the demo
 path and the AWS-free CI E2E (#365) both prove the pipeline.

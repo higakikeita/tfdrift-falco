@@ -14,7 +14,7 @@ export function Header() {
     <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 transition-colors" role="banner">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1 text-sm" aria-label="Breadcrumb">
-        <span className="text-slate-400 dark:text-slate-500">TFDrift</span>
+        <span className="text-slate-400 dark:text-slate-500">driftwire</span>
         {segments.map((seg, i) => (
           <span key={seg} className="flex items-center gap-1">
             <ChevronRight className="h-3.5 w-3.5 text-slate-300 dark:text-slate-600" aria-hidden="true" />

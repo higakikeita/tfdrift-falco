@@ -9,7 +9,7 @@
 
 ## プロジェクト概要
 
-**TFDrift-Falco**: Falcoを使ったTerraformドリフト検出ツール（2,624行）
+**driftwire**: Falcoを使ったTerraformドリフト検出ツール（2,624行）
 
 ```
 Before:
@@ -95,7 +95,7 @@ func TestSend_Slack(t *testing.T) {
 **成果**: 63-95.5%カバレッジ ✅
 
 ### Phase 5: CLI + 統合テスト（Week 5-6）
-**対象**: `cmd/tfdrift`, `cmd/test-drift`, `pkg/detector`統合テスト
+**対象**: `cmd/driftwire`, `cmd/test-drift`, `pkg/detector`統合テスト
 
 CLIツールと統合テストを追加：
 
@@ -115,7 +115,7 @@ func TestStart_Integration(t *testing.T) {
 }
 ```
 
-**成果**: cmd/tfdrift 47.2%, detector 51.8%→86.7% ✅
+**成果**: cmd/driftwire 47.2%, detector 51.8%→86.7% ✅
 
 ### Phase 6: handleEvent改善（Week 6）
 **対象**: `pkg/detector/detector.go`の`handleEvent()`関数
@@ -287,7 +287,7 @@ expected: nil,  // Go では nil == empty slice
 | pkg/detector | 86.7% | ⭐⭐⭐ |
 | pkg/metrics | 81.2% | ⭐⭐ |
 | pkg/falco | 63.0% | ⭐ |
-| cmd/tfdrift | 47.2% | ⭐ |
+| cmd/driftwire | 47.2% | ⭐ |
 | **全体** | **70.5%** | **✅** |
 
 ## ベストプラクティス
@@ -390,7 +390,7 @@ Week 7: 承認ワークフロー + インポート → 70.5% ✅
 ## コード例
 
 完全なコード例は以下を参照：
-- [GitHub Repository](https://github.com/yourusername/tfdrift-falco)
+- [GitHub Repository](https://github.com/yourusername/driftwire)
 - [詳細記事](./test-coverage-improvement-journey.md)
 
 ---

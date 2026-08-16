@@ -64,6 +64,6 @@ describe('Header', () => {
 
   it('should display the app name', () => {
     renderHeader();
-    expect(screen.getByText(/TFDrift/i)).toBeTruthy();
+    expect(screen.getByText(/driftwire/i)).toBeTruthy();
   });
 });

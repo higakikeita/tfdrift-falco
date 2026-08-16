@@ -294,9 +294,9 @@ func (h *HTTPServer) handleAzureVMChange(w http.ResponseWriter, r *http.Request)
 
 	outputFields := map[string]interface{}{
 		"azure.operationName":    "Microsoft.Compute/virtualMachines/write",
-		"azure.resourceId":       "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfdrift-e2e-rg/providers/Microsoft.Compute/virtualMachines/tfdrift-test-vm",
+		"azure.resourceId":       "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/driftwire-e2e-rg/providers/Microsoft.Compute/virtualMachines/driftwire-test-vm",
 		"azure.subscriptionId":   "00000000-0000-0000-0000-000000000000",
-		"azure.resourceGroup":    "tfdrift-e2e-rg",
+		"azure.resourceGroup":    "driftwire-e2e-rg",
 		"azure.caller":           "testuser@example.com",
 		"azure.resourceLocation": "eastus",
 		"azure.status":           "Succeeded",
@@ -327,9 +327,9 @@ func (h *HTTPServer) handleAzureNSGChange(w http.ResponseWriter, r *http.Request
 
 	outputFields := map[string]interface{}{
 		"azure.operationName":    "Microsoft.Network/networkSecurityGroups/write",
-		"azure.resourceId":       "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfdrift-e2e-rg/providers/Microsoft.Network/networkSecurityGroups/tfdrift-test-nsg",
+		"azure.resourceId":       "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/driftwire-e2e-rg/providers/Microsoft.Network/networkSecurityGroups/driftwire-test-nsg",
 		"azure.subscriptionId":   "00000000-0000-0000-0000-000000000000",
-		"azure.resourceGroup":    "tfdrift-e2e-rg",
+		"azure.resourceGroup":    "driftwire-e2e-rg",
 		"azure.caller":           "testuser@example.com",
 		"azure.resourceLocation": "eastus",
 		"azure.status":           "Succeeded",
@@ -360,9 +360,9 @@ func (h *HTTPServer) handleAzureStorageChange(w http.ResponseWriter, r *http.Req
 
 	outputFields := map[string]interface{}{
 		"azure.operationName":    "Microsoft.Storage/storageAccounts/write",
-		"azure.resourceId":       "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tfdrift-e2e-rg/providers/Microsoft.Storage/storageAccounts/tfdrifte2estorage",
+		"azure.resourceId":       "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/driftwire-e2e-rg/providers/Microsoft.Storage/storageAccounts/driftwiree2estorage",
 		"azure.subscriptionId":   "00000000-0000-0000-0000-000000000000",
-		"azure.resourceGroup":    "tfdrift-e2e-rg",
+		"azure.resourceGroup":    "driftwire-e2e-rg",
 		"azure.caller":           "testuser@example.com",
 		"azure.resourceLocation": "eastus",
 		"azure.status":           "Succeeded",

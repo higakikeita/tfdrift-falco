@@ -1,11 +1,11 @@
-# Twitter/X Thread: TFDrift-Falco v0.2.0-beta Release
+# Twitter/X Thread: driftwire v0.2.0-beta Release
 
 ---
 
 ## 🧵 Thread 1: Feature Announcement (Recommended)
 
 **Tweet 1/10** (Hook)
-🎉 Just released TFDrift-Falco v0.2.0-beta!
+🎉 Just released driftwire v0.2.0-beta!
 
 Real-time Terraform drift detection that alerts you in <30 seconds when someone makes manual changes to your AWS infrastructure.
 
@@ -30,7 +30,7 @@ Sound familiar? There's a better way...
 ---
 
 **Tweet 3/10** (The Solution)
-TFDrift-Falco monitors your infrastructure in REAL-TIME:
+driftwire monitors your infrastructure in REAL-TIME:
 
 ✅ Detects changes within 30 seconds
 ✅ Shows WHO made the change
@@ -45,7 +45,7 @@ No more surprises during deployments!
 The magic happens in 3 steps:
 
 1️⃣ Falco CloudTrail plugin captures AWS API calls
-2️⃣ TFDrift compares with Terraform state
+2️⃣ driftwire compares with Terraform state
 3️⃣ Instant alert with full context
 
 Event-driven architecture = zero polling overhead
@@ -104,12 +104,12 @@ cd dashboards/grafana
 Try it in 30 seconds:
 
 ```bash
-docker pull ghcr.io/higakikeita/tfdrift-falco:latest
+docker pull ghcr.io/higakikeita/driftwire:latest
 
 docker run -d \
   -e TF_STATE_BACKEND=s3 \
   -e AWS_REGION=us-east-1 \
-  ghcr.io/higakikeita/tfdrift-falco:latest
+  ghcr.io/higakikeita/driftwire:latest
 ```
 
 That's it! Now make a change in AWS Console and watch the magic ✨
@@ -132,9 +132,9 @@ Basically anyone managing AWS with Terraform.
 **Tweet 10/10** (CTA)
 Ready to try it?
 
-🌐 Docs: https://higakikeita.github.io/tfdrift-falco/
-⭐ GitHub: https://github.com/higakikeita/tfdrift-falco
-🐳 Docker: ghcr.io/higakikeita/tfdrift-falco
+🌐 Docs: https://higakikeita.github.io/driftwire/
+⭐ GitHub: https://github.com/higakikeita/driftwire
+🐳 Docker: ghcr.io/higakikeita/driftwire
 
 Open source, MIT licensed, contributions welcome!
 
@@ -151,7 +151,7 @@ Ever had terraform apply fail because someone "just quickly" changed something i
 
 Yeah, me too.
 
-So I built TFDrift-Falco to solve it.
+So I built driftwire to solve it.
 
 v0.2.0-beta just dropped 🚀
 
@@ -189,7 +189,7 @@ What if we combined all three?
 ---
 
 **Tweet 4/8** (The Solution)
-TFDrift-Falco does exactly that:
+driftwire does exactly that:
 
 🔍 Monitors 95 CloudTrail events
 ⚡ Detects drift in <30 seconds
@@ -220,11 +220,11 @@ Quick demo:
 
 ```bash
 # Install
-docker pull ghcr.io/higakikeita/tfdrift-falco:latest
+docker pull ghcr.io/higakikeita/driftwire:latest
 
 # Run
 docker run -e TF_STATE_BACKEND=s3 \
-  ghcr.io/higakikeita/tfdrift-falco:latest
+  ghcr.io/higakikeita/driftwire:latest
 
 # Make AWS Console change
 # Get Slack alert in 30 seconds ✨
@@ -249,10 +249,10 @@ This is the feedback that keeps me going.
 
 **Tweet 8/8** (CTA)
 Try it:
-⭐ https://github.com/higakikeita/tfdrift-falco
+⭐ https://github.com/higakikeita/driftwire
 
 Docs:
-📚 https://higakikeita.github.io/tfdrift-falco/
+📚 https://higakikeita.github.io/driftwire/
 
 Questions?
 💬 DM me or comment below
@@ -294,7 +294,7 @@ What if we did?
 ---
 
 **Tweet 3/7** (The Build)
-So I built TFDrift-Falco.
+So I built driftwire.
 
 It monitors AWS in real-time and alerts when infrastructure drifts from Terraform state.
 
@@ -326,7 +326,7 @@ Game changer.
 Under the hood:
 
 • Falco CloudTrail plugin captures events
-• TFDrift compares with Terraform state
+• driftwire compares with Terraform state
 • Instant alerts via Slack/Discord
 • Grafana dashboards for visualization
 
@@ -353,11 +353,11 @@ Open source. MIT licensed.
 **Tweet 7/7** (The CTA)
 Try it:
 ```bash
-docker pull ghcr.io/higakikeita/tfdrift-falco:latest
+docker pull ghcr.io/higakikeita/driftwire:latest
 ```
 
-⭐ Star: https://github.com/higakikeita/tfdrift-falco
-📖 Docs: https://higakikeita.github.io/tfdrift-falco/
+⭐ Star: https://github.com/higakikeita/driftwire
+📖 Docs: https://higakikeita.github.io/driftwire/
 
 Building in public.
 Your feedback matters.

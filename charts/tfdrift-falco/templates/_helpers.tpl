@@ -1,14 +1,14 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "tfdrift-falco.name" -}}
+{{- define "driftwire.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
 */}}
-{{- define "tfdrift-falco.fullname" -}}
+{{- define "driftwire.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -24,16 +24,16 @@ Create a default fully qualified app name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "tfdrift-falco.chart" -}}
+{{- define "driftwire.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "tfdrift-falco.labels" -}}
-helm.sh/chart: {{ include "tfdrift-falco.chart" . }}
-{{ include "tfdrift-falco.selectorLabels" . }}
+{{- define "driftwire.labels" -}}
+helm.sh/chart: {{ include "driftwire.chart" . }}
+{{ include "driftwire.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -43,17 +43,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "tfdrift-falco.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "tfdrift-falco.name" . }}
+{{- define "driftwire.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "driftwire.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "tfdrift-falco.serviceAccountName" -}}
+{{- define "driftwire.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "tfdrift-falco.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "driftwire.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

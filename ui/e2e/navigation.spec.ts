@@ -10,7 +10,7 @@ test.describe('Page Navigation', () => {
     await page.goto('/');
 
     // Verify page title
-    await expect(page).toHaveTitle(/TFDrift Falco/i);
+    await expect(page).toHaveTitle(/driftwire Falco/i);
 
     // Verify main content is visible
     const main = page.locator('main').or(

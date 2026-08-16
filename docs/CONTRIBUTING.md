@@ -1,6 +1,6 @@
-# Contributing to TFDrift-Falco
+# Contributing to driftwire
 
-First off, thank you for considering contributing to TFDrift-Falco! It's people like you that make TFDrift-Falco such a great tool.
+First off, thank you for considering contributing to driftwire! It's people like you that make driftwire such a great tool.
 
 ## Table of Contents
 
@@ -53,11 +53,11 @@ We love contributions from community members, just like you! Here are ways you c
 
 ```bash
 # Fork the repository on GitHub, then clone your fork
-git clone https://github.com/YOUR_USERNAME/tfdrift-falco.git
-cd tfdrift-falco
+git clone https://github.com/YOUR_USERNAME/driftwire.git
+cd driftwire
 
 # Add upstream remote
-git remote add upstream https://github.com/keitahigaki/tfdrift-falco.git
+git remote add upstream https://github.com/higakikeita/driftwire.git
 ```
 
 ### 2. Install Dependencies
@@ -75,7 +75,7 @@ go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 ```bash
 # Build binary
-go build -o tfdrift ./cmd/tfdrift
+go build -o driftwire ./cmd/driftwire
 
 # Or use Make
 make build
@@ -104,7 +104,7 @@ cp config.yaml.example config.yaml
 vim config.yaml
 
 # Run in dry-run mode
-./tfdrift --config config.yaml --dry-run
+./driftwire --config config.yaml --dry-run
 ```
 
 ## How to Contribute
@@ -134,7 +134,7 @@ What actually happened.
 **Environment**
 - OS: [e.g. Ubuntu 22.04]
 - Go Version: [e.g. 1.21]
-- TFDrift-Falco Version: [e.g. 0.1.0]
+- driftwire Version: [e.g. 0.1.0]
 - Cloud Provider: [e.g. AWS]
 - Terraform Version: [e.g. 1.6.0]
 
@@ -406,7 +406,7 @@ Brief description of changes
 
 ### Falco Community
 
-Since TFDrift-Falco integrates with Falco, you might also find these resources helpful:
+Since driftwire integrates with Falco, you might also find these resources helpful:
 
 - **Falco Slack** - [Join #plugin-dev channel](https://slack.falco.org/)
 - **Falco GitHub** - https://github.com/falcosecurity/falco
@@ -429,4 +429,4 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ---
 
-**Thank you for contributing to TFDrift-Falco!** 🎉
+**Thank you for contributing to driftwire!** 🎉

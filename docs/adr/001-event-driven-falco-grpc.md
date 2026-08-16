@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted — the event-driven ingestion decision stands, but the **Falco→TFDrift gRPC
+Accepted — the event-driven ingestion decision stands, but the **Falco→driftwire gRPC
 transport is superseded by [ADR-006](006-falco-http-output-migration.md)** (Falco
 removed gRPC output in 0.44+).
 
@@ -12,7 +12,7 @@ removed gRPC output in 0.44+).
 
 ## Context
 
-TFDrift-Falco needs to detect infrastructure drift in real-time. The traditional approach is periodic polling — scanning Terraform state and comparing it against cloud resources on a schedule. However, polling introduces latency (minutes to hours between scans) and wastes resources scanning unchanged infrastructure.
+driftwire needs to detect infrastructure drift in real-time. The traditional approach is periodic polling — scanning Terraform state and comparing it against cloud resources on a schedule. However, polling introduces latency (minutes to hours between scans) and wastes resources scanning unchanged infrastructure.
 
 Falco is an open-source runtime security tool that can monitor cloud API audit logs (CloudTrail, GCP Audit Logs, Azure Activity Logs) via its plugin framework. It provides a gRPC output API that streams detected events in real-time.
 
@@ -24,9 +24,9 @@ We needed to decide between:
 
 ## Decision
 
-We adopt an event-driven architecture using Falco's gRPC output API as the primary event source. TFDrift-Falco subscribes to Falco's gRPC stream (`pkg/falco/subscriber.go`) and processes events through provider-specific parsers (AWS, GCP, Azure) that map cloud API calls to Terraform resource types.
+We adopt an event-driven architecture using Falco's gRPC output API as the primary event source. driftwire subscribes to Falco's gRPC stream (`pkg/falco/subscriber.go`) and processes events through provider-specific parsers (AWS, GCP, Azure) that map cloud API calls to Terraform resource types.
 
-The event pipeline is: Cloud API → Audit Logs → Falco Plugin → gRPC Stream → TFDrift-Falco Subscriber → Event Parser → Resource Mapper → Drift Detection Engine.
+The event pipeline is: Cloud API → Audit Logs → Falco Plugin → gRPC Stream → driftwire Subscriber → Event Parser → Resource Mapper → Drift Detection Engine.
 
 ## Consequences
 
@@ -40,10 +40,10 @@ The event pipeline is: Cloud API → Audit Logs → Falco Plugin → gRPC Stream
 
 ### Negative
 
-- Dependency on Falco — requires Falco deployment alongside TFDrift-Falco
+- Dependency on Falco — requires Falco deployment alongside driftwire
 - Complexity — gRPC connection management, reconnection logic, backpressure handling
 - Audit log delivery latency varies by provider (CloudTrail: 5-15 min via S3, GCP: 30s-5min via Pub/Sub)
-- Cannot detect drift that occurred before TFDrift-Falco started (no historical scan)
+- Cannot detect drift that occurred before driftwire started (no historical scan)
 
 ### Neutral
 

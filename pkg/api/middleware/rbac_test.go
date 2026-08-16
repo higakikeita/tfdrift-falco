@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/rbac"
+	"github.com/higakikeita/driftwire/pkg/rbac"
 	"github.com/stretchr/testify/assert"
 )
 

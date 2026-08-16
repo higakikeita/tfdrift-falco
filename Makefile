@@ -1,7 +1,7 @@
 .PHONY: build test clean install lint fmt help
 
 # Variables
-BINARY_NAME=tfdrift
+BINARY_NAME=driftwire
 VERSION?=0.9.0
 BUILD_DIR=./bin
 GO=go
@@ -14,7 +14,7 @@ LDFLAGS=-ldflags "-X main.version=$(VERSION) -X main.buildTime=$(BUILD_TIME) -X 
 
 ## help: Display this help message
 help:
-	@echo "TFDrift-Falco Makefile"
+	@echo "driftwire Makefile"
 	@echo ""
 	@echo "Usage: make [target]"
 	@echo ""
@@ -25,7 +25,7 @@ help:
 build:
 	@echo "Building $(BINARY_NAME) v$(VERSION)..."
 	@mkdir -p $(BUILD_DIR)
-	$(GO) build $(GOFLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/tfdrift
+	$(GO) build $(GOFLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/driftwire
 
 ## build-all: Build binaries for multiple platforms
 build-all: build-linux build-darwin build-windows
@@ -33,23 +33,23 @@ build-all: build-linux build-darwin build-windows
 build-linux:
 	@echo "Building for Linux..."
 	@mkdir -p $(BUILD_DIR)
-	GOOS=linux GOARCH=amd64 $(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/tfdrift
+	GOOS=linux GOARCH=amd64 $(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/driftwire
 
 build-darwin:
 	@echo "Building for macOS..."
 	@mkdir -p $(BUILD_DIR)
-	GOOS=darwin GOARCH=amd64 $(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 ./cmd/tfdrift
-	GOOS=darwin GOARCH=arm64 $(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 ./cmd/tfdrift
+	GOOS=darwin GOARCH=amd64 $(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 ./cmd/driftwire
+	GOOS=darwin GOARCH=arm64 $(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 ./cmd/driftwire
 
 build-windows:
 	@echo "Building for Windows..."
 	@mkdir -p $(BUILD_DIR)
-	GOOS=windows GOARCH=amd64 $(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe ./cmd/tfdrift
+	GOOS=windows GOARCH=amd64 $(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe ./cmd/driftwire
 
 ## install: Install the binary to $GOPATH/bin
 install:
 	@echo "Installing $(BINARY_NAME)..."
-	$(GO) install $(LDFLAGS) ./cmd/tfdrift
+	$(GO) install $(LDFLAGS) ./cmd/driftwire
 
 ## test: Run unit tests (excludes e2e/load)
 test:
@@ -127,16 +127,16 @@ deps:
 ## docker-build: Build Docker image
 docker-build:
 	@echo "Building Docker image..."
-	docker build -t tfdrift-falco:$(VERSION) -t tfdrift-falco:latest .
+	docker build -t driftwire:$(VERSION) -t driftwire:latest .
 
 ## docker-run: Run Docker container
 docker-run:
 	@echo "Running Docker container..."
-	docker run --rm -v $(PWD)/config.yaml:/config.yaml tfdrift-falco:latest --config /config.yaml
+	docker run --rm -v $(PWD)/config.yaml:/config.yaml driftwire:latest --config /config.yaml
 
 ## quick-start: Run quick start setup script
 quick-start:
-	@echo "Running TFDrift-Falco Quick Start..."
+	@echo "Running driftwire Quick Start..."
 	@chmod +x quick-start.sh
 	@./quick-start.sh
 
@@ -157,12 +157,12 @@ status: docker-compose-ps
 
 ## docker-compose-up: Start all services with Docker Compose
 docker-compose-up:
-	@echo "Starting TFDrift-Falco stack..."
+	@echo "Starting driftwire stack..."
 	docker-compose up -d
 
 ## docker-compose-down: Stop all services
 docker-compose-down:
-	@echo "Stopping TFDrift-Falco stack..."
+	@echo "Stopping driftwire stack..."
 	docker-compose down
 
 ## docker-compose-logs: View logs from all services
@@ -172,12 +172,12 @@ docker-compose-logs:
 
 ## docker-compose-restart: Restart all services
 docker-compose-restart:
-	@echo "Restarting TFDrift-Falco stack..."
+	@echo "Restarting driftwire stack..."
 	docker-compose restart
 
 ## docker-compose-build: Build and start all services
 docker-compose-build:
-	@echo "Building and starting TFDrift-Falco stack..."
+	@echo "Building and starting driftwire stack..."
 	docker-compose up -d --build
 
 ## docker-compose-ps: Show running containers

@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // timedEvent wraps a types.Event with a receive timestamp for correlation.
