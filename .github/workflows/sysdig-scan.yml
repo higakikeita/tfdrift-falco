@@ -103,7 +103,7 @@ jobs:
           stop-on-processing-error: true
 
       - name: Upload backend SARIF report
-        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4
+        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4
         if: always() && steps.scan-backend.outputs.sarifReport != ''
         with:
           sarif_file: ${{ steps.scan-backend.outputs.sarifReport }}
@@ -190,7 +190,7 @@ jobs:
           stop-on-processing-error: true
 
       - name: Upload frontend SARIF report
-        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4
+        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4
         if: always() && steps.scan-frontend.outputs.sarifReport != ''
         with:
           sarif_file: ${{ steps.scan-frontend.outputs.sarifReport }}
