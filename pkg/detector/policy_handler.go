@@ -3,9 +3,9 @@ package detector
 import (
 	"context"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/broadcaster"
-	"github.com/keitahigaki/tfdrift-falco/pkg/policy"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/api/broadcaster"
+	"github.com/higakikeita/driftwire/pkg/policy"
+	"github.com/higakikeita/driftwire/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
 

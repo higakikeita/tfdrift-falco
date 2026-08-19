@@ -2,7 +2,7 @@
 
 ## Overview
 
-TFDrift-Falco monitors Amazon ECS for configuration drift by tracking CloudTrail events related to services, task definitions, clusters, and capacity providers. This enables real-time detection of manual changes made outside of Terraform workflows.
+driftwire monitors Amazon ECS for configuration drift by tracking CloudTrail events related to services, task definitions, clusters, and capacity providers. This enables real-time detection of manual changes made outside of Terraform workflows.
 
 ## Supported CloudTrail Events
 
@@ -151,7 +151,7 @@ TFDrift-Falco monitors Amazon ECS for configuration drift by tracking CloudTrail
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_ecs_service.main
 Changed: desired_count = 3 → 5
@@ -178,7 +178,7 @@ Severity: HIGH
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_ecs_task_definition.web_app
 Changed: container_definitions.image = nginx:1.20 → nginx:1.21
@@ -204,7 +204,7 @@ Severity: MEDIUM
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_ecs_cluster_capacity_providers.main
 Changed: capacity_providers = ["FARGATE"] → ["FARGATE", "FARGATE_SPOT"]

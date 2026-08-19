@@ -1,5 +1,5 @@
 // Package gcp provides Google Cloud Platform audit log parsing and resource mapping
-// for TFDrift-Falco. It processes GCP Audit Logs received via Falco's gcpaudit plugin
+// for driftwire. It processes GCP Audit Logs received via Falco's gcpaudit plugin
 // and maps them to Terraform resource types for drift detection.
 //
 // The package supports 200+ GCP event types across 25+ services including:
@@ -30,11 +30,11 @@ import (
 	"strings"
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
-	"github.com/keitahigaki/tfdrift-falco/pkg/parser"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/parser"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
-// AuditParser parses GCP Audit Log events from Falco into TFDrift events.
+// AuditParser parses GCP Audit Log events from Falco into driftwire events.
 //
 // The parser extracts relevant information from Falco's gcpaudit plugin output,
 // including resource identifiers, user identity, project/zone/region information,
@@ -61,7 +61,7 @@ func NewAuditParser() *AuditParser {
 	return ap
 }
 
-// Parse converts a Falco output response into a TFDrift event for drift detection.
+// Parse converts a Falco output response into a driftwire event for drift detection.
 //
 // The method performs the following operations:
 //   - Validates the response is from the gcpaudit source

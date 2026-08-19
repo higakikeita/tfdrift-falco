@@ -1,4 +1,4 @@
-# TFDrift-Falco Production-Like Test Environment
+# driftwire Production-Like Test Environment
 # Large-scale AWS infrastructure for comprehensive drift testing
 
 provider "aws" {
@@ -6,7 +6,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "TFDrift-Falco-Production-Test"
+      Project     = "driftwire-Production-Test"
       Environment = var.environment
       ManagedBy   = "Terraform"
       Owner       = var.owner
@@ -16,12 +16,12 @@ provider "aws" {
 
 # Local variables
 locals {
-  name_prefix = "${var.environment}-tfdrift"
+  name_prefix = "${var.environment}-driftwire"
   azs         = slice(data.aws_availability_zones.available.names, 0, var.az_count)
 
   tags = {
     Environment = var.environment
-    Project     = "TFDrift-Falco"
+    Project     = "driftwire"
   }
 }
 

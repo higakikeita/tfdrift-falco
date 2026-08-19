@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
+	"github.com/higakikeita/driftwire/pkg/api/models"
 )
 
 // ReadinessProbe reports whether the service's real processing path is healthy.

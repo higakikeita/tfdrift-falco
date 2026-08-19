@@ -15,11 +15,11 @@ services:
 
   backend:
     environment:
-      - TFDRIFT_DEMO_MODE=true
-      - TFDRIFT_FALCO_ENABLED=false
+      - DRIFTWIRE_DEMO_MODE=true
+      - DRIFTWIRE_FALCO_ENABLED=false
     volumes:
       # Remove AWS credential mount — not needed in demo mode
-      - tfdrift-data:/data
+      - driftwire-data:/data
     # --demo flag: starts API server with sample data, no config/credentials needed
     command: ["--demo", "--api-port", "8080"]
 

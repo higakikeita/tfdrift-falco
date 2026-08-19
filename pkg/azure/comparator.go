@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/comparator"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/comparator"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // CompareStateWithActual compares Terraform state with actual Azure resources

@@ -1,4 +1,4 @@
-# Variables for TFDrift-Falco Test Environment
+# Variables for driftwire Test Environment
 
 variable "aws_region" {
   description = "AWS region for resources"
@@ -15,7 +15,7 @@ variable "environment" {
 variable "test_bucket_name" {
   description = "Name of the S3 bucket for testing (must be globally unique)"
   type        = string
-  # Example: "tfdrift-test-bucket-20231215"
+  # Example: "driftwire-test-bucket-20231215"
 }
 
 variable "vpc_id" {

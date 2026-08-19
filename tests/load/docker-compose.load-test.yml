@@ -12,26 +12,26 @@ services:
       - AWS_REGION=us-east-1
       - CLOUDTRAIL_USE_SQS=false
     networks:
-      - tfdrift-network
+      - driftwire-network
     healthcheck:
       test: ["CMD", "grpc_health_probe", "-addr=:5060"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # TFDrift-Falco
-  tfdrift:
+  # driftwire
+  driftwire:
     build:
       context: ../..
       dockerfile: Dockerfile
-    container_name: tfdrift-load-test
+    container_name: driftwire-load-test
     depends_on:
       falco:
         condition: service_healthy
     volumes:
       - ./config.yaml:/app/config.yaml:ro
       - ./generated-terraform-state:/terraform:ro
-      - ./logs:/var/log/tfdrift
+      - ./logs:/var/log/driftwire
     environment:
       - CONFIG_FILE=/app/config.yaml
       - LOG_LEVEL=info
@@ -45,7 +45,7 @@ services:
           cpus: '2'
           memory: 4G
     networks:
-      - tfdrift-network
+      - driftwire-network
 
   # Prometheus for metrics collection
   prometheus:
@@ -61,7 +61,7 @@ services:
     ports:
       - "9090:9090"
     networks:
-      - tfdrift-network
+      - driftwire-network
 
   # Grafana Loki for log aggregation
   loki:
@@ -74,7 +74,7 @@ services:
     ports:
       - "3100:3100"
     networks:
-      - tfdrift-network
+      - driftwire-network
 
   # Promtail to ship logs to Loki
   promtail:
@@ -83,9 +83,9 @@ services:
     command: -config.file=/etc/promtail/config.yml
     volumes:
       - ./promtail-config.yaml:/etc/promtail/config.yml:ro
-      - ./logs:/var/log/tfdrift:ro
+      - ./logs:/var/log/driftwire:ro
     networks:
-      - tfdrift-network
+      - driftwire-network
 
   # Grafana for visualization
   grafana:
@@ -102,10 +102,10 @@ services:
     ports:
       - "3000:3000"
     networks:
-      - tfdrift-network
+      - driftwire-network
 
 networks:
-  tfdrift-network:
+  driftwire-network:
     driver: bridge
 
 volumes:

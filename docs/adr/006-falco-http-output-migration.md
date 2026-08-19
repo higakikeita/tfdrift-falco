@@ -28,7 +28,7 @@ dead end:
    be `ca.crt`, not `server.crt`) already cost us real debugging time (#357).
 
 The event *ingestion* decision of ADR-001 (Cloud API → audit logs → Falco plugin →
-TFDrift → detector) is still correct and unchanged. Only the **Falco → TFDrift
+driftwire → detector) is still correct and unchanged. Only the **Falco → driftwire
 transport** needs to move off the removed gRPC path.
 
 Note: this ADR does **not** cover the separate cloudtrail-plugin continuous-ingest
@@ -37,26 +37,26 @@ mode); that is tracked under the same issue (#360) and is orthogonal to the tran
 
 ### Options considered
 
-1. **Falco `http_output` → TFDrift HTTP receiver.** Falco POSTs each alert as JSON
-   to a URL. TFDrift already runs an HTTP API server, and `http_output` blocks
+1. **Falco `http_output` → driftwire HTTP receiver.** Falco POSTs each alert as JSON
+   to a URL. driftwire already runs an HTTP API server, and `http_output` blocks
    already exist (disabled) in every `deployments/falco/*.yaml`. Supported on all
    current and future Falco versions.
 2. **Falcosidekick in between.** Falco → Falcosidekick → (many outputs). Adds a
    second service to operate. Falcosidekick's value is *fan-out* to external sinks
    (Slack, SIEM, OpenCTI) — a concern that belongs to the donation/observability
-   track, not to TFDrift's own event consumption.
+   track, not to driftwire's own event consumption.
 3. **Keep gRPC / vendor an old Falco.** Rejected: pins us to EOL Falco and keeps the
    mTLS operational burden.
 
 ## Decision
 
-Adopt **Falco `http_output` → a TFDrift HTTP receiver** as the primary Falco→TFDrift
+Adopt **Falco `http_output` → a driftwire HTTP receiver** as the primary Falco→driftwire
 transport, superseding the gRPC output choice in ADR-001.
 
 - Falco is configured with `http_output.enabled: true` and `url` pointing at a new
-  TFDrift endpoint (default `POST /api/v1/falco/events`), one JSON alert per request
+  driftwire endpoint (default `POST /api/v1/falco/events`), one JSON alert per request
   (`json_output: true`).
-- TFDrift gains an HTTP receiver that parses the Falco alert JSON into the existing
+- driftwire gains an HTTP receiver that parses the Falco alert JSON into the existing
   `types.Event` and feeds the **same** downstream pipeline (parser → resource mapper →
   detector → broadcaster). The parsing/extraction logic in `subscriber.go`
   (`ParseFalcoOutput`, `ExtractChanges`, `ExtractResourceID`) is reused, not rewritten.
@@ -66,7 +66,7 @@ transport, superseding the gRPC output choice in ADR-001.
 - Falcosidekick is explicitly out of scope here and left to the donation track.
 
 The updated pipeline: Cloud API → audit logs → Falco plugin → **Falco http_output** →
-**TFDrift HTTP receiver** → event parser → resource mapper → drift detector →
+**driftwire HTTP receiver** → event parser → resource mapper → drift detector →
 broadcaster → UI.
 
 ## Consequences
@@ -84,7 +84,7 @@ broadcaster → UI.
 
 ### Negative
 
-- Push model: Falco must reach TFDrift's URL (network/DNS/ingress), where gRPC was a
+- Push model: Falco must reach driftwire's URL (network/DNS/ingress), where gRPC was a
   pull subscription. Mitigated by co-locating in the same compose/Helm network.
 - A brief two-transport window (grpc + http) until the gRPC path is removed.
 - The HTTP receiver must be hardened (auth, body size limits, source restriction) —

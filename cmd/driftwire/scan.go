@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/aws"
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/aws"
+	"github.com/higakikeita/driftwire/pkg/config"
+	"github.com/higakikeita/driftwire/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/types"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +19,7 @@ import (
 // range (126+) so "N drifts" stays a plain, unambiguous status.
 const maxDriftExitCode = 250
 
-// newScanCmd builds the `tfdrift scan` subcommand: a one-shot, read-only
+// newScanCmd builds the `driftwire scan` subcommand: a one-shot, read-only
 // reconcile between Terraform state and live cloud state. No Falco, no
 // CloudTrail — deterministic and CI-friendly (#334, ADR-0014).
 func newScanCmd() *cobra.Command {
@@ -172,7 +172,7 @@ func renderDriftReport(d *types.DriftResult, output string, tfCount, awsCount in
 
 	var b strings.Builder
 	total := driftTotal(d)
-	fmt.Fprintf(&b, "TFDrift scan — regions: %s\n", strings.Join(regions, ", "))
+	fmt.Fprintf(&b, "driftwire scan — regions: %s\n", strings.Join(regions, ", "))
 	fmt.Fprintf(&b, "  terraform resources: %d | cloud resources: %d\n", tfCount, awsCount)
 	if total == 0 {
 		b.WriteString("\n✅ No drift: live cloud state matches Terraform state.\n")

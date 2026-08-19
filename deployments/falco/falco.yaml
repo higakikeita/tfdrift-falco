@@ -1,4 +1,4 @@
-# Falco configuration for TFDrift-Falco
+# Falco configuration for driftwire
 watch_config_files: true
 time_format_iso_8601: true
 
@@ -8,7 +8,7 @@ rules_file:
   - /etc/falco/falco_rules.local.yaml
   - /etc/falco/rules.d
 
-# gRPC output (required for TFDrift-Falco)
+# gRPC output (required for driftwire)
 grpc:
   enabled: true
   bind_address: "0.0.0.0:5060"

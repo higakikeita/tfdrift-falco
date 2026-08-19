@@ -8,7 +8,7 @@
 #   - VERSION                          (plain text)
 #   - mkdocs.yml                       (extra.project_version)
 #   - ui/package.json                  (version field)
-#   - charts/tfdrift-falco/Chart.yaml  (appVersion)
+#   - charts/driftwire/Chart.yaml  (appVersion)
 
 set -euo pipefail
 
@@ -47,9 +47,9 @@ rm -f "$REPO_ROOT/ui/package.json.bak"
 echo "  ✓ ui/package.json"
 
 # 4. Chart.yaml — appVersion
-sed -i.bak "s/appVersion: \"$OLD_VERSION\"/appVersion: \"$NEW_VERSION\"/" "$REPO_ROOT/charts/tfdrift-falco/Chart.yaml"
-rm -f "$REPO_ROOT/charts/tfdrift-falco/Chart.yaml.bak"
-echo "  ✓ charts/tfdrift-falco/Chart.yaml (appVersion)"
+sed -i.bak "s/appVersion: \"$OLD_VERSION\"/appVersion: \"$NEW_VERSION\"/" "$REPO_ROOT/charts/driftwire/Chart.yaml"
+rm -f "$REPO_ROOT/charts/driftwire/Chart.yaml.bak"
+echo "  ✓ charts/driftwire/Chart.yaml (appVersion)"
 
 echo ""
 echo "Done. Files updated:"

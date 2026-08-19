@@ -2,7 +2,7 @@
 
 ## Current Coverage Summary
 
-TFDrift-Falco currently supports monitoring **40+ AWS services** with **500+ CloudTrail events** tracked and integrated into Terraform state drift detection.
+driftwire currently supports monitoring **40+ AWS services** with **500+ CloudTrail events** tracked and integrated into Terraform state drift detection.
 
 ### Coverage Statistics
 
@@ -80,7 +80,7 @@ TFDrift-Falco currently supports monitoring **40+ AWS services** with **500+ Clo
 ### Detection Latency
 
 - **CloudTrail Ingestion**: < 5 minutes typical
-- **TFDrift-Falco Processing**: < 1 second
+- **driftwire Processing**: < 1 second
 - **Alert Delivery**: Real-time via WebSocket/SSE
 
 ## Expansion Roadmap

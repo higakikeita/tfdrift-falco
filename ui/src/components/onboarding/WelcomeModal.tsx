@@ -10,14 +10,14 @@ interface WelcomeModalProps {
   onClose: () => void;
 }
 
-const STORAGE_KEY = 'tfdrift-welcome-seen';
+const STORAGE_KEY = 'driftwire-welcome-seen';
 
 export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
     {
-      title: 'TFDrift-Falcoへようこそ',
+      title: 'driftwireへようこそ',
       icon: <Network className="w-16 h-16 text-blue-600" />,
       description: 'クラウドインフラのセキュリティとドリフト分析を可視化します',
       details: [

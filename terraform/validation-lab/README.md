@@ -1,8 +1,8 @@
-# TFDrift-Falco Validation Lab (bastion + EKS + ECS Fargate)
+# driftwire Validation Lab (bastion + EKS + ECS Fargate)
 
-A **lean, short-lived** AWS environment for end-to-end verification of TFDrift-Falco
+A **lean, short-lived** AWS environment for end-to-end verification of driftwire
 drift detection against real CloudTrail events. Deliberately minimal — provision it,
-generate a few manual (non-IaC) changes, confirm tfdrift detects them, then destroy.
+generate a few manual (non-IaC) changes, confirm driftwire detects them, then destroy.
 
 > This is intentionally separate from `terraform/production-like-environment/`
 > (a 157-resource behemoth with RDS/ElastiCache/ALB and a stale `errored.tfstate`).
@@ -51,9 +51,9 @@ eval "$(terraform output -raw eks_kubeconfig_command)" && kubectl get nodes
 terraform destroy
 ```
 
-## Generating drift to verify tfdrift
+## Generating drift to verify driftwire
 
-Once tfdrift-falco is watching this account's CloudTrail, make manual changes the
+Once driftwire is watching this account's CloudTrail, make manual changes the
 rules in `rules/terraform_drift.yaml` watch for, e.g.:
 
 ```bash
@@ -62,12 +62,12 @@ aws ec2 authorize-security-group-ingress --group-id <ecs-svc-sg> \
   --protocol tcp --port 8080 --cidr 10.20.0.0/16
 
 # ECS service scale (UpdateService) / task-def change
-aws ecs update-service --cluster tfdrift-lab-ecs --service tfdrift-lab-nginx --desired-count 2
+aws ecs update-service --cluster driftwire-lab-ecs --service driftwire-lab-nginx --desired-count 2
 
 # EKS logging toggle, IAM policy attach, etc.
 ```
 
-Each should surface in tfdrift as a drift event (who / when / what) — the exact
+Each should surface in driftwire as a drift event (who / when / what) — the exact
 signal the flagship demo shows.
 
 ## Notes

@@ -3,7 +3,7 @@ package graph
 import (
 	"fmt"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/terraform"
 )
 
 // RelationshipExtractor defines how to extract relationships for a specific resource type.

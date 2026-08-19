@@ -83,18 +83,18 @@ func TestDriftAttrs(t *testing.T) {
 
 func TestAttrKeys(t *testing.T) {
 	// Verify attribute keys are properly defined
-	assert.Equal(t, "tfdrift.provider", string(AttrProvider))
-	assert.Equal(t, "tfdrift.resource_type", string(AttrResourceType))
-	assert.Equal(t, "tfdrift.resource_id", string(AttrResourceID))
-	assert.Equal(t, "tfdrift.event_name", string(AttrEventName))
-	assert.Equal(t, "tfdrift.event_source", string(AttrEventSource))
-	assert.Equal(t, "tfdrift.severity", string(AttrSeverity))
-	assert.Equal(t, "tfdrift.change_type", string(AttrChangeType))
-	assert.Equal(t, "tfdrift.user_id", string(AttrUserID))
-	assert.Equal(t, "tfdrift.region", string(AttrRegion))
-	assert.Equal(t, "tfdrift.drift_count", string(AttrDriftCount))
-	assert.Equal(t, "tfdrift.rule_count", string(AttrRuleCount))
-	assert.Equal(t, "tfdrift.notification_channel", string(AttrChannel))
+	assert.Equal(t, "driftwire.provider", string(AttrProvider))
+	assert.Equal(t, "driftwire.resource_type", string(AttrResourceType))
+	assert.Equal(t, "driftwire.resource_id", string(AttrResourceID))
+	assert.Equal(t, "driftwire.event_name", string(AttrEventName))
+	assert.Equal(t, "driftwire.event_source", string(AttrEventSource))
+	assert.Equal(t, "driftwire.severity", string(AttrSeverity))
+	assert.Equal(t, "driftwire.change_type", string(AttrChangeType))
+	assert.Equal(t, "driftwire.user_id", string(AttrUserID))
+	assert.Equal(t, "driftwire.region", string(AttrRegion))
+	assert.Equal(t, "driftwire.drift_count", string(AttrDriftCount))
+	assert.Equal(t, "driftwire.rule_count", string(AttrRuleCount))
+	assert.Equal(t, "driftwire.notification_channel", string(AttrChannel))
 }
 
 // Verify the codes package is usable for span status

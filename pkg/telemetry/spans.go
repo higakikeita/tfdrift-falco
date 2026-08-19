@@ -9,22 +9,22 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-const instrumentationName = "github.com/keitahigaki/tfdrift-falco"
+const instrumentationName = "github.com/higakikeita/driftwire"
 
 // Span attribute keys used across the pipeline.
 var (
-	AttrProvider     = attribute.Key("tfdrift.provider")
-	AttrResourceType = attribute.Key("tfdrift.resource_type")
-	AttrResourceID   = attribute.Key("tfdrift.resource_id")
-	AttrEventName    = attribute.Key("tfdrift.event_name")
-	AttrEventSource  = attribute.Key("tfdrift.event_source")
-	AttrSeverity     = attribute.Key("tfdrift.severity")
-	AttrChangeType   = attribute.Key("tfdrift.change_type")
-	AttrUserID       = attribute.Key("tfdrift.user_id")
-	AttrRegion       = attribute.Key("tfdrift.region")
-	AttrDriftCount   = attribute.Key("tfdrift.drift_count")
-	AttrRuleCount    = attribute.Key("tfdrift.rule_count")
-	AttrChannel      = attribute.Key("tfdrift.notification_channel")
+	AttrProvider     = attribute.Key("driftwire.provider")
+	AttrResourceType = attribute.Key("driftwire.resource_type")
+	AttrResourceID   = attribute.Key("driftwire.resource_id")
+	AttrEventName    = attribute.Key("driftwire.event_name")
+	AttrEventSource  = attribute.Key("driftwire.event_source")
+	AttrSeverity     = attribute.Key("driftwire.severity")
+	AttrChangeType   = attribute.Key("driftwire.change_type")
+	AttrUserID       = attribute.Key("driftwire.user_id")
+	AttrRegion       = attribute.Key("driftwire.region")
+	AttrDriftCount   = attribute.Key("driftwire.drift_count")
+	AttrRuleCount    = attribute.Key("driftwire.rule_count")
+	AttrChannel      = attribute.Key("driftwire.notification_channel")
 )
 
 // StartSpan starts a new span using the global tracer provider.

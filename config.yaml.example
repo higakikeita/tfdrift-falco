@@ -1,4 +1,4 @@
-# TFDrift-Falco Configuration Example
+# driftwire Configuration Example
 #
 # This file documents every configuration section that the loader actually
 # understands. The schema is defined by the structs in pkg/config/config.go;
@@ -26,7 +26,7 @@ providers:
       backend: "s3"
 
       # S3 backend configuration
-      s3_bucket: "tfdrift-terraform-state-YOUR-AWS-ACCOUNT-ID"
+      s3_bucket: "driftwire-terraform-state-YOUR-AWS-ACCOUNT-ID"
       s3_key: "production-test/terraform.tfstate"
       s3_region: "us-east-1"
 
@@ -60,16 +60,16 @@ providers:
       # azure_access_key: "..."
       # azure_sas_token: "..."
 
-# Falco Integration (Required for TFDrift-Falco)
+# Falco Integration (Required for driftwire)
 # You must have Falco 0.35+ installed with:
 #   - CloudTrail plugin enabled
 #   - gRPC output enabled
 falco:
   enabled: true
 
-  # How Falco alerts reach TFDrift (ADR-006):
+  # How Falco alerts reach driftwire (ADR-006):
   #   http  — Falco http_output POSTs alerts to POST /api/v1/falco/events on the
-  #           TFDrift API server. Works on Falco 0.44+. Recommended.
+  #           driftwire API server. Works on Falco 0.44+. Recommended.
   #   grpc  — legacy Falco gRPC Sub stream (hostname/port/cert_* below). Removed
   #           by Falco 0.44+. Empty is treated as grpc for backward compatibility.
   transport: "http"
@@ -250,7 +250,7 @@ auto_import:
 # OpenTelemetry (traces + metrics export). Disabled by default.
 telemetry:
   enabled: false
-  service_name: "tfdrift-falco"
+  service_name: "driftwire"
   service_version: ""
   environment: "production"
   traces_endpoint: "localhost:4317"
@@ -272,7 +272,7 @@ github:
   owner: "your-org"
   repo: "your-infra-repo"
   branch: "main"
-  # token: set via TFDRIFT_GITHUB_TOKEN env var instead of committing it here
+  # token: set via DRIFTWIRE_GITHUB_TOKEN env var instead of committing it here
 
 # Policy engine (evaluate drift against .rego policies)
 policy:

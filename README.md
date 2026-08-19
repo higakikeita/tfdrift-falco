@@ -1,28 +1,32 @@
-# TFDrift-Falco
+# driftwire
 
-**Real-time Terraform Drift Detection powered by Falco**
+**real-time IaC drift detection. Know who changed your cloud, and when.** (Terraform & OpenTofu)
 
-[![Version](https://img.shields.io/badge/version-0.14.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
+[![Version](https://img.shields.io/badge/version-0.14.0-blue)](https://github.com/higakikeita/driftwire/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
-[![Docker](https://img.shields.io/badge/Docker-GHCR-2496ED?logo=docker)](https://ghcr.io/higakikeita/tfdrift-falco)
+[![Docker](https://img.shields.io/badge/Docker-GHCR-2496ED?logo=docker)](https://ghcr.io/higakikeita/driftwire)
 
 > **v0.14.0** (2026-07-20) — OpenTofu support (`auto_import.tool: terraform|tofu`)
 > [Release Notes](docs/release-notes/v0.14.0.md) | [CHANGELOG](CHANGELOG.md) | [Roadmap](PROJECT_ROADMAP.md)
 
 **[English]** | [日本語](README.ja.md)
 
+> **Renamed:** this project was `tfdrift-falco` until v0.14.0. Same tool, clearer name —
+> the old GitHub URL redirects, but a pinned `go install`/module path must be updated to
+> `github.com/higakikeita/driftwire`, and images now publish to `ghcr.io/higakikeita/driftwire`.
+
 ---
 
-## What is TFDrift-Falco?
+## What is driftwire?
 
-TFDrift-Falco detects infrastructure drift **in real-time** across AWS, GCP, and Azure by combining Falco's runtime security monitoring with Terraform state comparison. Unlike periodic scan tools, it catches changes **the moment they happen** and tells you not just *what* changed, but *who* did it and *when*.
+driftwire detects infrastructure drift **in real-time** across AWS, GCP, and Azure by combining Falco's runtime security monitoring with Terraform state comparison. Unlike periodic scan tools, it catches changes **the moment they happen** and tells you not just *what* changed, but *who* did it and *when*.
 
 ```
 Someone modifies a security group via AWS Console
   → Falco captures CloudTrail event in real-time
-    → TFDrift-Falco compares with Terraform state
+    → driftwire compares with Terraform state
       → Instant alert with user identity and change details
 ```
 
@@ -35,9 +39,9 @@ Someone modifies a security group via AWS Console
 **Try the API server locally** (Go 1.25+, no cloud credentials needed to boot):
 
 ```bash
-git clone https://github.com/higakikeita/tfdrift-falco.git && cd tfdrift-falco
+git clone https://github.com/higakikeita/driftwire.git && cd driftwire
 cp config.yaml.example config.yaml   # edit with your settings
-go run ./cmd/tfdrift --server --config config.yaml
+go run ./cmd/driftwire --server --config config.yaml
 # → http://localhost:8080/api/v1/health
 ```
 
@@ -64,7 +68,7 @@ See [Getting Started Guide](docs/GETTING_STARTED.md) for detailed setup.
 
 ## Multi-Cloud Support
 
-TFDrift-Falco supports all three major cloud providers through a unified Provider interface.
+driftwire supports all three major cloud providers through a unified Provider interface.
 
 ### AWS
 
@@ -148,7 +152,7 @@ integration yet, so its discovery/comparison is not available.
 
 **Production Tooling** — Rate limiting, OpenAPI 3.0 spec, and a Kubernetes Helm Chart with HPA and NetworkPolicy.
 
-> ⚠️ **Security note:** The API server has **no built-in authentication** yet (JWT/API-Key auth is on the [security roadmap](SECURITY.md), not implemented). Run TFDrift-Falco on localhost or a trusted network only, behind your own gateway/mTLS — do **not** expose it directly to the public internet.
+> ⚠️ **Security note:** The API server has **no built-in authentication** yet (JWT/API-Key auth is on the [security roadmap](SECURITY.md), not implemented). Run driftwire on localhost or a trusted network only, behind your own gateway/mTLS — do **not** expose it directly to the public internet.
 
 ---
 
@@ -207,13 +211,13 @@ docker compose up -d
 ### Kubernetes (Helm)
 
 ```bash
-helm install tfdrift ./charts/tfdrift-falco
+helm install driftwire ./charts/driftwire
 ```
 
 ### Build from Source
 
 ```bash
-make build    # Binary: ./bin/tfdrift
+make build    # Binary: ./bin/driftwire
 make test     # Run tests
 make lint     # Run linter
 ```
@@ -243,7 +247,7 @@ make lint     # Run linter
 
 Traditional drift detection runs periodic scans — by the time you find the change, you've lost *who* did it and *why*. Falco watches cloud audit logs in real-time through its plugin framework, capturing the actor, the action, and the intent at the moment of change.
 
-TFDrift-Falco bridges these two worlds: the blueprint (Terraform) and the witness (Falco).
+driftwire bridges these two worlds: the blueprint (Terraform) and the witness (Falco).
 
 Read the full story: [Why Falco?](docs/WHY_FALCO_STORY.md)
 

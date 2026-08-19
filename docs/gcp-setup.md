@@ -1,6 +1,6 @@
-# GCP Setup Guide for TFDrift-Falco
+# GCP Setup Guide for driftwire
 
-This guide walks you through setting up TFDrift-Falco for Google Cloud Platform (GCP) drift detection.
+This guide walks you through setting up driftwire for Google Cloud Platform (GCP) drift detection.
 
 ## Table of Contents
 
@@ -10,7 +10,7 @@ This guide walks you through setting up TFDrift-Falco for Google Cloud Platform 
 - [Step 1: Enable GCP Audit Logs](#step-1-enable-gcp-audit-logs)
 - [Step 2: Configure Pub/Sub for Audit Logs](#step-2-configure-pubsub-for-audit-logs)
 - [Step 3: Install and Configure Falco](#step-3-install-and-configure-falco)
-- [Step 4: Configure TFDrift-Falco](#step-4-configure-tfdrift-falco)
+- [Step 4: Configure driftwire](#step-4-configure-driftwire)
 - [Step 5: Verify Setup](#step-5-verify-setup)
 - [Troubleshooting](#troubleshooting)
 - [Best Practices](#best-practices)
@@ -21,13 +21,13 @@ This guide walks you through setting up TFDrift-Falco for Google Cloud Platform 
 
 ## Quick Start (5 Minutes)
 
-**Want to try TFDrift-Falco with GCP right now?** This automated script sets everything up for you.
+**Want to try driftwire with GCP right now?** This automated script sets everything up for you.
 
 ### One-Command Setup
 
 ```bash
 # Download and run the setup script
-curl -fsSL https://raw.githubusercontent.com/higakikeita/tfdrift-falco/main/scripts/gcp-quick-start.sh | bash
+curl -fsSL https://raw.githubusercontent.com/higakikeita/driftwire/main/scripts/gcp-quick-start.sh | bash
 ```
 
 ### Manual Quick Start
@@ -43,32 +43,32 @@ gcloud config set project $PROJECT_ID
 gcloud services enable logging.googleapis.com pubsub.googleapis.com compute.googleapis.com
 
 # 3. Create Pub/Sub infrastructure (30 seconds)
-gcloud pubsub topics create tfdrift-audit-logs
-gcloud logging sinks create tfdrift-sink \
-  pubsub.googleapis.com/projects/$PROJECT_ID/topics/tfdrift-audit-logs \
+gcloud pubsub topics create driftwire-audit-logs
+gcloud logging sinks create driftwire-sink \
+  pubsub.googleapis.com/projects/$PROJECT_ID/topics/driftwire-audit-logs \
   --log-filter='protoPayload.serviceName="compute.googleapis.com"'
 
-SINK_SA=$(gcloud logging sinks describe tfdrift-sink --format="value(writerIdentity)")
-gcloud pubsub topics add-iam-policy-binding tfdrift-audit-logs \
+SINK_SA=$(gcloud logging sinks describe driftwire-sink --format="value(writerIdentity)")
+gcloud pubsub topics add-iam-policy-binding driftwire-audit-logs \
   --member="$SINK_SA" --role="roles/pubsub.publisher"
 
-gcloud pubsub subscriptions create tfdrift-falco-sub \
-  --topic=tfdrift-audit-logs
+gcloud pubsub subscriptions create driftwire-sub \
+  --topic=driftwire-audit-logs
 
 # 4. Create service account for Falco (30 seconds)
-gcloud iam service-accounts create tfdrift-falco \
-  --display-name="TFDrift Falco"
+gcloud iam service-accounts create driftwire \
+  --display-name="driftwire Falco"
 
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:tfdrift-falco@$PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:driftwire@$PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/pubsub.subscriber"
 
-mkdir -p ~/tfdrift-config
-gcloud iam service-accounts keys create ~/tfdrift-config/gcp-key.json \
-  --iam-account=tfdrift-falco@$PROJECT_ID.iam.gserviceaccount.com
+mkdir -p ~/driftwire-config
+gcloud iam service-accounts keys create ~/driftwire-config/gcp-key.json \
+  --iam-account=driftwire@$PROJECT_ID.iam.gserviceaccount.com
 
 # 5. Run Falco with Docker (1 minute)
-cat > ~/tfdrift-config/falco.yaml <<EOF
+cat > ~/driftwire-config/falco.yaml <<EOF
 engine:
   kind: modern_ebpf
 plugins:
@@ -76,7 +76,7 @@ plugins:
     library_path: /usr/share/falco/plugins/libgcpaudit.so
     init_config:
       project_id: "$PROJECT_ID"
-      subscription: "tfdrift-falco-sub"
+      subscription: "driftwire-sub"
 load_plugins: [gcpaudit]
 json_output: true
 grpc:
@@ -89,13 +89,13 @@ EOF
 
 docker run -d --name falco \
   -p 5060:5060 \
-  -v ~/tfdrift-config:/etc/falco \
+  -v ~/driftwire-config:/etc/falco \
   -e GOOGLE_APPLICATION_CREDENTIALS=/etc/falco/gcp-key.json \
   falcosecurity/falco:latest \
   -c /etc/falco/falco.yaml
 
-# 6. Create TFDrift-Falco config (30 seconds)
-cat > ~/tfdrift-config/config-gcp.yaml <<EOF
+# 6. Create driftwire config (30 seconds)
+cat > ~/driftwire-config/config-gcp.yaml <<EOF
 providers:
   gcp:
     enabled: true
@@ -133,8 +133,8 @@ echo "Next steps:"
 echo "1. Create a test Terraform resource:"
 echo "   terraform init && terraform apply"
 echo ""
-echo "2. Run TFDrift-Falco:"
-echo "   tfdrift --config ~/tfdrift-config/config-gcp.yaml"
+echo "2. Run driftwire:"
+echo "   driftwire --config ~/driftwire-config/config-gcp.yaml"
 echo ""
 echo "3. Make a manual change in GCP Console to trigger drift detection"
 echo "   Example: gcloud compute instances add-metadata INSTANCE_NAME --metadata=test=value"
@@ -144,7 +144,7 @@ echo "   Example: gcloud compute instances add-metadata INSTANCE_NAME --metadata
 
 - ✅ GCP Audit Logs → Pub/Sub pipeline
 - ✅ Falco with gcpaudit plugin (Docker)
-- ✅ TFDrift-Falco configuration
+- ✅ driftwire configuration
 - ✅ Service account with minimal permissions
 
 ### Test It
@@ -153,7 +153,7 @@ echo "   Example: gcloud compute instances add-metadata INSTANCE_NAME --metadata
 # 1. Create a simple test resource with Terraform
 cat > main.tf <<EOF
 resource "google_compute_network" "test" {
-  name = "tfdrift-test-network"
+  name = "driftwire-test-network"
   auto_create_subnetworks = false
 }
 EOF
@@ -161,11 +161,11 @@ EOF
 terraform init
 terraform apply -auto-approve
 
-# 2. Run TFDrift-Falco
-tfdrift --config ~/tfdrift-config/config-gcp.yaml &
+# 2. Run driftwire
+driftwire --config ~/driftwire-config/config-gcp.yaml &
 
 # 3. Make a manual change
-gcloud compute networks update tfdrift-test-network \
+gcloud compute networks update driftwire-test-network \
   --description="Manual change - should trigger drift"
 
 # You should see a drift detection alert!
@@ -181,10 +181,10 @@ terraform destroy -auto-approve
 docker stop falco && docker rm falco
 
 # Delete GCP resources
-gcloud pubsub subscriptions delete tfdrift-falco-sub
-gcloud pubsub topics delete tfdrift-audit-logs
-gcloud logging sinks delete tfdrift-sink
-gcloud iam service-accounts delete tfdrift-falco@$PROJECT_ID.iam.gserviceaccount.com
+gcloud pubsub subscriptions delete driftwire-sub
+gcloud pubsub topics delete driftwire-audit-logs
+gcloud logging sinks delete driftwire-sink
+gcloud iam service-accounts delete driftwire@$PROJECT_ID.iam.gserviceaccount.com
 ```
 
 ---
@@ -259,7 +259,7 @@ gcloud projects get-iam-policy $PROJECT_ID \
 - Step 1 (Audit Logs): 5 minutes
 - Step 2 (Pub/Sub): 5 minutes
 - Step 3 (Falco): 10 minutes
-- Step 4 (TFDrift-Falco): 5 minutes
+- Step 4 (driftwire): 5 minutes
 - Step 5 (Verification): 5 minutes
 
 ---
@@ -292,7 +292,7 @@ gcloud projects get-iam-policy $PROJECT_ID \
          │ gRPC
          ▼
 ┌─────────────────┐
-│  TFDrift-Falco  │
+│  driftwire  │
 │  + GCS Backend  │
 └────────┬────────┘
          │
@@ -375,18 +375,18 @@ export PROJECT_ID="your-gcp-project-id"
 gcloud config set project $PROJECT_ID
 
 # Create topic for audit logs
-gcloud pubsub topics create tfdrift-audit-logs
+gcloud pubsub topics create driftwire-audit-logs
 ```
 
 **✅ Verification:**
 ```bash
 # Verify topic was created
-gcloud pubsub topics describe tfdrift-audit-logs
+gcloud pubsub topics describe driftwire-audit-logs
 ```
 
 **Expected output:**
 ```
-name: projects/YOUR_PROJECT_ID/topics/tfdrift-audit-logs
+name: projects/YOUR_PROJECT_ID/topics/driftwire-audit-logs
 ```
 
 ### 2.2 Create Log Sink
@@ -395,8 +395,8 @@ Route audit logs to Pub/Sub:
 
 ```bash
 # Create log sink
-gcloud logging sinks create tfdrift-sink \
-  pubsub.googleapis.com/projects/$PROJECT_ID/topics/tfdrift-audit-logs \
+gcloud logging sinks create driftwire-sink \
+  pubsub.googleapis.com/projects/$PROJECT_ID/topics/driftwire-audit-logs \
   --log-filter='
     protoPayload.serviceName="compute.googleapis.com" OR
     protoPayload.serviceName="storage.googleapis.com" OR
@@ -405,24 +405,24 @@ gcloud logging sinks create tfdrift-sink \
   '
 
 # Get sink service account
-SINK_SA=$(gcloud logging sinks describe tfdrift-sink --format="value(writerIdentity)")
+SINK_SA=$(gcloud logging sinks describe driftwire-sink --format="value(writerIdentity)")
 echo "Sink Service Account: $SINK_SA"
 ```
 
 **✅ Verification:**
 ```bash
 # Verify sink was created and is active
-gcloud logging sinks describe tfdrift-sink
+gcloud logging sinks describe driftwire-sink
 
 # Check the filter
-gcloud logging sinks describe tfdrift-sink --format="value(filter)"
+gcloud logging sinks describe driftwire-sink --format="value(filter)"
 ```
 
 **Expected output:**
 ```
-Created [tfdrift-sink].
+Created [driftwire-sink].
 writerIdentity: serviceAccount:service-XXXX@gcp-sa-logging.iam.gserviceaccount.com
-destination: pubsub.googleapis.com/projects/YOUR_PROJECT_ID/topics/tfdrift-audit-logs
+destination: pubsub.googleapis.com/projects/YOUR_PROJECT_ID/topics/driftwire-audit-logs
 ```
 
 > 💡 **Tip:** The `writerIdentity` is automatically created by Google Cloud and will be used to publish messages to Pub/Sub.
@@ -431,7 +431,7 @@ destination: pubsub.googleapis.com/projects/YOUR_PROJECT_ID/topics/tfdrift-audit
 
 ```bash
 # Grant publish permission to sink service account
-gcloud pubsub topics add-iam-policy-binding tfdrift-audit-logs \
+gcloud pubsub topics add-iam-policy-binding driftwire-audit-logs \
   --member="$SINK_SA" \
   --role="roles/pubsub.publisher"
 ```
@@ -439,7 +439,7 @@ gcloud pubsub topics add-iam-policy-binding tfdrift-audit-logs \
 **✅ Verification:**
 ```bash
 # Verify IAM policy
-gcloud pubsub topics get-iam-policy tfdrift-audit-logs
+gcloud pubsub topics get-iam-policy driftwire-audit-logs
 ```
 
 **Expected output:** You should see the sink service account with `roles/pubsub.publisher` role.
@@ -448,8 +448,8 @@ gcloud pubsub topics get-iam-policy tfdrift-audit-logs
 
 ```bash
 # Create pull subscription
-gcloud pubsub subscriptions create tfdrift-falco-sub \
-  --topic=tfdrift-audit-logs \
+gcloud pubsub subscriptions create driftwire-sub \
+  --topic=driftwire-audit-logs \
   --ack-deadline=60
 ```
 
@@ -494,7 +494,7 @@ plugins:
     library_path: /usr/share/falco/plugins/libgcpaudit.so
     init_config:
       project_id: "$PROJECT_ID"
-      subscription: "tfdrift-falco-sub"
+      subscription: "driftwire-sub"
     open_params: ""
 
 # Load rules for GCP
@@ -510,17 +510,17 @@ EOF
 
 ```bash
 # Create service account for Falco
-gcloud iam service-accounts create tfdrift-falco \
-  --display-name="TFDrift Falco Service Account"
+gcloud iam service-accounts create driftwire \
+  --display-name="driftwire Falco Service Account"
 
 # Grant Pub/Sub subscriber role
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:tfdrift-falco@$PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:driftwire@$PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/pubsub.subscriber"
 
 # Download key
 gcloud iam service-accounts keys create ~/falco-config/gcp-key.json \
-  --iam-account=tfdrift-falco@$PROJECT_ID.iam.gserviceaccount.com
+  --iam-account=driftwire@$PROJECT_ID.iam.gserviceaccount.com
 ```
 
 ### 3.4 Run Falco
@@ -549,23 +549,23 @@ docker logs falco
 
 ---
 
-## Step 4: Configure TFDrift-Falco
+## Step 4: Configure driftwire
 
 ### 4.1 Create GCS Bucket for Terraform State (If Using GCS Backend)
 
 ```bash
 # Create bucket
-gsutil mb -p $PROJECT_ID -l us-central1 gs://tfdrift-terraform-state
+gsutil mb -p $PROJECT_ID -l us-central1 gs://driftwire-terraform-state
 
 # Enable versioning
-gsutil versioning set on gs://tfdrift-terraform-state
+gsutil versioning set on gs://driftwire-terraform-state
 ```
 
-### 4.2 Create TFDrift-Falco Configuration
+### 4.2 Create driftwire Configuration
 
 ```bash
 cat > config-gcp.yaml <<EOF
-# TFDrift-Falco GCP Configuration
+# driftwire GCP Configuration
 
 providers:
   aws:
@@ -577,7 +577,7 @@ providers:
       - "$PROJECT_ID"
     state:
       backend: "gcs"
-      gcs_bucket: "tfdrift-terraform-state"
+      gcs_bucket: "driftwire-terraform-state"
       gcs_prefix: "terraform.tfstate"
 
 falco:
@@ -650,18 +650,18 @@ logging:
 EOF
 ```
 
-### 4.3 Run TFDrift-Falco
+### 4.3 Run driftwire
 
 #### Option A: Docker
 
 ```bash
 docker run -d \
-  --name tfdrift-falco \
+  --name driftwire \
   --network host \
   -v $(pwd)/config-gcp.yaml:/config/config.yaml:ro \
   -e GOOGLE_APPLICATION_CREDENTIALS=/config/gcp-key.json \
   -v ~/falco-config/gcp-key.json:/config/gcp-key.json:ro \
-  ghcr.io/higakikeita/tfdrift-falco:latest \
+  ghcr.io/higakikeita/driftwire:latest \
   --config /config/config.yaml
 ```
 
@@ -671,8 +671,8 @@ docker run -d \
 # Set GCP credentials
 export GOOGLE_APPLICATION_CREDENTIALS=~/falco-config/gcp-key.json
 
-# Run TFDrift-Falco
-./tfdrift --config config-gcp.yaml
+# Run driftwire
+./driftwire --config config-gcp.yaml
 ```
 
 ---
@@ -690,11 +690,11 @@ gcloud compute instances add-metadata INSTANCE_NAME \
   --metadata=test-key=test-value
 ```
 
-### 5.2 Check TFDrift-Falco Logs
+### 5.2 Check driftwire Logs
 
 ```bash
 # Docker
-docker logs -f tfdrift-falco
+docker logs -f driftwire
 
 # You should see:
 # "Drift Detected: google_compute_instance.INSTANCE_NAME"
@@ -723,21 +723,21 @@ You should receive a Slack alert with:
 
 ```bash
 # 1. Verify Pub/Sub subscription
-gcloud pubsub subscriptions describe tfdrift-falco-sub
+gcloud pubsub subscriptions describe driftwire-sub
 
 # 2. Check messages in subscription
-gcloud pubsub subscriptions pull tfdrift-falco-sub --limit=5
+gcloud pubsub subscriptions pull driftwire-sub --limit=5
 
 # 3. Verify log sink
-gcloud logging sinks describe tfdrift-sink
+gcloud logging sinks describe driftwire-sink
 
 # 4. Check service account permissions
 gcloud projects get-iam-policy $PROJECT_ID \
   --flatten="bindings[].members" \
-  --filter="bindings.members:serviceAccount:tfdrift-falco@*"
+  --filter="bindings.members:serviceAccount:driftwire@*"
 ```
 
-### Issue 2: TFDrift-Falco Cannot Connect to Falco
+### Issue 2: driftwire Cannot Connect to Falco
 
 **Symptoms:**
 - Error: "failed to connect to Falco"
@@ -769,11 +769,11 @@ gcloud compute firewall-rules create allow-falco-grpc \
 ```bash
 # 1. Verify service account has Storage Object Viewer role
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:tfdrift-falco@$PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:driftwire@$PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/storage.objectViewer"
 
 # 2. Test GCS access manually
-gsutil ls gs://tfdrift-terraform-state/
+gsutil ls gs://driftwire-terraform-state/
 
 # 3. Verify GOOGLE_APPLICATION_CREDENTIALS is set
 echo $GOOGLE_APPLICATION_CREDENTIALS
@@ -789,7 +789,7 @@ echo $GOOGLE_APPLICATION_CREDENTIALS
 
 ```bash
 # 1. Verify Terraform state path
-gsutil ls gs://tfdrift-terraform-state/terraform.tfstate
+gsutil ls gs://driftwire-terraform-state/terraform.tfstate
 
 # 2. Check resource naming in Terraform vs GCP
 terraform show -json | jq '.values.root_module.resources[] | {type, name}'
@@ -811,7 +811,7 @@ logging:
 Update log sink filter to be more specific:
 
 ```bash
-gcloud logging sinks update tfdrift-sink \
+gcloud logging sinks update driftwire-sink \
   --log-filter='
     protoPayload.serviceName="compute.googleapis.com" AND
     protoPayload.methodName=~"compute\.(instances|firewalls|networks)\.(insert|delete|update|patch|set.*)"
@@ -843,7 +843,7 @@ docker exec falco ls -la /usr/share/falco/plugins/
 docker pull falcosecurity/falco:latest
 
 # 4. Check configuration file syntax
-docker run --rm -v ~/tfdrift-config:/config \
+docker run --rm -v ~/driftwire-config:/config \
   falcosecurity/falco:latest \
   -c /config/falco.yaml --validate
 
@@ -873,16 +873,16 @@ gcloud projects get-iam-policy $PROJECT_ID \
 
 # 2. Grant required permission
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:tfdrift-falco@$PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:driftwire@$PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/pubsub.subscriber"
 
 # 3. Test subscription access with service account
-gcloud pubsub subscriptions pull tfdrift-falco-sub \
+gcloud pubsub subscriptions pull driftwire-sub \
   --limit=1 \
-  --impersonate-service-account=tfdrift-falco@$PROJECT_ID.iam.gserviceaccount.com
+  --impersonate-service-account=driftwire@$PROJECT_ID.iam.gserviceaccount.com
 
 # 4. Verify key file has correct format
-cat ~/tfdrift-config/gcp-key.json | jq .
+cat ~/driftwire-config/gcp-key.json | jq .
 # Should show valid JSON with private_key, client_email, etc.
 ```
 
@@ -895,52 +895,52 @@ cat ~/tfdrift-config/gcp-key.json | jq .
 **Error Messages:**
 ```
 The caller does not have permission to publish to topic
-projects/PROJECT_ID/topics/tfdrift-audit-logs
+projects/PROJECT_ID/topics/driftwire-audit-logs
 ```
 
 **Solutions:**
 
 ```bash
 # 1. Get the log sink service account (writer identity)
-SINK_SA=$(gcloud logging sinks describe tfdrift-sink \
+SINK_SA=$(gcloud logging sinks describe driftwire-sink \
   --project=$PROJECT_ID \
   --format="value(writerIdentity)")
 echo "Sink Service Account: $SINK_SA"
 
 # 2. Grant Publisher role to the sink service account
-gcloud pubsub topics add-iam-policy-binding tfdrift-audit-logs \
+gcloud pubsub topics add-iam-policy-binding driftwire-audit-logs \
   --member="$SINK_SA" \
   --role="roles/pubsub.publisher" \
   --project=$PROJECT_ID
 
 # 3. Verify the binding
-gcloud pubsub topics get-iam-policy tfdrift-audit-logs \
+gcloud pubsub topics get-iam-policy driftwire-audit-logs \
   --project=$PROJECT_ID
 
 # 4. Trigger a test event and check delivery
 gcloud compute instances list  # Triggers compute.instances.list
 sleep 30  # Wait for log delivery
-gcloud pubsub subscriptions pull tfdrift-falco-sub --limit=1
+gcloud pubsub subscriptions pull driftwire-sub --limit=1
 ```
 
 ### Issue 9: Invalid Configuration File
 
 **Symptoms:**
-- TFDrift-Falco fails to start
+- driftwire fails to start
 - Error: `failed to load configuration`
 - YAML parsing errors
 
 **Error Messages:**
 ```
 Error: yaml: unmarshal errors:
-  line 12: cannot unmarshal !!str `tfdrift...` into []string
+  line 12: cannot unmarshal !!str `driftwire...` into []string
 ```
 
 **Solutions:**
 
 ```bash
 # 1. Validate YAML syntax
-yamllint ~/tfdrift-config/config-gcp.yaml
+yamllint ~/driftwire-config/config-gcp.yaml
 
 # Or use Python
 python3 -c "import yaml; yaml.safe_load(open('config-gcp.yaml'))"
@@ -968,7 +968,7 @@ watched_attributes:
   - "labels"
 
 # 3. Use config validation if available
-tfdrift --config ~/tfdrift-config/config-gcp.yaml --validate
+driftwire --config ~/driftwire-config/config-gcp.yaml --validate
 ```
 
 ### Issue 10: Drift Not Detected for Specific Resources
@@ -1013,7 +1013,7 @@ terraform show -json | jq \
 
 **Symptoms:**
 - Drift detected but no Slack/webhook notification
-- No errors in TFDrift-Falco logs
+- No errors in driftwire logs
 
 **Solutions:**
 
@@ -1021,7 +1021,7 @@ terraform show -json | jq \
 # 1. Test webhook URL manually
 curl -X POST https://hooks.slack.com/services/YOUR/WEBHOOK/URL \
   -H 'Content-Type: application/json' \
-  -d '{"text":"Test message from TFDrift-Falco"}'
+  -d '{"text":"Test message from driftwire"}'
 
 # 2. Check webhook configuration
 # In config-gcp.yaml:
@@ -1032,7 +1032,7 @@ notifications:
 
   webhook:
     enabled: true
-    url: "https://your-webhook.example.com/tfdrift"
+    url: "https://your-webhook.example.com/driftwire"
     method: "POST"
     headers:
       Content-Type: "application/json"
@@ -1091,13 +1091,13 @@ done
 
 ### Step-by-Step Debugging Workflow
 
-When TFDrift-Falco is not working as expected, follow this systematic approach:
+When driftwire is not working as expected, follow this systematic approach:
 
 #### 1. Verify the Complete Pipeline
 
 ```bash
 #!/bin/bash
-# Debug script - save as debug-tfdrift.sh
+# Debug script - save as debug-driftwire.sh
 
 PROJECT_ID="your-project-id"
 
@@ -1108,16 +1108,16 @@ gcloud logging read "protoPayload.serviceName=compute.googleapis.com" \
   --project=$PROJECT_ID | jq '.[0].protoPayload.methodName'
 
 echo "==> 2. Checking Log Sink"
-gcloud logging sinks describe tfdrift-sink --project=$PROJECT_ID
+gcloud logging sinks describe driftwire-sink --project=$PROJECT_ID
 
 echo "==> 3. Checking Pub/Sub Topic"
-gcloud pubsub topics describe tfdrift-audit-logs --project=$PROJECT_ID
+gcloud pubsub topics describe driftwire-audit-logs --project=$PROJECT_ID
 
 echo "==> 4. Checking Pub/Sub Subscription"
-gcloud pubsub subscriptions describe tfdrift-falco-sub --project=$PROJECT_ID
+gcloud pubsub subscriptions describe driftwire-sub --project=$PROJECT_ID
 
 echo "==> 5. Pulling Sample Message"
-gcloud pubsub subscriptions pull tfdrift-falco-sub \
+gcloud pubsub subscriptions pull driftwire-sub \
   --limit=1 \
   --format=json \
   --project=$PROJECT_ID | jq '.[0].message.data' -r | base64 -d | jq .
@@ -1129,9 +1129,9 @@ docker logs falco --tail 20
 echo "==> 7. Testing Falco gRPC"
 grpcurl -plaintext localhost:5060 list
 
-echo "==> 8. Testing TFDrift-Falco Connection"
-# Run TFDrift-Falco with debug logging
-tfdrift --config config-gcp.yaml --log-level=debug
+echo "==> 8. Testing driftwire Connection"
+# Run driftwire with debug logging
+driftwire --config config-gcp.yaml --log-level=debug
 ```
 
 #### 2. Enable Maximum Verbosity
@@ -1172,7 +1172,7 @@ grpc_output:
 ```bash
 # Test 1: Trigger a known GCP event
 echo "Creating test compute instance..."
-gcloud compute instances create tfdrift-test-instance \
+gcloud compute instances create driftwire-test-instance \
   --zone=us-central1-a \
   --machine-type=e2-micro \
   --project=$PROJECT_ID
@@ -1183,13 +1183,13 @@ sleep 35
 # Test 2: Check if audit log was created
 gcloud logging read \
   'protoPayload.methodName="v1.compute.instances.insert" AND
-   resource.labels.instance_id="tfdrift-test-instance"' \
+   resource.labels.instance_id="driftwire-test-instance"' \
   --limit=1 \
   --format=json \
   --project=$PROJECT_ID
 
 # Test 3: Check if it reached Pub/Sub
-gcloud pubsub subscriptions pull tfdrift-falco-sub \
+gcloud pubsub subscriptions pull driftwire-sub \
   --limit=5 \
   --format=json \
   --project=$PROJECT_ID
@@ -1198,7 +1198,7 @@ gcloud pubsub subscriptions pull tfdrift-falco-sub \
 docker logs falco --tail 50 | grep "compute.instances.insert"
 
 # Cleanup
-gcloud compute instances delete tfdrift-test-instance \
+gcloud compute instances delete driftwire-test-instance \
   --zone=us-central1-a \
   --quiet \
   --project=$PROJECT_ID
@@ -1207,7 +1207,7 @@ gcloud compute instances delete tfdrift-test-instance \
 #### 4. Isolate Network Issues
 
 ```bash
-# Test gRPC connectivity from TFDrift-Falco perspective
+# Test gRPC connectivity from driftwire perspective
 grpcurl -plaintext localhost:5060 list
 
 # If using remote Falco, test from client machine
@@ -1273,7 +1273,7 @@ GCP Audit Logs delivered via Falco gcpaudit plugin have this structure:
 
 ### Falco gRPC Output Format
 
-When Falco forwards events to TFDrift-Falco via gRPC:
+When Falco forwards events to driftwire via gRPC:
 
 ```json
 {
@@ -1292,9 +1292,9 @@ When Falco forwards events to TFDrift-Falco via gRPC:
 }
 ```
 
-### TFDrift-Falco Event Processing
+### driftwire Event Processing
 
-TFDrift-Falco processes events through these stages:
+driftwire processes events through these stages:
 
 ```
 1. Receive gRPC event from Falco
@@ -1317,11 +1317,11 @@ TFDrift-Falco processes events through these stages:
 8. Generate drift alert if mismatch detected
 ```
 
-### Reading TFDrift-Falco Logs
+### Reading driftwire Logs
 
 **Normal Operation:**
 ```
-INFO[2025-12-17T10:30:00Z] Starting TFDrift-Falco v0.8.0
+INFO[2025-12-17T10:30:00Z] Starting driftwire v0.8.0
 INFO[2025-12-17T10:30:01Z] Connected to Falco gRPC at localhost:5060
 INFO[2025-12-17T10:30:01Z] Loaded Terraform state for project my-project-123 (45 resources)
 INFO[2025-12-17T10:30:45Z] Received event: compute.instances.setMetadata (user@example.com)
@@ -1355,7 +1355,7 @@ WARN[...] Resource not found in Terraform state: google_compute_instance.my_inst
 ```
 ERROR[...] Failed to connect to Falco gRPC: connection refused
 ```
-**Meaning:** TFDrift-Falco cannot reach Falco on the configured hostname:port
+**Meaning:** driftwire cannot reach Falco on the configured hostname:port
 
 **Pattern: "Failed to load Terraform state"**
 ```
@@ -1387,7 +1387,7 @@ providers:
       - "project-3"
     state:
       backend: "gcs"
-      gcs_bucket: "tfdrift-terraform-state"
+      gcs_bucket: "driftwire-terraform-state"
       gcs_prefix: "project-{PROJECT_ID}/terraform.tfstate"
 ```
 
@@ -1415,7 +1415,7 @@ Create custom rules for specific GCP events:
 
 ### Regional Deployment
 
-Deploy TFDrift-Falco per region:
+Deploy driftwire per region:
 
 ```yaml
 # config-us-central1.yaml
@@ -1426,7 +1426,7 @@ providers:
       - "my-project"
     state:
       backend: "gcs"
-      gcs_bucket: "tfdrift-state-us-central1"
+      gcs_bucket: "driftwire-state-us-central1"
       gcs_prefix: "terraform.tfstate"
 
 # Separate config for each region
@@ -1450,7 +1450,7 @@ notifications:
 
 ## Complete Examples
 
-This section provides production-ready Terraform configurations with corresponding TFDrift-Falco setups.
+This section provides production-ready Terraform configurations with corresponding driftwire setups.
 
 ### Example 1: Basic GCE Instance with Networking
 
@@ -1500,14 +1500,14 @@ variable "zone" {
 
 # VPC Network
 resource "google_compute_network" "main" {
-  name                    = "tfdrift-demo-network"
+  name                    = "driftwire-demo-network"
   auto_create_subnetworks = false
   description             = "Network managed by Terraform"
 }
 
 # Subnet
 resource "google_compute_subnetwork" "main" {
-  name          = "tfdrift-demo-subnet"
+  name          = "driftwire-demo-subnet"
   ip_cidr_range = "10.0.1.0/24"
   region        = var.region
   network       = google_compute_network.main.id
@@ -1520,7 +1520,7 @@ resource "google_compute_subnetwork" "main" {
 
 # Firewall - Allow SSH
 resource "google_compute_firewall" "allow_ssh" {
-  name    = "tfdrift-demo-allow-ssh"
+  name    = "driftwire-demo-allow-ssh"
   network = google_compute_network.main.name
 
   allow {
@@ -1536,7 +1536,7 @@ resource "google_compute_firewall" "allow_ssh" {
 
 # Compute Instance
 resource "google_compute_instance" "web" {
-  name         = "tfdrift-demo-web-server"
+  name         = "driftwire-demo-web-server"
   machine_type = "e2-medium"
   zone         = var.zone
 
@@ -1588,8 +1588,8 @@ resource "google_compute_instance" "web" {
 
 # Service Account for Instance
 resource "google_service_account" "instance_sa" {
-  account_id   = "tfdrift-demo-instance-sa"
-  display_name = "TFDrift Demo Instance Service Account"
+  account_id   = "driftwire-demo-instance-sa"
+  display_name = "driftwire Demo Instance Service Account"
   description  = "Service account for demo web server"
 }
 
@@ -1607,7 +1607,7 @@ output "network_name" {
 }
 ```
 
-**TFDrift-Falco Configuration** (`config-demo.yaml`):
+**driftwire Configuration** (`config-demo.yaml`):
 ```yaml
 providers:
   gcp:
@@ -1674,11 +1674,11 @@ logging:
 terraform init
 terraform apply -var="project_id=my-project-123"
 
-# 2. Start TFDrift-Falco
-tfdrift --config config-demo.yaml
+# 2. Start driftwire
+driftwire --config config-demo.yaml
 
 # 3. Trigger drift by making manual changes
-gcloud compute instances add-labels tfdrift-demo-web-server \
+gcloud compute instances add-labels driftwire-demo-web-server \
   --zone=us-central1-a \
   --labels=manual_change=true
 
@@ -1941,7 +1941,7 @@ output "db_instance_connection" {
 }
 ```
 
-**TFDrift-Falco Configuration** (`config-webapp.yaml`):
+**driftwire Configuration** (`config-webapp.yaml`):
 ```yaml
 providers:
   gcp:
@@ -2018,7 +2018,7 @@ notifications:
 
   webhook:
     enabled: true
-    url: "https://monitoring.example.com/webhooks/tfdrift"
+    url: "https://monitoring.example.com/webhooks/driftwire"
     method: "POST"
     headers:
       Content-Type: "application/json"
@@ -2034,8 +2034,8 @@ logging:
 # 1. Deploy infrastructure
 terraform apply -var="project_id=my-project-123"
 
-# 2. Start TFDrift-Falco
-tfdrift --config config-webapp.yaml
+# 2. Start driftwire
+driftwire --config config-webapp.yaml
 
 # 3. Trigger various drift scenarios
 
@@ -2260,7 +2260,7 @@ output "cluster_ca_certificate" {
 }
 ```
 
-**TFDrift-Falco Configuration** (`config-gke.yaml`):
+**driftwire Configuration** (`config-gke.yaml`):
 ```yaml
 providers:
   gcp:
@@ -2346,7 +2346,7 @@ terraform/
 │       ├── main.tf
 │       ├── variables.tf
 │       └── outputs.tf
-└── tfdrift-config/
+└── driftwire-config/
     ├── config-prod.yaml
     └── config-staging.yaml
 ```
@@ -2446,7 +2446,7 @@ module "security" {
 }
 ```
 
-**TFDrift-Falco Production Config** (`tfdrift-config/config-prod.yaml`):
+**driftwire Production Config** (`driftwire-config/config-prod.yaml`):
 ```yaml
 providers:
   gcp:
@@ -2465,9 +2465,9 @@ falco:
   port: 5060
   tls:
     enabled: true
-    ca_cert: "/etc/tfdrift/certs/ca.crt"
-    client_cert: "/etc/tfdrift/certs/client.crt"
-    client_key: "/etc/tfdrift/certs/client.key"
+    ca_cert: "/etc/driftwire/certs/ca.crt"
+    client_cert: "/etc/driftwire/certs/client.crt"
+    client_key: "/etc/driftwire/certs/client.key"
 
 drift_rules:
   # Production-critical rules
@@ -2526,11 +2526,11 @@ notifications:
     enabled: true
     webhook_url: "https://hooks.slack.com/services/T00/B00/XX"
     channel: "#prod-alerts"
-    username: "TFDrift-Falco [PROD]"
+    username: "driftwire [PROD]"
 
   webhook:
     enabled: true
-    url: "https://monitoring.company.com/api/v1/alerts/tfdrift"
+    url: "https://monitoring.company.com/api/v1/alerts/driftwire"
     method: "POST"
     timeout: "10s"
     retry:
@@ -2596,14 +2596,14 @@ if [ "$APPLY" = "yes" ]; then
     terraform apply tfplan
     echo "✓ Terraform applied successfully"
 
-    # Start TFDrift-Falco
-    echo "==> Starting TFDrift-Falco..."
-    tfdrift --config ../../tfdrift-config/config-${ENVIRONMENT}.yaml &
-    TFDRIFT_PID=$!
-    echo "✓ TFDrift-Falco started (PID: $TFDRIFT_PID)"
+    # Start driftwire
+    echo "==> Starting driftwire..."
+    driftwire --config ../../driftwire-config/config-${ENVIRONMENT}.yaml &
+    DRIFTWIRE_PID=$!
+    echo "✓ driftwire started (PID: $DRIFTWIRE_PID)"
 
     # Save PID
-    echo $TFDRIFT_PID > /var/run/tfdrift.pid
+    echo $DRIFTWIRE_PID > /var/run/driftwire.pid
 else
     echo "Deployment cancelled"
 fi
@@ -2613,7 +2613,7 @@ fi
 
 ## Production Best Practices
 
-This section covers best practices for running TFDrift-Falco in production environments.
+This section covers best practices for running driftwire in production environments.
 
 ### 1. Infrastructure Design
 
@@ -2671,9 +2671,9 @@ terraform/
     └── networking/
 ```
 
-**TFDrift Configuration per Environment:**
+**driftwire Configuration per Environment:**
 ```yaml
-# prod/tfdrift-config.yaml
+# prod/driftwire-config.yaml
 providers:
   gcp:
     projects:
@@ -2826,7 +2826,7 @@ export PAGERDUTY_INTEGRATION_KEY="xxx"
 export GOOGLE_APPLICATION_CREDENTIALS="/path/to/key.json"
 
 # Run with secrets from environment
-tfdrift --config config-prod.yaml
+driftwire --config config-prod.yaml
 ```
 
 ```yaml
@@ -2850,16 +2850,16 @@ notifications:
 ```bash
 # Store secret
 echo -n "https://hooks.slack.com/services/..." | \
-  gcloud secrets create tfdrift-slack-webhook \
+  gcloud secrets create driftwire-slack-webhook \
     --data-file=- \
     --replication-policy="automatic"
 
 # Retrieve secret at runtime
 export SLACK_WEBHOOK_URL=$(gcloud secrets versions access latest \
-  --secret="tfdrift-slack-webhook")
+  --secret="driftwire-slack-webhook")
 
-# Run TFDrift
-tfdrift --config config-prod.yaml
+# Run driftwire
+driftwire --config config-prod.yaml
 ```
 
 #### Configuration Validation
@@ -2871,7 +2871,7 @@ tfdrift --config config-prod.yaml
 
 CONFIG_FILE=$1
 
-echo "==> Validating TFDrift configuration..."
+echo "==> Validating driftwire configuration..."
 
 # 1. Check YAML syntax
 yamllint "$CONFIG_FILE" || exit 1
@@ -3019,7 +3019,7 @@ drift_rules:
     batch_interval: "1h"
 ```
 
-#### Monitoring TFDrift-Falco Itself
+#### Monitoring driftwire Itself
 
 **Health Check Endpoint:**
 ```bash
@@ -3041,7 +3041,7 @@ curl http://localhost:8080/health
 **Monitoring Script:**
 ```bash
 #!/bin/bash
-# monitor-tfdrift.sh
+# monitor-driftwire.sh
 
 HEALTH_URL="http://localhost:8080/health"
 ALERT_WEBHOOK="https://monitoring.company.com/alert"
@@ -3050,13 +3050,13 @@ while true; do
     RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL")
 
     if [ "$RESPONSE" != "200" ]; then
-        # Alert: TFDrift is down
+        # Alert: driftwire is down
         curl -X POST "$ALERT_WEBHOOK" \
           -H 'Content-Type: application/json' \
           -d '{
             "severity": "critical",
-            "service": "tfdrift-falco",
-            "message": "TFDrift health check failed",
+            "service": "driftwire",
+            "message": "driftwire health check failed",
             "status_code": "'$RESPONSE'"
           }'
     fi
@@ -3068,10 +3068,10 @@ done
 **Log Monitoring:**
 ```bash
 # Monitor for errors in logs
-journalctl -u tfdrift-falco -f | grep -E "(ERROR|FATAL)" | while read line; do
+journalctl -u driftwire -f | grep -E "(ERROR|FATAL)" | while read line; do
     # Alert on errors
     curl -X POST "$ALERT_WEBHOOK" \
-      -d "TFDrift Error: $line"
+      -d "driftwire Error: $line"
 done
 ```
 
@@ -3091,7 +3091,7 @@ done
    ↓
 4. Approved → terraform apply
    ↓
-5. TFDrift-Falco monitors for manual changes
+5. driftwire monitors for manual changes
    ↓
 6. Alert if drift detected within 1 hour
 ```
@@ -3147,7 +3147,7 @@ done
 
 ## Timeline
 - 10:30:00 - Manual change made via Console
-- 10:30:45 - TFDrift alert fired
+- 10:30:45 - driftwire alert fired
 - 10:31:00 - On-call engineer acknowledged
 - 10:35:00 - Change identified as unauthorized
 - 10:40:00 - Terraform reapplied, change reverted
@@ -3244,7 +3244,7 @@ Choose appropriate action:
 **Level 1: GCP Log Sink (earliest, most efficient)**
 ```bash
 # Only forward compute and IAM events
-gcloud logging sinks update tfdrift-sink \
+gcloud logging sinks update driftwire-sink \
   --log-filter='
     (protoPayload.serviceName="compute.googleapis.com" OR
      protoPayload.serviceName="iam.googleapis.com") AND
@@ -3264,7 +3264,7 @@ gcloud logging sinks update tfdrift-sink \
   priority: NOTICE
 ```
 
-**Level 3: TFDrift Configuration (application level)**
+**Level 3: driftwire Configuration (application level)**
 ```yaml
 # config.yaml
 filtering:
@@ -3326,8 +3326,8 @@ performance:
 ```yaml
 # docker-compose.yml
 services:
-  tfdrift-falco:
-    image: ghcr.io/higakikeita/tfdrift-falco:v0.8.0
+  driftwire:
+    image: ghcr.io/higakikeita/driftwire:v0.8.0
     deploy:
       resources:
         limits:
@@ -3345,16 +3345,16 @@ services:
 ```yaml
 # docker-compose.yml
 services:
-  tfdrift-falco-1:
-    image: ghcr.io/higakikeita/tfdrift-falco:v0.8.0
+  driftwire-1:
+    image: ghcr.io/higakikeita/driftwire:v0.8.0
     environment:
       - INSTANCE_ID=1
       - PROJECT_FILTER=project-a,project-b
     configs:
       - config-instance-1.yaml
 
-  tfdrift-falco-2:
-    image: ghcr.io/higakikeita/tfdrift-falco:v0.8.0
+  driftwire-2:
+    image: ghcr.io/higakikeita/driftwire:v0.8.0
     environment:
       - INSTANCE_ID=2
       - PROJECT_FILTER=project-c,project-d
@@ -3372,28 +3372,28 @@ services:
 ```bash
 # ✅ Good: Minimal permissions
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:tfdrift-falco@$PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:driftwire@$PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/storage.objectViewer"  # Read-only for state
 
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:tfdrift-falco@$PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:driftwire@$PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/pubsub.subscriber"  # Only subscriber, not admin
 ```
 
 ```bash
 # ❌ Bad: Overly broad permissions
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:tfdrift-falco@$PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:driftwire@$PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/editor"  # Too broad!
 ```
 
-**Custom Role for TFDrift:**
+**Custom Role for driftwire:**
 ```bash
 # Create custom role with minimal permissions
-gcloud iam roles create tfdriftFalcoRole \
+gcloud iam roles create driftwireFalcoRole \
   --project=$PROJECT_ID \
-  --title="TFDrift Falco Custom Role" \
-  --description="Minimal permissions for TFDrift-Falco" \
+  --title="driftwire Falco Custom Role" \
+  --description="Minimal permissions for driftwire" \
   --permissions="\
 storage.objects.get,\
 storage.objects.list,\
@@ -3404,21 +3404,21 @@ logging.logEntries.list" \
 
 # Assign custom role
 gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:tfdrift-falco@$PROJECT_ID.iam.gserviceaccount.com" \
-  --role="projects/$PROJECT_ID/roles/tfdriftFalcoRole"
+  --member="serviceAccount:driftwire@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role="projects/$PROJECT_ID/roles/driftwireFalcoRole"
 ```
 
 #### Network Security
 
 **Restrict Falco gRPC access:**
 ```bash
-# Only allow TFDrift host to connect to Falco
-gcloud compute firewall-rules create allow-tfdrift-to-falco \
+# Only allow driftwire host to connect to Falco
+gcloud compute firewall-rules create allow-driftwire-to-falco \
   --network=prod-network \
   --allow=tcp:5060 \
-  --source-ranges=10.0.1.10/32 \  # TFDrift-Falco IP
+  --source-ranges=10.0.1.10/32 \  # driftwire IP
   --target-tags=falco-server \
-  --description="Allow TFDrift to connect to Falco gRPC"
+  --description="Allow driftwire to connect to Falco gRPC"
 ```
 
 **Use TLS for gRPC:**
@@ -3430,20 +3430,20 @@ falco:
   port: 5060
   tls:
     enabled: true
-    ca_cert: "/etc/tfdrift/certs/ca.crt"
-    client_cert: "/etc/tfdrift/certs/client.crt"
-    client_key: "/etc/tfdrift/certs/client.key"
+    ca_cert: "/etc/driftwire/certs/ca.crt"
+    client_cert: "/etc/driftwire/certs/client.crt"
+    client_key: "/etc/driftwire/certs/client.key"
     verify_server: true
 ```
 
 #### Audit Logging
 
-**Enable audit logs for TFDrift itself:**
+**Enable audit logs for driftwire itself:**
 ```yaml
 # config.yaml
 audit:
   enabled: true
-  log_file: "/var/log/tfdrift/audit.log"
+  log_file: "/var/log/driftwire/audit.log"
   log_format: "json"
   log_events:
     - "drift_detected"
@@ -3482,12 +3482,12 @@ audit:
 **Set appropriate retention:**
 ```bash
 # Production: 90 days
-gcloud logging sinks update tfdrift-sink \
+gcloud logging sinks update driftwire-sink \
   --log-filter='...' \
   --retention-days=90
 
 # Development: 7 days
-gcloud logging sinks update tfdrift-sink-dev \
+gcloud logging sinks update driftwire-sink-dev \
   --log-filter='...' \
   --retention-days=7
 ```
@@ -3555,20 +3555,20 @@ falco:
 
 #### Backup Strategy
 
-**Backup TFDrift configuration:**
+**Backup driftwire configuration:**
 ```bash
 #!/bin/bash
-# backup-tfdrift-config.sh
+# backup-driftwire-config.sh
 
-BACKUP_BUCKET="gs://company-backups/tfdrift"
+BACKUP_BUCKET="gs://company-backups/driftwire"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 # Backup configuration files
-gsutil cp -r /etc/tfdrift/config.yaml \
+gsutil cp -r /etc/driftwire/config.yaml \
   "${BACKUP_BUCKET}/config_${TIMESTAMP}.yaml"
 
 # Backup service account keys
-gsutil cp -r /etc/tfdrift/keys/*.json \
+gsutil cp -r /etc/driftwire/keys/*.json \
   "${BACKUP_BUCKET}/keys/${TIMESTAMP}/"
 
 # Backup Falco configuration
@@ -3583,20 +3583,20 @@ echo "✓ Backup completed: ${BACKUP_BUCKET}/${TIMESTAMP}"
 **Quick recovery script:**
 ```bash
 #!/bin/bash
-# recover-tfdrift.sh
+# recover-driftwire.sh
 
-BACKUP_BUCKET="gs://company-backups/tfdrift"
+BACKUP_BUCKET="gs://company-backups/driftwire"
 BACKUP_DATE=$1  # Format: 20251217_103000
 
-echo "==> Recovering TFDrift from backup: $BACKUP_DATE"
+echo "==> Recovering driftwire from backup: $BACKUP_DATE"
 
 # Restore configuration
 gsutil cp "${BACKUP_BUCKET}/config_${BACKUP_DATE}.yaml" \
-  /etc/tfdrift/config.yaml
+  /etc/driftwire/config.yaml
 
 # Restore keys
 gsutil cp -r "${BACKUP_BUCKET}/keys/${BACKUP_DATE}/*" \
-  /etc/tfdrift/keys/
+  /etc/driftwire/keys/
 
 # Restore Falco config
 gsutil cp -r "${BACKUP_BUCKET}/falco/${BACKUP_DATE}/*" \
@@ -3604,7 +3604,7 @@ gsutil cp -r "${BACKUP_BUCKET}/falco/${BACKUP_DATE}/*" \
 
 # Restart services
 docker-compose restart falco
-docker-compose restart tfdrift-falco
+docker-compose restart driftwire
 
 echo "✓ Recovery completed"
 ```
@@ -3629,10 +3629,10 @@ plugins:
       timeout: 60s
 ```
 
-### TFDrift-Falco Configuration
+### driftwire Configuration
 
 ```yaml
-# Filter irrelevant events at TFDrift level
+# Filter irrelevant events at driftwire level
 drift_rules:
   - name: "High Priority Only"
     resource_types:
@@ -3656,8 +3656,8 @@ drift_rules:
 ```bash
 # Enable customer-managed encryption
 gsutil encryption set \
-  -k projects/$PROJECT_ID/locations/global/keyRings/tfdrift/cryptoKeys/state \
-  gs://tfdrift-terraform-state
+  -k projects/$PROJECT_ID/locations/global/keyRings/driftwire/cryptoKeys/state \
+  gs://driftwire-terraform-state
 ```
 
 ---
@@ -3673,11 +3673,11 @@ gsutil encryption set \
 
 ## Support
 
-- **Issues**: https://github.com/higakikeita/tfdrift-falco/issues
-- **Discussions**: https://github.com/higakikeita/tfdrift-falco/discussions
-- **Documentation**: https://tfdrift-falco.readthedocs.io
+- **Issues**: https://github.com/higakikeita/driftwire/issues
+- **Discussions**: https://github.com/higakikeita/driftwire/discussions
+- **Documentation**: https://driftwire.readthedocs.io
 
 ---
 
 **Last Updated**: 2025-12-17
-**TFDrift-Falco Version**: v0.5.0+
+**driftwire Version**: v0.5.0+

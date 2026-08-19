@@ -1,4 +1,4 @@
-// Package config provides configuration management for TFDrift-Falco.
+// Package config provides configuration management for driftwire.
 package config
 
 import (
@@ -217,10 +217,10 @@ func PrintAutoDetectHelp(result *AutoDetectResult) {
 		fmt.Println()
 		fmt.Println("  1. If you have Terraform initialized in this directory:")
 		fmt.Println("     cd path/to/terraform/directory")
-		fmt.Println("     tfdrift --auto")
+		fmt.Println("     driftwire --auto")
 		fmt.Println()
 		fmt.Println("  2. If you want to specify state explicitly:")
-		fmt.Println("     tfdrift --config config.yaml")
+		fmt.Println("     driftwire --config config.yaml")
 		fmt.Println()
 		fmt.Println("  3. Example config.yaml:")
 		fmt.Println()

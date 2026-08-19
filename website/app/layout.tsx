@@ -14,20 +14,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TFDrift-Falco - Real-time Terraform Drift Detection",
+  title: "driftwire - Real-time Terraform Drift Detection",
   description: "Detect manual infrastructure changes instantly using Falco's CloudTrail plugin. Monitor 120+ AWS CloudTrail events across 12 services with real-time alerts.",
   keywords: ["terraform", "drift detection", "falco", "cloudtrail", "aws", "infrastructure", "devops", "security"],
   authors: [{ name: "Keita Higaki", url: "https://github.com/higakikeita" }],
   openGraph: {
-    title: "TFDrift-Falco - Real-time Terraform Drift Detection",
+    title: "driftwire - Real-time Terraform Drift Detection",
     description: "Detect manual infrastructure changes instantly using Falco's CloudTrail plugin",
     url: "https://tfdrift-falco.vercel.app",
-    siteName: "TFDrift-Falco",
+    siteName: "driftwire",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "TFDrift-Falco - Real-time Terraform Drift Detection",
+    title: "driftwire - Real-time Terraform Drift Detection",
     description: "Detect manual infrastructure changes instantly using Falco's CloudTrail plugin",
     creator: "@keitah0322",
   },

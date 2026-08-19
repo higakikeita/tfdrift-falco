@@ -1,7 +1,7 @@
 /**
  * Cytoscape.js Style Definitions - Main Re-export
  *
- * TFDrift-Falco因果関係グラフのビジュアルスタイル
+ * driftwire因果関係グラフのビジュアルスタイル
  * This file is now a re-export of the split style modules for backward compatibility
  */
 

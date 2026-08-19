@@ -1,16 +1,16 @@
-# Building the TFDrift-Falco Project Site with Next.js + Vercel + MkDocs
+# Building the driftwire Project Site with Next.js + Vercel + MkDocs
 
 ## Introduction
 
-I built a project website for "TFDrift-Falco", a Terraform drift detection tool, using Next.js 14, Vercel, and MkDocs. This article covers the entire process from tech stack decisions to implementation and challenges faced.
+I built a project website for "driftwire", a Terraform drift detection tool, using Next.js 14, Vercel, and MkDocs. This article covers the entire process from tech stack decisions to implementation and challenges faced.
 
 - **Project Site**: https://tfdrift-falco.vercel.app/
-- **Documentation**: https://higakikeita.github.io/tfdrift-falco/
-- **GitHub**: https://github.com/higakikeita/tfdrift-falco
+- **Documentation**: https://higakikeita.github.io/driftwire/
+- **GitHub**: https://github.com/higakikeita/driftwire
 
-## What is TFDrift-Falco?
+## What is driftwire?
 
-TFDrift-Falco is a real-time Terraform drift detection system that combines AWS CloudTrail with Falco.
+driftwire is a real-time Terraform drift detection system that combines AWS CloudTrail with Falco.
 
 ### Key Features
 - Instantly detects manual changes made through the AWS Console
@@ -32,7 +32,7 @@ For open-source project growth, information dissemination is as important as tec
 ### Overall Architecture
 
 ```
-TFDrift-Falco Website
+driftwire Website
 ├── Vercel (Next.js 14)
 │   ├── Landing Page
 │   ├── Blog (MDX)
@@ -161,7 +161,7 @@ Auto-fetch release information using GitHub API:
 // app/releases/page.tsx
 async function getReleases() {
   const res = await fetch(
-    'https://api.github.com/repos/higakikeita/tfdrift-falco/releases',
+    'https://api.github.com/repos/higakikeita/driftwire/releases',
     {
       next: { revalidate: 3600 } // Refetch every hour
     }
@@ -193,7 +193,7 @@ export default async function ReleasesPage() {
 import { redirect } from 'next/navigation'
 
 export default function DocsPage() {
-  redirect('https://higakikeita.github.io/tfdrift-falco/')
+  redirect('https://higakikeita.github.io/driftwire/')
 }
 ```
 
@@ -293,7 +293,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
 **Problem**: MkDocs documentation returns 404 error
 
-**Cause**: `CNAME` file contains custom domain (`docs.tfdrift-falco.com`) but DNS is not configured
+**Cause**: `CNAME` file contains custom domain (`docs.driftwire.com`) but DNS is not configured
 
 **Solution**: Remove CNAME configuration from workflow
 
@@ -302,13 +302,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 - name: Deploy to GitHub Pages
   uses: peaceiris/actions-gh-pages@v3
   with:
-    cname: docs.tfdrift-falco.com  # This causes the issue
+    cname: docs.driftwire.com  # This causes the issue
 
 # ✅ Fixed version
 - name: Deploy to GitHub Pages
   uses: peaceiris/actions-gh-pages@v3
   with:
-    # cname: docs.tfdrift-falco.com  # Commented out
+    # cname: docs.driftwire.com  # Commented out
     publish_dir: ./site
 ```
 
@@ -396,7 +396,7 @@ pre[class*="language-"] {
    ↓
 4. Push to gh-pages branch
    ↓
-5. Published at https://higakikeita.github.io/tfdrift-falco/
+5. Published at https://higakikeita.github.io/driftwire/
 ```
 
 ## Results
@@ -496,14 +496,14 @@ I hope this helps anyone considering building a website for their open-source pr
 ## Links
 
 - **Project Site**: https://tfdrift-falco.vercel.app/
-- **GitHub**: https://github.com/higakikeita/tfdrift-falco
-- **Documentation**: https://higakikeita.github.io/tfdrift-falco/
+- **GitHub**: https://github.com/higakikeita/driftwire
+- **Documentation**: https://higakikeita.github.io/driftwire/
 - **Next.js**: https://nextjs.org/
 - **MkDocs Material**: https://squidfunk.github.io/mkdocs-material/
 - **Vercel**: https://vercel.com/
 
 ---
 
-**Contributions and feedback to TFDrift-Falco are welcome!**
+**Contributions and feedback to driftwire are welcome!**
 
 Stars and contributions on GitHub are greatly appreciated 🙏

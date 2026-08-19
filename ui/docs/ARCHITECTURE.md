@@ -1,4 +1,4 @@
-# TFDrift-Falco UI - Architecture Documentation
+# driftwire UI - Architecture Documentation
 
 > **システムアーキテクチャとデザインパターン (v0.5.0+)**
 
@@ -26,7 +26,7 @@
 
 ### アーキテクチャパターン
 
-TFDrift-Falco UIは**レイヤードアーキテクチャ**と**Storybook駆動開発 (SDD)** を採用しています。
+driftwire UIは**レイヤードアーキテクチャ**と**Storybook駆動開発 (SDD)** を採用しています。
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -43,7 +43,7 @@ TFDrift-Falco UIは**レイヤードアーキテクチャ**と**Storybook駆動�
 │  (17 Stories, Mock Data, Visual Documentation)              │
 ├─────────────────────────────────────────────────────────────┤
 │                    Backend Services                          │
-│  (TFDrift API, Drift Detection, WebSocket/SSE)              │
+│  (driftwire API, Drift Detection, WebSocket/SSE)              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -288,7 +288,7 @@ sequenceDiagram
 
 ### 状態管理戦略
 
-TFDrift-Falco UIは、**サーバー状態**と**クライアント状態**を明確に分離しています。
+driftwire UIは、**サーバー状態**と**クライアント状態**を明確に分離しています。
 
 ```
 ┌─────────────────────────────────────────────────┐

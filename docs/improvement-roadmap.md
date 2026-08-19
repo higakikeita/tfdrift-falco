@@ -1,4 +1,4 @@
-# TFDrift-Falco 改善ロードマップ
+# driftwire 改善ロードマップ
 > Phase 1 MVP 完成後の機能改善計画
 >
 > 作成日: 2025-12-05
@@ -154,11 +154,11 @@ Phase 1 MVP（現在）から **Phase 1.5 Enhanced MVP** への移行
 
 #### 1.1 リアルタイムデータ統合テスト
 
-**目的**: 実際の TFDrift-Falco からのログデータでダッシュボードが正しく動作することを確認
+**目的**: 実際の driftwire からのログデータでダッシュボードが正しく動作することを確認
 
 **作業内容**:
 ```bash
-# 1. TFDrift-Falco を起動してログ生成
+# 1. driftwire を起動してログ生成
 # 2. Promtail でログ収集
 # 3. Loki に保存
 # 4. Grafana ダッシュボードで可視化
@@ -186,7 +186,7 @@ Phase 1 MVP（現在）から **Phase 1.5 Enhanced MVP** への移行
 ```json
 {
   "alert": {
-    "name": "TFDrift Critical Alert",
+    "name": "driftwire Critical Alert",
     "conditions": [
       {
         "evaluator": {
@@ -284,11 +284,11 @@ Phase 1 MVP（現在）から **Phase 1.5 Enhanced MVP** への移行
 
 #### 2.1 5分チュートリアルの作成
 
-**目標**: 初めてのユーザーが5分で TFDrift-Falco を体験できる
+**目標**: 初めてのユーザーが5分で driftwire を体験できる
 
 **内容**:
 ```markdown
-# TFDrift-Falco 5-Minute Quick Start
+# driftwire 5-Minute Quick Start
 
 ## Prerequisites
 - Docker & Docker Compose installed
@@ -310,7 +310,7 @@ Phase 1 MVP（現在）から **Phase 1.5 Enhanced MVP** への移行
 **作業内容**:
 1. 完全に自己完結したデモ環境の構築
    - Falco（モックデータ対応）
-   - TFDrift-Falco
+   - driftwire
    - Grafana + Loki
    - サンプル Terraform State
 
@@ -344,7 +344,7 @@ Phase 1 MVP（現在）から **Phase 1.5 Enhanced MVP** への移行
    - Terraform のインストール
    - Falco のインストール
 
-2. **TFDrift-Falco のインストール** (15 min)
+2. **driftwire のインストール** (15 min)
    - バイナリインストール
    - 設定ファイル作成
    - Falco との接続確認
@@ -501,10 +501,10 @@ Phase 1 MVP（現在）から **Phase 1.5 Enhanced MVP** への移行
 # Frequently Asked Questions
 
 ## General
-Q: What is the difference between TFDrift-Falco and driftctl?
+Q: What is the difference between driftwire and driftctl?
 A: ...
 
-Q: Does TFDrift-Falco support multi-cloud?
+Q: Does driftwire support multi-cloud?
 A: ...
 
 ## Installation & Setup
@@ -535,7 +535,7 @@ A: ...
 
 **コンテンツ**:
 1. **1分紹介動画** (YouTube Shorts/Twitter 用)
-   - TFDrift-Falco とは？
+   - driftwire とは？
    - デモ: ドリフト検知の様子
    - BGM: アップビート
    - 字幕: 英語/日本語
@@ -596,7 +596,7 @@ A: ...
 **記事構成案**:
 
 1. **入門記事**（Qiita）
-   - 「TFDrift-Falco で Terraform のドリフトをリアルタイム検知する」
+   - 「driftwire で Terraform のドリフトをリアルタイム検知する」
    - 対象: Terraform 初心者
    - 内容: セットアップから初回検知まで
 
@@ -846,7 +846,7 @@ func (d *OptimizedDetector) ProcessEventBatch(events []Event) {
 
 1. **Grafana リアルタイム統合テスト**
    ```bash
-   cd /Users/keita.higaki/tfdrift-falco
+   cd /Users/keita.higaki/driftwire
    make docker-compose-up
    # テスト実行
    ```

@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Project name used for resource naming"
   type        = string
-  default     = "tfdrift-test"
+  default     = "driftwire-test"
 }
 
 variable "vpc_cidr" {

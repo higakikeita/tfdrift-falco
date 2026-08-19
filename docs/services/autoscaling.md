@@ -2,7 +2,7 @@
 
 ## Overview
 
-TFDrift-Falco monitors Amazon EC2 Auto Scaling for configuration drift by tracking CloudTrail events related to Auto Scaling groups, launch configurations, scaling policies, and scheduled actions. This enables real-time detection of manual changes made outside of Terraform workflows.
+driftwire monitors Amazon EC2 Auto Scaling for configuration drift by tracking CloudTrail events related to Auto Scaling groups, launch configurations, scaling policies, and scheduled actions. This enables real-time detection of manual changes made outside of Terraform workflows.
 
 ## Supported CloudTrail Events
 
@@ -199,7 +199,7 @@ TFDrift-Falco monitors Amazon EC2 Auto Scaling for configuration drift by tracki
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_autoscaling_group.web_asg
 Changed: desired_capacity = 5 → 10
@@ -225,7 +225,7 @@ Severity: MEDIUM
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_autoscaling_group.prod_asg
 DELETED: Auto Scaling group removed with force
@@ -254,7 +254,7 @@ Severity: CRITICAL
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_autoscaling_policy.cpu_scale_out
 Changed: target_tracking_configuration.target_value = 70.0 → 80.0
@@ -280,7 +280,7 @@ Severity: MEDIUM
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_autoscaling_schedule (unmanaged)
 NEW: Scheduled action created outside Terraform

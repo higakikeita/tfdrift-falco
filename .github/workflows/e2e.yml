@@ -84,11 +84,11 @@ jobs:
           sleep 10
 
           docker ps
-          docker logs tfdrift-e2e-falco
+          docker logs driftwire-e2e-falco
 
       - name: Verify Falco is running
         run: |
-          docker exec tfdrift-e2e-falco pgrep -f falco
+          docker exec driftwire-e2e-falco pgrep -f falco
           echo "✅ Falco is running"
 
       - name: Set up E2E test infrastructure
@@ -110,7 +110,7 @@ jobs:
         if: always()
         run: |
           echo "=== Falco Logs ==="
-          docker logs tfdrift-e2e-falco --tail 100
+          docker logs driftwire-e2e-falco --tail 100
 
       - name: Cleanup E2E infrastructure
         if: always() && (github.event.inputs.cleanup == 'true' || github.event.inputs.cleanup == '')

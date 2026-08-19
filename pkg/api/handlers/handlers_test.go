@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
-	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
-	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
-	"github.com/keitahigaki/tfdrift-falco/pkg/provider"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/api/models"
+	"github.com/higakikeita/driftwire/pkg/detector"
+	"github.com/higakikeita/driftwire/pkg/graph"
+	"github.com/higakikeita/driftwire/pkg/provider"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // MockProvider is a minimal implementation of provider.Provider for testing

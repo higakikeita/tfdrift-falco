@@ -1,6 +1,6 @@
-# TFDrift-Falco Best Practices
+# driftwire Best Practices
 
-本ドキュメントでは、TFDrift-Falcoを本番環境で運用する際のベストプラクティスを紹介します。
+本ドキュメントでは、driftwireを本番環境で運用する際のベストプラクティスを紹介します。
 
 ## 📋 目次
 
@@ -25,7 +25,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tfdrift-falco
+  name: driftwire
 spec:
   replicas: 2  # アクティブ-パッシブ構成
   strategy:
@@ -33,8 +33,8 @@ spec:
   template:
     spec:
       containers:
-      - name: tfdrift-falco
-        image: ghcr.io/higakikeita/tfdrift-falco:latest
+      - name: driftwire
+        image: ghcr.io/higakikeita/driftwire:latest
         resources:
           requests:
             memory: "256Mi"
@@ -44,7 +44,7 @@ spec:
             cpu: "500m"
         livenessProbe:
           exec:
-            command: ["/bin/sh", "-c", "pgrep -f tfdrift"]
+            command: ["/bin/sh", "-c", "pgrep -f driftwire"]
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
@@ -55,7 +55,7 @@ spec:
 ```
 
 **なぜActive-Passive?**
-- TFDrift-FalcoはFalco gRPCストリームに接続するステートフルなサブスクライバー
+- driftwireはFalco gRPCストリームに接続するステートフルなサブスクライバー
 - 複数インスタンスが同時にイベントを処理すると、重複通知が発生
 - Kubernetes LeaderElectionパターンの使用を推奨（将来のバージョンで実装予定）
 
@@ -108,7 +108,7 @@ notifications:
 ```
 
 **ポイント**:
-- リージョンごとに独立したTFDrift-Falcoインスタンスを実行
+- リージョンごとに独立したdriftwireインスタンスを実行
 - CloudTrailログもリージョンごとに処理
 - Terraform Stateもリージョンごとに分離
 
@@ -189,12 +189,12 @@ resources:
 ```bash
 # Terraform State読み取り専用
 gcloud projects add-iam-policy-binding my-project \
-  --member="serviceAccount:tfdrift@my-project.iam.gserviceaccount.com" \
+  --member="serviceAccount:driftwire@my-project.iam.gserviceaccount.com" \
   --role="roles/storage.objectViewer"
 
 # Cloud Auditログ読み取り（Pub/Sub経由）
 gcloud projects add-iam-policy-binding my-project \
-  --member="serviceAccount:tfdrift@my-project.iam.gserviceaccount.com" \
+  --member="serviceAccount:driftwire@my-project.iam.gserviceaccount.com" \
   --role="roles/pubsub.subscriber"
 ```
 
@@ -207,9 +207,9 @@ falco:
   enabled: true
   hostname: "falco.secure.internal"
   port: 5060
-  cert_file: "/etc/tfdrift/certs/client.crt"
-  key_file: "/etc/tfdrift/certs/client.key"
-  ca_root_file: "/etc/tfdrift/certs/ca.crt"
+  cert_file: "/etc/driftwire/certs/client.crt"
+  key_file: "/etc/driftwire/certs/client.key"
+  ca_root_file: "/etc/driftwire/certs/ca.crt"
 ```
 
 **Kubernetesネットワークポリシー**:
@@ -218,11 +218,11 @@ falco:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: tfdrift-falco-network-policy
+  name: driftwire-network-policy
 spec:
   podSelector:
     matchLabels:
-      app: tfdrift-falco
+      app: driftwire
   policyTypes:
   - Ingress
   - Egress
@@ -270,7 +270,7 @@ notifications:
 
 ```bash
 # Kubernetes Secret作成
-kubectl create secret generic tfdrift-secrets \
+kubectl create secret generic driftwire-secrets \
   --from-literal=slack-webhook-url="https://hooks.slack.com/services/..."
 ```
 
@@ -280,7 +280,7 @@ env:
 - name: SLACK_WEBHOOK_URL
   valueFrom:
     secretKeyRef:
-      name: tfdrift-secrets
+      name: driftwire-secrets
       key: slack-webhook-url
 ```
 
@@ -289,9 +289,9 @@ env:
 ```yaml
 notifications:
   slack:
-    webhook_url_from_aws_secret: "prod/tfdrift/slack-webhook"
+    webhook_url_from_aws_secret: "prod/driftwire/slack-webhook"
     # または
-    webhook_url_from_gcp_secret: "projects/123/secrets/tfdrift-slack-webhook"
+    webhook_url_from_gcp_secret: "projects/123/secrets/driftwire-slack-webhook"
 ```
 
 ---
@@ -326,9 +326,9 @@ data:
 
     [INPUT]
         Name              tail
-        Path              /var/log/tfdrift/*.log
+        Path              /var/log/driftwire/*.log
         Parser            json
-        Tag               tfdrift.*
+        Tag               driftwire.*
         Refresh_Interval  5
 
     [OUTPUT]
@@ -336,7 +336,7 @@ data:
         Match *
         Host  elasticsearch.logging.svc.cluster.local
         Port  9200
-        Index tfdrift-logs
+        Index driftwire-logs
 ```
 
 ### Backup and Disaster Recovery
@@ -383,23 +383,23 @@ done
 
 ```bash
 # 1. 新しいバージョンをテスト環境で検証
-kubectl set image deployment/tfdrift-falco \
-  tfdrift-falco=ghcr.io/higakikeita/tfdrift-falco:v0.8.0 \
+kubectl set image deployment/driftwire \
+  driftwire=ghcr.io/higakikeita/driftwire:v0.8.0 \
   -n staging
 
 # 2. テスト環境で動作確認
-kubectl logs -f deployment/tfdrift-falco -n staging
+kubectl logs -f deployment/driftwire -n staging
 
 # 3. 本番環境にローリングアップデート
-kubectl set image deployment/tfdrift-falco \
-  tfdrift-falco=ghcr.io/higakikeita/tfdrift-falco:v0.8.0 \
+kubectl set image deployment/driftwire \
+  driftwire=ghcr.io/higakikeita/driftwire:v0.8.0 \
   -n production
 
 # 4. ロールアウト状況を監視
-kubectl rollout status deployment/tfdrift-falco -n production
+kubectl rollout status deployment/driftwire -n production
 
 # 5. 問題があればロールバック
-kubectl rollout undo deployment/tfdrift-falco -n production
+kubectl rollout undo deployment/driftwire -n production
 ```
 
 ---
@@ -471,7 +471,7 @@ drift_rules:
 - Staging Account (234567890123)
 - Development Account (345678901234)
 
-**推奨デプロイメント**: 各アカウントに個別のTFDrift-Falcoインスタンス
+**推奨デプロイメント**: 各アカウントに個別のdriftwireインスタンス
 
 ```yaml
 # production-config.yaml
@@ -580,7 +580,7 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
 
 ### Metrics (OpenTelemetry)
 
-TFDrift-Falco はスクレイプ型の `/metrics` エンドポイントを公開しません。メトリクスとトレースは
+driftwire はスクレイプ型の `/metrics` エンドポイントを公開しません。メトリクスとトレースは
 `telemetry.enabled: true` のときに **OpenTelemetry (OTLP)** で push エクスポートされます。
 OTLP コレクタ（例: OpenTelemetry Collector）を用意し、そこから Prometheus / Grafana など任意の
 バックエンドへ転送してください。
@@ -665,7 +665,7 @@ providers:
   priority: INFO
 ```
 
-**TFDrift-Falco側でもフィルタリング**:
+**driftwire側でもフィルタリング**:
 
 ```yaml
 drift_rules:
@@ -759,7 +759,7 @@ ERROR Failed to load Terraform state: NoSuchKey
 2. **IAM権限不足**
    ```bash
    # IAMポリシーを確認
-   aws iam get-policy-version --policy-arn arn:aws:iam::123456789012:policy/TFDriftPolicy --version-id v1
+   aws iam get-policy-version --policy-arn arn:aws:iam::123456789012:policy/driftwirePolicy --version-id v1
    ```
 
 3. **KMS復号化権限不足**
@@ -901,10 +901,10 @@ logging:
 
 ```bash
 # 環境変数で制御
-export TFDRIFT_LOG_LEVEL=debug
-export TFDRIFT_LOG_COMPONENTS="falco,detector"  # FalcoとDetectorのみ
+export DRIFTWIRE_LOG_LEVEL=debug
+export DRIFTWIRE_LOG_COMPONENTS="falco,detector"  # FalcoとDetectorのみ
 
-tfdrift --config config.yaml
+driftwire --config config.yaml
 ```
 
 ### Performance Profiling
@@ -913,7 +913,7 @@ tfdrift --config config.yaml
 
 ```bash
 # pprofを有効化
-tfdrift --config config.yaml --pprof-port 6060 &
+driftwire --config config.yaml --pprof-port 6060 &
 
 # プロファイリング実行（30秒間）
 go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30
@@ -960,4 +960,4 @@ go tool pprof heap.out
 
 ---
 
-**次のステップ**: [Extending TFDrift-Falco](EXTENDING.md) でカスタムルールや通知チャネルの追加方法を学びましょう。
+**次のステップ**: [Extending driftwire](EXTENDING.md) でカスタムルールや通知チャネルの追加方法を学びましょう。

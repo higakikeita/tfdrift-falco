@@ -1,16 +1,16 @@
-# TFDrift-FalcoプロジェクトサイトをNext.js + Vercel + MkDocsで構築した話
+# driftwireプロジェクトサイトをNext.js + Vercel + MkDocsで構築した話
 
 ## はじめに
 
-Terraform drift検出ツール「TFDrift-Falco」のプロジェクトサイトを、Next.js 14とVercel、MkDocsを組み合わせて構築しました。この記事では、技術選定から実装、ハマったポイントまで、構築の全過程を紹介します。
+Terraform drift検出ツール「driftwire」のプロジェクトサイトを、Next.js 14とVercel、MkDocsを組み合わせて構築しました。この記事では、技術選定から実装、ハマったポイントまで、構築の全過程を紹介します。
 
 - **プロジェクトサイト**: https://tfdrift-falco.vercel.app/
-- **ドキュメント**: https://higakikeita.github.io/tfdrift-falco/
-- **GitHub**: https://github.com/higakikeita/tfdrift-falco
+- **ドキュメント**: https://higakikeita.github.io/driftwire/
+- **GitHub**: https://github.com/higakikeita/driftwire
 
-## TFDrift-Falcoとは
+## driftwireとは
 
-TFDrift-Falcoは、AWS CloudTrailとFalcoを組み合わせた、リアルタイムのTerraform drift検出システムです。
+driftwireは、AWS CloudTrailとFalcoを組み合わせた、リアルタイムのTerraform drift検出システムです。
 
 ### 主な機能
 - AWSコンソールでの手動変更を即座に検知
@@ -32,7 +32,7 @@ TFDrift-Falcoは、AWS CloudTrailとFalcoを組み合わせた、リアルタイ
 ### 全体構成
 
 ```
-TFDrift-Falco Website
+driftwire Website
 ├── Vercel (Next.js 14)
 │   ├── Landing Page
 │   ├── Blog (MDX)
@@ -161,7 +161,7 @@ GitHub APIを使ってリリース情報を自動取得：
 // app/releases/page.tsx
 async function getReleases() {
   const res = await fetch(
-    'https://api.github.com/repos/higakikeita/tfdrift-falco/releases',
+    'https://api.github.com/repos/higakikeita/driftwire/releases',
     {
       next: { revalidate: 3600 } // 1時間ごとに再取得
     }
@@ -193,7 +193,7 @@ export default async function ReleasesPage() {
 import { redirect } from 'next/navigation'
 
 export default function DocsPage() {
-  redirect('https://higakikeita.github.io/tfdrift-falco/')
+  redirect('https://higakikeita.github.io/driftwire/')
 }
 ```
 
@@ -293,7 +293,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
 **問題**: MkDocsドキュメントが404エラー
 
-**原因**: `CNAME`ファイルにカスタムドメイン（`docs.tfdrift-falco.com`）が設定されているが、DNSが未設定
+**原因**: `CNAME`ファイルにカスタムドメイン（`docs.driftwire.com`）が設定されているが、DNSが未設定
 
 **解決策**: ワークフローからCNAME設定を削除
 
@@ -302,13 +302,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 - name: Deploy to GitHub Pages
   uses: peaceiris/actions-gh-pages@v3
   with:
-    cname: docs.tfdrift-falco.com  # これが原因
+    cname: docs.driftwire.com  # これが原因
 
 # ✅ 修正版
 - name: Deploy to GitHub Pages
   uses: peaceiris/actions-gh-pages@v3
   with:
-    # cname: docs.tfdrift-falco.com  # コメントアウト
+    # cname: docs.driftwire.com  # コメントアウト
     publish_dir: ./site
 ```
 
@@ -396,7 +396,7 @@ pre[class*="language-"] {
    ↓
 4. gh-pagesブランチにpush
    ↓
-5. https://higakikeita.github.io/tfdrift-falco/ で公開
+5. https://higakikeita.github.io/driftwire/ で公開
 ```
 
 ## 成果
@@ -496,14 +496,14 @@ Next.js + Vercel + MkDocsの組み合わせで、以下を実現できました�
 ## 参考リンク
 
 - **プロジェクトサイト**: https://tfdrift-falco.vercel.app/
-- **GitHub**: https://github.com/higakikeita/tfdrift-falco
-- **ドキュメント**: https://higakikeita.github.io/tfdrift-falco/
+- **GitHub**: https://github.com/higakikeita/driftwire
+- **ドキュメント**: https://higakikeita.github.io/driftwire/
 - **Next.js**: https://nextjs.org/
 - **MkDocs Material**: https://squidfunk.github.io/mkdocs-material/
 - **Vercel**: https://vercel.com/
 
 ---
 
-**TFDrift-Falcoへの貢献やフィードバックをお待ちしています！**
+**driftwireへの貢献やフィードバックをお待ちしています！**
 
 GitHubでスターやコントリビュートをいただけると嬉しいです 🙏

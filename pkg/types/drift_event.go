@@ -16,7 +16,7 @@ type DriftEvent struct {
 	ResourceID   string    `json:"resource_id"`          // Cloud resource ID
 	ChangeType   string    `json:"change_type"`          // created, modified, deleted, unknown
 	DetectedAt   time.Time `json:"detected_at"`          // When drift was detected (RFC3339)
-	Source       string    `json:"source"`               // Always "tfdrift-falco"
+	Source       string    `json:"source"`               // Always "driftwire"
 	Severity     string    `json:"severity"`             // critical, high, medium, low, info
 
 	// Optional context fields
@@ -78,7 +78,7 @@ func NewDriftEvent(provider, resourceType, resourceID, changeType string) *Drift
 		ResourceID:   resourceID,
 		ChangeType:   changeType,
 		DetectedAt:   time.Now().UTC(),
-		Source:       "tfdrift-falco",
+		Source:       "driftwire",
 		Severity:     SeverityMedium, // Default severity
 		Version:      EventSchemaVersion,
 	}

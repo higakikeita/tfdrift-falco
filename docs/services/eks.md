@@ -2,7 +2,7 @@
 
 ## Overview
 
-TFDrift-Falco monitors Amazon EKS for configuration drift by tracking CloudTrail events related to clusters, node groups, addons, and Fargate profiles. This enables real-time detection of manual changes made outside of Terraform workflows.
+driftwire monitors Amazon EKS for configuration drift by tracking CloudTrail events related to clusters, node groups, addons, and Fargate profiles. This enables real-time detection of manual changes made outside of Terraform workflows.
 
 ## Supported CloudTrail Events
 
@@ -165,7 +165,7 @@ TFDrift-Falco monitors Amazon EKS for configuration drift by tracking CloudTrail
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_eks_cluster.production
 Changed:
@@ -199,7 +199,7 @@ Severity: HIGH
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_eks_node_group.general_workers
 Changed:
@@ -226,7 +226,7 @@ Severity: MEDIUM
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_eks_addon.vpc_cni
 Changed:

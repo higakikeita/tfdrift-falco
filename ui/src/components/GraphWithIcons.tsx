@@ -168,7 +168,7 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
       });
       const link = document.createElement('a');
       link.href = dataUrl;
-      link.download = 'tfdrift-graph.png';
+      link.download = 'driftwire-graph.png';
       link.click();
     } catch (err) {
       // Fallback to Cytoscape PNG export
@@ -177,7 +177,7 @@ export const GraphWithIcons: React.FC<GraphWithIconsProps> = ({
       if (png) {
         const link = document.createElement('a');
         link.href = png;
-        link.download = 'tfdrift-graph.png';
+        link.download = 'driftwire-graph.png';
         link.click();
       }
     }

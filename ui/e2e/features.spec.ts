@@ -307,7 +307,7 @@ test.describe('Responsive Design', () => {
     await page.waitForTimeout(2000);
 
     // Page should load
-    await expect(page).toHaveTitle(/TFDrift Falco/i);
+    await expect(page).toHaveTitle(/driftwire Falco/i);
 
     // Main content should be visible
     const mainContent = page.locator('body');

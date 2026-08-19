@@ -2,7 +2,7 @@
 
 ## help: Show this help message
 help:
-	@echo "TFDrift-Falco E2E Tests"
+	@echo "driftwire E2E Tests"
 	@echo ""
 	@echo "Usage: make [target]"
 	@echo ""

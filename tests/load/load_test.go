@@ -17,14 +17,14 @@ import (
 // (Falco + Prometheus/Grafana/Loki/Promtail) and run for up to hours, and they
 // fail on any host without that stack — so they must never run during a normal
 // `go test ./...`. They run only when explicitly opted in, keeping main green
-// (#367). Use: TFDRIFT_LOAD_TEST=1 go test ./tests/load/...
+// (#367). Use: DRIFTWIRE_LOAD_TEST=1 go test ./tests/load/...
 func requireLoadEnv(t *testing.T) {
 	t.Helper()
 	if testing.Short() {
 		t.Skip("Skipping load test in short mode")
 	}
-	if os.Getenv("TFDRIFT_LOAD_TEST") != "1" {
-		t.Skip("load tests need a Docker stack (Falco/Prometheus/Grafana/Loki); set TFDRIFT_LOAD_TEST=1 to run")
+	if os.Getenv("DRIFTWIRE_LOAD_TEST") != "1" {
+		t.Skip("load tests need a Docker stack (Falco/Prometheus/Grafana/Loki); set DRIFTWIRE_LOAD_TEST=1 to run")
 	}
 }
 

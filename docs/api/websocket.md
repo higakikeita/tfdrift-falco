@@ -4,7 +4,7 @@ Real-time bidirectional communication for interactive operations.
 
 ## Overview
 
-WebSocket provides full-duplex communication between the client and TFDrift-Falco backend, enabling real-time updates and interactive queries.
+WebSocket provides full-duplex communication between the client and driftwire backend, enabling real-time updates and interactive queries.
 
 **Endpoint:** `ws://localhost:8080/ws`
 
@@ -26,7 +26,7 @@ WebSocket provides full-duplex communication between the client and TFDrift-Falc
 const ws = new WebSocket('ws://localhost:8080/ws');
 
 ws.onopen = () => {
-  console.log('Connected to TFDrift WebSocket');
+  console.log('Connected to driftwire WebSocket');
 
   // Subscribe to drift alerts
   ws.send(JSON.stringify({
@@ -166,7 +166,7 @@ Sent immediately after connection.
 {
   "type": "welcome",
   "payload": {
-    "message": "Connected to TFDrift-Falco WebSocket",
+    "message": "Connected to driftwire WebSocket",
     "client_id": "client-uuid-here"
   }
 }

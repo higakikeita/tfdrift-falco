@@ -3,7 +3,7 @@
 # This configuration disables the CloudTrail plugin for initial testing
 #
 
-# gRPC Output (Required for TFDrift-Falco)
+# gRPC Output (Required for driftwire)
 grpc:
   enabled: true
   bind_address: "0.0.0.0:5060"

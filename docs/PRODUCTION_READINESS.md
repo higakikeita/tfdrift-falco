@@ -1,13 +1,13 @@
 # 本番環境導入チェックリスト
 
-**対象**: TFDrift-Falco を本番環境に導入する前に確認すべき事項
+**対象**: driftwire を本番環境に導入する前に確認すべき事項
 **目的**: 開発環境でのテスト成功 ≠ 本番環境での信頼性の保証
 
 ---
 
 ## ⚠️ 重要な前提
 
-このドキュメントは、**TFDrift-Falco を本番環境に導入する際の制限事項と検証すべき事項**を明確にするためのものです。
+このドキュメントは、**driftwire を本番環境に導入する際の制限事項と検証すべき事項**を明確にするためのものです。
 
 **開発環境での成功は本番環境での成功を保証しません。**
 
@@ -72,7 +72,7 @@
    ```yaml
    # docker-compose.yml
    services:
-     tfdrift:
+     driftwire:
        deploy:
          resources:
            limits:
@@ -108,7 +108,7 @@
 
 2. **GuardDuty や Security Hub との併用**
    - より即座の脅威検知には GuardDuty
-   - TFDrift-Falco は Drift 検知に特化
+   - driftwire は Drift 検知に特化
 
 3. **期待値の調整**
    - "リアルタイム" ではなく "準リアルタイム" と認識
@@ -166,11 +166,11 @@
    - グローバルリソース (IAM, Route53) の重複排除
 
 **推奨事項**:
-1. **アカウントごとに TFDrift-Falco インスタンスを起動**
+1. **アカウントごとに driftwire インスタンスを起動**
    ```
-   Account A: TFDrift-Falco Instance A
-   Account B: TFDrift-Falco Instance B
-   Account C: TFDrift-Falco Instance C
+   Account A: driftwire Instance A
+   Account B: driftwire Instance B
+   Account C: driftwire Instance C
    ```
 
 2. **Grafana で集約**
@@ -179,7 +179,7 @@
 
 3. **組織トレイルの場合**
    - メンバーアカウントの CloudTrail ログもマスターアカウントの S3 に保存される
-   - TFDrift-Falco をマスターアカウントで起動し、全アカウントを監視可能
+   - driftwire をマスターアカウントで起動し、全アカウントを監視可能
    - ただし、各アカウントの Terraform State へのアクセス権限が必要
 
 ### 1.5 Terraform State の同期
@@ -195,9 +195,9 @@
 1. 12:00:00 - terraform apply 開始
 2. 12:00:30 - AWS リソースが変更される (CloudTrail イベント発生)
 3. 12:01:00 - terraform apply 完了、State 更新
-4. 12:01:30 - TFDrift-Falco が State をリロード
+4. 12:01:30 - driftwire が State をリロード
 5. 12:02:00 - CloudTrail ログが S3 に配信 (5分遅延)
-6. 12:07:00 - TFDrift-Falco がイベントを受信し、Drift 判定
+6. 12:07:00 - driftwire がイベントを受信し、Drift 判定
 ```
 
 **問題点**:
@@ -210,9 +210,9 @@
 1. 12:00:00 - 手動で AWS コンソールからリソース変更
 2. 12:00:30 - CloudTrail イベント発生
 3. 12:05:00 - CloudTrail ログが S3 に配信
-4. 12:06:00 - TFDrift-Falco がイベント受信し、Drift 検知 ✅
+4. 12:06:00 - driftwire がイベント受信し、Drift 検知 ✅
 5. 12:10:00 - 管理者が terraform import でリソースを State に追加
-6. 12:11:00 - TFDrift-Falco が State をリロード
+6. 12:11:00 - driftwire が State をリロード
 7. 12:15:00 - (新しいイベントがないため、Drift アラートは継続)
 ```
 
@@ -227,12 +227,12 @@
    - ただし State 読み込みの負荷が増大
 
 2. **terraform apply のフック**
-   - CI/CD で `terraform apply` 後に TFDrift-Falco に State リロードを指示
+   - CI/CD で `terraform apply` 後に driftwire に State リロードを指示
    ```bash
    terraform apply
-   curl -X POST http://tfdrift-api:8080/api/v1/reload-state
+   curl -X POST http://driftwire-api:8080/api/v1/reload-state
    ```
-   - ただし、現在 TFDrift-Falco に API エンドポイントはない (要実装)
+   - ただし、現在 driftwire に API エンドポイントはない (要実装)
 
 3. **誤検知の許容**
    - 完全な同期は困難
@@ -243,11 +243,11 @@
 #### ⚠️ ログの改竄・漏洩リスク
 
 **潜在的なリスク**:
-1. **Falco → TFDrift-Falco 間の通信**
+1. **Falco → driftwire 間の通信**
    - デフォルトは TLS なし
    - 中間者攻撃のリスク
 
-2. **TFDrift-Falco → Loki 間の通信**
+2. **driftwire → Loki 間の通信**
    - 認証なし
    - ログの改竄リスク
 
@@ -256,7 +256,7 @@
    - 不正アクセスのリスク
 
 4. **CloudTrail ログへのアクセス**
-   - TFDrift-Falco に S3 読み取り権限が必要
+   - driftwire に S3 読み取り権限が必要
    - 過大な権限付与のリスク
 
 **対策**:
@@ -343,7 +343,7 @@
    ```
 
 6. **ネットワークセグメンテーション**
-   - TFDrift-Falco を private subnet に配置
+   - driftwire を private subnet に配置
    - Security Group で最小限のアクセスのみ許可
 
 ---
@@ -369,7 +369,7 @@
   # 5-10分待機 (CloudTrail 遅延)
 
   # Grafana でイベントを確認
-  # ログクエリ: {job="tfdrift-falco"} | json | resource_type="aws_instance"
+  # ログクエリ: {job="driftwire"} | json | resource_type="aws_instance"
   ```
 
 - [ ] **アラート通知の確認**
@@ -381,7 +381,7 @@
 
 - [ ] **メモリ使用量の監視**
   ```bash
-  docker stats tfdrift
+  docker stats driftwire
   ```
   - 1時間、1日、1週間の推移を記録
 
@@ -391,7 +391,7 @@
 
 - [ ] **イベント処理遅延の測定**
   ```bash
-  # CloudTrail イベント発生時刻と TFDrift-Falco 処理時刻の差
+  # CloudTrail イベント発生時刻と driftwire 処理時刻の差
   # Grafana で測定:
   # (now() - timestamp(event))
   ```
@@ -399,7 +399,7 @@
 - [ ] **Terraform State 読み込み時間**
   ```bash
   # ログから測定
-  docker logs tfdrift | grep "Loaded Terraform state"
+  docker logs driftwire | grep "Loaded Terraform state"
   ```
   - 5秒以内が理想
   - 30秒以上の場合は State の分割を検討
@@ -410,7 +410,7 @@
   ```bash
   # 実際に使用されている権限をログから確認
   aws cloudtrail lookup-events \
-    --lookup-attributes AttributeKey=Username,AttributeValue=tfdrift-role \
+    --lookup-attributes AttributeKey=Username,AttributeValue=driftwire-role \
     --max-results 100
   ```
 
@@ -434,8 +434,8 @@
 - [ ] **Falco 停止時の挙動**
   ```bash
   docker stop falco
-  # TFDrift-Falco のログを確認
-  docker logs -f tfdrift
+  # driftwire のログを確認
+  docker logs -f driftwire
   # 期待: 再接続を試行、エラーログ出力
   ```
 
@@ -446,14 +446,14 @@
   ```bash
   # State ファイルを一時的に削除
   mv terraform.tfstate terraform.tfstate.bak
-  # TFDrift-Falco のログを確認
-  docker logs tfdrift
+  # driftwire のログを確認
+  docker logs driftwire
   ```
 
 - [ ] **メモリ不足時の挙動**
   ```bash
   # メモリ制限を設定
-  docker update --memory 512m tfdrift
+  docker update --memory 512m driftwire
   # 大量イベントを送信
   ```
 
@@ -463,7 +463,7 @@
   ```yaml
   # docker-compose.yml
   services:
-    tfdrift:
+    driftwire:
       logging:
         driver: "json-file"
         options:
@@ -534,17 +534,17 @@
 
 # Critical Drift (即座に対応が必要)
 - name: Critical Drift Detected
-  expr: 'count_over_time({job="tfdrift-falco"} | json | severity="critical" [5m]) > 0'
+  expr: 'count_over_time({job="driftwire"} | json | severity="critical" [5m]) > 0'
   # 閾値: 1件でもアラート (厳しめ)
 
 # High Severity Drift (30分以内に対応)
 - name: High Severity Drift
-  expr: 'count_over_time({job="tfdrift-falco"} | json | severity="high" [10m]) > 2'
+  expr: 'count_over_time({job="driftwire"} | json | severity="high" [10m]) > 2'
   # 閾値: 10分で3件以上
 
 # Excessive Drift Rate (異常な変更頻度)
 - name: Excessive Drift Rate
-  expr: 'count_over_time({job="tfdrift-falco"} | json [1h]) > 10'
+  expr: 'count_over_time({job="driftwire"} | json [1h]) > 10'
   # 閾値: 1時間で10件以上
 ```
 
@@ -553,17 +553,17 @@
 ```yaml
 # Critical Drift
 - name: Critical Drift Detected
-  expr: 'count_over_time({job="tfdrift-falco"} | json | severity="critical" [10m]) > 3'
+  expr: 'count_over_time({job="driftwire"} | json | severity="critical" [10m]) > 3'
   # 閾値: 10分で4件以上 (緩め)
 
 # High Severity Drift
 - name: High Severity Drift
-  expr: 'count_over_time({job="tfdrift-falco"} | json | severity="high" [30m]) > 10'
+  expr: 'count_over_time({job="driftwire"} | json | severity="high" [30m]) > 10'
   # 閾値: 30分で11件以上
 
 # Excessive Drift Rate
 - name: Excessive Drift Rate
-  expr: 'count_over_time({job="tfdrift-falco"} | json [1h]) > 50'
+  expr: 'count_over_time({job="driftwire"} | json [1h]) > 50'
   # 閾値: 1時間で50件以上
 ```
 
@@ -612,7 +612,7 @@ advanced:
 │  │ EC2 Instance / ECS Task            │ │
 │  │                                    │ │
 │  │  ┌──────────┐    ┌─────────────┐ │ │
-│  │  │  Falco   │───>│ TFDrift-    │ │ │
+│  │  │  Falco   │───>│ driftwire-    │ │ │
 │  │  │ (Docker) │    │ Falco       │ │ │
 │  │  └──────────┘    └─────────────┘ │ │
 │  │                         │          │ │
@@ -656,7 +656,7 @@ advanced:
 │  │ │ ECS Fargate Cluster   │  │  │ │ ECS Fargate Cluster   │  │
 │  │ │                       │  │  │ │ (Standby)             │  │
 │  │ │ - Falco Task (x2)     │  │  │ │ - Falco Task (x1)     │  │
-│  │ │ - TFDrift Task (x2)   │  │  │ │ - TFDrift Task (x1)   │  │
+│  │ │ - driftwire Task (x2)   │  │  │ │ - driftwire Task (x1)   │  │
 │  │ └───────────────────────┘  │  │ └───────────────────────┘  │
 │  │           │                │  │           │                │
 │  │           v                │  │           v                │
@@ -719,7 +719,7 @@ advanced:
 │  │  │ EKS Cluster (Multi-node)                    │   │   │
 │  │  │                                              │   │   │
 │  │  │  ┌────────────┐  ┌────────────┐            │   │   │
-│  │  │  │ Falco      │  │ TFDrift-   │            │   │   │
+│  │  │  │ Falco      │  │ driftwire-   │            │   │   │
 │  │  │  │ Daemonset  │  │ Falco Pods │            │   │   │
 │  │  │  │            │  │ (x5)       │            │   │   │
 │  │  │  └────────────┘  └────────────┘            │   │   │
@@ -746,7 +746,7 @@ advanced:
 1. **Management Account**: 組織トレイル設定
 2. **Centralized S3**: 全アカウントのログを集約
 3. **Security Account**: 監視基盤を集約
-4. **EKS Cluster**: TFDrift-Falco を Kubernetes で運用
+4. **EKS Cluster**: driftwire を Kubernetes で運用
 5. **Grafana Stack**: 全アカウントのログを可視化
 
 ---
@@ -768,9 +768,9 @@ advanced:
    docker logs falco | grep CloudTrail
    ```
 
-3. [ ] TFDrift-Falco が Falco に接続できているか
+3. [ ] driftwire が Falco に接続できているか
    ```bash
-   docker logs tfdrift | grep "Connected to Falco"
+   docker logs driftwire | grep "Connected to Falco"
    ```
 
 4. [ ] 対応している CloudTrail イベントか
@@ -822,7 +822,7 @@ advanced:
    ```yaml
    # docker-compose.yml
    services:
-     tfdrift:
+     driftwire:
        deploy:
          resources:
            limits:
@@ -839,7 +839,7 @@ advanced:
 
 ## 6. まとめ
 
-### TFDrift-Falco の適切な使用シーン
+### driftwire の適切な使用シーン
 
 ✅ **適している**:
 - IAM ポリシー変更の監視

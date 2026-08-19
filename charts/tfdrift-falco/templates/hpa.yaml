@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "tfdrift-falco.fullname" . }}
+  name: {{ include "driftwire.fullname" . }}
   labels:
-    {{- include "tfdrift-falco.labels" . | nindent 4 }}
+    {{- include "driftwire.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "tfdrift-falco.fullname" . }}
+    name: {{ include "driftwire.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

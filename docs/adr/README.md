@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADRs)
 
-This directory contains Architecture Decision Records for the TFDrift-Falco project.
+This directory contains Architecture Decision Records for the driftwire project.
 
 ADRs are short documents that capture important architectural decisions made along with their context and consequences. We follow the [Michael Nygard format](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions).
 

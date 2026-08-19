@@ -77,7 +77,7 @@ describe('App Component', () => {
 
     it('should display the header with title', () => {
       render(<App />);
-      expect(screen.getByText('TFDrift-Falco Graph UI')).toBeInTheDocument();
+      expect(screen.getByText('driftwire Graph UI')).toBeInTheDocument();
     });
 
     it('should display Japanese subtitle', () => {
@@ -319,9 +319,9 @@ describe('App Component', () => {
   });
 
   describe('Info Panel', () => {
-    it('should display TFDrift-Falco essence message', () => {
+    it('should display driftwire essence message', () => {
       render(<App />);
-      expect(screen.getByText('TFDrift-Falcoの本質:')).toBeInTheDocument();
+      expect(screen.getByText('driftwireの本質:')).toBeInTheDocument();
     });
 
     it('should display the causal chain explanation', () => {

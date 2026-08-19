@@ -168,7 +168,7 @@ env:
 
 ```bash
 # 1. UI ワークフローを正しい場所に移動
-cd /path/to/tfdrift-falco
+cd /path/to/driftwire
 mv ui/.github/workflows/ci.yml .github/workflows/ui-ci.yml
 mv ui/.github/workflows/chromatic.yml .github/workflows/ui-chromatic.yml
 mv ui/.github/workflows/lighthouse-scheduled.yml .github/workflows/ui-lighthouse.yml

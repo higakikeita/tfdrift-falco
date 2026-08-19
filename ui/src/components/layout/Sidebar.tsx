@@ -37,7 +37,7 @@ export function Sidebar() {
         <Shield className="h-7 w-7 text-indigo-400 shrink-0" aria-hidden="true" />
         {!isCollapsed && (
           <span className="text-lg font-bold text-white whitespace-nowrap">
-            TFDrift
+            driftwire
           </span>
         )}
       </div>

@@ -1,19 +1,19 @@
-# TFDrift-Falco Terraform Module Variables
+# driftwire Terraform Module Variables
 
 variable "cluster_name" {
   description = "Name of the ECS cluster"
   type        = string
-  default     = "tfdrift-falco"
+  default     = "driftwire"
 }
 
 variable "aws_region" {
-  description = "AWS region to deploy TFDrift-Falco"
+  description = "AWS region to deploy driftwire"
   type        = string
   default     = "us-east-1"
 }
 
 variable "vpc_id" {
-  description = "VPC ID where TFDrift-Falco will be deployed"
+  description = "VPC ID where driftwire will be deployed"
   type        = string
 }
 
@@ -84,8 +84,8 @@ variable "falco_version" {
   default     = "0.37.1"
 }
 
-variable "tfdrift_version" {
-  description = "TFDrift-Falco container image version"
+variable "driftwire_version" {
+  description = "driftwire container image version"
   type        = string
   default     = "latest"
 }
@@ -128,6 +128,6 @@ variable "tags" {
   type        = map(string)
   default = {
     Terraform   = "true"
-    Application = "TFDrift-Falco"
+    Application = "driftwire"
   }
 }

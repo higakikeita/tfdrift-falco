@@ -1,10 +1,10 @@
 # METADATA
-# title: TFDrift-Falco Core Drift Policy
+# title: driftwire Core Drift Policy
 # description: Classifies detected drifts into allow/alert/remediate/deny.
 # authors:
-#   - TFDrift-Falco
+#   - driftwire
 
-package tfdrift
+package driftwire
 
 import rego.v1
 

@@ -5,10 +5,10 @@
 # 0.43 emits over http_output for that CloudTrail event (ADR-006), so the demo
 # exercises the real receiver → parser → detector → UI path — no AWS needed.
 set -euo pipefail
-API="${TFDRIFT_API:-http://127.0.0.1:8080}"
+API="${DRIFTWIRE_API:-http://127.0.0.1:8080}"
 
 echo "▶ Scenario: alice@corp modifies prod EC2 instance-type via the AWS Console (outside Terraform)"
-curl -s -o /dev/null -w "  → tfdrift receiver: HTTP %{http_code}\n" \
+curl -s -o /dev/null -w "  → driftwire receiver: HTTP %{http_code}\n" \
   -X POST "${API}/api/v1/falco/events" \
   -H 'Content-Type: application/json' \
   -d '{

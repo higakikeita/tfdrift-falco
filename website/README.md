@@ -1,4 +1,4 @@
-# TFDrift-Falco Website
+# driftwire Website
 
 Modern project website built with Next.js 14, TypeScript, and Tailwind CSS.
 
@@ -121,9 +121,9 @@ website/
 
 ## 🔗 Links
 
-- **GitHub**: https://github.com/higakikeita/tfdrift-falco
-- **Documentation**: https://higakikeita.github.io/tfdrift-falco/
-- **Docker**: https://ghcr.io/higakikeita/tfdrift-falco
+- **GitHub**: https://github.com/higakikeita/driftwire
+- **Documentation**: https://higakikeita.github.io/driftwire/
+- **Docker**: https://ghcr.io/higakikeita/driftwire
 
 ## 📝 License
 

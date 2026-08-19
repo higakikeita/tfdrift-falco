@@ -2,10 +2,10 @@
 
 ## はじめに
 
-TFDrift-Falcoのプロジェクトサイト公開直後、Reactに複数の重大な脆弱性が発見されました。この記事では、**React2Shell（CVE-2025-55182）**をはじめとする4つの脆弱性への対応と、Snykを使った継続的なセキュリティ監視体制の構築について紹介します。
+driftwireのプロジェクトサイト公開直後、Reactに複数の重大な脆弱性が発見されました。この記事では、**React2Shell（CVE-2025-55182）**をはじめとする4つの脆弱性への対応と、Snykを使った継続的なセキュリティ監視体制の構築について紹介します。
 
 - **プロジェクトサイト**: https://tfdrift-falco.vercel.app/
-- **GitHub**: https://github.com/higakikeita/tfdrift-falco
+- **GitHub**: https://github.com/higakikeita/driftwire
 
 ## 発見された脆弱性
 
@@ -449,7 +449,7 @@ permissions:
 ```
 2025-12-03: React2Shell (CVE-2025-55182) 公開
 2025-12-11: 追加の脆弱性公開 (CVE-2025-55183/55184/67779)
-2025-12-14: TFDrift-Falcoサイト公開（脆弱なバージョン）
+2025-12-14: driftwireサイト公開（脆弱なバージョン）
 2025-12-14: 脆弱性を認識
 2025-12-14: Snyk導入開始
 2025-12-14: React 19.2.3にアップデート
@@ -555,11 +555,11 @@ React2Shell（CVE-2025-55182）への対応を通じて学んだこと：
 - [GitHub Code Scanning](https://docs.github.com/en/code-security/code-scanning)
 
 ### プロジェクト
-- **TFDrift-Falco**: https://tfdrift-falco.vercel.app/
-- **GitHub**: https://github.com/higakikeita/tfdrift-falco
+- **driftwire**: https://tfdrift-falco.vercel.app/
+- **GitHub**: https://github.com/higakikeita/driftwire
 
 ---
 
 **セキュリティは継続的な取り組みです。一緒に安全なソフトウェアを作りましょう！**
 
-質問やフィードバックは[GitHub Discussions](https://github.com/higakikeita/tfdrift-falco/discussions)でお待ちしています。
+質問やフィードバックは[GitHub Discussions](https://github.com/higakikeita/driftwire/discussions)でお待ちしています。

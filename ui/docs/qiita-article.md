@@ -2,11 +2,11 @@
 
 ## はじめに
 
-こんにちは。今回は、クラウドインフラのセキュリティとドリフト分析を可視化するプロジェクト「TFDrift-Falco」で、**GrafanaベースのUIを完全に捨て、Reactで専用UIを作り直した**経験を共有します。
+こんにちは。今回は、クラウドインフラのセキュリティとドリフト分析を可視化するプロジェクト「driftwire」で、**GrafanaベースのUIを完全に捨て、Reactで専用UIを作り直した**経験を共有します。
 
 結果として、開発速度は10倍、テストカバレッジ92%、266件のテストを持つ堅牢なアプリケーションが完成しました。
 
-**TFDrift-Falcoとは？**
+**driftwireとは？**
 - Terraform Drift → IAM → Kubernetes → Falcoの因果関係を追跡
 - React Flow + Cytoscape.jsによるインタラクティブなグラフ可視化
 - セキュリティリスクの影響範囲を視覚的に分析
@@ -318,7 +318,7 @@ alerts:
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│                   TFDrift-Falco System                 │
+│                   driftwire System                 │
 ├────────────────────────────────────────────────────────┤
 │                                                        │
 │  ┌─────────────────┐    ┌──────────────────┐         │
@@ -560,7 +560,7 @@ const [currentStep, setCurrentStep] = useState(0);
 
 const steps = [
   {
-    title: 'TFDrift-Falcoへようこそ',
+    title: 'driftwireへようこそ',
     icon: <Zap className="w-12 h-12 text-blue-600" />,
     description: 'クラウドインフラのセキュリティとドリフト分析を可視化します',
     details: [
@@ -577,11 +577,11 @@ const steps = [
 
 ```tsx
 export const shouldShowWelcome = (): boolean => {
-  return !localStorage.getItem('tfdrift-welcome-seen');
+  return !localStorage.getItem('driftwire-welcome-seen');
 };
 
 const handleFinish = () => {
-  localStorage.setItem('tfdrift-welcome-seen', 'true');
+  localStorage.setItem('driftwire-welcome-seen', 'true');
   onClose();
 };
 ```
@@ -957,7 +957,7 @@ describe('WelcomeModal', () => {
       renderWithProviders(<WelcomeModal onClose={mockOnClose} />);
 
       const expectedSteps = [
-        'TFDrift-Falcoへようこそ',
+        'driftwireへようこそ',
         'グラフの操作方法',
         '依存関係の可視化',
         '検索とフィルタリング',
@@ -997,7 +997,7 @@ describe('WelcomeModal', () => {
       await user.click(finishButton);
 
       await waitFor(() => {
-        expect(localStorage.getItem('tfdrift-welcome-seen')).toBe('true');
+        expect(localStorage.getItem('driftwire-welcome-seen')).toBe('true');
         expect(mockOnClose).toHaveBeenCalledTimes(1);
       });
     });
@@ -1399,12 +1399,12 @@ useEffect(() => {
 ```typescript
 // 初回表示判定
 export const shouldShowWelcome = (): boolean => {
-  return !localStorage.getItem('tfdrift-welcome-seen');
+  return !localStorage.getItem('driftwire-welcome-seen');
 };
 
 // リセット関数（開発・テスト用）
 export const resetWelcome = () => {
-  localStorage.removeItem('tfdrift-welcome-seen');
+  localStorage.removeItem('driftwire-welcome-seen');
 };
 ```
 
@@ -1569,7 +1569,7 @@ afterEach(() => {
 
 ## 参考リンク
 
-- [TFDrift-Falco GitHub](https://github.com/your-repo/tfdrift-falco)
+- [driftwire GitHub](https://github.com/your-repo/driftwire)
 - [Vitest Documentation](https://vitest.dev/)
 - [Testing Library](https://testing-library.com/)
 - [MSW (Mock Service Worker)](https://mswjs.io/)

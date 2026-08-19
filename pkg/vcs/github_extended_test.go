@@ -446,7 +446,7 @@ func TestCreatePR_CompleteWorkflow(t *testing.T) {
 
 	req := &PRRequest{
 		Title:      "Auto-remediation: Fix VPC configuration",
-		Body:       "This PR auto-remediates VPC configuration drift detected by TFDrift-Falco",
+		Body:       "This PR auto-remediates VPC configuration drift detected by driftwire",
 		BranchName: "remediation/drift-aws_vpc-abc123de",
 		CommitMsg:  "fix: auto-remediation for aws_vpc drift\n\nRemediation for VPC configuration mismatch",
 		Files: map[string]string{

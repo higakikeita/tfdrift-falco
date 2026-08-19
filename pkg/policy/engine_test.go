@@ -38,7 +38,7 @@ func TestEvaluateNoPolicy(t *testing.T) {
 }
 
 const allowPolicy = `
-package tfdrift
+package driftwire
 
 import rego.v1
 
@@ -57,7 +57,7 @@ reason := "autoscaling changes expected" if {
 `
 
 const remediatePolicy = `
-package tfdrift
+package driftwire
 
 import rego.v1
 
@@ -85,7 +85,7 @@ labels := {"team": "security"} if {
 `
 
 const denyPolicy = `
-package tfdrift
+package driftwire
 
 import rego.v1
 
@@ -204,7 +204,7 @@ func TestLoadDir(t *testing.T) {
 
 	// Write a valid policy file
 	content := `
-package tfdrift
+package driftwire
 
 import rego.v1
 

@@ -1,6 +1,6 @@
 /**
  * General Settings Tab
- * Configuration for TFDrift-Falco general settings
+ * Configuration for driftwire general settings
  */
 
 import { useState } from 'react';
@@ -15,7 +15,7 @@ export function GeneralSettings() {
 
   return (
     <div className="space-y-6 max-w-lg">
-      <p className="text-sm text-slate-500 dark:text-slate-400">General configuration for TFDrift-Falco.</p>
+      <p className="text-sm text-slate-500 dark:text-slate-400">General configuration for driftwire.</p>
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">

@@ -1,16 +1,16 @@
-# TFDrift-Falco テストカバレッジ向上の軌跡：0%から52.2%への道のり
+# driftwire テストカバレッジ向上の軌跡：0%から52.2%への道のり
 
 ## はじめに
 
-この記事では、オープンソースプロジェクト「TFDrift-Falco」において、テストカバレッジを**0%から52.2%**まで向上させた取り組みを紹介します。TFDrift-Falcoは、Falcoを活用してTerraformのドリフト（設定の差異）を検出するツールです。
+この記事では、オープンソースプロジェクト「driftwire」において、テストカバレッジを**0%から52.2%**まで向上させた取り組みを紹介します。driftwireは、Falcoを活用してTerraformのドリフト（設定の差異）を検出するツールです。
 
 プロジェクト開始時、実装コードは2,624行あったものの、テストコードは一切存在しませんでした。本記事では、段階的にテストを追加し、CI/CD環境を整備した過程を詳しく解説します。
 
 ## プロジェクト概要
 
-### TFDrift-Falcoとは
+### driftwireとは
 
-TFDrift-Falcoは、以下の機能を提供するTerraformドリフト検出ツールです：
+driftwireは、以下の機能を提供するTerraformドリフト検出ツールです：
 
 - **リアルタイムドリフト検出**: FalcoでAWS CloudTrailイベントを監視
 - **多様な通知**: Slack、Discord、Webhookへの通知
@@ -206,7 +206,7 @@ Prometheus metricsのテスト。重複登録を避けるためsingleton pattern
 var testMetrics *Metrics
 
 func init() {
-    testMetrics = NewMetrics("tfdrift_test")
+    testMetrics = NewMetrics("driftwire_test")
 }
 
 func TestRecordDriftAlert(t *testing.T) {
@@ -567,7 +567,7 @@ func (m *MockFalcoClient) StreamEvents(ctx context.Context, eventChan chan<- *ty
 var testMetrics *Metrics
 
 func init() {
-    testMetrics = NewMetrics("tfdrift_test")
+    testMetrics = NewMetrics("driftwire_test")
 }
 
 // All tests use the same instance
@@ -720,7 +720,7 @@ func TestSomething(t *testing.T) {
 
 ## 参考リンク
 
-- [TFDrift-Falco GitHub Repository](https://github.com/yourusername/tfdrift-falco)
+- [driftwire GitHub Repository](https://github.com/yourusername/driftwire)
 - [Go Testing Documentation](https://golang.org/doc/tutorial/add-a-test)
 - [Table-Driven Tests in Go](https://dave.cheney.net/2019/05/07/prefer-table-driven-tests)
 - [golangci-lint](https://golangci-lint.run/)

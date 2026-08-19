@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/notifier"
+	"github.com/higakikeita/driftwire/pkg/config"
+	"github.com/higakikeita/driftwire/pkg/notifier"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

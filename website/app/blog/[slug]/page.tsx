@@ -37,7 +37,7 @@ function getPostData(slug: string): PostData | null {
       title: data.title || 'Untitled',
       date: data.date || new Date().toISOString(),
       excerpt: data.excerpt || '',
-      author: data.author || 'TFDrift-Falco Team',
+      author: data.author || 'driftwire Team',
       tags: data.tags || [],
       content
     }
@@ -69,12 +69,12 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
 
   if (!post) {
     return {
-      title: 'Post Not Found - TFDrift-Falco'
+      title: 'Post Not Found - driftwire'
     }
   }
 
   return {
-    title: `${post.title} - TFDrift-Falco Blog`,
+    title: `${post.title} - driftwire Blog`,
     description: post.excerpt,
     openGraph: {
       title: post.title,
@@ -227,7 +227,7 @@ function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link href="/" className="text-2xl font-bold text-white hover:text-indigo-400 transition-colors">
-            TFDrift-Falco
+            driftwire
           </Link>
           <div className="flex items-center space-x-6">
             <Link href="/" className="text-slate-300 hover:text-white transition-colors">
@@ -243,7 +243,7 @@ function Navigation() {
               Docs
             </Link>
             <a
-              href="https://github.com/higakikeita/tfdrift-falco"
+              href="https://github.com/higakikeita/driftwire"
               target="_blank"
               rel="noopener noreferrer"
               className="text-slate-300 hover:text-white transition-colors"

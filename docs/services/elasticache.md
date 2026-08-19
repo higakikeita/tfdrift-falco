@@ -2,7 +2,7 @@
 
 ## Overview
 
-TFDrift-Falco monitors Amazon ElastiCache for configuration drift by tracking CloudTrail events related to cache clusters, replication groups, and parameter groups. This enables real-time detection of manual changes made outside of Terraform workflows for both Redis and Memcached deployments.
+driftwire monitors Amazon ElastiCache for configuration drift by tracking CloudTrail events related to cache clusters, replication groups, and parameter groups. This enables real-time detection of manual changes made outside of Terraform workflows for both Redis and Memcached deployments.
 
 ## Supported CloudTrail Events
 
@@ -189,7 +189,7 @@ TFDrift-Falco monitors Amazon ElastiCache for configuration drift by tracking Cl
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_elasticache_cluster.redis
 Changed: node_type = cache.r6g.medium → cache.r6g.large
@@ -215,7 +215,7 @@ Severity: HIGH
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_elasticache_replication_group.prod_redis
 DELETED: Replication group removed
@@ -238,7 +238,7 @@ Severity: CRITICAL
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_elasticache_replication_group.cache
 Changed: replicas_per_node_group = 2 → 3
@@ -265,7 +265,7 @@ Severity: MEDIUM
 }
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```
 🚨 Drift Detected: aws_elasticache_parameter_group.redis7_params
 Changed: parameter.maxmemory-policy = volatile-lru → allkeys-lru

@@ -1,4 +1,4 @@
-# AWS標準構成図に準拠したTFDrift-Falco UI設計 🏗️
+# AWS標準構成図に準拠したdriftwire UI設計 🏗️
 
 **参考**: [AWS アーキテクチャ図の描き方](https://aws.amazon.com/jp/builders-flash/202204/way-to-draw-architecture/)
 
@@ -8,7 +8,7 @@
 
 > **「何を伝えたいか」が最重要**
 >
-> TFDrift-Falcoでは「ドリフトがどこで発生し、なぜ起きたか」を伝えることが目的
+> driftwireでは「ドリフトがどこで発生し、なぜ起きたか」を伝えることが目的
 
 ---
 

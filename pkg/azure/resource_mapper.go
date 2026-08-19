@@ -8,7 +8,7 @@ import "strings"
 // (e.g., "Microsoft.Compute/virtualMachines/write") to their corresponding Terraform resource
 // types (e.g., "azurerm_virtual_machine").
 //
-// This enables TFDrift-Falco to correlate infrastructure changes detected in Azure
+// This enables driftwire to correlate infrastructure changes detected in Azure
 // Activity Logs with resources defined in Terraform state files.
 //
 // Supported services:
@@ -34,7 +34,7 @@ type ResourceMapper struct {
 // NewResourceMapper creates a new resource mapper with pre-initialized mappings.
 //
 // The mapper is initialized with 200+ event-to-resource mappings covering
-// all major Azure services supported by TFDrift-Falco.
+// all major Azure services supported by driftwire.
 //
 // Returns a ready-to-use mapper instance for event translation.
 func NewResourceMapper() *ResourceMapper {

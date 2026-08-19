@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
+	"github.com/higakikeita/driftwire/pkg/detector"
 )
 
 // CorrelationsHandler handles cross-cloud correlation endpoints.

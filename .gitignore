@@ -5,7 +5,7 @@
 *.so
 *.dylib
 bin/
-/tfdrift
+/driftwire
 
 # Test binary, built with `go test -c`
 *.test

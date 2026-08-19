@@ -1,4 +1,4 @@
-# TFDrift-Falco Production Dockerfile
+# driftwire Production Dockerfile
 # Multi-stage build for optimized production image
 
 # ============================================
@@ -25,8 +25,8 @@ ARG VERSION=
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -a -installsuffix cgo \
     -ldflags="-s -w -X main.version=${VERSION:-$(git describe --tags --always --dirty 2>/dev/null || echo 'dev')}" \
-    -o tfdrift \
-    ./cmd/tfdrift
+    -o driftwire \
+    ./cmd/driftwire
 
 # ============================================
 # Stage 2: Runtime stage
@@ -40,23 +40,23 @@ RUN apk add --no-cache \
     wget
 
 # Create non-root user for security
-RUN addgroup -g 1000 tfdrift && \
-    adduser -D -u 1000 -G tfdrift tfdrift
+RUN addgroup -g 1000 driftwire && \
+    adduser -D -u 1000 -G driftwire driftwire
 
 # Create necessary directories
 RUN mkdir -p /app /config /data && \
-    chown -R tfdrift:tfdrift /app /config /data
+    chown -R driftwire:driftwire /app /config /data
 
 WORKDIR /app
 
 # Copy binary from builder
-COPY --from=builder /build/tfdrift .
+COPY --from=builder /build/driftwire .
 
 # Copy example config (optional)
-COPY --chown=tfdrift:tfdrift config.yaml.example ./config.example.yaml
+COPY --chown=driftwire:driftwire config.yaml.example ./config.example.yaml
 
 # Switch to non-root user
-USER tfdrift
+USER driftwire
 
 # Create volumes for persistent data
 VOLUME ["/config", "/data"]
@@ -69,5 +69,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
 # Default: Run in server mode
-ENTRYPOINT ["./tfdrift"]
+ENTRYPOINT ["./driftwire"]
 CMD ["--server", "--api-port", "8080"]

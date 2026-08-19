@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/broadcaster"
+	"github.com/higakikeita/driftwire/pkg/api/broadcaster"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -104,7 +104,7 @@ func (h *Handler) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		Type: "connected",
 		Data: map[string]interface{}{
 			"client_id": client.id,
-			"message":   "Connected to TFDrift-Falco WebSocket v0.9.0",
+			"message":   "Connected to driftwire WebSocket v0.9.0",
 			"version":   "0.9.0",
 			"topics":    []string{"drifts", "events", "state", "drift_result", "discovery_progress", "provider_status", "unmanaged_resource", "all"},
 			"features":  []string{"provider_filter", "drift_results", "discovery_progress", "provider_status"},

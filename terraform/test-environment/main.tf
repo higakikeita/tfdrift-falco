@@ -1,4 +1,4 @@
-# TFDrift-Falco Test Environment
+# driftwire Test Environment
 # Simple AWS resources for testing drift detection
 
 terraform {
@@ -17,7 +17,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "TFDrift-Falco-Test"
+      Project     = "driftwire-Test"
       Environment = "test"
       ManagedBy   = "Terraform"
     }
@@ -31,7 +31,7 @@ resource "aws_s3_bucket" "test" {
   bucket = var.test_bucket_name
 
   tags = {
-    Name        = "TFDrift Test Bucket"
+    Name        = "driftwire Test Bucket"
     Description = "Bucket for testing drift detection"
   }
 }
@@ -70,8 +70,8 @@ resource "aws_s3_bucket_public_access_block" "test" {
 # 2. Security Group - Easy to drift (ingress rules)
 # ==================================================
 resource "aws_security_group" "test" {
-  name        = "${var.environment}-tfdrift-test-sg"
-  description = "Security group for TFDrift testing"
+  name        = "${var.environment}-driftwire-test-sg"
+  description = "Security group for driftwire testing"
   vpc_id      = var.vpc_id
 
   # SSH access (restricted to specific CIDR)
@@ -110,7 +110,7 @@ resource "aws_security_group" "test" {
   }
 
   tags = {
-    Name = "${var.environment}-tfdrift-test-sg"
+    Name = "${var.environment}-driftwire-test-sg"
   }
 }
 
@@ -118,7 +118,7 @@ resource "aws_security_group" "test" {
 # 3. IAM Policy - Easy to drift (policy document)
 # ==================================================
 resource "aws_iam_policy" "test" {
-  name        = "${var.environment}-tfdrift-test-policy"
+  name        = "${var.environment}-driftwire-test-policy"
   description = "Test policy for drift detection"
 
   policy = jsonencode({
@@ -148,7 +148,7 @@ resource "aws_iam_policy" "test" {
   })
 
   tags = {
-    Name = "${var.environment}-tfdrift-test-policy"
+    Name = "${var.environment}-driftwire-test-policy"
   }
 }
 
@@ -156,7 +156,7 @@ resource "aws_iam_policy" "test" {
 # 4. IAM Role - For testing
 # ==================================================
 resource "aws_iam_role" "test" {
-  name = "${var.environment}-tfdrift-test-role"
+  name = "${var.environment}-driftwire-test-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -172,7 +172,7 @@ resource "aws_iam_role" "test" {
   })
 
   tags = {
-    Name = "${var.environment}-tfdrift-test-role"
+    Name = "${var.environment}-driftwire-test-role"
   }
 }
 
@@ -186,11 +186,11 @@ resource "aws_iam_role_policy_attachment" "test" {
 # 5. CloudWatch Log Group - For testing
 # ==================================================
 resource "aws_cloudwatch_log_group" "test" {
-  name              = "/tfdrift/test/${var.environment}"
+  name              = "/driftwire/test/${var.environment}"
   retention_in_days = 7
 
   tags = {
-    Name = "TFDrift Test Logs"
+    Name = "driftwire Test Logs"
   }
 }
 
@@ -198,10 +198,10 @@ resource "aws_cloudwatch_log_group" "test" {
 # 6. SNS Topic - For drift notifications (optional)
 # ==================================================
 resource "aws_sns_topic" "drift_alerts" {
-  name = "${var.environment}-tfdrift-alerts"
+  name = "${var.environment}-driftwire-alerts"
 
   tags = {
-    Name = "TFDrift Alert Topic"
+    Name = "driftwire Alert Topic"
   }
 }
 

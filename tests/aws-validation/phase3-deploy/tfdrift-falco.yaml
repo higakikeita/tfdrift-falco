@@ -1,22 +1,22 @@
-# TFDrift-Falco Kubernetes Deployment
+# driftwire Kubernetes Deployment
 # Deploy after Falco is running:
-#   kubectl apply -f tfdrift-falco.yaml
+#   kubectl apply -f driftwire.yaml
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: tfdrift
+  name: driftwire
   labels:
-    app.kubernetes.io/part-of: tfdrift-falco
+    app.kubernetes.io/part-of: driftwire
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: tfdrift-config
-  namespace: tfdrift
+  name: driftwire-config
+  namespace: driftwire
 data:
   config.yaml: |
-    # TFDrift-Falco Validation Configuration
+    # driftwire Validation Configuration
     log_level: debug
 
     server:
@@ -32,7 +32,7 @@ data:
     terraform:
       backend: s3
       s3:
-        bucket: "tfdrift-validation-state"
+        bucket: "driftwire-validation-state"
         key: "phase1-resources/terraform.tfstate"
         region: "ap-northeast-1"
 
@@ -58,26 +58,26 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tfdrift-falco
-  namespace: tfdrift
+  name: driftwire
+  namespace: driftwire
   labels:
-    app: tfdrift-falco
+    app: driftwire
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: tfdrift-falco
+      app: driftwire
   template:
     metadata:
       labels:
-        app: tfdrift-falco
+        app: driftwire
     spec:
-      serviceAccountName: tfdrift-falco
+      serviceAccountName: driftwire
       containers:
-        - name: tfdrift-falco
-          image: ghcr.io/higakikeita/tfdrift-falco:latest
+        - name: driftwire
+          image: ghcr.io/higakikeita/driftwire:latest
           # Or build and push locally:
-          # image: <your-ecr-repo>/tfdrift-falco:latest
+          # image: <your-ecr-repo>/driftwire:latest
           ports:
             - name: http
               containerPort: 8080
@@ -88,15 +88,15 @@ spec:
           env:
             - name: AWS_REGION
               value: "ap-northeast-1"
-            - name: TFDRIFT_LOG_LEVEL
+            - name: DRIFTWIRE_LOG_LEVEL
               value: "debug"
           volumeMounts:
             - name: config
-              mountPath: /etc/tfdrift
+              mountPath: /etc/driftwire
               readOnly: true
           args:
             - "--config"
-            - "/etc/tfdrift/config.yaml"
+            - "/etc/driftwire/config.yaml"
           resources:
             requests:
               cpu: 100m
@@ -119,7 +119,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: tfdrift-config
+            name: driftwire-config
       tolerations:
         - key: "kubernetes.io/arch"
           operator: "Equal"
@@ -129,10 +129,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tfdrift-falco
-  namespace: tfdrift
+  name: driftwire
+  namespace: driftwire
   labels:
-    app: tfdrift-falco
+    app: driftwire
 spec:
   type: ClusterIP
   ports:
@@ -143,13 +143,13 @@ spec:
       port: 9090
       targetPort: metrics
   selector:
-    app: tfdrift-falco
+    app: driftwire
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: tfdrift-falco
-  namespace: tfdrift
+  name: driftwire
+  namespace: driftwire
   annotations:
     # If using IRSA (IAM Roles for Service Accounts), set the role ARN here:
-    # eks.amazonaws.com/role-arn: arn:aws:iam::230446364776:role/tfdrift-val-eks-node-role
+    # eks.amazonaws.com/role-arn: arn:aws:iam::230446364776:role/driftwire-val-eks-node-role

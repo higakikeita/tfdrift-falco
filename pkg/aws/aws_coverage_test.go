@@ -8,8 +8,8 @@ import (
 	elbTypes "github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 	rdsTypes "github.com/aws/aws-sdk-go-v2/service/rds/types"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // TestExtractTFResourceID_EmptyAttributes tests extractTFResourceID with empty attributes

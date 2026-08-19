@@ -1,8 +1,8 @@
 package graph
 
 import (
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/api/models"
+	"github.com/higakikeita/driftwire/pkg/terraform"
 )
 
 // DependencyBuilder defines how to extract dependency edges for resources

@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "tfdrift-falco.fullname" . }}
+  name: {{ include "driftwire.fullname" . }}
   labels:
-    {{- include "tfdrift-falco.labels" . | nindent 4 }}
+    {{- include "driftwire.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "tfdrift-falco.selectorLabels" . | nindent 6 }}
+      {{- include "driftwire.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -19,13 +19,13 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "tfdrift-falco.selectorLabels" . | nindent 8 }}
+        {{- include "driftwire.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "tfdrift-falco.serviceAccountName" . }}
+      serviceAccountName: {{ include "driftwire.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -39,7 +39,7 @@ spec:
             - "--api-port"
             - "{{ .Values.config.port }}"
             - "--config"
-            - "/etc/tfdrift-falco/config.yaml"
+            - "/etc/driftwire/config.yaml"
           ports:
             - name: http
               containerPort: {{ .Values.config.port }}
@@ -62,15 +62,15 @@ spec:
             failureThreshold: 3
           env:
             {{- if or .Values.config.auth.jwtSecret .Values.existingSecret }}
-            - name: TFDRIFT_API_AUTH_JWT_SECRET
+            - name: DRIFTWIRE_API_AUTH_JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.existingSecret | default (printf "%s-secret" (include "tfdrift-falco.fullname" .)) }}
+                  name: {{ .Values.existingSecret | default (printf "%s-secret" (include "driftwire.fullname" .)) }}
                   key: jwt-secret
             {{- end }}
           volumeMounts:
             - name: config
-              mountPath: /etc/tfdrift-falco
+              mountPath: /etc/driftwire
               readOnly: true
             - name: tmp
               mountPath: /tmp
@@ -79,7 +79,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: {{ include "tfdrift-falco.fullname" . }}-config
+            name: {{ include "driftwire.fullname" . }}-config
         - name: tmp
           emptyDir: {}
       {{- with .Values.nodeSelector }}

@@ -13,7 +13,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "TFDrift-Falco"
+      Project     = "driftwire"
       Environment = "production-test"
       ManagedBy   = "Terraform"
     }
@@ -197,7 +197,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "app_data" {
 #               yum install -y httpd
 #               systemctl start httpd
 #               systemctl enable httpd
-#               echo "<h1>TFDrift-Falco Test Instance</h1>" > /var/www/html/index.html
+#               echo "<h1>driftwire Test Instance</h1>" > /var/www/html/index.html
 #               EOF
 #
 #   tags = {

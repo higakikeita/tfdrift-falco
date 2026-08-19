@@ -1,4 +1,4 @@
-# TFDrift-Falco Implementation Summary
+# driftwire Implementation Summary
 
 Complete implementation of REST API, WebSocket, SSE, and large-scale graph optimization.
 
@@ -20,7 +20,7 @@ This document summarizes the 15-day implementation plan completion, covering:
 
 ```
 ┌─────────────────────────────────────────────┐
-│  TFDrift CLI (Cobra)                        │
+│  driftwire CLI (Cobra)                        │
 │  ┌──────────┐  --server  ┌───────────────┐ │
 │  │   run()  │───────────▶│ HTTP Server   │ │
 │  └──────────┘            │ (Chi Router)  │ │
@@ -72,7 +72,7 @@ This document summarizes the 15-day implementation plan completion, covering:
 12. `pkg/graph/sample.go` - Sample data generation
 
 #### Backend Files Modified
-- `cmd/tfdrift/main.go` - Added `--server` flag
+- `cmd/driftwire/main.go` - Added `--server` flag
 
 #### Key Features
 - Chi router with middleware chain
@@ -141,7 +141,7 @@ This document summarizes the 15-day implementation plan completion, covering:
 - `pkg/api/middleware/logger.go` - Added Hijack() for WS upgrade
 - `pkg/detector/detector.go` - Added SetBroadcaster/GetBroadcaster
 - `pkg/detector/alert_sender.go` - Broadcast drift events
-- `cmd/tfdrift/main.go` - Connect detector to broadcaster
+- `cmd/driftwire/main.go` - Connect detector to broadcaster
 
 #### Key Features
 - Topic-based subscriptions (all/drifts/events/state/stats)
@@ -364,7 +364,7 @@ pkg/
 │   ├── query.go                   # Graph queries
 │   └── sample.go                  # Sample data
 │
-cmd/tfdrift/
+cmd/driftwire/
 └── main.go                        # CLI with --server flag
 ```
 
@@ -508,7 +508,7 @@ npm run dev
 
 1. **Start Backend:**
 ```bash
-go run cmd/tfdrift/main.go --server --api-port 8080
+go run cmd/driftwire/main.go --server --api-port 8080
 ```
 
 2. **Start Frontend:**
@@ -529,12 +529,12 @@ npm run build
 
 2. **Build Backend:**
 ```bash
-go build -o tfdrift cmd/tfdrift/main.go
+go build -o driftwire cmd/driftwire/main.go
 ```
 
 3. **Run Server:**
 ```bash
-./tfdrift --server --api-port 8080
+./driftwire --server --api-port 8080
 ```
 
 ---
@@ -653,7 +653,7 @@ r.Route("/api/v1", func(r chi.Router) {
 ## Credits
 
 **Implementation:** Claude Code (Anthropic)
-**Project:** TFDrift-Falco
+**Project:** driftwire
 **Duration:** January 2025
 **Total Effort:** 15 phases over 7 days
 
@@ -673,4 +673,4 @@ The system is production-ready and capable of handling real-world drift detectio
 
 For questions or issues, please refer to:
 - API Documentation: `docs/API.md`
-- GitHub Issues: https://github.com/higakikeita/tfdrift-falco/issues
+- GitHub Issues: https://github.com/higakikeita/driftwire/issues

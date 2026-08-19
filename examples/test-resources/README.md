@@ -1,4 +1,4 @@
-# TFDrift-Falco Test Resources
+# driftwire Test Resources
 
 This directory contains Terraform configurations for testing drift detection across multiple AWS resource types.
 
@@ -33,7 +33,7 @@ Edit `main.tf` and replace `YOUR_BUCKET_NAME` with your S3 bucket:
 ```hcl
 backend "s3" {
   bucket = "my-terraform-state-bucket"  # Your bucket name
-  key    = "tfdrift-test/terraform.tfstate"
+  key    = "driftwire-test/terraform.tfstate"
   region = "us-east-1"
 }
 ```
@@ -55,7 +55,7 @@ terraform apply
 
 This will create all test resources and store the state in S3.
 
-### 3. Configure TFDrift-Falco
+### 3. Configure driftwire
 
 Create a configuration file `config.yaml`:
 
@@ -68,7 +68,7 @@ providers:
     state:
       backend: "s3"
       s3_bucket: "my-terraform-state-bucket"  # Your bucket name
-      s3_key: "tfdrift-test/terraform.tfstate"
+      s3_key: "driftwire-test/terraform.tfstate"
       s3_region: "us-east-1"
 
 falco:
@@ -127,16 +127,16 @@ logging:
   format: "json"
 ```
 
-### 4. Start TFDrift-Falco
+### 4. Start driftwire
 
 ```bash
 # Start Falco (if not already running)
 cd deployments
 docker-compose up -d falco
 
-# Start TFDrift-Falco
+# Start driftwire
 cd ../..
-./bin/tfdrift --config config.yaml
+./bin/driftwire --config config.yaml
 ```
 
 ## Drift Testing Scenarios
@@ -155,7 +155,7 @@ cd ../..
    - **Disable** termination protection
 
 3. **Expected Result**:
-   - TFDrift-Falco detects drift within 5-15 minutes
+   - driftwire detects drift within 5-15 minutes
    - Alert sent to Slack
    - Falco output shows drift event
 
@@ -164,7 +164,7 @@ cd ../..
 1. Get IAM role name:
    ```bash
    terraform output iam_role_name
-   # Output: tfdrift-test-role
+   # Output: driftwire-test-role
    ```
 
 2. Modify assume role policy via AWS Console:
@@ -181,7 +181,7 @@ cd ../..
 1. Get S3 bucket name:
    ```bash
    terraform output s3_bucket_name
-   # Output: tfdrift-test-bucket-a1b2c3d4
+   # Output: driftwire-test-bucket-a1b2c3d4
    ```
 
 2. Disable versioning via AWS Console:
@@ -225,7 +225,7 @@ cd ../..
 1. Get IAM policy ARN:
    ```bash
    terraform output iam_policy_arn
-   # Output: arn:aws:iam::123456789012:policy/tfdrift-test-policy
+   # Output: arn:aws:iam::123456789012:policy/driftwire-test-policy
    ```
 
 2. Modify policy document via AWS Console:
@@ -251,22 +251,22 @@ aws cloudtrail lookup-events \
 
 ```bash
 # View Falco logs
-docker logs -f tfdrift-falco
+docker logs -f driftwire
 ```
 
-### Check TFDrift-Falco Logs
+### Check driftwire Logs
 
 ```bash
 # If running in foreground, logs will appear in terminal
 # If using JSON logging, you can filter:
-./bin/tfdrift --config config.yaml | jq 'select(.action == "drift_detected")'
+./bin/driftwire --config config.yaml | jq 'select(.action == "drift_detected")'
 ```
 
 ## Expected Timing
 
 - **CloudTrail Delay**: 5-15 minutes
 - **Falco Processing**: < 1 second
-- **TFDrift Detection**: < 1 second
+- **driftwire Detection**: < 1 second
 - **Total Time**: ~5-15 minutes from console change to alert
 
 ## Cleanup
@@ -289,10 +289,10 @@ terraform destroy
 
 1. **Check Terraform state is in S3**:
    ```bash
-   aws s3 ls s3://YOUR_BUCKET/tfdrift-test/
+   aws s3 ls s3://YOUR_BUCKET/driftwire-test/
    ```
 
-2. **Check TFDrift loaded state**:
+2. **Check driftwire loaded state**:
    Look for log line: `Loaded Terraform state: X resources`
 
 3. **Check CloudTrail is working**:
@@ -302,7 +302,7 @@ terraform destroy
 
 4. **Check Falco is receiving events**:
    ```bash
-   docker logs tfdrift-falco | grep cloudtrail
+   docker logs driftwire | grep cloudtrail
    ```
 
 ### Drift Not Matching
@@ -315,7 +315,7 @@ terraform destroy
 
 1. **S3 Access Denied**:
    - Check IAM permissions for S3 bucket access
-   - Ensure TFDrift-Falco has correct AWS credentials
+   - Ensure driftwire has correct AWS credentials
 
 2. **State Not Found**:
    - Verify S3 bucket and key path

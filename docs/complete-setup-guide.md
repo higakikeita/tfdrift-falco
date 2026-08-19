@@ -1,8 +1,8 @@
-# TFDrift-Falco 完全セットアップガイド
+# driftwire 完全セットアップガイド
 
 ## 概要
 
-このガイドでは、AWSのセットアップからTerraform統合、TFDrift-Falcoの設定、そして実際のドリフト検知までの完全な流れを説明します。
+このガイドでは、AWSのセットアップからTerraform統合、driftwireの設定、そして実際のドリフト検知までの完全な流れを説明します。
 
 **対象読者**: AWS環境でTerraformを使用しており、インフラストラクチャのドリフト（手動変更）をリアルタイムで検知したい方
 
@@ -27,7 +27,7 @@
           │ Read State            │ Read Events
           ▼                       ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    TFDrift-Falco System                      │
+│                    driftwire System                      │
 │                                                              │
 │  ┌──────────────┐      ┌─────────────────┐                 │
 │  │    Falco     │      │    Backend      │                 │
@@ -78,14 +78,14 @@
 
 ### 1.1 CloudTrailとS3バケットの作成
 
-TFDrift-Falcoは、AWS CloudTrailのログからリアルタイムでAPIコールを検知します。
+driftwireは、AWS CloudTrailのログからリアルタイムでAPIコールを検知します。
 
 #### 自動セットアップ（推奨）
 
 プロジェクトに含まれるセットアップスクリプトを使用します。
 
 ```bash
-cd /path/to/tfdrift-falco
+cd /path/to/driftwire
 chmod +x scripts/setup-cloudtrail.sh
 ./scripts/setup-cloudtrail.sh
 ```
@@ -105,7 +105,7 @@ chmod +x scripts/setup-cloudtrail.sh
 ```bash
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 AWS_REGION="us-east-1"  # お好みのリージョン
-BUCKET_NAME="tfdrift-cloudtrail-${AWS_ACCOUNT_ID}-${AWS_REGION}"
+BUCKET_NAME="driftwire-cloudtrail-${AWS_ACCOUNT_ID}-${AWS_REGION}"
 
 aws s3api create-bucket \
     --bucket ${BUCKET_NAME} \
@@ -156,7 +156,7 @@ aws s3api put-bucket-policy \
 **Step 3: CloudTrailトレイルの作成**
 
 ```bash
-TRAIL_NAME="tfdrift-falco-trail"
+TRAIL_NAME="driftwire-trail"
 
 aws cloudtrail create-trail \
     --name ${TRAIL_NAME} \
@@ -197,7 +197,7 @@ echo "Region: ${AWS_REGION}"
 
 ## Phase 2: Terraform Stateの設定
 
-TFDrift-Falcoは、Terraform Stateと実際のAWSリソースを比較してドリフトを検知します。
+driftwireは、Terraform Stateと実際のAWSリソースを比較してドリフトを検知します。
 
 ### 2.1 Terraform StateのバックエンドをS3に設定（推奨）
 
@@ -224,7 +224,7 @@ S3バックエンドを使用しない場合は、ローカルのStateファイ�
 ls -la terraform/production-like-environment/errored.tfstate
 ```
 
-### 2.3 TFDrift-Falcoのconfig.yaml設定
+### 2.3 driftwireのconfig.yaml設定
 
 プロジェクトの`config.yaml`を編集します。
 
@@ -258,7 +258,7 @@ state:
 
 CloudTrail プラグインは、公式ツール `falcoctl` で署名検証付きインストールするのが正です（旧来の直接 tar ダウンロードは廃止）。
 
-> ⚠️ **バージョン互換（#311 で確定）**: CloudTrail プラグイン 0.17.1 は **Plugin API 3.11+** を要求します。**Falco 0.43.0** を使ってください（0.37 系では読み込めず、0.44+ は gRPC 出力が撤去され TFDrift の購読モデルでは使えません）。`docker-compose.yml` の falco イメージは 0.43.0 に固定済みです。
+> ⚠️ **バージョン互換（#311 で確定）**: CloudTrail プラグイン 0.17.1 は **Plugin API 3.11+** を要求します。**Falco 0.43.0** を使ってください（0.37 系では読み込めず、0.44+ は gRPC 出力が撤去され driftwire の購読モデルでは使えません）。`docker-compose.yml` の falco イメージは 0.43.0 に固定済みです。
 
 ```bash
 # Falco 0.43.0 イメージに同梱の falcoctl でインストール（Linux amd64）
@@ -357,7 +357,7 @@ services:
 services:
   falco:
     image: falcosecurity/falco:0.37.1
-    container_name: tfdrift-falco-falco
+    container_name: driftwire-falco
     platform: linux/amd64  # ARM64 Macの場合は必須
     # ... その他の設定 ...
     environment:
@@ -372,8 +372,8 @@ services:
       - AWS_REGION=${AWS_REGION:-us-east-1}
       - AWS_PROFILE=${AWS_PROFILE:-default}  # 追加
       - TZ=${TZ:-UTC}
-      - TFDRIFT_FALCO_HOSTNAME=falco
-      - TFDRIFT_FALCO_PORT=5060
+      - DRIFTWIRE_FALCO_HOSTNAME=falco
+      - DRIFTWIRE_FALCO_PORT=5060
     volumes:
       - ./config.yaml:/config/config.yaml:ro
       - ${HOME}/.aws:/root/.aws:ro  # AWS認証情報
@@ -423,13 +423,13 @@ services:
 
 ---
 
-## Phase 5: TFDrift-Falcoの起動
+## Phase 5: driftwireの起動
 
 ### 5.1 イメージのビルド
 
 ```bash
 # プロジェクトルートで実行
-cd /path/to/tfdrift-falco
+cd /path/to/driftwire
 
 # バックエンドとフロントエンドをビルド
 docker-compose build
@@ -457,9 +457,9 @@ docker-compose ps
 
 # 期待される出力:
 # NAME                   STATUS    PORTS
-# tfdrift-backend        Up        0.0.0.0:8080->8080/tcp
-# tfdrift-frontend       Up        0.0.0.0:3000->8080/tcp
-# tfdrift-falco-falco    Up        0.0.0.0:5060->5060/tcp
+# driftwire-backend        Up        0.0.0.0:8080->8080/tcp
+# driftwire-frontend       Up        0.0.0.0:3000->8080/tcp
+# driftwire-falco    Up        0.0.0.0:5060->5060/tcp
 ```
 
 #### ヘルスチェック
@@ -515,7 +515,7 @@ terraform show | grep instance_id
 # AWSコンソールまたはCLIでインスタンスを停止
 aws ec2 stop-instances --instance-ids i-xxxxxxxxxxxxx --region us-east-1
 
-# 数秒後、TFDrift-Falco UIでアラートが表示される
+# 数秒後、driftwire UIでアラートが表示される
 ```
 
 **期待される動作:**
@@ -606,8 +606,8 @@ failed to load terraform state
 
 4. コンテナ内で認証情報を確認
    ```bash
-   docker exec -it tfdrift-backend ls -la /root/.aws
-   docker exec -it tfdrift-backend cat /root/.aws/credentials
+   docker exec -it driftwire-backend ls -la /root/.aws
+   docker exec -it driftwire-backend cat /root/.aws/credentials
    ```
 
 #### エラー2: Falco eBPFドライバーのコンパイル失敗
@@ -658,12 +658,12 @@ cloudtrail plugin error: cannot open s3Bucket=...
 
 1. CloudTrailのロギングが有効か確認
    ```bash
-   aws cloudtrail get-trail-status --name tfdrift-falco-trail --region us-east-1
+   aws cloudtrail get-trail-status --name driftwire-trail --region us-east-1
    ```
 
 2. S3バケットにログが書き込まれているか確認
    ```bash
-   aws s3 ls s3://tfdrift-cloudtrail-xxxxx/AWSLogs/ --recursive
+   aws s3 ls s3://driftwire-cloudtrail-xxxxx/AWSLogs/ --recursive
    ```
 
 3. 5-15分待ってから再試行
@@ -807,7 +807,7 @@ log_level: debug
    ```yaml
    # docker-compose.yml
    environment:
-     - TFDRIFT_SLACK_WEBHOOK=https://hooks.slack.com/services/xxx
+     - DRIFTWIRE_SLACK_WEBHOOK=https://hooks.slack.com/services/xxx
    ```
 
 2. **ヘルスチェック**
@@ -821,16 +821,16 @@ log_level: debug
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tfdrift-falco
+  name: driftwire
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: tfdrift-falco
+      app: driftwire
   template:
     metadata:
       labels:
-        app: tfdrift-falco
+        app: driftwire
     spec:
       containers:
       - name: falco
@@ -840,7 +840,7 @@ spec:
           mountPath: /root/.aws
           readOnly: true
       - name: backend
-        image: tfdrift-falco:latest
+        image: driftwire:latest
         env:
         - name: AWS_REGION
           value: "us-east-1"
@@ -872,7 +872,7 @@ spec:
    ```bash
    # 90日以上古いログを削除（S3ライフサイクルポリシー）
    aws s3api put-bucket-lifecycle-configuration \
-       --bucket tfdrift-cloudtrail-xxx \
+       --bucket driftwire-cloudtrail-xxx \
        --lifecycle-configuration file://lifecycle-policy.json
    ```
 
@@ -935,7 +935,7 @@ spec:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  TFDrift-Falco Monitoring Dashboard                     │
+│  driftwire Monitoring Dashboard                     │
 ├─────────────────────────────────────────────────────────┤
 │  Total Drifts: 127        Today: 8       Critical: 2    │
 ├─────────────────────────────────────────────────────────┤
@@ -959,7 +959,7 @@ spec:
 - ✅ AWS CloudTrailのセットアップ
 - ✅ Terraform State連携
 - ✅ Falco CloudTrailプラグインのインストール
-- ✅ TFDrift-Falcoシステムの起動
+- ✅ driftwireシステムの起動
 - ✅ リアルタイムドリフト検知のテスト
 
 ### 次のステップ
@@ -973,7 +973,7 @@ spec:
 
 - [Falco公式ドキュメント](https://falco.org/docs/)
 - [CloudTrailプラグイン](https://github.com/falcosecurity/plugins/tree/master/plugins/cloudtrail)
-- [TFDrift-Falco GitHubリポジトリ](https://github.com/yourusername/tfdrift-falco)
+- [driftwire GitHubリポジトリ](https://github.com/yourusername/driftwire)
 - [AWS CloudTrailドキュメント](https://docs.aws.amazon.com/cloudtrail/)
 - [Terraformドキュメント](https://www.terraform.io/docs)
 
@@ -981,6 +981,6 @@ spec:
 
 **最終更新**: 2025-12-22
 
-**著者**: TFDrift-Falco プロジェクト
+**著者**: driftwire プロジェクト
 
 **ライセンス**: MIT

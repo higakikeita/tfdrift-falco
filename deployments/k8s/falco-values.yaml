@@ -5,7 +5,7 @@
 driver:
   kind: modern_ebpf
 
-# Enable gRPC API for TFDrift integration
+# Enable gRPC API for driftwire integration
 falco:
   grpc:
     enabled: true

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/broadcaster"
+	"github.com/higakikeita/driftwire/pkg/api/broadcaster"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -369,7 +369,7 @@ func TestStream_InitialConnectionEvent(t *testing.T) {
 	// Create a mock Start that just sends the initial event
 	initialData := map[string]interface{}{
 		"stream_id": stream.ID(),
-		"message":   "Connected to TFDrift-Falco SSE stream v0.9.0",
+		"message":   "Connected to driftwire SSE stream v0.9.0",
 		"version":   "0.9.0",
 	}
 

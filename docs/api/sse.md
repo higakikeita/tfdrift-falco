@@ -92,7 +92,7 @@ Sent immediately upon successful connection.
 
 ```
 event: connected
-data: {"stream_id":"stream-uuid-here","message":"Connected to TFDrift-Falco SSE stream"}
+data: {"stream_id":"stream-uuid-here","message":"Connected to driftwire SSE stream"}
 ```
 
 ### drift

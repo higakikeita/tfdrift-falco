@@ -7,7 +7,7 @@
 > This is the single source of truth for release procedures.
 > Always consult this document before any version update.
 
-TFDrift-Falco follows [Semantic Versioning 2.0.0](https://semver.org/).
+driftwire follows [Semantic Versioning 2.0.0](https://semver.org/).
 
 Format: `MAJOR.MINOR.PATCH`
 
@@ -113,7 +113,7 @@ The project will reach 1.0.0 when all of the following are met:
 | 13 | `CONTRIBUTING.md` | Bug report テンプレート内のバージョン例 |
 | 14 | `docs/services/gcp/index.md` | フッターの **Version** |
 | 15 | `docs/services/gcp/compute-engine.md` | フッターの **Version** |
-| 16 | `terraform/aws/README.md` | `tfdrift_version` の例（2箇所） |
+| 16 | `terraform/aws/README.md` | `driftwire_version` の例（2箇所） |
 
 ### 4. API Specification
 
@@ -126,7 +126,7 @@ The project will reach 1.0.0 when all of the following are met:
 
 | # | File | What to update |
 |---|------|----------------|
-| 19 | `charts/tfdrift-falco/Chart.yaml` | `appVersion` フィールド。`version`（Chart自体）も必要に応じて |
+| 19 | `charts/driftwire/Chart.yaml` | `appVersion` フィールド。`version`（Chart自体）も必要に応じて |
 
 ### 6. Website（Next.js — `website/` ディレクトリ）
 

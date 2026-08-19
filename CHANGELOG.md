@@ -202,7 +202,7 @@ This release brings significant UI improvements with Storybook-Driven Developmen
 
 *Note: This version focuses on GCP integration. For UI improvements, see v0.5.0+ above.*
 
-This release brings comprehensive Google Cloud Platform (GCP) support to TFDrift-Falco, enabling real-time drift detection across both AWS and GCP environments simultaneously.
+This release brings comprehensive Google Cloud Platform (GCP) support to driftwire, enabling real-time drift detection across both AWS and GCP environments simultaneously.
 
 ### Added
 
@@ -261,7 +261,7 @@ This release brings comprehensive Google Cloud Platform (GCP) support to TFDrift
 - **GCP Setup Guide** (`docs/gcp-setup.md`)
   - Step-by-step Falco gcpaudit plugin configuration
   - GCP Audit Logs and Pub/Sub setup
-  - TFDrift-Falco configuration examples
+  - driftwire configuration examples
   - Troubleshooting guide with 12 common scenarios
   - 4 complete production examples (single-project, multi-project, hybrid AWS+GCP, secure)
   - Security best practices and compliance considerations
@@ -377,7 +377,7 @@ This release brings comprehensive GCP support enabling true multi-cloud drift de
 
 - **Official Docker Image Support** (PR #4) - GHCR container registry integration
   - Multi-architecture builds (linux/amd64, linux/arm64)
-  - Automated publishing to `ghcr.io/higakikeita/tfdrift-falco`
+  - Automated publishing to `ghcr.io/higakikeita/driftwire`
   - Version tagging: `latest`, `vX.Y.Z`, `vX.Y`, `vX`
   - SHA-based tags for immutable deployments
   - Updated Dockerfile with optimized Alpine 3.21 base

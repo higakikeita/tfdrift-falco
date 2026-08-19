@@ -1,6 +1,6 @@
-# TFDrift-Falco Production-Like Test Environment
+# driftwire Production-Like Test Environment
 
-本番環境に近い大規模なAWSインフラでTFDrift-Falcoをテストするための完全な構成です。
+本番環境に近い大規模なAWSインフラでdriftwireをテストするための完全な構成です。
 
 ## 🏗️ アーキテクチャ概要
 
@@ -112,7 +112,7 @@ aws sts get-caller-identity
 
 ```bash
 # 環境変数を設定
-export STATE_BUCKET="tfdrift-prod-state-$(date +%Y%m%d)"
+export STATE_BUCKET="driftwire-prod-state-$(date +%Y%m%d)"
 export AWS_REGION="us-east-1"
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
@@ -237,7 +237,7 @@ kubectl get nodes
 kubectl get pods --all-namespaces
 ```
 
-### ステップ7: TFDrift設定の作成
+### ステップ7: driftwire設定の作成
 
 ```bash
 cd ../../  # プロジェクトルートに戻る
@@ -250,7 +250,7 @@ export STATE_KEY="production-like-environment/terraform.tfstate"
 
 # 包括的なconfig.yamlを作成
 cat > ../../config-production.yaml <<'EOF'
-# TFDrift-Falco Production Test Configuration
+# driftwire Production Test Configuration
 
 # Terraform State
 terraform:
@@ -527,7 +527,7 @@ notifications:
   # slack:
   #   enabled: true
   #   webhook_url: ${SLACK_WEBHOOK_URL}
-  #   channel: "#tfdrift-prod-alerts"
+  #   channel: "#driftwire-prod-alerts"
 
 # Logging
 logging:
@@ -553,7 +553,7 @@ export NAT_GW_ID=$(terraform output -json nat_gateway_ids | jq -r '.[0]')
 # NAT Gatewayを削除（意図的）
 aws ec2 delete-nat-gateway --nat-gateway-id $NAT_GW_ID
 
-# TFDriftで検知確認
+# driftwireで検知確認
 # 期待される出力: Critical alert - nat_gateway_deleted
 ```
 
@@ -567,7 +567,7 @@ aws eks update-cluster-config \
   --name $CLUSTER_NAME \
   --resources-vpc-config endpointPublicAccess=true,endpointPrivateAccess=true
 
-# TFDriftで検知確認
+# driftwireで検知確認
 ```
 
 ### シナリオ3: RDS Multi-AZの無効化（Critical）
@@ -581,7 +581,7 @@ aws rds modify-db-instance \
   --no-multi-az \
   --apply-immediately
 
-# TFDriftで検知確認
+# driftwireで検知確認
 ```
 
 ### シナリオ4: S3バケット暗号化の無効化（Critical）
@@ -592,7 +592,7 @@ export BUCKET_NAME=$(terraform output -raw app_data_bucket_name)
 # 暗号化を削除
 aws s3api delete-bucket-encryption --bucket $BUCKET_NAME
 
-# TFDriftで検知確認
+# driftwireで検知確認
 ```
 
 ### シナリオ5: Security Group ルールの変更（Critical）
@@ -607,7 +607,7 @@ aws ec2 authorize-security-group-ingress \
   --port 0-65535 \
   --cidr 0.0.0.0/0
 
-# TFDriftで検知確認
+# driftwireで検知確認
 ```
 
 ### シナリオ6: ElastiCache 暗号化の無効化（Critical）
@@ -621,7 +621,7 @@ export REPLICATION_GROUP_ID=$(cd terraform/production-like-environment && \
 
 echo "Replication Group: $REPLICATION_GROUP_ID"
 
-# TFDriftで検知確認
+# driftwireで検知確認
 ```
 
 ### シナリオ7: IAM Policyの権限拡大（High）
@@ -634,7 +634,7 @@ aws iam attach-role-policy \
   --role-name $(echo $POLICY_ARN | rev | cut -d'/' -f1 | rev) \
   --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
 
-# TFDriftで検知確認
+# driftwireで検知確認
 ```
 
 ## 🔄 ドリフトの修復
@@ -723,7 +723,7 @@ aws ce get-cost-and-usage \
 # ノードグループの状態確認
 aws eks describe-nodegroup \
   --cluster-name $CLUSTER_NAME \
-  --nodegroup-name prod-test-tfdrift-general
+  --nodegroup-name prod-test-driftwire-general
 
 # IAM role確認
 aws iam get-role --role-name <node-role-name>
@@ -751,7 +751,7 @@ aws elasticache describe-replication-groups \
 
 ## 📚 参考リンク
 
-- [TFDrift-Falco Documentation](https://higakikeita.github.io/tfdrift-falco/)
+- [driftwire Documentation](https://higakikeita.github.io/driftwire/)
 - [AWS EKS Best Practices](https://aws.github.io/aws-eks-best-practices/)
 - [AWS ECS Best Practices](https://docs.aws.amazon.com/AmazonECS/latest/bestpracticesguide/intro.html)
 - [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)

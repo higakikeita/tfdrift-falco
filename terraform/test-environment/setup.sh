@@ -1,8 +1,8 @@
 #!/bin/bash
-# TFDrift-Falco Test Environment Setup Script
+# driftwire Test Environment Setup Script
 set -e
 
-echo "🚀 TFDrift-Falco Test Environment Setup"
+echo "🚀 driftwire Test Environment Setup"
 echo "========================================"
 
 # Colors
@@ -56,7 +56,7 @@ export AWS_DEFAULT_REGION=$AWS_REGION
 # Step 1: Create S3 backend bucket
 echo ""
 echo "📦 Step 1: Creating S3 backend bucket..."
-STATE_BUCKET="tfdrift-test-state-$(date +%Y%m%d)-${ACCOUNT_ID:0:8}"
+STATE_BUCKET="driftwire-test-state-$(date +%Y%m%d)-${ACCOUNT_ID:0:8}"
 echo "Bucket name: $STATE_BUCKET"
 
 if aws s3 ls "s3://$STATE_BUCKET" 2>/dev/null; then
@@ -91,7 +91,7 @@ echo ""
 echo "⚙️  Step 2: Updating backend.tf..."
 cat > backend.tf <<EOF
 # Terraform Backend Configuration
-# S3 backend for storing state - TFDrift will monitor this state
+# S3 backend for storing state - driftwire will monitor this state
 
 terraform {
   backend "s3" {
@@ -128,10 +128,10 @@ echo ""
 echo "📝 Step 4: Creating terraform.tfvars..."
 
 # Generate unique bucket name
-TEST_BUCKET_NAME="tfdrift-test-$(date +%Y%m%d)-$(openssl rand -hex 4)"
+TEST_BUCKET_NAME="driftwire-test-$(date +%Y%m%d)-$(openssl rand -hex 4)"
 
 cat > terraform.tfvars <<EOF
-# TFDrift Test Environment Configuration
+# driftwire Test Environment Configuration
 
 aws_region       = "$AWS_REGION"
 environment      = "test"
@@ -177,7 +177,7 @@ if [ "$APPLY" = "yes" ]; then
     echo "💾 Saving configuration..."
     cat > ../config-test-env.sh <<EOF
 #!/bin/bash
-# Auto-generated configuration for TFDrift test environment
+# Auto-generated configuration for driftwire test environment
 
 export AWS_REGION="$AWS_REGION"
 export STATE_BUCKET="$STATE_BUCKET"
@@ -199,7 +199,7 @@ EOF
     echo "Next steps:"
     echo "1. Source the config: source ../config-test-env.sh"
     echo "2. Update ../../config.yaml with the state location"
-    echo "3. Run TFDrift: cd ../.. && ./tfdrift --config config.yaml"
+    echo "3. Run driftwire: cd ../.. && ./driftwire --config config.yaml"
     echo "4. Try drift scenarios in README.md"
 else
     echo "Skipping apply. Run 'terraform apply' manually when ready."

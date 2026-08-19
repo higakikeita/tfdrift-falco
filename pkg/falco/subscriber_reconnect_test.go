@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 	"github.com/stretchr/testify/require"
 )
 

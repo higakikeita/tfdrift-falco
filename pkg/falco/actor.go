@@ -3,7 +3,7 @@ package falco
 import (
 	"strings"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // resolveActor enriches a CloudTrail userIdentity so the human "who" is
@@ -14,7 +14,7 @@ import (
 // role-assumption call appears, i.e. the common enterprise case — userName is
 // empty; the human identifier lives in the ARN's session name
 // (arn:aws:sts::<acct>:assumed-role/<Role>/<session>) or in the principalId
-// (<AROA...>:<session>). Without this, TFDrift-Falco's headline "who changed
+// (<AROA...>:<session>). Without this, driftwire's headline "who changed
 // it" is blank exactly when it matters most (pus #7 in ADR-0012).
 func resolveActor(ui types.UserIdentity) types.UserIdentity {
 	if ui.UserName != "" {

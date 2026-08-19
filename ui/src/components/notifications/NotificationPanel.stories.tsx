@@ -80,7 +80,7 @@ export const InHeader: Story = {
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            TFDrift Dashboard
+            driftwire Dashboard
           </h1>
         </div>
         <div className="flex items-center gap-4">

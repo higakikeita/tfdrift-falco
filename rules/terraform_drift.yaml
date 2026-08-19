@@ -1,6 +1,6 @@
-# TFDrift-Falco Rules
+# driftwire Rules
 #
-# These rules select the CloudTrail events that TFDrift-Falco inspects for
+# These rules select the CloudTrail events that driftwire inspects for
 # drift. The event list is kept in lock-step with the backend's authoritative
 # capability set in pkg/falco/configs/event_mappings.yaml: every event named
 # here is in `relevant_events` AND has a `resource_id_fields` mapping, so an

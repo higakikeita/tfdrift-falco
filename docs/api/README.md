@@ -1,10 +1,10 @@
 # API Documentation
 
-TFDrift-Falco provides comprehensive APIs for interacting with the system, accessing Terraform state, receiving alerts, and monitoring drift detection in real-time.
+driftwire provides comprehensive APIs for interacting with the system, accessing Terraform state, receiving alerts, and monitoring drift detection in real-time.
 
 ## API Overview
 
-The TFDrift-Falco API suite includes:
+The driftwire API suite includes:
 
 - **REST API**: Standard HTTP endpoints for querying state, retrieving alerts, and accessing system statistics
 - **WebSocket API**: Real-time bidirectional communication for live event streaming
@@ -132,4 +132,4 @@ API requests are rate-limited to ensure fair usage. Current limits:
 
 ## Support
 
-For API questions and issues, refer to the main [TFDrift-Falco documentation](../README.md) or create an issue on the project repository.
+For API questions and issues, refer to the main [driftwire documentation](../README.md) or create an issue on the project repository.

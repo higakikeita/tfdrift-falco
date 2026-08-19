@@ -35,10 +35,10 @@ cp examples/config.yaml config.yaml
 
 **記事で提案している手順**:
 1. Falco を単独で起動
-2. TFDrift-Falco を別途起動
+2. driftwire を別途起動
 
 **実際のプロジェクト**:
-- `docker-compose.yml` に Falco と TFDrift-Falco の両方が含まれている
+- `docker-compose.yml` に Falco と driftwire の両方が含まれている
 - 一度に起動可能
 
 **修正案**:
@@ -76,8 +76,8 @@ cp examples/config.yaml config.yaml
 1. **プロジェクトをクローン**
    ```bash
    cd ~/
-   git clone https://github.com/higakikeita/tfdrift-falco.git
-   cd tfdrift-falco
+   git clone https://github.com/higakikeita/driftwire.git
+   cd driftwire
    ```
 
 2. **設定ファイルを作成**
@@ -149,8 +149,8 @@ cp examples/config.yaml config.yaml
    # Falco のみ
    docker-compose logs -f falco
 
-   # TFDrift のみ
-   docker-compose logs -f tfdrift
+   # driftwire のみ
+   docker-compose logs -f driftwire
    ```
 
 3. **期待される出力**
@@ -163,9 +163,9 @@ cp examples/config.yaml config.yaml
    Starting gRPC server at 0.0.0.0:5060
    ```
 
-   **TFDrift-Falco**:
+   **driftwire**:
    ```
-   INFO[2025-12-05] Starting TFDrift-Falco v0.1.0
+   INFO[2025-12-05] Starting driftwire v0.1.0
    INFO[2025-12-05] Connected to Falco gRPC: falco:5060
    INFO[2025-12-05] Loaded Terraform state: 42 resources
    INFO[2025-12-05] Drift detection started
@@ -232,7 +232,7 @@ ls -la /path/to/your/terraform/terraform.tfstate
 docker-compose config | grep -A5 volumes
 ```
 
-### 問題3: Falco と TFDrift-Falco が接続できない
+### 問題3: Falco と driftwire が接続できない
 
 **エラー**:
 ```
@@ -252,7 +252,7 @@ docker-compose ps falco
 docker-compose exec falco grpc_health_probe -addr=:5060
 
 # ネットワークを確認
-docker network inspect tfdrift-network
+docker network inspect driftwire-network
 ```
 
 ## 推奨する記事の修正内容

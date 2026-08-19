@@ -1,4 +1,4 @@
-# TFDrift-Falco Operations Runbook
+# driftwire Operations Runbook
 
 **Version**: v0.9.0
 **Last Updated**: 2026-03-22
@@ -46,7 +46,7 @@
 ### Key Environment Variables
 
 ```
-TFDRIFT_API_AUTH_JWT_SECRET  - JWT signing key (required if auth enabled)
+DRIFTWIRE_API_AUTH_JWT_SECRET  - JWT signing key (required if auth enabled)
 AWS_PROFILE                 - AWS credentials profile
 AWS_REGION                  - Default AWS region
 GOOGLE_APPLICATION_CREDENTIALS - GCP service account key path
@@ -112,8 +112,8 @@ readinessProbe:
 **Symptoms**: Health check failing, 502/503 from ingress, no API responses
 
 **Steps**:
-1. Check pod status: `kubectl get pods -l app.kubernetes.io/name=tfdrift-falco`
-2. Check pod logs: `kubectl logs -l app.kubernetes.io/name=tfdrift-falco --tail=100`
+1. Check pod status: `kubectl get pods -l app.kubernetes.io/name=driftwire`
+2. Check pod logs: `kubectl logs -l app.kubernetes.io/name=driftwire --tail=100`
 3. Check pod events: `kubectl describe pod <pod-name>`
 4. If OOMKilled: increase memory limits in values.yaml, redeploy
 5. If CrashLoopBackOff: check config.yaml validity, check Falco connectivity
@@ -129,7 +129,7 @@ readinessProbe:
 **Symptoms**: Memory > 90%, OOM kills, slow responses
 
 **Steps**:
-1. Check memory: `kubectl top pod -l app.kubernetes.io/name=tfdrift-falco`
+1. Check memory: `kubectl top pod -l app.kubernetes.io/name=driftwire`
 2. Check graph size: `curl -s http://localhost:8080/api/v1/graph/stats | jq .`
 3. If graph is very large (>10K nodes): review event ingestion rate
 4. Check for memory leaks in Go runtime:
@@ -153,7 +153,7 @@ readinessProbe:
 1. Check Falco pod: `kubectl get pods -n falco`
 2. Check Falco gRPC port:
    ```bash
-   kubectl exec -it <tfdrift-pod> -- nc -zv falco 5060
+   kubectl exec -it <driftwire-pod> -- nc -zv falco 5060
    ```
 3. Check NetworkPolicy allows egress to Falco namespace
 4. Verify Falco config has gRPC output enabled:
@@ -165,9 +165,9 @@ readinessProbe:
    grpc_output:
      enabled: true
    ```
-5. Check TFDrift-Falco logs for reconnection attempts
+5. Check driftwire logs for reconnection attempts
 
-**Resolution**: Fix Falco connectivity, TFDrift-Falco will auto-reconnect.
+**Resolution**: Fix Falco connectivity, driftwire will auto-reconnect.
 
 ---
 
@@ -236,11 +236,11 @@ Problem: API not responding
 Problem: No events being detected
 ├── Is Falco running and healthy?
 │   ├── No → Fix Falco first
-│   └── Yes → Can TFDrift reach Falco gRPC?
+│   └── Yes → Can driftwire reach Falco gRPC?
 │       ├── No → Check NetworkPolicy, DNS, port
 │       └── Yes → Are events appearing in Falco?
 │           ├── No → Check Falco rules and plugin config
-│           └── Yes → Check TFDrift subscriber logs for parse errors
+│           └── Yes → Check driftwire subscriber logs for parse errors
 
 Problem: Drift not detected for known change
 ├── Is the cloud provider enabled in config?
@@ -293,10 +293,10 @@ Note: Each replica maintains its own in-memory graph. For shared state across re
 
 ```bash
 # Backup ConfigMap
-kubectl get configmap <release>-tfdrift-falco-config -o yaml > config-backup.yaml
+kubectl get configmap <release>-driftwire-config -o yaml > config-backup.yaml
 
 # Backup Secret
-kubectl get secret <release>-tfdrift-falco-secret -o yaml > secret-backup.yaml
+kubectl get secret <release>-driftwire-secret -o yaml > secret-backup.yaml
 
 # Backup Helm values
 helm get values <release> > values-backup.yaml
@@ -306,17 +306,17 @@ helm get values <release> > values-backup.yaml
 
 ```bash
 # From Helm values backup
-helm upgrade <release> charts/tfdrift-falco -f values-backup.yaml
+helm upgrade <release> charts/driftwire -f values-backup.yaml
 
 # Or from scratch
-helm install <release> charts/tfdrift-falco \
+helm install <release> charts/driftwire \
   --set config.auth.jwtSecret="<secret>" \
   --set config.providers.aws.state.s3Bucket="<bucket>"
 ```
 
 ### State Recovery
 
-TFDrift-Falco uses in-memory graph storage. After a restart:
+driftwire uses in-memory graph storage. After a restart:
 1. Terraform state is reloaded automatically from the configured backend
 2. Graph is rebuilt from current state
 3. Historical events are lost (they exist in Falco/SIEM logs)
@@ -345,23 +345,23 @@ TFDrift-Falco uses in-memory graph storage. After a restart:
 
 ```bash
 # All errors in last hour
-kubectl logs -l app.kubernetes.io/name=tfdrift-falco --since=1h | jq 'select(.level == "error")'
+kubectl logs -l app.kubernetes.io/name=driftwire --since=1h | jq 'select(.level == "error")'
 
 # Drift events by severity
-kubectl logs -l app.kubernetes.io/name=tfdrift-falco --since=24h | jq 'select(.msg == "Drift detected") | {severity, resource_type, user}'
+kubectl logs -l app.kubernetes.io/name=driftwire --since=24h | jq 'select(.msg == "Drift detected") | {severity, resource_type, user}'
 
 # Auth failures
-kubectl logs -l app.kubernetes.io/name=tfdrift-falco --since=1h | jq 'select(.msg | contains("auth")) | {msg, time}'
+kubectl logs -l app.kubernetes.io/name=driftwire --since=1h | jq 'select(.msg | contains("auth")) | {msg, time}'
 
 # Rate limit events
-kubectl logs -l app.kubernetes.io/name=tfdrift-falco --since=1h | jq 'select(.msg | contains("rate limit"))'
+kubectl logs -l app.kubernetes.io/name=driftwire --since=1h | jq 'select(.msg | contains("rate limit"))'
 ```
 
 ---
 
 ## Common Alert Responses
 
-### Alert: TFDriftFalcoDown
+### Alert: driftwireFalcoDown
 
 **Condition**: Health check failing for > 2 minutes
 
@@ -369,7 +369,7 @@ kubectl logs -l app.kubernetes.io/name=tfdrift-falco --since=1h | jq 'select(.ms
 1. Follow INC-001 playbook
 2. Escalate to P1 if not resolved in 15 minutes
 
-### Alert: TFDriftFalcoHighMemory
+### Alert: driftwireFalcoHighMemory
 
 **Condition**: Memory > 80% for > 5 minutes
 
@@ -377,7 +377,7 @@ kubectl logs -l app.kubernetes.io/name=tfdrift-falco --since=1h | jq 'select(.ms
 1. Follow INC-002 playbook
 2. Consider immediate scale-up
 
-### Alert: TFDriftFalcoHighErrorRate
+### Alert: driftwireFalcoHighErrorRate
 
 **Condition**: 5xx error rate > 5% for > 5 minutes
 
@@ -386,7 +386,7 @@ kubectl logs -l app.kubernetes.io/name=tfdrift-falco --since=1h | jq 'select(.ms
 2. Check recent deployments (rollback if needed)
 3. Check cloud API status pages
 
-### Alert: TFDriftFalcoCriticalDrift
+### Alert: driftwireFalcoCriticalDrift
 
 **Condition**: Critical severity drift event detected
 
@@ -404,23 +404,23 @@ kubectl logs -l app.kubernetes.io/name=tfdrift-falco --since=1h | jq 'select(.ms
 
 ```bash
 # Update image tag
-helm upgrade <release> charts/tfdrift-falco --set image.tag=v0.8.1
+helm upgrade <release> charts/driftwire --set image.tag=v0.8.1
 
 # Verify rollout
-kubectl rollout status deployment/<release>-tfdrift-falco
+kubectl rollout status deployment/<release>-driftwire
 
 # Rollback if needed
-kubectl rollout undo deployment/<release>-tfdrift-falco
+kubectl rollout undo deployment/<release>-driftwire
 ```
 
 ### Config Change
 
 ```bash
 # Update values and apply
-helm upgrade <release> charts/tfdrift-falco -f values.yaml
+helm upgrade <release> charts/driftwire -f values.yaml
 
 # Force pod restart for config changes
-kubectl rollout restart deployment/<release>-tfdrift-falco
+kubectl rollout restart deployment/<release>-driftwire
 ```
 
 ### API Key Rotation

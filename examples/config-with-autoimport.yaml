@@ -1,4 +1,4 @@
-# TFDrift-Falco Configuration with Auto-Import
+# driftwire Configuration with Auto-Import
 
 providers:
   aws:

@@ -97,7 +97,7 @@ terraform version
 ### 2. デプロイ実行
 
 ```bash
-cd ~/tfdrift-falco/examples/comprehensive-test
+cd ~/driftwire/examples/comprehensive-test
 
 # 初期化
 terraform init

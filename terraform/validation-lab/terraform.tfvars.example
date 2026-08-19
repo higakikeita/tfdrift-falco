@@ -1,6 +1,6 @@
 # Copy to terraform.tfvars and adjust. All values have sensible lean defaults.
 region      = "ap-northeast-1"
-name_prefix = "tfdrift-lab"
+name_prefix = "driftwire-lab"
 
 # EKS — keep small for a short-lived lab
 eks_cluster_version    = "1.31"

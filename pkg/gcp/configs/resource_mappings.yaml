@@ -1,4 +1,4 @@
-# GCP Audit Log Event Mappings for tfdrift-falco
+# GCP Audit Log Event Mappings for driftwire
 # This file defines GCP method names to Terraform resource type mappings
 # and relevant event method names for drift detection
 

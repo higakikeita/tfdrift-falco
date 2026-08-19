@@ -1,5 +1,5 @@
 # runtime artifacts produced by run.sh / scan.sh
-.tfdrift
+.driftwire
 .backend.log
 .backend.pid
 .ui.log

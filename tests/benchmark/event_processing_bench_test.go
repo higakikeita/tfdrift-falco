@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // BenchmarkEventProcessing_Single measures single event processing performance

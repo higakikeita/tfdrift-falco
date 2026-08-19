@@ -2,14 +2,14 @@
 
 # Default target
 help:
-	@echo "TFDrift-Falco Local E2E Test Environment"
+	@echo "driftwire Local E2E Test Environment"
 	@echo ""
 	@echo "Available targets:"
 	@echo "  make up              - Start all services (docker-compose up -d)"
 	@echo "  make down            - Stop and remove all services"
 	@echo "  make logs            - Follow logs from all services"
 	@echo "  make logs-falco      - Follow logs from mock Falco server"
-	@echo "  make logs-tfdrift    - Follow logs from TFDrift API server"
+	@echo "  make logs-driftwire    - Follow logs from driftwire API server"
 	@echo "  make test            - Run E2E tests (requires services running)"
 	@echo "  make test-quick      - Quick test run (no service startup)"
 	@echo "  make clean           - Remove all containers and volumes"
@@ -17,7 +17,7 @@ help:
 	@echo "  make build-mock      - Build mock Falco server binary locally"
 	@echo "  make ps              - Show running containers"
 	@echo "  make shell-falco     - Open shell in mock Falco container"
-	@echo "  make shell-tfdrift   - Open shell in TFDrift container"
+	@echo "  make shell-driftwire   - Open shell in driftwire container"
 	@echo ""
 	@echo "Example workflow:"
 	@echo "  1. make build       # Build images"
@@ -43,9 +43,9 @@ logs:
 logs-falco:
 	docker-compose -f docker-compose.yml logs -f mock-falco
 
-# Follow TFDrift logs only
-logs-tfdrift:
-	docker-compose -f docker-compose.yml logs -f tfdrift
+# Follow driftwire logs only
+logs-driftwire:
+	docker-compose -f docker-compose.yml logs -f driftwire
 
 # Run E2E tests (assumes services are running)
 test:
@@ -70,15 +70,15 @@ ps:
 # Clean up all containers and volumes
 clean: down
 	docker-compose -f docker-compose.yml rm -f
-	docker volume rm tfdrift_data tfdrift_config 2>/dev/null || true
+	docker volume rm driftwire_data driftwire_config 2>/dev/null || true
 
 # Open shell in mock Falco container
 shell-falco:
 	docker-compose -f docker-compose.yml exec mock-falco sh
 
-# Open shell in TFDrift container
-shell-tfdrift:
-	docker-compose -f docker-compose.yml exec tfdrift sh
+# Open shell in driftwire container
+shell-driftwire:
+	docker-compose -f docker-compose.yml exec driftwire sh
 
 # Full test cycle: build -> up -> test -> down
 full-test: build up test down
@@ -88,5 +88,5 @@ health:
 	@echo "Checking Falco health..."
 	@curl -s http://localhost:8081/health | jq .
 	@echo ""
-	@echo "Checking TFDrift health..."
+	@echo "Checking driftwire health..."
 	@curl -s http://localhost:8080/health | jq .

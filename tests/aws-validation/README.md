@@ -1,6 +1,6 @@
-# TFDrift-Falco AWS Validation
+# driftwire AWS Validation
 
-End-to-end validation of tfdrift-falco in a real AWS environment.
+End-to-end validation of driftwire in a real AWS environment.
 Uses Sysdig dev account (230446364776) via Okta SSO.
 
 ## Prerequisites
@@ -30,7 +30,7 @@ aws sts get-caller-identity --profile draios-dev-developer
 tests/aws-validation/
 ├── phase1-resources/     # VPC, EC2, S3, IAM (drift targets)
 ├── phase2-eks/           # EKS cluster for Falco
-├── phase3-deploy/        # Falco Helm values + tfdrift K8s manifests
+├── phase3-deploy/        # Falco Helm values + driftwire K8s manifests
 ├── scripts/
 │   ├── create-state-bucket.sh   # One-time: create TF state bucket
 │   ├── discover-cloudtrail.sh   # Find existing CloudTrail config
@@ -78,7 +78,7 @@ kubectl get nodes
 **Resources created**: EKS cluster, 1 spot node (t4g.medium), IAM roles.
 **Estimated cost**: ~$75/month (EKS control plane $0.10/hr + spot node)
 
-## Phase 3: Deploy Falco + TFDrift-Falco (~10 min)
+## Phase 3: Deploy Falco + driftwire (~10 min)
 
 ```bash
 cd phase3-deploy
@@ -99,12 +99,12 @@ helm install falco falcosecurity/falco \
 kubectl -n falco get pods
 kubectl -n falco logs -l app.kubernetes.io/name=falco --tail=20
 
-# 3. Deploy tfdrift-falco
-kubectl apply -f tfdrift-falco.yaml
+# 3. Deploy driftwire
+kubectl apply -f driftwire.yaml
 
 # 4. Verify
-kubectl -n tfdrift get pods
-kubectl -n tfdrift logs -l app=tfdrift-falco --tail=20
+kubectl -n driftwire get pods
+kubectl -n driftwire logs -l app=driftwire --tail=20
 ```
 
 ## Phase 4: Trigger & Validate Drift (~20 min)
@@ -119,11 +119,11 @@ kubectl -n tfdrift logs -l app=tfdrift-falco --tail=20
 # 3. Check Falco logs for CloudTrail events
 kubectl -n falco logs -l app.kubernetes.io/name=falco --tail=50 | grep -i "security\|instance\|bucket"
 
-# 4. Check tfdrift-falco for drift detection
-kubectl -n tfdrift logs -l app=tfdrift-falco --tail=50
+# 4. Check driftwire for drift detection
+kubectl -n driftwire logs -l app=driftwire --tail=50
 
-# 5. (Optional) Access tfdrift UI
-kubectl -n tfdrift port-forward svc/tfdrift-falco 8080:8080
+# 5. (Optional) Access driftwire UI
+kubectl -n driftwire port-forward svc/driftwire 8080:8080
 # Open http://localhost:8080
 ```
 
@@ -151,12 +151,12 @@ kubectl -n tfdrift port-forward svc/tfdrift-falco 8080:8080
 - For org-level trails, the bucket may be in a different account
 - Try direct S3 polling mode (edit `falco-values.yaml`, remove sqsQueue, set s3Bucket)
 
-### tfdrift-falco can't read TF state
-- Verify the node role has S3 access to `tfdrift-validation-state`
+### driftwire can't read TF state
+- Verify the node role has S3 access to `driftwire-validation-state`
 - Check IRSA annotation if using service account roles
 
 ### EKS nodes not joining
-- Check node group status: `aws eks describe-nodegroup --cluster-name tfdrift-val-eks --nodegroup-name tfdrift-val-eks-ng --profile draios-dev-developer`
+- Check node group status: `aws eks describe-nodegroup --cluster-name driftwire-val-eks --nodegroup-name driftwire-val-eks-ng --profile draios-dev-developer`
 - Spot capacity may be unavailable — try on-demand by changing `capacity_type` in phase2-eks/main.tf
 
 ### Permission denied on CloudTrail bucket

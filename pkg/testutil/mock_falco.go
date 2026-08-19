@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // MockFalcoClient is a mock implementation of Falco client for testing

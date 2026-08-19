@@ -1,28 +1,33 @@
-# TFDrift-Falco
+# driftwire
 
-**Falcoを活用したリアルタイムTerraformドリフト検知**
+**リアルタイム IaC ドリフト検知。誰がクラウドを変えたのか、いつなのかが分かる。**（Terraform / OpenTofu）
 
-[![Version](https://img.shields.io/badge/version-0.14.0-blue)](https://github.com/higakikeita/tfdrift-falco/releases)
+[![Version](https://img.shields.io/badge/version-0.14.0-blue)](https://github.com/higakikeita/driftwire/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?logo=go)](https://golang.org/)
 [![Falco](https://img.shields.io/badge/Falco-Compatible-blue)](https://falco.org/)
-[![Docker](https://img.shields.io/badge/Docker-GHCR-2496ED?logo=docker)](https://ghcr.io/higakikeita/tfdrift-falco)
+[![Docker](https://img.shields.io/badge/Docker-GHCR-2496ED?logo=docker)](https://ghcr.io/higakikeita/driftwire)
 
 > **v0.14.0** (2026-07-20) — OpenTofu 対応（`auto_import.tool: terraform|tofu`）
 > [リリースノート](docs/release-notes/v0.14.0.md) | [CHANGELOG](CHANGELOG.md) | [ロードマップ](PROJECT_ROADMAP.md)
 
 [English](README.md) | **[日本語]**
 
+> **改名:** 本プロジェクトは v0.14.0 まで `tfdrift-falco` でした。道具は同じ、名前を分かりやすくしただけです。
+> 旧 GitHub URL はリダイレクトされますが、`go install` や module path を固定している場合は
+> `github.com/higakikeita/driftwire` に、イメージは `ghcr.io/higakikeita/driftwire` に更新してください。
+
+
 ---
 
-## TFDrift-Falcoとは？
+## driftwireとは？
 
-TFDrift-Falcoは、AWS・GCP・Azureにまたがるインフラのドリフトを**リアルタイム**で検知するツールです。Falcoのランタイムセキュリティ監視とTerraformステート比較を組み合わせ、定期スキャンでは得られない「**誰が**、**いつ**、**何を**変更したか」を変更の瞬間に捕捉します。
+driftwireは、AWS・GCP・Azureにまたがるインフラのドリフトを**リアルタイム**で検知するツールです。Falcoのランタイムセキュリティ監視とTerraformステート比較を組み合わせ、定期スキャンでは得られない「**誰が**、**いつ**、**何を**変更したか」を変更の瞬間に捕捉します。
 
 ```
 AWSコンソールでセキュリティグループを変更
   → FalcoがCloudTrailイベントをリアルタイムで検知
-    → TFDrift-FalcoがTerraformステートと比較
+    → driftwireがTerraformステートと比較
       → ユーザー情報と変更詳細を含む即時アラート
 ```
 
@@ -34,7 +39,7 @@ AWSコンソールでセキュリティグループを変更
 
 ```bash
 # クローンして設定
-git clone https://github.com/higakikeita/tfdrift-falco.git && cd tfdrift-falco
+git clone https://github.com/higakikeita/driftwire.git && cd driftwire
 ./quick-start.sh --yes   # config.yaml・TLS証明書・.env を生成
 
 # ローカル UI/API デモを起動（backend + frontend + Falco gRPC）
@@ -125,7 +130,7 @@ providers:
 
 **本番運用ツール** — レートリミット、OpenAPI 3.0仕様、Kubernetes Helm Chart（HPA、NetworkPolicy対応）。
 
-> ⚠️ **セキュリティ注意:** API サーバに**認証は未内蔵**です（JWT/APIキー認証は [security roadmap](SECURITY.md) 上で未実装）。TFDrift-Falco は localhost または信頼できるネットワーク限定で、手前のゲートウェイ/mTLS の背後で動かしてください。**公開インターネットに直接晒さないでください。**
+> ⚠️ **セキュリティ注意:** API サーバに**認証は未内蔵**です（JWT/APIキー認証は [security roadmap](SECURITY.md) 上で未実装）。driftwire は localhost または信頼できるネットワーク限定で、手前のゲートウェイ/mTLS の背後で動かしてください。**公開インターネットに直接晒さないでください。**
 
 ---
 
@@ -184,13 +189,13 @@ docker compose up -d
 ### Kubernetes (Helm)
 
 ```bash
-helm install tfdrift ./charts/tfdrift-falco
+helm install driftwire ./charts/driftwire
 ```
 
 ### ソースからビルド
 
 ```bash
-make build    # バイナリ: ./bin/tfdrift
+make build    # バイナリ: ./bin/driftwire
 make test     # テスト実行
 make lint     # Lint実行
 ```
@@ -220,7 +225,7 @@ make lint     # Lint実行
 
 従来のドリフト検知は定期スキャン — 変更を見つけた時には「誰が」「なぜ」は失われています。Falcoはクラウド監査ログをプラグインフレームワークでリアルタイム監視し、変更の瞬間に行為者・行為・意図を捕捉します。
 
-TFDrift-Falcoは設計図（Terraform）と証人（Falco）の2つの世界を橋渡しします。
+driftwireは設計図（Terraform）と証人（Falco）の2つの世界を橋渡しします。
 
 全文はこちら: [Why Falco?](docs/WHY_FALCO_STORY.md)
 

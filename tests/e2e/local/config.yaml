@@ -1,4 +1,4 @@
-# TFDrift-Falco Local E2E Test Configuration
+# driftwire Local E2E Test Configuration
 # Used by docker-compose for testing without real cloud resources
 
 providers:

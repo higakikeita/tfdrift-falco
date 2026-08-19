@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers deploying the TFDrift-Falco website to Vercel.
+This guide covers deploying the driftwire website to Vercel.
 
 ## Quick Deploy
 
@@ -66,7 +66,7 @@ NEXT_PUBLIC_SITE_URL=https://yourdomain.com  # Your site URL
 
 ## Custom Domain Setup
 
-To use a custom domain (e.g., `tfdrift-falco.com`), see the detailed guide:
+To use a custom domain (e.g., `driftwire.com`), see the detailed guide:
 
 👉 **[Custom Domain Setup Guide](./DOMAIN_SETUP.md)**
 
@@ -84,7 +84,7 @@ None - the site works without environment variables.
 
 - `NEXT_PUBLIC_SITE_URL`: Your production URL
   - Used for: SEO metadata, canonical URLs
-  - Example: `https://tfdrift-falco.com`
+  - Example: `https://driftwire.com`
 
 ### Setting Environment Variables
 
@@ -211,7 +211,7 @@ The website is pre-optimized with:
 
 The `/docs` page redirects to MkDocs on GitHub Pages. If it fails:
 
-1. Verify MkDocs is deployed: https://higakikeita.github.io/tfdrift-falco/
+1. Verify MkDocs is deployed: https://higakikeita.github.io/driftwire/
 2. Check `app/docs/page.tsx` has correct redirect URL
 
 ## GitHub Actions CI/CD (Optional)
@@ -264,4 +264,4 @@ If you encounter deployment issues:
 
 1. Check [Vercel Status](https://www.vercel-status.com/)
 2. Visit [Vercel Community](https://github.com/vercel/vercel/discussions)
-3. Open an issue in [TFDrift-Falco repository](https://github.com/higakikeita/tfdrift-falco/issues)
+3. Open an issue in [driftwire repository](https://github.com/higakikeita/driftwire/issues)

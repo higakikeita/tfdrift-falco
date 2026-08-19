@@ -3,7 +3,7 @@ package graph
 import (
 	"strings"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/terraform"
 	log "github.com/sirupsen/logrus"
 )
 

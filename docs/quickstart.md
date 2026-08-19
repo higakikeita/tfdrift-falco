@@ -1,8 +1,8 @@
 # Quickstart Guide (v0.14.0)
 
-Get TFDrift-Falco up and running in 5 minutes with Dashboard UI.
+Get driftwire up and running in 5 minutes with Dashboard UI.
 
-> **Tip:** 最短で試すなら、リポジトリの [README Quick Start](https://github.com/higakikeita/tfdrift-falco#quick-start)（`--server` モード / `./quick-start.sh`）から。本ガイドは Kubernetes + Helm での本格セットアップを扱います。公式イメージ: `ghcr.io/higakikeita/tfdrift-falco:v0.13.0`
+> **Tip:** 最短で試すなら、リポジトリの [README Quick Start](https://github.com/higakikeita/driftwire#quick-start)（`--server` モード / `./quick-start.sh`）から。本ガイドは Kubernetes + Helm での本格セットアップを扱います。公式イメージ: `ghcr.io/higakikeita/driftwire:v0.13.0`
 
 ---
 
@@ -22,8 +22,8 @@ Get TFDrift-Falco up and running in 5 minutes with Dashboard UI.
 ## Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/higakikeita/tfdrift-falco.git
-cd tfdrift-falco
+git clone https://github.com/higakikeita/driftwire.git
+cd driftwire
 ```
 
 ---
@@ -42,7 +42,7 @@ aws cloudtrail describe-trails --region us-east-1
 
 ```bash
 aws cloudtrail create-trail \
-  --name tfdrift-trail \
+  --name driftwire-trail \
   --s3-bucket-name my-cloudtrail-logs \
   --is-multi-region-trail
 ```
@@ -80,24 +80,24 @@ kubectl get pods -n falco
 
 ---
 
-## Step 4: Deploy TFDrift Rules
+## Step 4: Deploy driftwire Rules
 
-### Apply TFDrift Falco Rules
+### Apply driftwire Falco Rules
 
 ```bash
-kubectl apply -f rules/tfdrift-rules.yaml
+kubectl apply -f rules/driftwire-rules.yaml
 ```
 
 ### Verify Rules Loaded
 
 ```bash
-kubectl logs -n falco -l app.kubernetes.io/name=falco | grep tfdrift
-# Expected: "Loaded tfdrift rules successfully"
+kubectl logs -n falco -l app.kubernetes.io/name=falco | grep driftwire
+# Expected: "Loaded driftwire rules successfully"
 ```
 
 ---
 
-## Step 5: Configure TFDrift Detector
+## Step 5: Configure driftwire Detector
 
 ### Create Configuration File
 
@@ -144,7 +144,7 @@ logging:
 
 ## Step 6: Create AWS IAM Policy
 
-TFDrift requires permissions to read CloudTrail and Terraform state.
+driftwire requires permissions to read CloudTrail and Terraform state.
 
 ### Create IAM Policy
 
@@ -179,16 +179,16 @@ TFDrift requires permissions to read CloudTrail and Terraform state.
 
 ```bash
 eksctl create iamserviceaccount \
-  --name tfdrift-detector \
+  --name driftwire-detector \
   --namespace default \
   --cluster my-eks-cluster \
-  --attach-policy-arn arn:aws:iam::123456789012:policy/TFDriftPolicy \
+  --attach-policy-arn arn:aws:iam::123456789012:policy/driftwirePolicy \
   --approve
 ```
 
 ---
 
-## Step 7: Deploy TFDrift Detector
+## Step 7: Deploy driftwire Detector
 
 ### Create Kubernetes Deployment
 
@@ -199,18 +199,18 @@ kubectl apply -f deployments/detector/deployment.yaml
 ### Verify Detector Running
 
 ```bash
-kubectl get pods -l app=tfdrift-detector
+kubectl get pods -l app=driftwire-detector
 # Expected output:
 # NAME                                READY   STATUS    RESTARTS   AGE
-# tfdrift-detector-xxxxx              1/1     Running   0          30s
+# driftwire-detector-xxxxx              1/1     Running   0          30s
 ```
 
 ### Check Logs
 
 ```bash
-kubectl logs -l app=tfdrift-detector --tail=50
+kubectl logs -l app=driftwire-detector --tail=50
 # Expected output:
-# {"level":"info","msg":"TFDrift Detector started","version":"v0.2.0-beta"}
+# {"level":"info","msg":"driftwire Detector started","version":"v0.2.0-beta"}
 # {"level":"info","msg":"Polling CloudTrail","interval":"1m"}
 ```
 
@@ -230,8 +230,8 @@ aws ec2 modify-instance-attribute \
 ### Verify Drift Detected
 
 ```bash
-# Check TFDrift logs
-kubectl logs -l app=tfdrift-detector --tail=20
+# Check driftwire logs
+kubectl logs -l app=driftwire-detector --tail=20
 # Expected output:
 # {"level":"warning","msg":"Drift detected","service":"ec2","event":"ModifyInstanceAttribute","resource":"i-0123456789abcdef0"}
 
@@ -343,9 +343,9 @@ curl http://localhost:8080/health
 **Solution:**
 ```bash
 # Check if API server is running
-docker ps | grep tfdrift-api
+docker ps | grep driftwire-api
 # or:
-# ps aux | grep "api\|tfdrift"
+# ps aux | grep "api\|driftwire"
 
 # Check API logs
 docker logs <api_container_id>
@@ -357,22 +357,22 @@ netstat -tuln | grep 8080
 docker restart <api_container_id>
 ```
 
-### TFDrift Detector Not Starting
+### driftwire Detector Not Starting
 
 **Symptom:** Pod in `CrashLoopBackOff`
 
 **Solution:**
 ```bash
 # Check logs for errors
-kubectl logs -l app=tfdrift-detector --previous
+kubectl logs -l app=driftwire-detector --previous
 
 # Common issues:
 # 1. AWS credentials not configured
-kubectl describe pod -l app=tfdrift-detector
+kubectl describe pod -l app=driftwire-detector
 # Check for ServiceAccount annotation
 
 # 2. Config file invalid
-kubectl get configmap tfdrift-config -o yaml
+kubectl get configmap driftwire-config -o yaml
 # Verify YAML syntax
 ```
 
@@ -385,12 +385,12 @@ kubectl get configmap tfdrift-config -o yaml
 # 1. Verify CloudTrail is logging events
 aws cloudtrail lookup-events --max-results 10
 
-# 2. Check TFDrift is polling CloudTrail
-kubectl logs -l app=tfdrift-detector | grep "Polling CloudTrail"
+# 2. Check driftwire is polling CloudTrail
+kubectl logs -l app=driftwire-detector | grep "Polling CloudTrail"
 
 # 3. Verify Falco rules loaded
 kubectl exec -n falco -it falco-xxxxx -- falco --list
-# Should show tfdrift rules
+# Should show driftwire rules
 ```
 
 ### Terraform State Not Found
@@ -435,4 +435,4 @@ aws sts get-caller-identity
 - [Full Deployment Guide →](deployment.md)
 - [Falco Setup Guide →](falco-setup.md)
 - [Troubleshooting Guide →](deployment.md#troubleshooting)
-- [GitHub Issues →](https://github.com/higakikeita/tfdrift-falco/issues)
+- [GitHub Issues →](https://github.com/higakikeita/driftwire/issues)

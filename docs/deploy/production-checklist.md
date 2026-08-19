@@ -1,6 +1,6 @@
-# TFDrift-Falco Production Deployment Checklist
+# driftwire Production Deployment Checklist
 
-Use this checklist before deploying TFDrift-Falco to production. Check off items as you complete them.
+Use this checklist before deploying driftwire to production. Check off items as you complete them.
 
 ## Security
 

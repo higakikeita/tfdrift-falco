@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // TestNodeCreation tests basic node creation and retrieval

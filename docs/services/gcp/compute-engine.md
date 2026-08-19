@@ -9,7 +9,7 @@
 
 ## Overview
 
-TFDrift-Falco monitors Google Compute Engine instance changes through GCP Audit Logs, detecting configuration drift in real-time.
+driftwire monitors Google Compute Engine instance changes through GCP Audit Logs, detecting configuration drift in real-time.
 
 ---
 
@@ -63,7 +63,7 @@ gcloud compute instances add-metadata web-server-01 \
   --metadata=debug=true
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```json
 {
   "severity": "high",
@@ -99,7 +99,7 @@ gcloud compute instances set-machine-type app-server-01 \
   --machine-type=n1-standard-4
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```json
 {
   "severity": "critical",
@@ -137,7 +137,7 @@ gcloud compute instances update db-server-01 \
   --no-deletion-protection
 ```
 
-**TFDrift-Falco Alert:**
+**driftwire Alert:**
 ```json
 {
   "severity": "critical",
@@ -219,7 +219,7 @@ drift_rules:
 
 ### State Correlation
 
-TFDrift-Falco extracts resource identifiers from GCP Audit Logs and correlates them with Terraform state:
+driftwire extracts resource identifiers from GCP Audit Logs and correlates them with Terraform state:
 
 ```
 GCP Audit Log:

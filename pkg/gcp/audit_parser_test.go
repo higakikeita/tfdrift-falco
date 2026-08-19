@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/falcosecurity/client-go/pkg/api/outputs"
-	"github.com/keitahigaki/tfdrift-falco/pkg/parser"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/parser"
+	"github.com/higakikeita/driftwire/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
 

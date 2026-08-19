@@ -4,7 +4,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/terraform"
 )
 
 // TestMemoryUsage_EventProcessing measures memory usage for event processing

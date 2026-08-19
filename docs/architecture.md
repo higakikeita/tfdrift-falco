@@ -1,4 +1,4 @@
-# TFDrift-Falco Architecture
+# driftwire Architecture
 
 > **Version:** v0.9.0 (Azure Full Support & Real-Time Enhancements)
 > **Supported Providers:** AWS, Google Cloud Platform, Microsoft Azure
@@ -18,7 +18,7 @@
 
 ## System Overview
 
-TFDrift-Falco is designed as a **real-time, event-driven, multi-cloud drift detection system** that bridges the gap between Infrastructure-as-Code (IaC) and runtime security monitoring.
+driftwire is designed as a **real-time, event-driven, multi-cloud drift detection system** that bridges the gap between Infrastructure-as-Code (IaC) and runtime security monitoring.
 
 **v0.9.0 Multi-Cloud Support:**
 - ✅ **AWS** - CloudTrail events, S3 state backend (203 events, 19 services)
@@ -44,7 +44,7 @@ graph TB
         A4[Falco Events]
     end
 
-    subgraph "TFDrift-Falco Core"
+    subgraph "driftwire Core"
         B1[Event Collectors]
         B2[Terraform State Manager]
         B3[Drift Detection Engine]
@@ -670,7 +670,7 @@ sequenceDiagram
     participant U as User/Console
     participant C as Cloud API
     participant CT as CloudTrail/GCP Audit
-    participant TF as TFDrift-Falco
+    participant TF as driftwire
     participant TS as Terraform State
     participant S as Slack
 
@@ -779,7 +779,7 @@ sequenceDiagram
 
 ### Falco Integration
 
-TFDrift-Falco integrates with Falco for both AWS CloudTrail events and GCP Audit Logs (v0.5.0+).
+driftwire integrates with Falco for both AWS CloudTrail events and GCP Audit Logs (v0.5.0+).
 
 **Supported Falco Plugins:**
 - **cloudtrail** - AWS CloudTrail events for AWS infrastructure monitoring
@@ -790,7 +790,7 @@ graph LR
     A[Falco Agent] --> B[Unix Socket<br/>/var/run/falco.sock]
     A --> C[gRPC Output]
 
-    B --> D[TFDrift-Falco<br/>Falco Connector]
+    B --> D[driftwire<br/>Falco Connector]
     C --> D
 
     D --> E[Event Translator]
@@ -809,7 +809,7 @@ graph LR
   condition: >
     evt.type in (open, openat) and
     fd.name glob "*.tfstate*" and
-    not proc.name in (terraform, tfdrift)
+    not proc.name in (terraform, driftwire)
   output: >
     Unauthorized access to Terraform state file
     (user=%user.name file=%fd.name process=%proc.name)
@@ -862,7 +862,7 @@ policies:
 
     actions:
       - type: "webhook"
-        endpoint: "http://tfdrift-falco:8080/webhook/sysdig"
+        endpoint: "http://driftwire:8080/webhook/sysdig"
 
       - type: "slack"
         channel: "#security-drift"
@@ -878,7 +878,7 @@ policies:
 
 ```mermaid
 graph TB
-    A[TFDrift-Falco<br/>Binary] --> B[Config File<br/>config.yaml]
+    A[driftwire<br/>Binary] --> B[Config File<br/>config.yaml]
     A --> C[CloudTrail SQS<br/>or Falco gRPC]
     A --> D[Terraform State<br/>S3/GCS/Local]
     A --> E[Slack Webhook]
@@ -888,7 +888,7 @@ graph TB
 
 ```bash
 # Run as standalone daemon
-tfdrift --config /etc/tfdrift/config.yaml --daemon
+driftwire --config /etc/driftwire/config.yaml --daemon
 
 # Multi-cloud example: Monitor both AWS and GCP (v0.5.0+)
 # - AWS: CloudTrail events via SQS
@@ -903,7 +903,7 @@ tfdrift --config /etc/tfdrift/config.yaml --daemon
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-with-tfdrift
+  name: app-with-driftwire
 spec:
   template:
     spec:
@@ -911,21 +911,21 @@ spec:
         - name: app
           image: myapp:latest
 
-        - name: tfdrift-falco
-          image: keitahigaki/tfdrift-falco:latest
+        - name: driftwire
+          image: higakikeita/driftwire:latest
           volumeMounts:
             - name: config
               mountPath: /config
             - name: falco-socket
               mountPath: /var/run/falco
           env:
-            - name: TFDRIFT_CONFIG
+            - name: DRIFTWIRE_CONFIG
               value: /config/config.yaml
 
       volumes:
         - name: config
           configMap:
-            name: tfdrift-config
+            name: driftwire-config
         - name: falco-socket
           hostPath:
             path: /var/run/falco
@@ -942,7 +942,7 @@ graph TB
     end
 
     subgraph "Central Monitoring"
-        B[TFDrift-Falco<br/>Central Instance]
+        B[driftwire<br/>Central Instance]
         C[Terraform State<br/>Aggregator]
     end
 

@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/rbac"
+	"github.com/higakikeita/driftwire/pkg/rbac"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -1,9 +1,9 @@
 # Terraform Backend Configuration
-# S3 backend for storing state - TFDrift will monitor this state
+# S3 backend for storing state - driftwire will monitor this state
 
 terraform {
   backend "s3" {
-    bucket = "tfdrift-test-state"  # Update with your bucket name
+    bucket = "driftwire-test-state"  # Update with your bucket name
     key    = "test-environment/terraform.tfstate"
     region = "us-east-1"           # Update with your region
 

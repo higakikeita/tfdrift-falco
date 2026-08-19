@@ -1,18 +1,18 @@
 ---
-title: "TFDrift-Falco で実現するリアルタイム Terraform Drift 検知"
+title: "driftwire で実現するリアルタイム Terraform Drift 検知"
 emoji: "🛰️"
 type: "tech"
 topics: ["terraform", "aws", "falco", "iac", "devops"]
 published: false
 ---
 
-# TFDrift-Falco とは？
+# driftwire とは？
 
 「AWS Console で誰かが設定を変更したけど、Terraform State に反映されていない...」
 
-こんな **Terraform Drift（設定のズレ）** を**リアルタイムで検知**して、即座に Slack 通知してくれる OSS が **TFDrift-Falco** です。
+こんな **Terraform Drift（設定のズレ）** を**リアルタイムで検知**して、即座に Slack 通知してくれる OSS が **driftwire** です。
 
-https://github.com/higakikeita/tfdrift-falco
+https://github.com/higakikeita/driftwire
 
 ## どんな仕組み？
 
@@ -21,7 +21,7 @@ https://github.com/higakikeita/tfdrift-falco
     ↓
 CloudTrail イベントを Falco が検知（数秒以内）
     ↓
-TFDrift-Falco が Terraform State と比較
+driftwire が Terraform State と比較
     ↓
 差分があれば Slack に即座に通知 🚨
 ```
@@ -37,7 +37,7 @@ TFDrift-Falco が Terraform State と比較
 
 ## 従来ツールとの違い
 
-| 機能 | TFDrift-Falco | terraform plan | driftctl |
+| 機能 | driftwire | terraform plan | driftctl |
 |------|--------------|----------------|----------|
 | 検知方法 | **リアルタイム** | 手動実行 | 定期スキャン |
 | レイテンシ | **数秒** | 手動 | 数分〜数時間 |
@@ -59,14 +59,14 @@ TFDrift-Falco が Terraform State と比較
 
 ## Phase 1: Falco のセットアップ（15分）
 
-TFDrift-Falco は Falco と連携して動作します。まず Falco をセットアップします。
+driftwire は Falco と連携して動作します。まず Falco をセットアップします。
 
 ### Step 1: Falco 設定ファイルを作成
 
 ```bash
 # ディレクトリ作成
-mkdir -p ~/tfdrift-setup/falco
-cd ~/tfdrift-setup/falco
+mkdir -p ~/driftwire-setup/falco
+cd ~/driftwire-setup/falco
 
 # Falco 設定ファイル作成
 cat > falco.yaml << 'EOF'
@@ -125,14 +125,14 @@ curl -v http://localhost:5060
 - `port already in use` → ポート 5060 を使用している他のプロセスを停止
 :::
 
-## Phase 2: TFDrift-Falco のセットアップ（10分）
+## Phase 2: driftwire のセットアップ（10分）
 
 ### Step 1: プロジェクトをクローン
 
 ```bash
-cd ~/tfdrift-setup
-git clone https://github.com/higakikeita/tfdrift-falco.git
-cd tfdrift-falco
+cd ~/driftwire-setup
+git clone https://github.com/higakikeita/driftwire.git
+cd driftwire
 ```
 
 ### Step 2: 設定ファイルを作成
@@ -215,13 +215,13 @@ logging:
 
 ```bash
 docker-compose up -d
-docker-compose logs -f tfdrift
+docker-compose logs -f driftwire
 ```
 
 **期待される出力**:
 
 ```
-INFO[2025-12-05 12:00:00] Starting TFDrift-Falco v0.1.0
+INFO[2025-12-05 12:00:00] Starting driftwire v0.1.0
 INFO[2025-12-05 12:00:00] Connected to Falco gRPC: localhost:5060
 INFO[2025-12-05 12:00:01] Loaded Terraform state: 42 resources
 INFO[2025-12-05 12:00:01] Drift detection started
@@ -233,7 +233,7 @@ INFO[2025-12-05 12:00:01] Drift detection started
 
 1. https://api.slack.com/apps にアクセス
 2. **Create New App** → **From scratch**
-3. App Name: `TFDrift-Falco`、Workspace を選択
+3. App Name: `driftwire`、Workspace を選択
 4. **Incoming Webhooks** → **Activate Incoming Webhooks** をオン
 5. **Add New Webhook to Workspace**
 6. 通知先チャンネル（例: `#alerts`）を選択
@@ -252,7 +252,7 @@ notifications:
 ### Step 3: 再起動
 
 ```bash
-docker-compose restart tfdrift
+docker-compose restart driftwire
 ```
 
 ## Phase 4: 動作確認（10分）
@@ -277,7 +277,7 @@ resource "aws_instance" "test" {
   instance_type = "t2.micro"
 
   tags = {
-    Name        = "tfdrift-test"
+    Name        = "driftwire-test"
     Environment = "development"
     ManagedBy   = "terraform"
   }
@@ -303,14 +303,14 @@ terraform output instance_id
 ### Step 2: AWS Console で変更
 
 1. AWS Console → EC2 → Instances
-2. `tfdrift-test` インスタンスを選択
+2. `driftwire-test` インスタンスを選択
 3. **Actions** → **Instance settings** → **Change termination protection**
 4. **Disable** を選択 → **Save**
 
-### Step 3: TFDrift-Falco のログを確認
+### Step 3: driftwire のログを確認
 
 ```bash
-docker-compose logs -f tfdrift
+docker-compose logs -f driftwire
 ```
 
 **期待される出力**:
@@ -401,7 +401,7 @@ auto_import:
 📄 Generated code: ./infrastructure/imported/aws_s3_bucket_my_unmanaged_bucket.tf
 ```
 
-詳細: [Auto-Import ガイド](https://github.com/higakikeita/tfdrift-falco/blob/main/docs/auto-import-guide.md)
+詳細: [Auto-Import ガイド](https://github.com/higakikeita/driftwire/blob/main/docs/auto-import-guide.md)
 
 ## S3 Backend の使用
 
@@ -446,7 +446,7 @@ providers:
 │  │         ECS Cluster                │ │
 │  │                                    │ │
 │  │  ┌──────────┐  ┌───────────────┐ │ │
-│  │  │  Falco   │  │ TFDrift-Falco │ │ │
+│  │  │  Falco   │  │ driftwire │ │ │
 │  │  │  Task    │→ │     Task      │ │ │
 │  │  └──────────┘  └───────────────┘ │ │
 │  └────────────────────────────────────┘ │
@@ -461,7 +461,7 @@ providers:
 
 ```json
 {
-  "family": "tfdrift-falco",
+  "family": "driftwire",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
@@ -478,8 +478,8 @@ providers:
       ]
     },
     {
-      "name": "tfdrift",
-      "image": "ghcr.io/higakikeita/tfdrift-falco:latest",
+      "name": "driftwire",
+      "image": "ghcr.io/higakikeita/driftwire:latest",
       "dependsOn": [
         {
           "containerName": "falco",
@@ -488,7 +488,7 @@ providers:
       ],
       "secrets": [
         {
-          "name": "TFDRIFT_SLACK_WEBHOOK_URL",
+          "name": "DRIFTWIRE_SLACK_WEBHOOK_URL",
           "valueFrom": "arn:aws:secretsmanager:..."
         }
       ]
@@ -527,14 +527,14 @@ providers:
 ```bash
 # Slack Webhook を Secrets Manager に保存
 aws secretsmanager create-secret \
-  --name tfdrift/slack-webhook \
+  --name driftwire/slack-webhook \
   --secret-string "https://hooks.slack.com/services/..."
 
 # ECS Task で参照
 "secrets": [
   {
-    "name": "TFDRIFT_SLACK_WEBHOOK_URL",
-    "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:tfdrift/slack-webhook"
+    "name": "DRIFTWIRE_SLACK_WEBHOOK_URL",
+    "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:driftwire/slack-webhook"
   }
 ]
 ```
@@ -676,13 +676,13 @@ auto_import:
 
 ```
 Account A (Production)
-  → TFDrift-Falco Instance A → Slack #prod-alerts
+  → driftwire Instance A → Slack #prod-alerts
 
 Account B (Staging)
-  → TFDrift-Falco Instance B → Slack #staging-alerts
+  → driftwire Instance B → Slack #staging-alerts
 
 Account C (Development)
-  → TFDrift-Falco Instance C → Slack #dev-alerts
+  → driftwire Instance C → Slack #dev-alerts
 ```
 
 各アカウントで独立して実行し、それぞれ異なる Slack チャンネルに通知。
@@ -696,7 +696,7 @@ Account C (Development)
 | コンポーネント | CPU | メモリ | ディスク |
 |---------------|-----|--------|----------|
 | Falco | 1-5% | 150MB | 100MB |
-| TFDrift-Falco | 1-3% | 100MB | 50MB |
+| driftwire | 1-3% | 100MB | 50MB |
 | **合計** | **<10%** | **250MB** | **150MB** |
 
 t3.small インスタンス（$0.0208/時間）で十分動作します。
@@ -738,14 +738,14 @@ API Token は環境変数 `TF_CLOUD_TOKEN` で設定してください。
 
 ## 既存の terraform plan との違いは？
 
-| 比較項目 | terraform plan | TFDrift-Falco |
+| 比較項目 | terraform plan | driftwire |
 |---------|---------------|--------------|
 | 実行タイミング | 手動 | **リアルタイム** |
 | 検知速度 | 数分〜数時間 | **数秒** |
 | ユーザー特定 | × | **○** |
 | 自動通知 | × | **○** |
 
-TFDrift-Falco は `terraform plan` を置き換えるものではなく、**補完する**ツールです。
+driftwire は `terraform plan` を置き換えるものではなく、**補完する**ツールです。
 
 ## CloudTrail の費用が心配です
 
@@ -763,7 +763,7 @@ CloudTrail イベント発生から通知まで、通常 **3-10 秒**です。
 
 # まとめ
 
-TFDrift-Falco を使えば：
+driftwire を使えば：
 
 ✅ **リアルタイムで Drift を検知** - 手動変更を見逃さない
 ✅ **誰が変更したか特定** - インシデント対応が迅速化
@@ -775,7 +775,7 @@ TFDrift-Falco を使えば：
 
 ## 次のステップ
 
-1. [GitHub リポジトリ](https://github.com/higakikeita/tfdrift-falco) を Star ⭐
+1. [GitHub リポジトリ](https://github.com/higakikeita/driftwire) を Star ⭐
 2. サンプル環境で試してみる
 3. Slack 通知を設定
 4. Grafana ダッシュボードを追加
@@ -783,8 +783,8 @@ TFDrift-Falco を使えば：
 
 ## リンク
 
-- **GitHub**: https://github.com/higakikeita/tfdrift-falco
-- **Auto-Import ガイド**: [docs/auto-import-guide.md](https://github.com/higakikeita/tfdrift-falco/blob/main/docs/auto-import-guide.md)
-- **Issue / 質問**: https://github.com/higakikeita/tfdrift-falco/issues
+- **GitHub**: https://github.com/higakikeita/driftwire
+- **Auto-Import ガイド**: [docs/auto-import-guide.md](https://github.com/higakikeita/driftwire/blob/main/docs/auto-import-guide.md)
+- **Issue / 質問**: https://github.com/higakikeita/driftwire/issues
 
-フィードバックや機能リクエストがあれば、ぜひ [GitHub Issues](https://github.com/higakikeita/tfdrift-falco/issues) でお知らせください！
+フィードバックや機能リクエストがあれば、ぜひ [GitHub Issues](https://github.com/higakikeita/driftwire/issues) でお知らせください！

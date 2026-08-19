@@ -1,6 +1,6 @@
-# TFDrift-Falco Documentation
+# driftwire Documentation
 
-Welcome to the official documentation for **TFDrift-Falco**, a real-time multi-cloud Terraform/OpenTofu drift detection system with an integrated React Dashboard UI.
+Welcome to the official documentation for **driftwire**, a real-time multi-cloud Terraform/OpenTofu drift detection system with an integrated React Dashboard UI.
 
 > **Version:** v0.14.0 | **Status:** Beta (pre-1.0; API has no built-in auth — run on a trusted network) | **Providers:** AWS + GCP + Azure
 >
@@ -8,9 +8,9 @@ Welcome to the official documentation for **TFDrift-Falco**, a real-time multi-c
 
 ---
 
-## What is TFDrift-Falco?
+## What is driftwire?
 
-TFDrift-Falco detects when your cloud infrastructure changes outside of Terraform by:
+driftwire detects when your cloud infrastructure changes outside of Terraform by:
 
 1. **Monitoring cloud audit logs** in real-time (AWS CloudTrail, GCP Audit Logs, Azure Activity Log)
 2. **Comparing changes against Terraform state** (S3, GCS, or local)
@@ -75,7 +75,7 @@ Access at: **http://localhost:3000**
 
 ### 📖 Why Falco? (v0.6.1+)
 
-**Explore the design philosophy behind TFDrift-Falco:**
+**Explore the design philosophy behind driftwire:**
 - Interactive "Why Falco?" page on the Vercel-hosted UI
 - Comparison of Terraform plan-based vs event-driven drift detection
 - Architecture story: from blueprint to real-time witness
@@ -179,8 +179,8 @@ SSE Stream: http://localhost:8080/api/v1/stream
 #### Quick Start (5 minutes, v0.6.0)
 ```bash
 # Clone the repository
-git clone https://github.com/higakikeita/tfdrift-falco.git
-cd tfdrift-falco
+git clone https://github.com/higakikeita/driftwire.git
+cd driftwire
 
 # Run quick start script
 ./quick-start.sh
@@ -198,8 +198,8 @@ docker compose up -d
 #### AWS Setup (Manual)
 ```bash
 # Clone the repository
-git clone https://github.com/higakikeita/tfdrift-falco.git
-cd tfdrift-falco
+git clone https://github.com/higakikeita/driftwire.git
+cd driftwire
 
 # Deploy Falco with cloudtrail plugin
 kubectl apply -f deployments/falco/
@@ -208,11 +208,11 @@ kubectl apply -f deployments/falco/
 kubectl apply -f deployments/api/
 kubectl apply -f deployments/ui/
 
-# Configure TFDrift for AWS
+# Configure driftwire for AWS
 vim config.yaml  # Configure AWS provider and S3 state
 
 # Run the detector
-./tfdrift --config config.yaml
+./driftwire --config config.yaml
 ```
 
 [Full AWS Setup Guide →](falco-setup.md)
@@ -268,7 +268,7 @@ providers:
        │
        ▼
 ┌─────────────┐
-│  TFDrift    │ 1. Fetch event
+│  driftwire    │ 1. Fetch event
 │  Detector   │ 2. Load Terraform state
 │             │ 3. Compare attributes
 └──────┬──────┘
@@ -297,8 +297,8 @@ providers:
                 └──────────────┘
                     :3000
 
-    Docs: higakikeita.github.io/tfdrift-falco/
-    Storybook: .../tfdrift-falco/storybook/
+    Docs: higakikeita.github.io/driftwire/
+    Storybook: .../driftwire/storybook/
     Vercel UI: tfdrift-falco.vercel.app
 ```
 
@@ -316,7 +316,7 @@ providers:
 
 **Problem:** Someone modifies infrastructure via cloud console or CLI, bypassing Terraform.
 
-**Solution:** TFDrift-Falco alerts you immediately with:
+**Solution:** driftwire alerts you immediately with:
 - **What changed** - Resource type and modified attributes
 - **Who made the change** - IAM user/role (AWS) or principal email (GCP)
 - **When it happened** - Precise timestamp with timezone
@@ -408,21 +408,21 @@ providers:
 
 ## Community
 
-- **GitHub**: [higakikeita/tfdrift-falco](https://github.com/higakikeita/tfdrift-falco)
-- **Issues**: [Report bugs or request features](https://github.com/higakikeita/tfdrift-falco/issues)
-- **Discussions**: [Ask questions](https://github.com/higakikeita/tfdrift-falco/discussions)
-- **Contributing**: [CONTRIBUTING.md](https://github.com/higakikeita/tfdrift-falco/blob/main/CONTRIBUTING.md)
+- **GitHub**: [higakikeita/driftwire](https://github.com/higakikeita/driftwire)
+- **Issues**: [Report bugs or request features](https://github.com/higakikeita/driftwire/issues)
+- **Discussions**: [Ask questions](https://github.com/higakikeita/driftwire/discussions)
+- **Contributing**: [CONTRIBUTING.md](https://github.com/higakikeita/driftwire/blob/main/CONTRIBUTING.md)
 
 ---
 
 ## License
 
-TFDrift-Falco is open source under the [MIT License](https://github.com/higakikeita/tfdrift-falco/blob/main/LICENSE).
+driftwire is open source under the [MIT License](https://github.com/higakikeita/driftwire/blob/main/LICENSE).
 
 ---
 
 ## Next Steps
 
-1. [Understand how TFDrift-Falco works →](how-it-works.md)
+1. [Understand how driftwire works →](how-it-works.md)
 2. [Check service coverage for your infrastructure →](services/ec2.md)
-3. [Deploy TFDrift-Falco →](quickstart.md)
+3. [Deploy driftwire →](quickstart.md)

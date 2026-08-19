@@ -4,7 +4,7 @@ package broadcaster
 import (
 	"sync"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // Event represents a broadcast event

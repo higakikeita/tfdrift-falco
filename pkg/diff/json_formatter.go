@@ -3,7 +3,7 @@ package diff
 import (
 	"encoding/json"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // FormatJSON formats the drift as JSON.

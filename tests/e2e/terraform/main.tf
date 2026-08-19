@@ -1,4 +1,4 @@
-# TFDrift-Falco E2E Test Infrastructure
+# driftwire E2E Test Infrastructure
 # This creates test resources in AWS for drift detection testing
 
 terraform {
@@ -13,7 +13,7 @@ terraform {
 
   backend "s3" {
     # Configure via backend config file or environment variables
-    # bucket = "tfdrift-test-state"
+    # bucket = "driftwire-test-state"
     # key    = "e2e/terraform.tfstate"
     # region = "us-east-1"
   }
@@ -24,7 +24,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "tfdrift-falco"
+      Project     = "driftwire"
       Environment = "test"
       ManagedBy   = "Terraform"
       Purpose     = "E2E Testing"
@@ -47,7 +47,7 @@ resource "aws_instance" "test_instance" {
   subnet_id              = aws_subnet.test_subnet.id
 
   tags = {
-    Name        = "tfdrift-test-instance"
+    Name        = "driftwire-test-instance"
     TestScenario = "drift-detection"
   }
 
@@ -65,7 +65,7 @@ resource "aws_instance" "test_instance" {
 # ==========================================
 
 resource "aws_iam_role" "test_role" {
-  name = "tfdrift-test-role"
+  name = "driftwire-test-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -89,7 +89,7 @@ resource "aws_iam_role" "test_role" {
 }
 
 resource "aws_iam_policy" "test_policy" {
-  name        = "tfdrift-test-policy"
+  name        = "driftwire-test-policy"
   description = "Test policy for drift detection"
 
   policy = jsonencode({
@@ -123,10 +123,10 @@ resource "aws_iam_role_policy_attachment" "test_attachment" {
 # ==========================================
 
 resource "aws_s3_bucket" "test_bucket" {
-  bucket = "tfdrift-test-bucket-${var.test_id}"
+  bucket = "driftwire-test-bucket-${var.test_id}"
 
   tags = {
-    Name = "tfdrift-test-bucket"
+    Name = "driftwire-test-bucket"
   }
 
   lifecycle {
@@ -174,7 +174,7 @@ resource "aws_vpc" "test_vpc" {
   enable_dns_support   = true
 
   tags = {
-    Name = "tfdrift-test-vpc"
+    Name = "driftwire-test-vpc"
   }
 }
 
@@ -185,12 +185,12 @@ resource "aws_subnet" "test_subnet" {
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "tfdrift-test-subnet"
+    Name = "driftwire-test-subnet"
   }
 }
 
 resource "aws_security_group" "test_sg" {
-  name        = "tfdrift-test-sg"
+  name        = "driftwire-test-sg"
   description = "Security group for E2E testing"
   vpc_id      = aws_vpc.test_vpc.id
 
@@ -204,7 +204,7 @@ resource "aws_security_group" "test_sg" {
   }
 
   tags = {
-    Name = "tfdrift-test-sg"
+    Name = "driftwire-test-sg"
   }
 
   lifecycle {
@@ -245,7 +245,7 @@ data "aws_availability_zones" "available" {
 resource "aws_cloudtrail" "test_trail" {
   count = var.create_cloudtrail ? 1 : 0
 
-  name                          = "tfdrift-test-trail"
+  name                          = "driftwire-test-trail"
   s3_bucket_name                = aws_s3_bucket.cloudtrail_bucket[0].id
   include_global_service_events = true
   is_multi_region_trail         = false
@@ -257,17 +257,17 @@ resource "aws_cloudtrail" "test_trail" {
   }
 
   tags = {
-    Name = "tfdrift-test-trail"
+    Name = "driftwire-test-trail"
   }
 }
 
 resource "aws_s3_bucket" "cloudtrail_bucket" {
   count = var.create_cloudtrail ? 1 : 0
 
-  bucket = "tfdrift-test-cloudtrail-${var.test_id}"
+  bucket = "driftwire-test-cloudtrail-${var.test_id}"
 
   tags = {
-    Name = "tfdrift-test-cloudtrail"
+    Name = "driftwire-test-cloudtrail"
   }
 }
 

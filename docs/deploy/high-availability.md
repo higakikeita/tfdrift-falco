@@ -1,6 +1,6 @@
-# High Availability Deployment Guide for TFDrift-Falco
+# High Availability Deployment Guide for driftwire
 
-This guide covers configuring TFDrift-Falco for high availability across multiple replicas, availability zones, and cloud regions.
+This guide covers configuring driftwire for high availability across multiple replicas, availability zones, and cloud regions.
 
 ## Table of Contents
 
@@ -46,8 +46,8 @@ Internet
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tfdrift-falco
-  namespace: tfdrift-falco
+  name: driftwire
+  namespace: driftwire
 spec:
   # Minimum replicas for HA
   replicas: 3
@@ -74,13 +74,13 @@ spec:
           whenUnsatisfiable: DoNotSchedule
           labelSelector:
             matchLabels:
-              app: tfdrift-falco
+              app: driftwire
         - maxSkew: 2
           topologyKey: kubernetes.io/hostname
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              app: tfdrift-falco
+              app: driftwire
 
       # Anti-affinity for spreading across nodes
       affinity:
@@ -91,7 +91,7 @@ spec:
                   - key: app
                     operator: In
                     values:
-                      - tfdrift-falco
+                      - driftwire
               topologyKey: kubernetes.io/hostname
 
         podAffinity:
@@ -107,8 +107,8 @@ spec:
                 topologyKey: kubernetes.io/hostname
 
       containers:
-        - name: tfdrift-falco
-          image: tfdrift-falco:latest
+        - name: driftwire
+          image: driftwire:latest
 
           # Resource guarantees
           resources:
@@ -137,13 +137,13 @@ spec:
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: tfdrift-falco-pdb
-  namespace: tfdrift-falco
+  name: driftwire-pdb
+  namespace: driftwire
 spec:
   minAvailable: 2
   selector:
     matchLabels:
-      app: tfdrift-falco
+      app: driftwire
   unhealthyPodEvictionPolicy: AlwaysAllow
 ```
 
@@ -158,8 +158,8 @@ For WebSocket connections and stateful interactions, session affinity ensures re
 apiVersion: v1
 kind: Service
 metadata:
-  name: tfdrift-falco
-  namespace: tfdrift-falco
+  name: driftwire
+  namespace: driftwire
 spec:
   type: ClusterIP
   sessionAffinity: ClientIP
@@ -172,14 +172,14 @@ spec:
       targetPort: 8080
       protocol: TCP
   selector:
-    app: tfdrift-falco
+    app: driftwire
 ```
 
 ### AWS ALB Session Stickiness
 
 ```bash
 aws elbv2 modify-target-group-attributes \
-  --target-group-arn arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/tfdrift-falco/1234567890abcdef \
+  --target-group-arn arn:aws:elasticloadbalancing:us-east-1:123456789:targetgroup/driftwire/1234567890abcdef \
   --attributes \
     Key=stickiness.enabled,Value=true \
     Key=stickiness.type,Value=lb_cookie \
@@ -192,20 +192,20 @@ aws elbv2 modify-target-group-attributes \
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: tfdrift-falco
+  name: driftwire
   annotations:
     appgw.ingress.kubernetes.io/cookie-based-affinity: "enabled"
-    appgw.ingress.kubernetes.io/cookie-based-affinity-primary: "tfdrift-session"
+    appgw.ingress.kubernetes.io/cookie-based-affinity-primary: "driftwire-session"
 spec:
   rules:
-    - host: tfdrift-falco.example.com
+    - host: driftwire.example.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: tfdrift-falco
+                name: driftwire
                 port:
                   number: 8080
 ```
@@ -213,7 +213,7 @@ spec:
 ### GCP Cloud Load Balancing Session Affinity
 
 ```bash
-gcloud compute backend-services update tfdrift-falco-backend \
+gcloud compute backend-services update driftwire-backend \
   --session-affinity CLIENT_IP \
   --global
 ```
@@ -287,11 +287,11 @@ func initiateShutdown() {
 apiVersion: v1
 kind: Pod
 metadata:
-  name: tfdrift-falco
+  name: driftwire
 spec:
   containers:
-    - name: tfdrift-falco
-      image: tfdrift-falco:latest
+    - name: driftwire
+      image: driftwire:latest
 
       # Startup probe (check if application started)
       startupProbe:
@@ -390,7 +390,7 @@ spec:
       terminationGracePeriodSeconds: 60
 
       containers:
-        - name: tfdrift-falco
+        - name: driftwire
           lifecycle:
             preStop:
               exec:
@@ -419,7 +419,7 @@ db := &sql.DB{
 
 ```bash
 aws rds modify-db-instance \
-  --db-instance-identifier tfdrift-falco-db \
+  --db-instance-identifier driftwire-db \
   --multi-az \
   --backup-retention-period 30 \
   --preferred-backup-window "02:00-03:00" \
@@ -430,8 +430,8 @@ aws rds modify-db-instance \
 
 ```bash
 az postgres server create \
-  --name tfdrift-falco-db \
-  --resource-group rg-tfdrift-falco \
+  --name driftwire-db \
+  --resource-group rg-driftwire \
   --sku-name B_Gen5_2 \
   --geo-redundant-backup Enabled \
   --backup-retention 30
@@ -440,7 +440,7 @@ az postgres server create \
 #### GCP Cloud SQL High Availability
 
 ```bash
-gcloud sql instances create tfdrift-falco-db \
+gcloud sql instances create driftwire-db \
   --database-version=POSTGRES_13 \
   --tier=db-f1-micro \
   --region=us-central1 \
@@ -454,19 +454,19 @@ gcloud sql instances create tfdrift-falco-db \
 ```bash
 # AWS RDS Read Replica
 aws rds create-db-instance-read-replica \
-  --db-instance-identifier tfdrift-falco-db-replica \
-  --source-db-instance-identifier tfdrift-falco-db \
+  --db-instance-identifier driftwire-db-replica \
+  --source-db-instance-identifier driftwire-db \
   --db-instance-class db.t3.micro
 
 # Azure PostgreSQL Read Replica
 az postgres server replica create \
-  --name tfdrift-falco-db-replica \
-  --source-server tfdrift-falco-db \
-  --resource-group rg-tfdrift-falco
+  --name driftwire-db-replica \
+  --source-server driftwire-db \
+  --resource-group rg-driftwire
 
 # GCP Cloud SQL Read Replica
-gcloud sql instances create tfdrift-falco-db-replica \
-  --master-instance-name=tfdrift-falco-db \
+gcloud sql instances create driftwire-db-replica \
+  --master-instance-name=driftwire-db \
   --tier=db-f1-micro \
   --region=us-east1
 ```
@@ -480,7 +480,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: redis-config
-  namespace: tfdrift-falco
+  namespace: driftwire
 data:
   redis.conf: |
     # Memory management
@@ -543,12 +543,12 @@ func (cm *CacheManager) CacheWithTTL(ctx context.Context, key string, value inte
 ```yaml
 # Prometheus scrape config
 scrape_configs:
-  - job_name: 'tfdrift-falco'
+  - job_name: 'driftwire'
     kubernetes_sd_configs:
       - role: pod
         namespaces:
           names:
-            - tfdrift-falco
+            - driftwire
     relabel_configs:
       - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
         action: keep
@@ -563,15 +563,15 @@ scrape_configs:
 
 ```yaml
 groups:
-  - name: tfdrift-falco
+  - name: driftwire
     interval: 30s
     rules:
       # Pod availability
       - alert: PodDownReplicaCountBelow
-        expr: kube_deployment_status_replicas_available{deployment="tfdrift-falco"} < 2
+        expr: kube_deployment_status_replicas_available{deployment="driftwire"} < 2
         for: 5m
         annotations:
-          summary: "TFDrift-Falco has fewer than 2 replicas"
+          summary: "driftwire has fewer than 2 replicas"
 
       # Response time
       - alert: HighResponseTime
@@ -612,13 +612,13 @@ Key dashboard panels:
 
 ```bash
 # Kubernetes resource backups
-kubectl get all -n tfdrift-falco -o yaml > backup-$(date +%Y%m%d).yaml
+kubectl get all -n driftwire -o yaml > backup-$(date +%Y%m%d).yaml
 
 # Database backup
-pg_dump -h <db-host> tfdrift_falco > db-backup-$(date +%Y%m%d).sql
+pg_dump -h <db-host> driftwire_falco > db-backup-$(date +%Y%m%d).sql
 
 # Helm values backup
-helm get values tfdrift-falco > helm-values-backup.yaml
+helm get values driftwire > helm-values-backup.yaml
 ```
 
 ### Recovery Procedures
@@ -628,11 +628,11 @@ helm get values tfdrift-falco > helm-values-backup.yaml
 kubectl apply -f backup-20240101.yaml
 
 # Restore database
-psql -h <db-host> tfdrift_falco < db-backup-20240101.sql
+psql -h <db-host> driftwire_falco < db-backup-20240101.sql
 
 # Redeploy with Helm
-helm install tfdrift-falco charts/tfdrift-falco \
-  --namespace tfdrift-falco \
+helm install driftwire charts/driftwire \
+  --namespace driftwire \
   --values helm-values-backup.yaml
 ```
 
@@ -640,16 +640,16 @@ helm install tfdrift-falco charts/tfdrift-falco \
 
 ```bash
 # Simulate pod failure
-kubectl delete pod <pod-name> -n tfdrift-falco
+kubectl delete pod <pod-name> -n driftwire
 
 # Verify auto-recovery
-kubectl get pods -n tfdrift-falco --watch
+kubectl get pods -n driftwire --watch
 
 # Simulate node failure
 kubectl drain <node> --ignore-daemonsets --delete-emptydir-data
 
 # Verify pod rescheduling
-kubectl get pods -n tfdrift-falco -o wide
+kubectl get pods -n driftwire -o wide
 ```
 
 ## Load Testing
@@ -672,7 +672,7 @@ export let options = {
 
 export default function() {
   // API load
-  let res = http.get('http://tfdrift-falco.example.com/api/v1/drifts');
+  let res = http.get('http://driftwire.example.com/api/v1/drifts');
 
   check(res, {
     'status is 200': (r) => r.status === 200,
@@ -680,7 +680,7 @@ export default function() {
   });
 
   // WebSocket load
-  let ws = new WebSocket('ws://tfdrift-falco.example.com/ws');
+  let ws = new WebSocket('ws://driftwire.example.com/ws');
 
   check(ws, {
     'WebSocket connected': (w) => w.readyState === WebSocket.OPEN,
@@ -701,4 +701,4 @@ k6 run load-test.js
 k6 run -u 100 -d 10m load-test.js
 ```
 
-This comprehensive guide ensures TFDrift-Falco can handle production workloads with high availability and graceful degradation.
+This comprehensive guide ensures driftwire can handle production workloads with high availability and graceful degradation.

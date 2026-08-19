@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/diff"
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/config"
+	"github.com/higakikeita/driftwire/pkg/diff"
+	"github.com/higakikeita/driftwire/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -19,7 +19,7 @@ func main() {
 		FullTimestamp: true,
 	})
 
-	fmt.Println("🧪 TFDrift-Falco Test - Drift Detection Simulation")
+	fmt.Println("🧪 driftwire Test - Drift Detection Simulation")
 	fmt.Println("=" + string(make([]byte, 60)))
 
 	// Load test configuration

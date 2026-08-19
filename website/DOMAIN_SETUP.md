@@ -1,6 +1,6 @@
 # Custom Domain Setup for Vercel
 
-This guide explains how to configure a custom domain for your TFDrift-Falco website hosted on Vercel.
+This guide explains how to configure a custom domain for your driftwire website hosted on Vercel.
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ This guide explains how to configure a custom domain for your TFDrift-Falco webs
 2. Click on **Settings** tab
 3. Navigate to **Domains** section
 4. Click **Add** button
-5. Enter your domain name (e.g., `tfdrift-falco.com` or `www.tfdrift-falco.com`)
+5. Enter your domain name (e.g., `driftwire.com` or `www.driftwire.com`)
 6. Click **Add**
 
 ## Step 2: Configure DNS Records
@@ -22,7 +22,7 @@ Vercel will provide you with DNS records that need to be configured at your doma
 
 ### Option A: Using A Records (for root domain)
 
-If you're setting up a root domain (e.g., `tfdrift-falco.com`):
+If you're setting up a root domain (e.g., `driftwire.com`):
 
 ```
 Type: A
@@ -33,7 +33,7 @@ TTL: 3600
 
 ### Option B: Using CNAME Record (for subdomain)
 
-If you're setting up a subdomain (e.g., `www.tfdrift-falco.com`):
+If you're setting up a subdomain (e.g., `www.driftwire.com`):
 
 ```
 Type: CNAME
@@ -75,7 +75,7 @@ Update your environment variables to use your custom domain:
 
 ## Step 5: Set Primary Domain (Optional)
 
-If you have multiple domains (e.g., both `tfdrift-falco.com` and `www.tfdrift-falco.com`):
+If you have multiple domains (e.g., both `driftwire.com` and `www.driftwire.com`):
 
 1. In **Domains** settings, click on the domain you want as primary
 2. Click **Set as Primary Domain**
@@ -100,7 +100,7 @@ Type: A
 Name: @
 Value: 76.76.21.21
 
-# Result: https://tfdrift-falco.com
+# Result: https://driftwire.com
 ```
 
 ### Example 2: WWW Subdomain Only
@@ -111,7 +111,7 @@ Type: CNAME
 Name: www
 Value: cname.vercel-dns.com
 
-# Result: https://www.tfdrift-falco.com
+# Result: https://www.driftwire.com
 ```
 
 ### Example 3: Both Root and WWW (Recommended)
@@ -126,7 +126,7 @@ Type: CNAME
 Name: www
 Value: cname.vercel-dns.com
 
-# Both work: https://tfdrift-falco.com and https://www.tfdrift-falco.com
+# Both work: https://driftwire.com and https://www.driftwire.com
 ```
 
 ## Troubleshooting
@@ -183,4 +183,4 @@ If you encounter issues:
 1. Check [Vercel Status](https://www.vercel-status.com/)
 2. Visit [Vercel Community](https://github.com/vercel/vercel/discussions)
 3. Contact your domain registrar for DNS-specific questions
-4. Open an issue in the [TFDrift-Falco repository](https://github.com/higakikeita/tfdrift-falco/issues)
+4. Open an issue in the [driftwire repository](https://github.com/higakikeita/driftwire/issues)

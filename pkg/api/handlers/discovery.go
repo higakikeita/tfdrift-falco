@@ -8,8 +8,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/aws"
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/aws"
+	"github.com/higakikeita/driftwire/pkg/terraform"
 )
 
 // DiscoveryHandler handles AWS resource discovery and drift detection

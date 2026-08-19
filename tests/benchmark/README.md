@@ -1,6 +1,6 @@
 # Benchmark Tests
 
-Performance benchmarks for TFDrift-Falco to measure throughput, latency, and resource usage.
+Performance benchmarks for driftwire to measure throughput, latency, and resource usage.
 
 ## Overview
 

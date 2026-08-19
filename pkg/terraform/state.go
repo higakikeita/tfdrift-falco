@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform/backend"
+	"github.com/higakikeita/driftwire/pkg/config"
+	"github.com/higakikeita/driftwire/pkg/terraform/backend"
 	log "github.com/sirupsen/logrus"
 )
 

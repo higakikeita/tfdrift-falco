@@ -13,7 +13,7 @@ variable "aws_profile" {
 variable "cluster_name" {
   description = "EKS cluster name"
   type        = string
-  default     = "tfdrift-val-eks"
+  default     = "driftwire-val-eks"
 }
 
 variable "k8s_version" {

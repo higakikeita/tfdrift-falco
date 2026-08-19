@@ -1,4 +1,4 @@
-# TFDrift-Falco 本番適用性分析
+# driftwire 本番適用性分析
 
 **日付**: 2025-12-22
 **分析対象**: ユーザーに提供可能な実用システムへの改善
@@ -200,9 +200,9 @@ func (s *Store) BuildGraph() models.CytoscapeElements {
 
 ```bash
 #!/bin/bash
-# setup-tfdrift.sh
+# setup-driftwire.sh
 
-echo "🚀 TFDrift-Falco セットアップを開始します..."
+echo "🚀 driftwire セットアップを開始します..."
 
 # 1. 前提条件チェック
 echo "📋 前提条件をチェック中..."
@@ -322,7 +322,7 @@ func (c *FalcoCollector) startCloudTrailDirectMode() error {
 export const FirstRunWizard = () => {
   return (
     <WizardContainer>
-      <Step title="ようこそ TFDrift-Falco へ">
+      <Step title="ようこそ driftwire へ">
         <p>Terraform管理リソースのドリフト検知システムです</p>
         <Button onClick={nextStep}>はじめる</Button>
       </Step>
@@ -420,7 +420,7 @@ export const SystemStatus = () => {
    - [ ] テストと検証
 
 2. **Day 3-4: セットアップ自動化**
-   - [ ] setup-tfdrift.sh作成
+   - [ ] setup-driftwire.sh作成
    - [ ] 前提条件チェック実装
    - [ ] エラーハンドリング
 

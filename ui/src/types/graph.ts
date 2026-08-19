@@ -1,5 +1,5 @@
 /**
- * TFDrift-Falco Graph Types
+ * driftwire Graph Types
  *
  * Node/edge data types and graph definition types
  */

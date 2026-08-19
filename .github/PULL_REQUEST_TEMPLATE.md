@@ -58,7 +58,7 @@ Related to #
 # Example:
 go test ./...
 # or
-./bin/tfdrift --config test-config.yaml
+./bin/driftwire --config test-config.yaml
 ```
 
 ## Documentation
@@ -114,4 +114,4 @@ Please pay special attention to:
 
 ---
 
-**Thank you for contributing to TFDrift-Falco! 🎉**
+**Thank you for contributing to driftwire! 🎉**

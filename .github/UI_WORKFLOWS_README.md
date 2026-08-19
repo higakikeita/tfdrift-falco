@@ -1,6 +1,6 @@
 # GitHub Actions CI/CD Configuration
 
-このディレクトリには、TFDrift-Falco UIの継続的インテグレーション（CI）と継続的デプロイメント（CD）のワークフローが含まれています。
+このディレクトリには、driftwire UIの継続的インテグレーション（CI）と継続的デプロイメント（CD）のワークフローが含まれています。
 
 ## 📋 ワークフロー一覧
 

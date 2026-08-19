@@ -2,10 +2,10 @@
 
 ## Introduction
 
-Shortly after launching the TFDrift-Falco project site, multiple critical vulnerabilities were discovered in React. This article covers our response to **React2Shell (CVE-2025-55182)** and three other vulnerabilities, as well as establishing a continuous security monitoring system using Snyk.
+Shortly after launching the driftwire project site, multiple critical vulnerabilities were discovered in React. This article covers our response to **React2Shell (CVE-2025-55182)** and three other vulnerabilities, as well as establishing a continuous security monitoring system using Snyk.
 
 - **Project Site**: https://tfdrift-falco.vercel.app/
-- **GitHub**: https://github.com/higakikeita/tfdrift-falco
+- **GitHub**: https://github.com/higakikeita/driftwire
 
 ## Discovered Vulnerabilities
 
@@ -447,7 +447,7 @@ permissions:
 ```
 2025-12-03: React2Shell (CVE-2025-55182) published
 2025-12-11: Additional vulnerabilities published (CVE-2025-55183/55184/67779)
-2025-12-14: TFDrift-Falco site launched (vulnerable version)
+2025-12-14: driftwire site launched (vulnerable version)
 2025-12-14: Vulnerability identified
 2025-12-14: Started Snyk integration
 2025-12-14: Updated to React 19.2.3
@@ -553,11 +553,11 @@ Security is **not a one-time task but a continuous process**. The system we buil
 - [GitHub Code Scanning](https://docs.github.com/en/code-security/code-scanning)
 
 ### Project
-- **TFDrift-Falco**: https://tfdrift-falco.vercel.app/
-- **GitHub**: https://github.com/higakikeita/tfdrift-falco
+- **driftwire**: https://tfdrift-falco.vercel.app/
+- **GitHub**: https://github.com/higakikeita/driftwire
 
 ---
 
 **Security is a continuous effort. Let's build secure software together!**
 
-Questions and feedback are welcome in [GitHub Discussions](https://github.com/higakikeita/tfdrift-falco/discussions).
+Questions and feedback are welcome in [GitHub Discussions](https://github.com/higakikeita/driftwire/discussions).

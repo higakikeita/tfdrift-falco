@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# CloudTrail Setup Script for TFDrift-Falco
+# CloudTrail Setup Script for driftwire
 # This script creates CloudTrail and S3 bucket for drift detection
 #
 
@@ -9,11 +9,11 @@ set -e
 # Configuration
 REGION="${AWS_REGION:-us-east-1}"
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-TRAIL_NAME="tfdrift-falco-trail"
-BUCKET_NAME="tfdrift-cloudtrail-${ACCOUNT_ID}-${REGION}"
+TRAIL_NAME="driftwire-trail"
+BUCKET_NAME="driftwire-cloudtrail-${ACCOUNT_ID}-${REGION}"
 
 echo "=========================================="
-echo "CloudTrail Setup for TFDrift-Falco"
+echo "CloudTrail Setup for driftwire"
 echo "=========================================="
 echo "Region: $REGION"
 echo "Account ID: $ACCOUNT_ID"

@@ -1,4 +1,4 @@
-# TFDrift-Falco UI
+# driftwire UI
 
 **Real-time Terraform Drift Detection - React Web UI**
 
@@ -10,7 +10,7 @@
 
 > 🎉 **v0.5.0+** - Storybook駆動開発、AWS公式アイコン28個統合、VPC/Subnet階層表示を実現！
 
-A modern React web UI for TFDrift-Falco, featuring interactive graph visualization with Cytoscape.js, real-time drift detection dashboard, and Storybook-driven development.
+A modern React web UI for driftwire, featuring interactive graph visualization with Cytoscape.js, real-time drift detection dashboard, and Storybook-driven development.
 
 ---
 
@@ -31,7 +31,7 @@ A modern React web UI for TFDrift-Falco, featuring interactive graph visualizati
 
 ## 🌟 概要
 
-TFDrift-Falco UIは、Terraform Drift検知を可視化するインタラクティブなWebインターフェースを提供します。
+driftwire UIは、Terraform Drift検知を可視化するインタラクティブなWebインターフェースを提供します。
 
 ### 主要機能
 
@@ -154,7 +154,7 @@ APIエンドポイント：
 
 ## 📚 Storybook駆動開発
 
-TFDrift-Falco UIは、**Storybook駆動開発 (SDD)** 手法を採用しています。
+driftwire UIは、**Storybook駆動開発 (SDD)** 手法を採用しています。
 
 ### なぜStorybookなのか？
 
@@ -575,9 +575,9 @@ MITライセンス - 詳細は [../LICENSE](../LICENSE) を参照
 
 ## 🙋 サポート
 
-- **Issues**: [GitHub Issues](https://github.com/higakikeita/tfdrift-falco/issues)
+- **Issues**: [GitHub Issues](https://github.com/higakikeita/driftwire/issues)
 - **ドキュメント**: [docs/](../docs/)
-- **Discussions**: [GitHub Discussions](https://github.com/higakikeita/tfdrift-falco/discussions)
+- **Discussions**: [GitHub Discussions](https://github.com/higakikeita/driftwire/discussions)
 
 ---
 

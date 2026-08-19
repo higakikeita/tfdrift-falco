@@ -1,6 +1,6 @@
 /**
  * Lighthouse CI Configuration
- * Performance and quality audits for the TFDrift Falco UI
+ * Performance and quality audits for the driftwire Falco UI
  */
 
 module.exports = {

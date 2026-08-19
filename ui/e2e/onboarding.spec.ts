@@ -13,7 +13,7 @@ test.describe('Welcome Modal', () => {
 
     // Note: This test might need adjustment based on actual localStorage logic
     // For now, just check the page loads
-    await expect(page).toHaveTitle(/TFDrift Falco/i);
+    await expect(page).toHaveTitle(/driftwire Falco/i);
   });
 
   test('should navigate through tutorial steps', async ({ page }) => {

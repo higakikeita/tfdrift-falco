@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
+	"github.com/higakikeita/driftwire/pkg/config"
 )
 
 // NewBackend creates a backend based on configuration

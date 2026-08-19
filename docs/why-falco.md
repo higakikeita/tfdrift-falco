@@ -99,13 +99,13 @@ Changes happen in an instant. That's why we need more than post-mortem audits. W
 
 ---
 
-## Traditional Tools vs. TFDrift-Falco
+## Traditional Tools vs. driftwire
 
 Traditional drift detection tools (like `driftctl` or `tfsec`) perform **periodic static scans** — they compare Terraform state with cloud reality on a schedule.
 
-TFDrift-Falco takes a fundamentally different approach:
+driftwire takes a fundamentally different approach:
 
-| Aspect | Traditional (Periodic Scan) | TFDrift-Falco (Event-Driven) |
+| Aspect | Traditional (Periodic Scan) | driftwire (Event-Driven) |
 |--------|---------------------------|------------------------------|
 | **Detection** | Minutes to hours | Seconds |
 | **Who changed it?** | Unknown | Full user identity (IAM, CloudTrail) |
@@ -119,7 +119,7 @@ TFDrift-Falco takes a fundamentally different approach:
 
 > Placing Falco between your infrastructure means **adding a witness to your cloud**.
 
-That's what TFDrift-Falco does — it connects the **blueprint** (Terraform) with the **witness** (Falco) to give you real-time, attributed drift detection.
+That's what driftwire does — it connects the **blueprint** (Terraform) with the **witness** (Falco) to give you real-time, attributed drift detection.
 
 ---
 

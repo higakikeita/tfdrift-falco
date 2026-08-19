@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Metrics Collection Script for TFDrift-Falco Load Testing
+# Metrics Collection Script for driftwire Load Testing
 # This script collects performance metrics during load tests
 
 set -euo pipefail
 
 # Configuration
-OUTPUT_DIR="${OUTPUT_DIR:-/tmp/tfdrift-load-test-metrics}"
+OUTPUT_DIR="${OUTPUT_DIR:-/tmp/driftwire-load-test-metrics}"
 INTERVAL="${INTERVAL:-5}"  # seconds
 DURATION="${DURATION:-3600}"  # seconds (1 hour default)
 
@@ -80,9 +80,9 @@ collect_prometheus_metrics() {
         timestamp=$(date +%s)
         echo "=== Timestamp: $timestamp ===" >> "$PROMETHEUS_METRICS_FILE"
 
-        # TFDrift-Falco metrics
+        # driftwire metrics
         if curl -s http://localhost:9090/metrics > /dev/null 2>&1; then
-            curl -s http://localhost:9090/metrics | grep -E "^tfdrift_" >> "$PROMETHEUS_METRICS_FILE" 2>/dev/null || true
+            curl -s http://localhost:9090/metrics | grep -E "^driftwire_" >> "$PROMETHEUS_METRICS_FILE" 2>/dev/null || true
         fi
 
         echo "" >> "$PROMETHEUS_METRICS_FILE"
@@ -98,11 +98,11 @@ collect_loki_queries() {
 
         # Total events in last 5 minutes
         if command -v logcli &> /dev/null; then
-            logcli query --limit=0 --since=5m '{job="tfdrift-falco"}' --stats 2>/dev/null >> "$LOKI_QUERIES_FILE" || true
+            logcli query --limit=0 --since=5m '{job="driftwire"}' --stats 2>/dev/null >> "$LOKI_QUERIES_FILE" || true
         elif command -v curl &> /dev/null; then
             # Fallback to curl
             curl -s -G "http://localhost:3100/loki/api/v1/query_range" \
-                --data-urlencode 'query={job="tfdrift-falco"}' \
+                --data-urlencode 'query={job="driftwire"}' \
                 --data-urlencode "start=$(date -u -d '5 minutes ago' +%s)000000000" \
                 --data-urlencode "end=$(date -u +%s)000000000" \
                 | jq -r '.data.result[] | .values | length' >> "$LOKI_QUERIES_FILE" 2>/dev/null || true
@@ -119,7 +119,7 @@ generate_summary() {
 
     {
         echo "======================================"
-        echo "TFDrift-Falco Load Test Summary"
+        echo "driftwire Load Test Summary"
         echo "======================================"
         echo ""
         echo "Test Duration: ${DURATION}s"
@@ -130,9 +130,9 @@ generate_summary() {
         echo "Docker Container Stats:"
         echo "----------------------"
         if [ -f "$DOCKER_STATS_FILE" ]; then
-            # Calculate averages for TFDrift container
-            echo "TFDrift-Falco Container:"
-            awk -F',' '/tfdrift/ {
+            # Calculate averages for driftwire container
+            echo "driftwire Container:"
+            awk -F',' '/driftwire/ {
                 cpu_sum += $3;
                 mem_sum += $4;
                 count++
@@ -167,15 +167,15 @@ generate_summary() {
         if [ -f "$PROMETHEUS_METRICS_FILE" ]; then
             # Extract key metrics
             echo "Event Processing:"
-            grep -E "tfdrift_events_processed_total" "$PROMETHEUS_METRICS_FILE" | tail -1 || echo "  N/A"
+            grep -E "driftwire_events_processed_total" "$PROMETHEUS_METRICS_FILE" | tail -1 || echo "  N/A"
 
             echo ""
             echo "Drift Alerts:"
-            grep -E "tfdrift_drift_alerts_total" "$PROMETHEUS_METRICS_FILE" | tail -1 || echo "  N/A"
+            grep -E "driftwire_drift_alerts_total" "$PROMETHEUS_METRICS_FILE" | tail -1 || echo "  N/A"
 
             echo ""
             echo "Processing Time (p95):"
-            grep -E "tfdrift_event_processing_duration.*0.95" "$PROMETHEUS_METRICS_FILE" | tail -1 || echo "  N/A"
+            grep -E "driftwire_event_processing_duration.*0.95" "$PROMETHEUS_METRICS_FILE" | tail -1 || echo "  N/A"
         fi
 
         echo ""

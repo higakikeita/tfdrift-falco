@@ -1,7 +1,7 @@
 /**
  * Sample Data Generator
  *
- * TFDrift-Falco因果関係グラフのデモ用サンプルデータ
+ * driftwire因果関係グラフのデモ用サンプルデータ
  */
 
 import type { CytoscapeElements } from '../types/graph';

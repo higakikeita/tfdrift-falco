@@ -1,6 +1,6 @@
 /**
  * WebSocket Client
- * Bidirectional real-time communication with TFDrift API
+ * Bidirectional real-time communication with driftwire API
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';

@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/keitahigaki/tfdrift-falco/pkg/api/models"
-	"github.com/keitahigaki/tfdrift-falco/pkg/graph"
-	"github.com/keitahigaki/tfdrift-falco/pkg/provider"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/api/models"
+	"github.com/higakikeita/driftwire/pkg/graph"
+	"github.com/higakikeita/driftwire/pkg/provider"
+	"github.com/higakikeita/driftwire/pkg/types"
 )
 
 // ===== GraphQueryHandler Tests (12 methods at 0%) =====

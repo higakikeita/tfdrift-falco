@@ -1,6 +1,6 @@
-# TFDrift-Falco API Documentation
+# driftwire API Documentation
 
-Complete API reference for TFDrift-Falco REST API, WebSocket, and SSE endpoints.
+Complete API reference for driftwire REST API, WebSocket, and SSE endpoints.
 
 ## Base URLs
 
@@ -523,7 +523,7 @@ Sent immediately after connection is established.
 {
   "type": "welcome",
   "payload": {
-    "message": "Connected to TFDrift-Falco WebSocket",
+    "message": "Connected to driftwire WebSocket",
     "client_id": "client-uuid-here"
   }
 }
@@ -598,7 +598,7 @@ Sent immediately upon successful connection.
 
 ```
 event: connected
-data: {"stream_id":"stream-uuid-here","message":"Connected to TFDrift-Falco SSE stream"}
+data: {"stream_id":"stream-uuid-here","message":"Connected to driftwire SSE stream"}
 ```
 
 #### drift

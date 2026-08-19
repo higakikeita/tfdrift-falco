@@ -14,14 +14,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/terraform"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestLive_ComparatorCorrectness(t *testing.T) {
-	region := envOr("TFDRIFT_LIVE_REGION", "ap-northeast-1")
-	sgID := envOr("TFDRIFT_LIVE_SG", "sg-056b65b187cd8ece3")
+	region := envOr("DRIFTWIRE_LIVE_REGION", "ap-northeast-1")
+	sgID := envOr("DRIFTWIRE_LIVE_SG", "sg-056b65b187cd8ece3")
 
 	ctx := context.Background()
 	dc, err := NewDiscoveryClient(ctx, region)

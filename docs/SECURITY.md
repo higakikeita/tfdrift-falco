@@ -13,11 +13,11 @@ We take security seriously and will address vulnerabilities in the following ver
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-If you discover a security vulnerability in TFDrift-Falco, please report it responsibly by following one of these methods:
+If you discover a security vulnerability in driftwire, please report it responsibly by following one of these methods:
 
 ### 1. GitHub Security Advisories (Preferred)
 
-1. Go to the [Security tab](https://github.com/higakikeita/tfdrift-falco/security)
+1. Go to the [Security tab](https://github.com/higakikeita/driftwire/security)
 2. Click "Report a vulnerability"
 3. Fill out the form with details about the vulnerability
 
@@ -47,9 +47,9 @@ Please include the following information in your report:
   - Medium: 14-30 days
   - Low: 30-90 days
 
-## Security Considerations for TFDrift-Falco
+## Security Considerations for driftwire
 
-Since TFDrift-Falco handles sensitive infrastructure data, please be aware of these security considerations:
+Since driftwire handles sensitive infrastructure data, please be aware of these security considerations:
 
 ### 1. Credentials Management
 
@@ -74,7 +74,7 @@ Since TFDrift-Falco handles sensitive infrastructure data, please be aware of th
 
 ### 4. Network Security
 
-- Run TFDrift-Falco in a **private subnet** when possible
+- Run driftwire in a **private subnet** when possible
 - Use VPC endpoints for AWS service access
 - Implement proper security group rules
 - Enable VPC Flow Logs for network monitoring
@@ -88,7 +88,7 @@ Since TFDrift-Falco handles sensitive infrastructure data, please be aware of th
 
 ## Security Best Practices
 
-When deploying TFDrift-Falco:
+When deploying driftwire:
 
 1. **Run with minimal IAM permissions**
    ```json
@@ -118,11 +118,11 @@ When deploying TFDrift-Falco:
 
 3. **Audit and logging**
    - Enable CloudTrail for all AWS accounts
-   - Monitor TFDrift-Falco's own actions
+   - Monitor driftwire's own actions
    - Set up alerts for suspicious activity
 
 4. **Regular updates**
-   - Keep TFDrift-Falco up to date
+   - Keep driftwire up to date
    - Monitor security advisories
    - Update dependencies regularly
 
@@ -135,7 +135,7 @@ When deploying TFDrift-Falco:
 - CloudTrail events are processed without additional verification
 - No rate limiting on notification channels
 
-These limitations are tracked in our [Security Roadmap](https://github.com/higakikeita/tfdrift-falco/issues).
+These limitations are tracked in our [Security Roadmap](https://github.com/higakikeita/driftwire/issues).
 
 ## Security Roadmap
 
@@ -145,7 +145,7 @@ Planned security enhancements:
 - [ ] End-to-end encryption for notification payloads
 - [ ] Signature verification for CloudTrail events
 - [ ] Rate limiting and throttling
-- [ ] Audit logging for TFDrift-Falco actions
+- [ ] Audit logging for driftwire actions
 - [ ] RBAC support for multi-tenant deployments
 
 ## Acknowledgments
@@ -167,4 +167,4 @@ We appreciate the security research community and will publicly acknowledge rese
 
 ---
 
-**Thank you for helping keep TFDrift-Falco and its users safe!**
+**Thank you for helping keep driftwire and its users safe!**

@@ -5,7 +5,7 @@
 > **Services:** 40+ AWS services
 > **Status:** Production Ready
 
-TFDrift-Falco monitors **411 CloudTrail events** across **23 AWS services**. This page provides an overview of AWS service coverage.
+driftwire monitors **411 CloudTrail events** across **23 AWS services**. This page provides an overview of AWS service coverage.
 
 For GCP service coverage, see [GCP Services →](gcp/index.md).
 
@@ -191,8 +191,8 @@ The following services are planned for v0.3.0:
 
 Need coverage for a service not listed here?
 
-1. **Check existing issues**: [GitHub Issues](https://github.com/higakikeita/tfdrift-falco/issues?q=is%3Aissue+label%3Aservice-request)
-2. **Open a new request**: [Request Service Coverage](https://github.com/higakikeita/tfdrift-falco/issues/new?template=service-request.md)
+1. **Check existing issues**: [GitHub Issues](https://github.com/higakikeita/driftwire/issues?q=is%3Aissue+label%3Aservice-request)
+2. **Open a new request**: [Request Service Coverage](https://github.com/higakikeita/driftwire/issues/new?template=service-request.md)
 3. **Contribute**: See [Contributing Guide](../CONTRIBUTING.md)
 
 ---

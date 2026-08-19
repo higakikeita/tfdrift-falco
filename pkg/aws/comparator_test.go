@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"github.com/keitahigaki/tfdrift-falco/pkg/terraform"
+	"github.com/higakikeita/driftwire/pkg/terraform"
 )
 
 func TestCompareStateWithActual_UnmanagedResources(t *testing.T) {

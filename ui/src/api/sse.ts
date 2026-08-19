@@ -1,6 +1,6 @@
 /**
  * Server-Sent Events (SSE) Client
- * Unidirectional real-time streaming from TFDrift API
+ * Unidirectional real-time streaming from driftwire API
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';

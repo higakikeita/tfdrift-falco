@@ -2,9 +2,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "tfdrift-falco.fullname" . }}
+  name: {{ include "driftwire.fullname" . }}
   labels:
-    {{- include "tfdrift-falco.labels" . | nindent 4 }}
+    {{- include "driftwire.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -33,7 +33,7 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ include "tfdrift-falco.fullname" $ }}
+                name: {{ include "driftwire.fullname" $ }}
                 port:
                   name: http
           {{- end }}

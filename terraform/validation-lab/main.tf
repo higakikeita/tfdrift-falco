@@ -1,6 +1,6 @@
-# TFDrift-Falco validation lab: bastion (SSM) + EKS + ECS Fargate.
+# driftwire validation lab: bastion (SSM) + EKS + ECS Fargate.
 # Deliberately lean and short-lived — apply, generate real CloudTrail drift,
-# verify tfdrift detection, then `terraform destroy`. Cost drivers are the EKS
+# verify driftwire detection, then `terraform destroy`. Cost drivers are the EKS
 # control plane (~$0.10/h), one small node, and Fargate tasks. No NAT/EIP
 # (public-subnet design) to stay within the shared account's EIP limit.
 

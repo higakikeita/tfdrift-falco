@@ -2,7 +2,7 @@
 
 **Title**: `feat: v0.2.0-beta - Enterprise AWS service coverage and production readiness`
 
-**URL**: https://github.com/higakikeita/tfdrift-falco/pull/new/feat/vpc-networking-support
+**URL**: https://github.com/higakikeita/driftwire/pull/new/feat/vpc-networking-support
 
 ---
 

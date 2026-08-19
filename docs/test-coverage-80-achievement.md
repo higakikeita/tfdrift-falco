@@ -1,8 +1,8 @@
-# テストカバレッジ80%達成からリファクタリングまで - TFDrift-Falcoプロジェクト
+# テストカバレッジ80%達成からリファクタリングまで - driftwireプロジェクト
 
 ## 🎯 はじめに
 
-本記事では、オープンソースプロジェクト「TFDrift-Falco」において、テストカバレッジを**36.9%から80.0%まで向上**させ、さらに**3つの主要ファイル（計1,410行）を責任ごとに分割するリファクタリング**を実施した経験を共有します。
+本記事では、オープンソースプロジェクト「driftwire」において、テストカバレッジを**36.9%から80.0%まで向上**させ、さらに**3つの主要ファイル（計1,410行）を責任ごとに分割するリファクタリング**を実施した経験を共有します。
 
 単なる数値改善ではなく、**テストによる安全性を確保しながら、保守性の高いコードベースを構築する実践的なアプローチ**を紹介します。
 
@@ -14,11 +14,11 @@
 - ✅ golangci-lintを使った静的解析とコード品質向上
 - ✅ Single Responsibility Principleに基づくファイル分割戦略
 
-### TFDrift-Falcoとは？
+### driftwireとは？
 
 Falcoのランタイムセキュリティ監視とTerraform状態管理を組み合わせた、リアルタイムなInfrastructure as Code（IaC）ドリフト検出ツールです。
 
-- **リポジトリ**: https://github.com/higakikeita/tfdrift-falco
+- **リポジトリ**: https://github.com/higakikeita/driftwire
 - **言語**: Go 1.21+
 - **総コード行数**: 約2,600行
 - **実施期間**: テストカバレッジ向上（1日）+ リファクタリング（1日）
@@ -307,7 +307,7 @@ func TestFormatSideBySide_ComplexValues(t *testing.T) {
 | pkg/detector | 52% | 91.0% | +39.0% | ⭐ |
 | pkg/falco | - | 79.3% | - | ✓ |
 | pkg/testutil | 0% | 56.1% | +56.1% | ✓ |
-| cmd/tfdrift | - | 55.6% | - | ✓ |
+| cmd/driftwire | - | 55.6% | - | ✓ |
 
 ### コード追加量
 
@@ -403,7 +403,7 @@ func (s *Subscriber) Start(ctx context.Context, eventCh chan<- types.Event) erro
 以下は意図的にテストしませんでした：
 
 ```go
-// cmd/tfdrift/main.go
+// cmd/driftwire/main.go
 func main() {
     // os.Exit()を呼ぶため、テスト困難
     if err := rootCmd.Execute(); err != nil {
@@ -524,7 +524,7 @@ var testMetrics *Metrics
 
 func init() {
     // テスト全体で1つのインスタンスを共有
-    testMetrics = NewMetrics("tfdrift_test")
+    testMetrics = NewMetrics("driftwire_test")
 }
 
 func TestNewMetrics(t *testing.T) {
@@ -773,7 +773,7 @@ package detector
 
 ## 🔗 参考リンク
 
-- **リポジトリ**: https://github.com/higakikeita/tfdrift-falco
+- **リポジトリ**: https://github.com/higakikeita/driftwire
 - **Go Testing**: https://golang.org/doc/tutorial/add-a-test
 - **Table-Driven Tests**: https://dave.cheney.net/2019/05/07/prefer-table-driven-tests
 - **testify**: https://github.com/stretchr/testify

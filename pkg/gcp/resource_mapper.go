@@ -6,7 +6,7 @@ package gcp
 // (e.g., "compute.instances.setMetadata") to their corresponding Terraform resource
 // types (e.g., "google_compute_instance").
 //
-// This enables TFDrift-Falco to correlate infrastructure changes detected in GCP
+// This enables driftwire to correlate infrastructure changes detected in GCP
 // Audit Logs with resources defined in Terraform state files.
 //
 // Supported services:
@@ -26,7 +26,7 @@ type ResourceMapper struct {
 // NewResourceMapper creates a new resource mapper with pre-initialized mappings.
 //
 // The mapper is initialized with 100+ event-to-resource mappings covering
-// all major GCP services supported by TFDrift-Falco v0.5.0+.
+// all major GCP services supported by driftwire v0.5.0+.
 //
 // Returns a ready-to-use mapper instance for event translation.
 func NewResourceMapper() *ResourceMapper {

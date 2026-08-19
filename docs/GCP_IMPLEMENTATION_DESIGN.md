@@ -9,7 +9,7 @@
 
 ## 1. Overview
 
-This document outlines the design and implementation plan for adding Google Cloud Platform (GCP) support to TFDrift-Falco.
+This document outlines the design and implementation plan for adding Google Cloud Platform (GCP) support to driftwire.
 
 ### Goals
 
@@ -63,7 +63,7 @@ Falco (gcpaudit plugin)
     ↓
 Falco gRPC Output
     ↓
-TFDrift-Falco Subscriber
+driftwire Subscriber
     ↓
 GCP Event Parser → Resource Mapper
     ↓
@@ -75,7 +75,7 @@ Notification Manager
 ### Component Diagram
 
 ```
-TFDrift-Falco
+driftwire
 ├── pkg/
 │   ├── gcp/                     # NEW: GCP-specific code
 │   │   ├── audit_parser.go      # Parse GCP Audit Log events
@@ -127,7 +127,7 @@ TFDrift-Falco
 ## 5. File Structure
 
 ```
-tfdrift-falco/
+driftwire/
 ├── pkg/
 │   ├── gcp/
 │   │   ├── audit_parser.go          # NEW: GCP Audit Log parser
@@ -239,7 +239,7 @@ func (p *AuditParser) isRelevantEvent(methodName string) bool
 }
 ```
 
-**Output (TFDrift Event)**:
+**Output (driftwire Event)**:
 ```go
 types.Event{
     Provider:     "gcp",
@@ -482,7 +482,7 @@ tests/integration/gcp_test.go
 
 - [ ] Deploy Falco with gcpaudit plugin
 - [ ] Configure GCP Audit Logs → Pub/Sub
-- [ ] Deploy TFDrift-Falco with GCP config
+- [ ] Deploy driftwire with GCP config
 - [ ] Create Terraform-managed GCP resources
 - [ ] Manually modify resource via Console
 - [ ] Verify drift detected in real-time

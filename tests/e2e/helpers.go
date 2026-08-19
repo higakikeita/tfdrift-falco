@@ -1,4 +1,4 @@
-// Package e2e provides end-to-end testing utilities for TFDrift-Falco.
+// Package e2e provides end-to-end testing utilities for driftwire.
 package e2e
 
 import (
@@ -15,9 +15,9 @@ import (
 	iamv2 "github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"github.com/keitahigaki/tfdrift-falco/pkg/config"
-	"github.com/keitahigaki/tfdrift-falco/pkg/detector"
-	"github.com/keitahigaki/tfdrift-falco/pkg/types"
+	"github.com/higakikeita/driftwire/pkg/config"
+	"github.com/higakikeita/driftwire/pkg/detector"
+	"github.com/higakikeita/driftwire/pkg/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -68,7 +68,7 @@ func NewTestContext(t *testing.T) *TestContext {
 	return ctx
 }
 
-// StartDetector starts the TFDrift detector
+// StartDetector starts the driftwire detector
 func (ctx *TestContext) StartDetector() {
 	ctx.t.Helper()
 

@@ -1,8 +1,8 @@
-# TFDrift-Falco Graph UI Architecture
+# driftwire Graph UI Architecture
 
 ## 概要
 
-TFDrift-Falcoの中核価値である**因果関係グラフ**を可視化するため、React + Cytoscape.jsベースのGraph UIを導入します。
+driftwireの中核価値である**因果関係グラフ**を可視化するため、React + Cytoscape.jsベースのGraph UIを導入します。
 
 ## なぜGraph UIが必要か
 
@@ -23,9 +23,9 @@ Grafanaは時系列データの可視化に優れていますが、**リソー�
 - その結果、なぜこのFalco Ruleが発火?
 ```
 
-### TFDrift-Falcoの本質
+### driftwireの本質
 
-TFDrift-Falcoは「Terraformの構成ドリフトが、どのリソース → どの権限 → どのRuntimeイベントにつながったか」を説明するツールです。
+driftwireは「Terraformの構成ドリフトが、どのリソース → どの権限 → どのRuntimeイベントにつながったか」を説明するツールです。
 
 これは**時系列の話ではなく、因果関係の話**です → **Graph問題**
 
@@ -40,7 +40,7 @@ TFDrift-Falcoは「Terraformの構成ドリフトが、どのリソース → �
            │                  │               │
            v                  v               v
 ┌─────────────────────────────────────────────────────────────┐
-│              TFDrift-Falco Core Engine                       │
+│              driftwire Core Engine                       │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │  Resource Relationship Builder                       │   │
 │  │  - IAM → ServiceAccount mapping                      │   │
@@ -629,7 +629,7 @@ const graphData = await fetchDriftGraph(driftId, timeRange);
 - **Tailwind CSS** - スタイリング
 
 ### バックエンド
-- **Go** - 既存のTFDrift-Falcoコア
+- **Go** - 既存のdriftwireコア
 - **Gin** - HTTPフレームワーク（Graph API）
 - **GraphQL (オプション)** - 柔軟なクエリ
 
@@ -647,7 +647,7 @@ const graphData = await fetchDriftGraph(driftId, timeRange);
 
 ## まとめ
 
-TFDrift-Falcoの真価は**「なぜそれが起きたか」を説明すること**にあります。
+driftwireの真価は**「なぜそれが起きたか」を説明すること**にあります。
 
 - **Grafana** = 「いつ・何回」（入口）
 - **Graph UI** = 「なぜ・どこを直せば」（核心）

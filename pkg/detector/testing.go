@@ -1,6 +1,6 @@
 package detector
 
-import "github.com/keitahigaki/tfdrift-falco/pkg/types"
+import "github.com/higakikeita/driftwire/pkg/types"
 
 // HandleEventForTest is a test helper that exposes handleEvent for benchmarking
 // and testing purposes. It should not be used in production code.
